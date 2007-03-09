@@ -1,7 +1,7 @@
       !Read and plot the data output from the spinning MCMC code
       
       implicit none
-      integer, parameter :: narr=1000010,npar1=15,nchs=3,nbin=50,nconf1=5,nr1=5
+      integer, parameter :: narr=1000010,npar1=15,nchs=2,nbin=50,nconf1=5,nr1=5
       integer :: n(nchs),n0,n1,n2,nd,i,j,j1,j2,k,nburn,iargc,io,pgopen,system,cindex(npar1,nchs,narr),index(npar1,nchs*narr),npar
       real :: is(narr),pldat(npar1,nchs,narr),alldat(npar1,nchs*narr),pldat0(npar1),pldat1(npar1)
       real :: states(narr),accepted(narr),sig(npar1,nchs,narr),acc(npar1,nchs,narr)
@@ -28,25 +28,22 @@
       r2d = 180.d0/pi
       r2h = 12.d0/pi
       
-      file = 0     !0-screen 1-file
+      file = 1     !0-screen 1-file
       ps = 1       !0: create bitmap, 1: create eps
       ps2pdf = 0   !Convert eps to pdf (and remove eps)
       update = 0   !Update screen plot every 10 seconds: 0-no, 1-yes
-      plchain = 0
+      plchain = 1
       plpdf = 1
-      plpdf2d = 0
-      nburn = 1
-      chpli = 10   !Plot every chpli'th member of a chain (to reduce file size and overlap between plotted chains)
-      if(file.eq.0.or.ps.eq.0) chpli = 1
+      plpdf2d = 0 !Fix pldat -> alldat
+      nburn = 1!00000
+!      chpli = 10   !Plot every chpli'th member of a chain (to reduce file size and overlap between plotted chains)
+!      if(file.eq.0.or.ps.eq.0) chpli = 1
+      chpli = 1  !Change for large n
+      
       
       write(6,*)''
       !Columns in dat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl, 6:sinlati, 7longi:, 8:phase, 9:spin, 10:kappa, 11:thJ0, 12:phJ0, 13:alpha
-!      varnames(1:14) = (/'logL','Mc','eta','tc','dl','lat','lon','phase','spin','kappa','thJo','phJo','alpha','accept'/)
       varnames(1:14) = (/'logL','Mc','eta','tc','log dl','sin lat','lon','phase','spin','kappa','sin thJo','phJo','alpha','accept'/)
-!      pgvarns(1:14)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',
-!     &                   'd\dL\u (Mpc)          ','lat. (\(2218))        ','lon.    (\(2218))     ','\(2147)\dc\u (\(2218))',
-!     &                   'spin                  ','acos(\(2136))         ','\(2134)\dJ\u (\(2218))','\(2147)\dJ\u (\(2218))',
-!     &                   '\(2127) (\(2218))     ','Acceptance'/)
       pgvarns(1:14)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',
      &                   'logd\dL\u (Mpc)       ','sin lat.              ','lon.    (rad)         ','\(2147)\dc\u (rad)    ',
      &                   'spin                  ','\(2136)               ','sin \(2134)\dJ\u      ','\(2147)\dJ\u (rad)    ',
@@ -205,12 +202,62 @@
       end do
       nt = j-1
       write(6,'(I8,A)') nt,' datapoints in combined chains'
+      if(nt.gt.10000) chpli = nint(real(nt)/10000.)  !Change the number of points plotted in chains
+      
+      
+      
+      
+      
+      !Sort all data and find the 90% confidence level for the wrapping parameters
+      shift = 0.
+      wrap = 0
+      conf = 0.90
+      write(6,'(A,F10.5)')'Confidence level: ',conf
+      write(6,'(A8,12A8,A4)')'param.','model','median','mean','vari1','vari2','abvar1','abvar2',
+     &                          'rng_c','rng1','rng2','drng','d/drng','ok?'
+      do i=2,npar
+         call rindexx(nt,alldat(i,1:nt),index(i,1:nt))
+         if(i.ne.7.and.i.ne.8.and.i.ne.12.and.i.ne.13) cycle
+         minrange = 1.e30
+         
+         do j=1,nt
+            x1 = alldat(i,index(i,j))
+            x2 = alldat(i,index(i,mod(j+nint(nt*conf)-1,nt)+1))
+            range = mod(x2 - x1 + real(20*pi),real(tpi))
+            if(range.lt.minrange) then
+               minrange = range
+               y1 = x1
+               y2 = x2
+               !write(6,'(2I6,7F10.5)')j,mod(nint(j+nt*conf),nt),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
+            end if
+            !write(6,'(2I6,7F10.5)')j,mod(nint(j+nt*conf),nt),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
+         end do
+         centre = (y1+y2)/2.
+         if(y1.gt.y2) then
+            wrap(i) = 1
+            centre = mod(centre + pi, tpi) !Then distribution peaks close to 0/2pi, shift centre by pi
+         end if
+         !write(6,'(12x,7F10.5)')y1,y2,minrange,centre
+         
+         !now, wrap around anticentre
+         shift = tpi - mod(centre + pi, tpi)
+         alldat(i,1:nt) = mod(alldat(i,1:nt)+shift,tpi)-shift
+         y1 = mod(y1+shift,tpi)-shift
+         y2 = mod(y2+shift,tpi)-shift
+         centre = mod(centre+shift,tpi)-shift
+         minrange = y2-y1
+         call rindexx(nt,alldat(i,1:nt),index(i,1:nt))  !Re-sort
+         write(6,'(A8,4x,4F10.5,I4)')varnames(i),y1,y2,minrange,centre,wrap(i)
+      end do
+      
+      
+!      goto 9999
+      
+      
       
       
       
       !Do statistics for the whole data set
-      shift = 0.
-      wrap = 0
       do c=1,nconf
          conf = confs(c)
          !      conf = 0.90
@@ -218,57 +265,74 @@
          write(6,'(A8,12A8,A4)')'param.','model','median','mean','vari1','vari2','abvar1','abvar2',
      &                          'rng_c','rng1','rng2','drng','d/drng','ok?'
          do i=2,npar
-            minrange = 1.e30
-            if(c.eq.1) call rindexx(nt,alldat(i,1:nt),index(i,1:nt))
+!            minrange = 1.e30
+!            if(1.eq.2) then
+!            if(c.eq.1) call rindexx(nt,alldat(i,1:nt),index(i,1:nt))
+!            
+!            
+! !           if((i.eq.7.or.i.eq.8.or.i.eq.12.or.i.eq.13).and.c.eq.1) then
+!               do j=1,nt
+!                  x1 = alldat(i,index(i,j))
+!                  x2 = alldat(i,index(i,mod(j+nint(nt*conf)-1,nt)+1))
+!                  range = mod(x2 - x1 + real(20*pi),real(tpi))
+!                  if(range.lt.minrange) then
+!                     minrange = range
+!                     y1 = x1
+!                     y2 = x2
+!                     !                  write(6,'(2I6,7F10.5)')j,mod(nint(j+nt*conf),nt),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
+!                  end if
+!                  !            write(6,'(2I6,7F10.5)')j,mod(nint(j+nt*conf),nt),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
+!               end do
+!               centre = (y1+y2)/2.
+!               if(c.eq.1.and.y1.gt.y2) then
+!                  wrap(i) = 1
+!                  centre = mod(centre + pi, tpi) !Then distribution peaks close to 0/2pi, shift centre by pi
+!               end if
+!               !          write(6,'(12x,7F10.5)')y1,y2,minrange,centre
+!               
+!               !now, wrap around anticentre
+!               if(c.eq.1) then
+!                  shift = tpi - mod(centre + pi, tpi)
+!                  alldat(i,1:nt) = mod(alldat(i,1:nt)+shift,tpi)-shift
+!                  y1 = mod(y1+shift,tpi)-shift
+!                  y2 = mod(y2+shift,tpi)-shift
+!                  centre = mod(centre+shift,tpi)-shift
+!                  minrange = y2-y1
+!                  call rindexx(nt,alldat(i,1:nt),index(i,1:nt))  !Re-sort
+!               end if
+!               !        write(6,'(12x,7F10.5)')y1,y2,minrange,centre
+!               
+!!            else
+!            endif
             
             
-            if((i.eq.7.or.i.eq.8.or.i.eq.12.or.i.eq.13).and.c.eq.1) then
-               do j=1,nt
-                  x1 = alldat(i,index(i,j))
-                  x2 = alldat(i,index(i,mod(j+nint(nt*conf)-1,nt)+1))
-                  range = mod(x2 - x1 + real(20*pi),real(tpi))
-                  if(range.lt.minrange) then
-                     minrange = range
-                     y1 = x1
-                     y2 = x2
-                     !                  write(6,'(2I6,7F10.5)')j,mod(nint(j+nt*conf),nt),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
-                  end if
-                  !            write(6,'(2I6,7F10.5)')j,mod(nint(j+nt*conf),nt),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
-               end do
-               centre = (y1+y2)/2.
-               if(c.eq.1.and.y1.gt.y2) then
-                  wrap(i) = 1
-                  centre = mod(centre + pi, tpi) !Then distribution peaks close to 0/2pi, shift centre by pi
-               end if
-               !          write(6,'(12x,7F10.5)')y1,y2,minrange,centre
+            
+            
+            
+            
+            
+            
+           minrange = 1.e30
+!           write(6,'(A8,4x,4F10.5,I4)')varnames(i),y1,y2,minrange,centre,wrap(i)
+           do j=1,floor(nt*(1.-conf))
+              x1 = alldat(i,index(i,j))
+              x2 = alldat(i,index(i,j+floor(nt*conf)))
+              range = abs(x2 - x1)
+              !               range = x2 - x1
+              if(range.lt.minrange) then
+                 minrange = range
+                 y1 = x1
+                 y2 = x2
+              end if
+              !            write(6,'(I6,7F10.5)')j,x1,x2,range,minrange,y1,y2,(y1+y2)/2.
+           end do
+           centre = (y1+y2)/2.
+!           write(6,'(A8,4x,4F10.5,I4)')varnames(i),y1,y2,minrange,centre,wrap(i)
+           
+           
                
-               !now, wrap around anticentre
-               if(c.eq.1) then
-                  shift = tpi - mod(centre + pi, tpi)
-                  alldat(i,1:nt) = mod(alldat(i,1:nt)+shift,tpi)-shift
-                  y1 = mod(y1+shift,tpi)-shift
-                  y2 = mod(y2+shift,tpi)-shift
-                  centre = mod(centre+shift,tpi)-shift
-                  minrange = y2-y1
-                  call rindexx(nt,alldat(i,1:nt),index(i,1:nt))  !Re-sort
-               end if
-               !        write(6,'(12x,7F10.5)')y1,y2,minrange,centre
                
-            else
-               
-               do j=1,nint(nt*(1.-conf))
-                  x1 = alldat(i,index(i,j))
-                  x2 = alldat(i,index(i,j+nint(nt*conf)))
-                  range = abs(x2 - x1)
-                  if(range.lt.minrange) then
-                     minrange = range
-                     y1 = x1
-                     y2 = x2
-                  end if
-                  !            write(6,'(I6,7F10.5)')j,x1,x2,range,minrange,y1,y2,(y1+y2)/2.
-               end do
-               centre = (y1+y2)/2.
-            end if
+ !           end if
             
             !Determine the median
             if(mod(nt,2).eq.0) median(i) = 0.5*(alldat(i,index(i,nt/2)) + alldat(i,index(i,nt/2+1)))
@@ -349,6 +413,11 @@
             ranges(1:nconf,i,1:nr) = ranges(1:nconf,i,1:nr)*real(r2d)
          end if
       end do
+      varnames(1:14) = (/'logL','Mc','eta','tc','dl','lat','lon','phase','spin','kappa','thJo','phJo','alpha','accept'/)
+      pgvarns(1:14)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',
+     &                  'd\dL\u (Mpc)          ','lat. (\(2218))        ','lon.    (\(2218))     ','\(2147)\dc\u (\(2218))',
+     &                  'spin                  ','acos(\(2136))         ','\(2134)\dJ\u (\(2218))','\(2147)\dJ\u (\(2218))',
+     &                  '\(2127) (\(2218))     ','Acceptance'/)
       if(update.eq.0) write(6,'(A)')'  Done.'
       endif
       
@@ -420,7 +489,7 @@
 !          do i=0,n1-1
 !	    call pgpoint(n(ic)/n1,is(n(ic)/n1*i+1:n(ic)/n1*(i+1)),pldat(j,ic,n(ic)/n1*i+1:n(ic)/n1*(i+1)),1)
 !	  enddo
-          do i=1,n(ic)!,chpli
+          do i=1,n(ic),chpli
             call pgpoint(1,is(i),pldat(j,ic,i),1)
 	  enddo
 	enddo
@@ -786,31 +855,24 @@
            call pgpoly(nbin+2,(/xbin1(1),xbin1(1:nbin+1)/),(/0.,ybin1(1:nbin+1)/))
            call pgsci(1)
            call pgline(nbin+1,xbin1(1:nbin+1),ybin1(1:nbin+1))
-!           call pgsci(2)
-!           call pgline(nbin+1,xbin1(1:nbin+1),ybin2(1:nbin+1))
-!           call pgsci(1)
            
            call pgline(2,(/xbin1(1),xbin1(1)/),(/0.,ybin1(1)/)) !Fix the loose ends
            call pgline(2,(/xbin1(nbin+1),xbin1(nbin+1)/),(/ybin1(nbin+1),0./))
         else
            call pgsci(15)
-           call pgpoly(nbin+3,(/xbin1(1),xbin1(1:nbin),xbin1(1)+real(2*pi),xbin1(1)+real(2*pi)/),(/0.,ybin1(1:nbin),ybin1(1),0./))
+           shift = real(2*pi)
+           if(changevar.eq.1) shift = 360.
+           call pgpoly(nbin+3,(/xbin1(1),xbin1(1:nbin),xbin1(1)+shift,xbin1(1)+shift/),(/0.,ybin1(1:nbin),ybin1(1),0./))
            call pgsci(1)
            call pgline(nbin,xbin1(1:nbin),ybin1(1:nbin))
-!           call pgsci(2)
-!           call pgline(nbin,xbin1(1:nbin),ybin2(1:nbin))
-!           call pgsci(1)
            
            call pgsls(4)
            if(file.eq.1.and.ps.eq.1) call pgslw(2)
-!           call pgline(2,(/xbin1(nbin)-real(2*pi),xbin1(1)/),(/ybin1(nbin),ybin1(1)/))  !Plot a continuous signal
-!           call pgline(nbin,xbin1-real(2*pi),ybin1)
-           call pgline(nbin+1,(/xbin1(1:nbin)-real(2*pi),xbin1(1)/),(/ybin1(1:nbin),ybin1(1)/))
-!           call pgline(nbin+1,(/xbin1(nbin),xbin1(1:nbin)+real(2*pi)/),(/ybin1(nbin),ybin1(1:nbin)/))
-           call pgline(nbin,xbin1+real(2*pi),ybin1)
+           call pgline(nbin+1,(/xbin1(1:nbin)-shift,xbin1(1)/),(/ybin1(1:nbin),ybin1(1)/))
+           call pgline(nbin,xbin1+shift,ybin1)
            call pgsls(1)
            if(file.eq.1.and.ps.eq.1) call pgslw(4)
-           call pgline(2,(/xbin1(nbin),xbin1(1)+real(2*pi)/),(/ybin1(nbin),ybin1(1)/))
+           call pgline(2,(/xbin1(nbin),xbin1(1)+shift/),(/ybin1(nbin),ybin1(1)/))
         end if
         
         if(file.eq.1.and.ps.eq.1) call pgslw(1)
