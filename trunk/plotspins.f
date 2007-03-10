@@ -1,7 +1,7 @@
       !Read and plot the data output from the spinning MCMC code
       
       implicit none
-      integer, parameter :: narr=1000010,npar1=15,nchs=2,nbin=50,nconf1=5,nr1=5
+      integer, parameter :: narr=1000010,npar1=15,nchs=2,nbin=50,nival1=5,nr1=5
       integer :: n(nchs),n0,n1,n2,nd,i,j,j1,j2,k,nburn,iargc,io,pgopen,system,cindex(npar1,nchs,narr),index(npar1,nchs*narr),npar
       real :: is(narr),pldat(npar1,nchs,narr),alldat(npar1,nchs*narr),pldat0(npar1),pldat1(npar1)
       real :: states(narr),accepted(narr),sig(npar1,nchs,narr),acc(npar1,nchs,narr)
@@ -14,13 +14,13 @@
       real :: x1,x2,y1,y2,dx,dy,xmin,xmax,ymin,ymax,ymaxs(nchs+2),z(nbin,nbin),zs(nchs,nbin,nbin),tr(6),cont(11)
       real :: coefs(100),coefs1(100)
       
-      integer :: nchains,ic,ip,i0,i1,i2,plchain,plpdf,plpdf2d,chpli
+      integer :: nchains,ic,ip,i0,i1,i2,prstat,prcorr,prival,plchain,plsigacc,plpdf,plpdf2d,chpli
       character :: header*1000
       
-      integer :: nt,nr,c,wrap(npar1),nconf,changevar
-      real :: range,minrange,ranges(nconf1,npar1,nr1),conf,confs(nconf1),centre,shift
+      integer :: p,p1,p2,nt,nr,c,c0,wrap(npar1),nival,changevar
+      real :: range,minrange,ranges(nival1,npar1,nr1),ival,ivals(nival1),centre,shift
       real :: median(npar1),mean(npar1),vari1(npar1),vari2(npar1),absvar1(npar1),absvar2(npar1)
-      real :: medians(nchs,npar1)
+      real :: medians(nchs,npar1),stats(npar1,10),corrs(npar1,npar1)
       
       
       pi = 4*datan(1.d0)
@@ -28,17 +28,22 @@
       r2d = 180.d0/pi
       r2h = 12.d0/pi
       
-      file = 1     !0-screen 1-file
-      ps = 1       !0: create bitmap, 1: create eps
-      ps2pdf = 0   !Convert eps to pdf (and remove eps)
-      update = 0   !Update screen plot every 10 seconds: 0-no, 1-yes
-      plchain = 1
-      plpdf = 1
-      plpdf2d = 0 !Fix pldat -> alldat
-      nburn = 1!00000
+      file = 1      !0-screen 1-file
+      ps = 1        !0: create bitmap, 1: create eps
+      ps2pdf = 0    !Convert eps to pdf (and remove eps)
+      update = 0    !Update screen plot every 10 seconds: 0-no, 1-yes
+      changevar = 1 !Change variables (e.g. logd->d, kappa->acos(kappa), rad->deg)
+      prstat = 1    !Print statistics
+      prcorr = 1    !Print correlations
+      prival = 0    !Print interval info
+      plchain = 0   !Plot logL and parameter chains: 0-no, 1-yes
+      plsigacc = 0  !Plot sigma and acceptance rate: 0-no, 1-yes   (0-Don't read these data, save 40% read-in time)
+      plpdf = 1     !Plot 1d posterior distributions
+      plpdf2d = 1   !Plot 2d posterior distributions
+      nburn = 1!50000
 !      chpli = 10   !Plot every chpli'th member of a chain (to reduce file size and overlap between plotted chains)
 !      if(file.eq.0.or.ps.eq.0) chpli = 1
-      chpli = 1  !Change for large n
+      chpli = 1  !Changes for large n
       
       
       write(6,*)''
@@ -49,9 +54,11 @@
      &                   'spin                  ','\(2136)               ','sin \(2134)\dJ\u      ','\(2147)\dJ\u (rad)    ',
      &                   '\(2127) (rad)         ','Acceptance'/)
       
-      nconf = 1  !Number of ranges of 'confidence levels', start with 0.90!
-      confs(1:nconf) = (/0.9/)
-!      confs(1:nconf) = (/0.9,0.95,0.997/)
+      nival = 4  !Number of ranges of 'interval levels', start with 0.90!
+!      ivals(1:nival) = (/0.9/)
+!      ivals(1:nival) = (/0.9,0.95,0.997/)
+!      ivals(1:nival) = (/0.68,0.95,0.997/)
+      ivals(1:nival) = (/0.8,0.9,0.95,0.997/)
       
       
       npar = 13
@@ -82,13 +89,19 @@
         do i=1,4
            read(10,*,end=199,err=199)bla
         end do
+        if(plsigacc.eq.1) then
         do i=1,narr
-!          read(10,*,end=199,err=199)i1,i2,dat(1:13,ic,i)
           read(10,*,end=199,err=199)i1,dat(1,ic,i),(dat(j,ic,i),sig(j,ic,i),acc(j,ic,i),j=2,npar)
 	  is(i)=real(i)
           states(i) = i1
-!          dat(14,ic,i) = real(i2)/real(i1)
         enddo
+        else !Read 40% quicker
+        do i=1,narr
+          read(10,'(I12,F21.10,2(F17.10,17x),F22.10,17x,9(F17.10,17x))',end=199,err=199)i1,dat(1:npar,ic,i)
+	  is(i)=real(i)
+          states(i) = i1
+        enddo
+        endif
   199   close(10)
         n(ic) = i-1
         write(6,'(5x,I,A12)')n(ic),'lines read.'
@@ -97,8 +110,7 @@
 !      n = 1000
       nburn = nburn+2
       if(update.ne.1) then
-         write(6,*)''
-         write(6,'(A11,I6)')'Burn-in: ',nburn
+         write(6,'(A,I6)')'Burn-in: ',nburn
          do ic=1,nchains
             if(nburn.ge.n(ic)) then
                write(6,'(A)')'  *** WARNING ***  Nburn larger than Nchain, cannot plot PDFs'
@@ -114,24 +126,17 @@
       
       
       
-      tbase = 1.e30
+      tbase = 1.d30
       do ic=1,nchains
-        tbase = floor(min(tbase,minval(dat(4,ic,1:n(ic)))))
+        tbase = dble(floor(min(tbase,minval(dat(4,ic,1:n(ic))))))
       enddo
+      write(6,'(A,F12.0)')'t0:',tbase
       
       
       if(update.eq.0) write(6,'(A,$)')'Changing some variables...   '
       !Columns in dat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl, 6:sinlati, 7longi:, 8:phase, 9:spin, 10:kappa, 11:thJ0, 12:phJ0, 13:alpha
       do ic=1,nchains
          dat(4,ic,1:n(ic)) = dat(4,ic,1:n(ic)) - tbase	!To be able to express tc as a float
-!         dat(5,ic,1:n(ic)) = dexp(dat(5,ic,1:n(ic)))     !logD -> Distance 
-!         dat(6,ic,1:n(ic)) = dasin(dat(6,ic,1:n(ic)))*r2d
-!         dat(7,ic,1:n(ic)) = dat(7,ic,1:n(ic))*r2d
-!         dat(8,ic,1:n(ic)) = dat(8,ic,1:n(ic))*r2d
-!         dat(10,ic,1:n(ic)) = dacos(dat(10,ic,1:n(ic)))*r2d
-!         dat(11,ic,1:n(ic)) = dasin(dat(11,ic,1:n(ic)))*r2d
-!         dat(12,ic,1:n(ic)) = dat(12,ic,1:n(ic))*r2d
-!         dat(13,ic,1:n(ic)) = dat(13,ic,1:n(ic))*r2d
       end do
       
       acc = acc*0.25  !Transfom back to the actual acceptance rate
@@ -159,39 +164,6 @@
 ! **********************************************************************************************************************************
       
       
-      !Do statistics per chain
-      if(1.eq.2) then
-      do c=1,1!nconf
-      conf = confs(c)
-      write(6,'(A,F10.5)')'Confidence level: ',conf
-      do i=2,npar
-      minrange = -1.e30
-      write(6,'(A8,$)')varnames(i)
-      do ic=1,nchains
-         call dindexx(n(ic)-nburn,dat(i,ic,nburn+1:n(ic)),cindex(i,ic,1:n(ic)-nburn))
-         medians(ic,i) = dat(i,ic,cindex(i,ic,(n(ic)-nburn)/2))
-         write(6,'(F12.4,$)')medians(ic,i)
-         
-         
-!         do j=nburn,(n(ic)-nburn)*(1.-conf)+nburn
-!            
-!            b1 = dat(i,ic,j)
-!            b2 = dat(i,ic,j+n(ic)*conf)
-!            range = b2 - b1
-!            print*,j,b1,b2,range,minrange
-!         end do
-         
-      end do !ic
-      write(6,*)''
-      end do !i
-      write(6,*)''
-      end do !c
-      end if
-      
-      
-      
-      
-      
       !Add chains, leave out burnin
       j = 1
       do ic=1,nchains
@@ -201,20 +173,18 @@
          end do
       end do
       nt = j-1
-      write(6,'(I8,A)') nt,' datapoints in combined chains'
+      write(6,'(A,I8)')'Datapoints in combined chains: ',nt
       if(nt.gt.10000) chpli = nint(real(nt)/10000.)  !Change the number of points plotted in chains
       
       
       
       
       
-      !Sort all data and find the 90% confidence level for the wrapping parameters
+      !Sort all data and find the 90% interval limits for the wrappable parameters
       shift = 0.
       wrap = 0
-      conf = 0.90
-      write(6,'(A,F10.5)')'Confidence level: ',conf
-      write(6,'(A8,12A8,A4)')'param.','model','median','mean','vari1','vari2','abvar1','abvar2',
-     &                          'rng_c','rng1','rng2','drng','d/drng','ok?'
+      ival = 0.90
+      write(6,'(A)')'Wrapping data...'
       do i=2,npar
          call rindexx(nt,alldat(i,1:nt),index(i,1:nt))
          if(i.ne.7.and.i.ne.8.and.i.ne.12.and.i.ne.13) cycle
@@ -222,15 +192,15 @@
          
          do j=1,nt
             x1 = alldat(i,index(i,j))
-            x2 = alldat(i,index(i,mod(j+nint(nt*conf)-1,nt)+1))
+            x2 = alldat(i,index(i,mod(j+nint(nt*ival)-1,nt)+1))
             range = mod(x2 - x1 + real(20*pi),real(tpi))
             if(range.lt.minrange) then
                minrange = range
                y1 = x1
                y2 = x2
-               !write(6,'(2I6,7F10.5)')j,mod(nint(j+nt*conf),nt),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
+               !write(6,'(2I6,7F10.5)')j,mod(nint(j+nt*ival),nt),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
             end if
-            !write(6,'(2I6,7F10.5)')j,mod(nint(j+nt*conf),nt),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
+            !write(6,'(2I6,7F10.5)')j,mod(nint(j+nt*ival),nt),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
          end do
          centre = (y1+y2)/2.
          if(y1.gt.y2) then
@@ -247,179 +217,214 @@
          centre = mod(centre+shift,tpi)-shift
          minrange = y2-y1
          call rindexx(nt,alldat(i,1:nt),index(i,1:nt))  !Re-sort
-         write(6,'(A8,4x,4F10.5,I4)')varnames(i),y1,y2,minrange,centre,wrap(i)
+!         write(6,'(A8,4x,4F10.5,I4)')varnames(i),y1,y2,minrange,centre,wrap(i)
       end do
       
       
-!      goto 9999
       
       
       
       
       
-      !Do statistics for the whole data set
-      do c=1,nconf
-         conf = confs(c)
-         !      conf = 0.90
-         write(6,'(A,F10.5)')'Confidence level: ',conf
-         write(6,'(A8,12A8,A4)')'param.','model','median','mean','vari1','vari2','abvar1','abvar2',
-     &                          'rng_c','rng1','rng2','drng','d/drng','ok?'
+      !Do statistics
+      do i=2,npar
+         !Determine the median
+         if(mod(nt,2).eq.0) median(i) = 0.5*(alldat(i,index(i,nt/2)) + alldat(i,index(i,nt/2+1)))
+         if(mod(nt,2).eq.1) median(i) = alldat(i,index(i,(nt+1)/2))
+         
+         !Mean:
+         mean(i) = sum(alldat(i,1:nt))/real(nt)
+         
+         !Variances, etc:
+         vari1(i)=0. ; vari2(i)=0. ; absvar1(i)=0. ; absvar2(i)=0.
+         do j=1,nt
+            absvar1(i) = absvar1(i) + abs(alldat(i,j) - median(i))
+            absvar2(i) = absvar2(i) + abs(alldat(i,j) - mean(i))
+            vari1(i) = vari1(i) + (alldat(i,j) - median(i))*(alldat(i,j) - median(i))
+            vari2(i) = vari2(i) + (alldat(i,j) - mean(i))*(alldat(i,j) - mean(i))
+         end do
+         
+         absvar1(i) = absvar1(i)/real(nt)
+         absvar2(i) = absvar2(i)/real(nt)
+         vari1(i)   = vari1(i)/real(nt-1)
+         vari2(i)   = vari2(i)/real(nt-1)
+         
+         !Save statistics:
+         stats(i,1) = median(i)
+         stats(i,2) = mean(i)
+         stats(i,3) = absvar1(i)
+         stats(i,4) = absvar2(i)
+         stats(i,5) = vari1(i)
+         stats(i,6) = vari2(i)
+      enddo
+      
+      
+      !Correlations:
+      do i1=2,npar
+      do i2=2,npar
+         corrs(i1,i2) = 0.
+         do j=1,nt
+            corrs(i1,i2) = corrs(i1,i2) + (alldat(i1,j) - median(i1))*(alldat(i2,j) - median(i2))
+!            corrs(i1,i2) = corrs(i1,i2) + (alldat(i1,j) - mean(i1))*(alldat(i2,j) - mean(i2)) !Hardly differs from median method
+         end do
+         corrs(i1,i2) = corrs(i1,i2) / (sqrt(vari1(i1))*sqrt(vari1(i2))*(nt-1))
+!         corrs(i1,i2) = corrs(i1,i2) / (sqrt(vari2(i1))*sqrt(vari2(i2))*(nt-1))
+      enddo
+      enddo
+      
+      
+      
+      !Determine interval ranges
+      write(6,'(A29,$)')'Determining interval levels: '
+      do c=1,nival
+         ival = ivals(c)
+         if(abs(ival-0.90).lt.0.001) c0 = c
+         write(6,'(F8.4,$)')ival
          do i=2,npar
-!            minrange = 1.e30
-!            if(1.eq.2) then
-!            if(c.eq.1) call rindexx(nt,alldat(i,1:nt),index(i,1:nt))
-!            
-!            
-! !           if((i.eq.7.or.i.eq.8.or.i.eq.12.or.i.eq.13).and.c.eq.1) then
-!               do j=1,nt
-!                  x1 = alldat(i,index(i,j))
-!                  x2 = alldat(i,index(i,mod(j+nint(nt*conf)-1,nt)+1))
-!                  range = mod(x2 - x1 + real(20*pi),real(tpi))
-!                  if(range.lt.minrange) then
-!                     minrange = range
-!                     y1 = x1
-!                     y2 = x2
-!                     !                  write(6,'(2I6,7F10.5)')j,mod(nint(j+nt*conf),nt),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
-!                  end if
-!                  !            write(6,'(2I6,7F10.5)')j,mod(nint(j+nt*conf),nt),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
-!               end do
-!               centre = (y1+y2)/2.
-!               if(c.eq.1.and.y1.gt.y2) then
-!                  wrap(i) = 1
-!                  centre = mod(centre + pi, tpi) !Then distribution peaks close to 0/2pi, shift centre by pi
-!               end if
-!               !          write(6,'(12x,7F10.5)')y1,y2,minrange,centre
-!               
-!               !now, wrap around anticentre
-!               if(c.eq.1) then
-!                  shift = tpi - mod(centre + pi, tpi)
-!                  alldat(i,1:nt) = mod(alldat(i,1:nt)+shift,tpi)-shift
-!                  y1 = mod(y1+shift,tpi)-shift
-!                  y2 = mod(y2+shift,tpi)-shift
-!                  centre = mod(centre+shift,tpi)-shift
-!                  minrange = y2-y1
-!                  call rindexx(nt,alldat(i,1:nt),index(i,1:nt))  !Re-sort
-!               end if
-!               !        write(6,'(12x,7F10.5)')y1,y2,minrange,centre
-!               
-!!            else
-!            endif
-            
-            
-            
-            
-            
-            
-            
-            
-           minrange = 1.e30
-!           write(6,'(A8,4x,4F10.5,I4)')varnames(i),y1,y2,minrange,centre,wrap(i)
-           do j=1,floor(nt*(1.-conf))
-              x1 = alldat(i,index(i,j))
-              x2 = alldat(i,index(i,j+floor(nt*conf)))
-              range = abs(x2 - x1)
-              !               range = x2 - x1
-              if(range.lt.minrange) then
-                 minrange = range
-                 y1 = x1
-                 y2 = x2
-              end if
-              !            write(6,'(I6,7F10.5)')j,x1,x2,range,minrange,y1,y2,(y1+y2)/2.
-           end do
-           centre = (y1+y2)/2.
-!           write(6,'(A8,4x,4F10.5,I4)')varnames(i),y1,y2,minrange,centre,wrap(i)
-           
-           
-               
-               
- !           end if
-            
-            !Determine the median
-            if(mod(nt,2).eq.0) median(i) = 0.5*(alldat(i,index(i,nt/2)) + alldat(i,index(i,nt/2+1)))
-            if(mod(nt,2).eq.1) median(i) = alldat(i,index(i,(nt+1)/2))
-            
-            !Mean:
-            mean(i) = sum(alldat(i,1:nt))/real(nt)
-            
-            !Variances, etc:
-            vari1(i)=0. ; vari2(i)=0. ; absvar1(i)=0. ; absvar2(i)=0.
-            do j=1,nt
-               vari1(i) = vari1(i) + (alldat(i,j) - median(i))*(alldat(i,j) - median(i))
-               vari2(i) = vari2(i) + (alldat(i,j) - mean(i))*(alldat(i,j) - mean(i))
-               absvar1(i) = absvar1(i) + abs(alldat(i,j) - median(i))
-               absvar2(i) = absvar2(i) + abs(alldat(i,j) - mean(i))
+            minrange = 1.e30
+            !write(6,'(A8,4x,4F10.5,I4)')varnames(i),y1,y2,minrange,centre,wrap(i)
+            do j=1,floor(nt*(1.-ival))
+               x1 = alldat(i,index(i,j))
+               x2 = alldat(i,index(i,j+floor(nt*ival)))
+               range = abs(x2 - x1)
+               !range = x2 - x1
+               if(range.lt.minrange) then
+                  minrange = range
+                  y1 = x1
+                  y2 = x2
+               end if
+               !write(6,'(I6,7F10.5)')j,x1,x2,range,minrange,y1,y2,(y1+y2)/2.
             end do
-            vari1(i)   = vari1(i)/real(nt-1)
-            vari2(i)   = vari2(i)/real(nt-1)
-            absvar1(i) = absvar1(i)/real(nt)
-            absvar2(i) = absvar2(i)/real(nt)
+            centre = (y1+y2)/2.
+            !write(6,'(A8,4x,4F10.5,I4)')varnames(i),y1,y2,minrange,centre,wrap(i)
             
+            !Save ranges:
             nr = 4
             ranges(c,i,1) = y1
             ranges(c,i,2) = y2
             ranges(c,i,3) = (y1+y2)/2.
             ranges(c,i,4) = y2-y1
-
-
-            
-            write(6,'(A8,12F8.4,$)')varnames(i),pldat0(i),median(i),mean(i),vari1(i),vari2(i),absvar1(i),absvar2(i),
-     &                              centre,y1,y2,minrange,abs(pldat0(i)-median(i))/minrange
-            if(pldat0(i).gt.y1.and.pldat0(i).lt.y2) then
+         end do !i
+      end do !c
+      write(6,*)''
+      
+!      goto 9999
+      
+      !Change variables
+      !Columns in alldat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl, 6:sinlati, 7longi:, 8:phase, 9:spin, 10:kappa, 11:thJ0, 12:phJ0, 13:alpha
+      if(changevar.eq.1) then
+         if(update.eq.0) write(6,'(A,$)')'Changing some variables...   '
+         do i=2,npar
+            if(i.eq.5) then
+               alldat(i,1:nt) = exp(alldat(i,1:nt))     !logD -> Distance
+               pldat0(i) = exp(pldat0(i))
+               pldat1(i) = exp(pldat1(i))
+               median(i) = exp(median(i))
+               ranges(1:nival,i,1:nr) = exp(ranges(1:nival,i,1:nr))
+               ranges(1:nival,i,4) = ranges(1:nival,i,2) - ranges(1:nival,i,1)
+            end if
+            if(i.eq.6.or.i.eq.11) then
+               alldat(i,1:nt) = asin(alldat(i,1:nt))*real(r2d)
+               pldat0(i) = asin(pldat0(i))*real(r2d)
+               pldat1(i) = asin(pldat1(i))*real(r2d)
+               median(i) = asin(median(i))*real(r2d)
+               ranges(1:nival,i,1:nr) = asin(ranges(1:nival,i,1:nr))*real(r2d)
+            end if
+            if(i.eq.10) then
+               alldat(i,1:nt) = acos(alldat(i,1:nt))*real(r2d)
+               pldat0(i) = acos(pldat0(i))*real(r2d)
+               pldat1(i) = acos(pldat1(i))*real(r2d)
+               median(i) = acos(median(i))*real(r2d)
+               ranges(1:nival,i,1:nr) = acos(ranges(1:nival,i,1:nr))*real(r2d)
+               do c=1,nival
+                  y1 = ranges(c,i,2)
+                  ranges(c,i,2) = ranges(c,i,1)  !acos is monotonously decreasing
+                  ranges(c,i,1) = y1
+               end do
+            end if
+            if(i.eq.7.or.i.eq.8.or.i.eq.12.or.i.eq.13) then
+               alldat(i,1:nt) = alldat(i,1:nt)*real(r2d)
+               pldat0(i) = pldat0(i)*real(r2d)
+               pldat1(i) = pldat1(i)*real(r2d)
+               median(i) = median(i)*real(r2d)
+               ranges(1:nival,i,1:nr) = ranges(1:nival,i,1:nr)*real(r2d)
+            end if
+         end do
+         varnames(1:14) = (/'logL','Mc','eta','tc','dl','lat','lon','phase','spin','kappa','thJo','phJo','alpha','accept'/)
+         pgvarns(1:14)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',
+     &                      'd\dL\u (Mpc)          ','lat. (\(2218))        ','lon.    (\(2218))     ','\(2147)\dc\u (\(2218))',
+     &                      'spin                  ','acos(\(2136))         ','\(2134)\dJ\u (\(2218))','\(2147)\dJ\u (\(2218))',
+     &                      '\(2127) (\(2218))     ','Acceptance'/)
+         if(update.eq.0) write(6,'(A)')'  Done.'
+      end if !if(changevar.eq.1)
+      
+      
+      
+      !Print statistics
+      if(prstat.eq.1) then
+         c = 1
+         write(6,'(A8,12A10,A4)')'param.','model','median','mean','vari1','vari2','abvar1','abvar2',
+     &                           'rng_c','rng1','rng2','drng','d/drng','ok?'
+         do i=2,npar
+            write(6,'(A8,12F10.4,$)')varnames(i),pldat0(i),median(i),mean(i),vari1(i),vari2(i),absvar1(i),absvar2(i),
+     &                           ranges(c,i,3),ranges(c,i,1),ranges(c,i,2),ranges(c,i,4),abs(pldat0(i)-median(i))/ranges(c,i,4)
+            if(pldat0(i).gt.ranges(c,i,1).and.pldat0(i).lt.ranges(c,i,2)) then
                write(6,'(A4)')'y '
             else
                write(6,'(A4)')'*N*'
             end if
-            
-         end do !i
+         end do
          write(6,*)''
-      end do !c
+      end if
+      
+      !Print correlations:
+      if(prcorr.eq.1) then
+         write(6,'(A8,$)')''; do i=2,npar; write(6,'(A7,$)')trim(varnames(i)); enddo; write(6,*)''
+         do i1=2,npar
+            write(6,'(A8,$)')trim(varnames(i1))
+            do i2=2,npar
+               !if(i1.ne.i2) then 
+               !if(i1.ne.i2.and.abs(corrs(i1,i2).gt.0.5)) then 
+               if(abs(corrs(i1,i2)).gt.0.5) then 
+                  write(6,'(F7.2,$)')corrs(i1,i2)
+               else
+                  write(6,'(A7,$)')''
+               end if
+            enddo
+            write(6,'(A)')'   '//varnames(i1)
+         enddo
+         write(6,*)''
+      end if
       
       
+      !Print intervals:
+      if(prival.eq.1) then
+         write(6,'(A20,A8,$)')'Interval:',''
+         do c=1,nival
+            write(6,'(F20.4,A8,$)')ivals(c),''
+         end do
+         write(6,*)''
+         
+         write(6,'(A8,2x,2A9,$)')'param.','model','median'
+         do c=1,nival
+            write(6,'(2x,2A9,A8,$)')'rng1','rng2','in rnge'
+         end do
+         write(6,*)''
+         do i=2,npar
+            write(6,'(A8,2x,2F9.4,$)')varnames(i),pldat0(i),median(i)
+            do c=1,nival
+               write(6,'(2x,2F9.4,F6.3,$)')ranges(c,i,1),ranges(c,i,2),2*abs(pldat0(i)-median(i))/ranges(c,i,4)
+               if(pldat0(i).gt.ranges(c,i,1).and.pldat0(i).lt.ranges(c,i,2)) then
+                  write(6,'(A2,$)')'y'
+               else
+                  write(6,'(A2,$)')'N'
+               end if
+            end do
+            write(6,*)''
+         end do
+      end if
       
-      !Change variables
-      if(update.eq.0) write(6,'(A,$)')'Changing some variables...   '
-      !Columns in alldat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl, 6:sinlati, 7longi:, 8:phase, 9:spin, 10:kappa, 11:thJ0, 12:phJ0, 13:alpha
       
-      changevar = 0
-      if(1.eq.1) then
-      changevar = 1
-      do i=2,npar
-         if(i.eq.5) then
-            alldat(i,1:nt) = exp(alldat(i,1:nt))     !logD -> Distance
-            pldat0(i) = exp(pldat0(i))
-            pldat1(i) = exp(pldat1(i))
-            median(i) = exp(median(i))
-            ranges(1:nconf,i,1:nr) = exp(ranges(1:nconf,i,1:nr))
-         end if
-         if(i.eq.6.or.i.eq.11) then
-            alldat(i,1:nt) = asin(alldat(i,1:nt))*real(r2d)
-            pldat0(i) = asin(pldat0(i))*real(r2d)
-            pldat1(i) = asin(pldat1(i))*real(r2d)
-            median(i) = asin(median(i))*real(r2d)
-            ranges(1:nconf,i,1:nr) = asin(ranges(1:nconf,i,1:nr))*real(r2d)
-         end if
-         if(i.eq.10) then
-            alldat(i,1:nt) = acos(alldat(i,1:nt))*real(r2d)
-            pldat0(i) = acos(pldat0(i))*real(r2d)
-            pldat1(i) = acos(pldat1(i))*real(r2d)
-            median(i) = acos(median(i))*real(r2d)
-            ranges(1:nconf,i,1:nr) = acos(ranges(1:nconf,i,1:nr))*real(r2d)
-         end if
-         if(i.eq.7.or.i.eq.8.or.i.eq.12.or.i.eq.13) then
-            alldat(i,1:nt) = alldat(i,1:nt)*real(r2d)
-            pldat0(i) = pldat0(i)*real(r2d)
-            pldat1(i) = pldat1(i)*real(r2d)
-            median(i) = median(i)*real(r2d)
-            ranges(1:nconf,i,1:nr) = ranges(1:nconf,i,1:nr)*real(r2d)
-         end if
-      end do
-      varnames(1:14) = (/'logL','Mc','eta','tc','dl','lat','lon','phase','spin','kappa','thJo','phJo','alpha','accept'/)
-      pgvarns(1:14)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',
-     &                  'd\dL\u (Mpc)          ','lat. (\(2218))        ','lon.    (\(2218))     ','\(2147)\dc\u (\(2218))',
-     &                  'spin                  ','acos(\(2136))         ','\(2134)\dJ\u (\(2218))','\(2147)\dJ\u (\(2218))',
-     &                  '\(2127) (\(2218))     ','Acceptance'/)
-      if(update.eq.0) write(6,'(A)')'  Done.'
-      endif
       
       
       
@@ -546,56 +551,41 @@
       call pgscr(3,0.,0.5,0.)
 
       ic = 1
-!      do j=1,12
       do j=2,npar
-	call pgpage
-        xmax = -1.e30
-	ymin =  1.e30
-        ymax = -1.e30
-        do ic=1,nchains
-          xmin = 0.
-	  xmax = max(xmax,real(n(ic)))
-	  dx = abs(xmax-xmin)*0.01
-	  ymin = min(ymin,minval(pldat(j,ic,1:n(ic))))
-	  ymax = max(ymax,maxval(pldat(j,ic,1:n(ic))))
-	  dy = abs(ymax-ymin)*0.05
-	enddo
-        
-	call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
-        call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-        
-	do ic=1,nchains
-          call pgsci(mod(ic*2,10))
-!	  n1 = 1
-!	  if(n(ic).gt.1000000) n1 = n(ic)/1000000
-!          do i=0,n1-1
-!	    call pgpoint(n(ic)/n1,is(n(ic)/n1*i+1:n(ic)/n1*(i+1)),pldat(j,ic,n(ic)/n1*i+1:n(ic)/n1*(i+1)),1)
-!	  enddo
-          do i=1,n(ic),chpli
-            call pgpoint(1,is(i),pldat(j,ic,i),1)
-	  enddo
-	enddo
-        
-        call pgsci(3)
-        call pgsls(2)
-        call pgline(2,(/-1.e20,1.e20/),(/pldat0(j),pldat0(j)/))
-        call pgsci(6)
-        call pgline(2,(/real(nburn),real(nburn)/),(/-1.e20,1.e20/))
-        call pgsci(3)
-        call pgsls(4)
-        call pgline(2,(/-1.e20,1.e20/),(/pldat1(j),pldat1(j)/))
-        call pgsci(1)
-        call pgsls(1)
-!        call pgmtxt('L',2.2,0.5,0.5,pgvarns(j))
-        call pgmtxt('T',1.,0.5,0.5,'Chain: '//pgvarns(j))
-!        call pgmtxt('B',3.,0.5,0.5,'i')
+         call pgpage
+         xmin = 0.
+         xmax = real(nt)
+         dx = abs(xmax-xmin)*0.01
+         ymin = minval(alldat(j,1:nt))
+         ymax = maxval(alldat(j,1:nt))
+         dy = abs(ymax-ymin)*0.05
+         
+         
+         call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
+         call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
+         
+         do i=1,nt,chpli
+            call pgpoint(1,is(i),alldat(j,i),1)
+         enddo
+         
+         call pgsci(3)
+         call pgsls(2)
+         call pgline(2,(/-1.e20,1.e20/),(/pldat0(j),pldat0(j)/))
+         call pgsci(6)
+         call pgline(2,(/real(nburn),real(nburn)/),(/-1.e20,1.e20/))
+         call pgsci(3)
+         call pgsls(4)
+         call pgline(2,(/-1.e20,1.e20/),(/pldat1(j),pldat1(j)/))
+         call pgsci(1)
+         call pgsls(1)
+         call pgmtxt('T',1.,0.5,0.5,'Chain: '//pgvarns(j))
       enddo
       call pgend
       if(ps2pdf.eq.1) then
          i = system('eps2pdf chains.eps >& /dev/null')
          i = system('rm -f chains.eps')
       endif
-      endif !if(1.eq.2) then
+      endif !if(plchains.eq.1)
       
       
       
@@ -606,7 +596,7 @@
       
       
       !Plot sigma values ('jump size')
-      if(plchain.eq.1) then
+      if(plsigacc.eq.1) then
       if(update.eq.0) write(6,'(A)')'Plotting sigma...'
       if(file.eq.0) then
         io = pgopen('16/xs')
@@ -629,7 +619,6 @@
       call pgscr(3,0.,0.5,0.)
       
       ic = 1
-!      do j=1,12
       do j=2,npar
 	call pgpage
         xmax = -1.e30
@@ -649,12 +638,6 @@
         
 	do ic=1,nchains
           call pgsci(mod(ic*2,10))
-!	  n1 = 1
-!	  if(n(ic).gt.1000000) n1 = n(ic)/1000000
-!          do i=0,n1-1
-!	    call pgpoint(n(ic)/n1,is(n(ic)/n1*i+1:n(ic)/n1*(i+1)),sig(j,ic,n(ic)/n1*i+1:n(ic)/n1*(i+1)),1)
-!	  enddo
-!          call pgpoint(n(ic),is(1:n(ic)),sig(j,ic,1:n(ic)),1)
           do i=1,n(ic),chpli
             call pgpoint(1,is(i),sig(j,ic,i),1)
 	  enddo
@@ -666,14 +649,13 @@
         call pgsci(1)
         call pgsls(1)
         call pgmtxt('T',1.,0.5,0.5,'Sigma: '//pgvarns(j))
-!        call pgmtxt('B',3.,0.5,0.5,'i')
       enddo
       call pgend
       if(ps2pdf.eq.1) then
          i = system('eps2pdf sigs.eps >& /dev/null')
          i = system('rm -f sigs.eps')
       endif
-      endif !if(1.eq.2) then
+      endif !if(plsigacc.eq.1)
       
       
       
@@ -684,7 +666,7 @@
       
       
       !Plot acceptance rates
-      if(plchain.eq.1) then
+      if(plsigacc.eq.1) then
       if(update.eq.0) write(6,'(A)')'Plotting acceptance rates...'
       if(file.eq.0) then
         io = pgopen('17/xs')
@@ -707,7 +689,6 @@
       call pgscr(3,0.,0.5,0.)
       
       ic = 1
-!      do j=1,12
       do j=2,npar
 	call pgpage
         xmax = -1.e30
@@ -745,11 +726,6 @@
         
 	do ic=1,nchains
           call pgsci(mod(ic*2,10))
-!	  n1 = 1
-!	  if(n(ic).gt.1000000) n1 = n(ic)/1000000
-!          do i=0,n1-1
-!	    call pgpoint(n(ic)/n1,is(n(ic)/n1*i+1:n(ic)/n1*(i+1)),acc(j,ic,n(ic)/n1*i+1:n(ic)/n1*(i+1)),1)
-!	  enddo
           do i=1,n(ic),chpli
             call pgpoint(1,is(i),acc(j,ic,i),1)
 	  enddo
@@ -760,7 +736,7 @@
          i = system('eps2pdf accs.eps >& /dev/null')
          i = system('rm -f accs.eps')
       endif
-      endif !if(1.eq.2) then
+      endif !if(plsigacc.eq.1)
       
       
       
@@ -795,7 +771,6 @@
       call pgscr(3,0.,0.5,0.)
       
       ic=1
-!      if(update.ne.1) write(6,'(7A10)')'var','y_max','x_max','median','model','diff','diff (%)'
       do j=2,npar
 	call pgpage
         
@@ -832,22 +807,15 @@
         
         xmin = xmin - 0.1*dx
         xmax = xmax + 0.1*dx
-!        ymin = minval(ybin1(1:nbin))
+        ymin = 0.
         ymax = maxval(ybin1(1:nbin))*1.1
         
 	if(file.eq.1) call pgsch(1.5)
-	call pgswin(xmin,xmax,0.,ymax)
-!        call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)  !After the plotting
-!        write(6,'(4F7.4)')xmin,xmax,ymin,ymax
-        
+	call pgswin(xmin,xmax,ymin,ymax)
         
         
         call pgsci(1)
         if(file.eq.1.and.ps.eq.1) call pgslw(4)
-        
-        
-        
-!        call verthist(nbin,xbin1,ybin1)
         
         
         if(wrap(j).eq.0) then
@@ -881,9 +849,6 @@
         call pgsci(6)
 	if(file.eq.1) call pgsch(1.5)
         
-!	if(update.ne.1) write(6,'(A10,5F10.4,F9.4,A1)')trim(varnames(j)),ysum(i1),xbin1(i1),median(j),pldat0(j),
-!     &    abs(median(j)-pldat0(j)),abs(median(j)-pldat0(j))/pldat0(j)*100,'%'
-!	print*,''
         if(j.eq.2.or.j.eq.3.or.j.eq.5.or.j.eq.9) then
           write(str,'(A,F7.3,A7,F7.3,A11,F6.2,A1)')trim(pgvarns(j))//':  mdl: ',pldat0(j),'  med: ',median(j),
      &                                          '  \(2030): ',abs(median(j)-pldat0(j))/pldat0(j)*100,'%'
@@ -907,7 +872,6 @@
         call pgsls(1)
         if(file.eq.1.and.ps.eq.1) call pgslw(1)
 	if(file.eq.1) call pgsch(1.2)
-!        call pgmtxt('B',3.,0.5,0.5,varnames(j))
         call pgmtxt('T',1.,0.5,0.5,trim(str))
 	if(file.eq.1) call pgsch(1.5)
         call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
@@ -919,17 +883,17 @@
 
       
       !Make sure gv auto-reloads on change
-!      if(file.eq.1.and.ps.eq.1) then
+      if(file.eq.1.and.ps.eq.1) then
 !        call pgpage
 !        call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-!      endif
+      endif
 
       call pgend
       if(ps2pdf.eq.1) then
          i = system('eps2pdf pdfs.eps >& /dev/null')
          i = system('rm -f pdfs.eps')
       endif
-      endif !if(plpdf.eq.1) then
+      endif !if(plpdf.eq.1)
       
       
       
@@ -964,117 +928,91 @@
       if(file.eq.1.and.ps.eq.1) call pgscf(2)
       call pgscr(3,0.,0.5,0.)
       
-        !Columns in dat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:dl, 6:sinlati, 7longi:, 8:phase, 9:spin, 10:kappa, 11:thJ0, 12:phJ0, 13:alpha
+      !Columns in dat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:dl, 6:sinlati, 7longi:, 8:phase, 9:spin, 10:kappa, 11:thJ0, 12:phJ0, 13:alpha
       do j1=2,12
       do j2=j1+1,npar
-!      do j1=2,13
-!      do j2=2,13
-!      if(j1.eq.j2.cycle)
-	xmin =  1.e30
-        xmax = -1.e30
-	ymin =  1.e30
-        ymax = -1.e30
-	do ic=1,nchains
-	  xmin = min(xmin,minval(pldat(j1,ic,1:n(ic))))
-	  xmax = max(xmax,maxval(pldat(j1,ic,1:n(ic))))
-	  ymin = min(ymin,minval(pldat(j2,ic,1:n(ic))))
-	  ymax = max(ymax,maxval(pldat(j2,ic,1:n(ic))))
-	enddo
-        dx = xmax - xmin
-        dy = ymax - ymin
-        
-        xmin = xmin - 0.05*dx
-        xmax = xmax + 0.05*dx
-        ymin = ymin - 0.05*dy
-        ymax = ymax + 0.05*dy
-        
-        ysum = 0.
-        yconv = 1.
-	do ic=1,nchains
-          x(ic,1:n(ic)) = pldat(j1,ic,1:n(ic))
-          y(ic,1:n(ic)) = pldat(j2,ic,1:n(ic))
-          
-	  call bindata2d(n(ic)-nburn,x(ic,nburn+1:n(ic)),y(ic,nburn+1:n(ic)),0,nbin,nbin,xmin,xmax,ymin,ymax,z,tr)
-          zs(ic,:,:) = z(:,:)
-        enddo
-        
-        z = 0.
-        do ic=1,nchains
-          z(:,:) = z(:,:) + zs(ic,:,:)
-        end do
-!        write(6,'(A5,6F8.4)')'tr: ',tr
-!        write(6,'(A5,2F10.1)')'Z: ',maxval(z),sum(z)
-        z = z/(maxval(z)+1.e-30)
-!        do i=1,10
-!          write(6,'(10F8.4)')z(i,1:10)
-!        enddo
-        
-        
-        
-        
-	if(file.eq.1) call pgsch(1.5)
-        call pgsvp(0.12,0.95,0.12,0.95)
-	call pgswin(xmin,xmax,ymin,ymax)
-!        call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)  !Do this after pggray
-!        write(6,'(4F7.4)')xmin,xmax,ymin,ymax
-        
-        
-        
-        
-        call pggray(z,nbin,nbin,1,nbin,1,nbin,1.,0.,tr)
-        
-        do i=1,11
-          cont(i) = 0.01 + 2*real(i-1)/10.
-        enddo
-        call pgsls(1)
-        call pgslw(6)
-        call pgsci(0)
-        call pgcont(z,nbin,nbin,1,nbin,1,nbin,cont,4,tr)
-        call pgslw(2)
-        call pgsci(1)
-        call pgcont(z,nbin,nbin,1,nbin,1,nbin,cont,4,tr)
-        
-        
-        
-        if(file.eq.1.and.ps.eq.1) call pgslw(2)
-        call pgsci(6)
-        call pgsls(2)
-        call pgline(2,(/pldat0(j1),pldat0(j1)/),(/-1.e20,1.e20/))
-        call pgline(2,(/-1.e20,1.e20/),(/pldat0(j2),pldat0(j2)/))
-        call pgsls(4)
-        call pgline(2,(/pldat1(j1),pldat1(j1)/),(/-1.e20,1.e20/))
-        call pgline(2,(/-1.e20,1.e20/),(/pldat1(j2),pldat1(j2)/))
-        call pgsci(1)
-        call pgsls(2)
-        call pgline(2,(/median(j1),median(j1)/),(/-1.e20,1.e20/))
-        call pgline(2,(/-1.e20,1.e20/),(/median(j2),median(j2)/))
-        call pgsls(1)
-        if(file.eq.1.and.ps.eq.1) call pgslw(1)
-	if(file.eq.1) call pgsch(1.5)
-        
-        
-        call pgsls(1)
-        call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-        
-        call pgmtxt('B',2.5,0.5,0.5,pgvarns(j1))
-        call pgmtxt('L',2.5,0.5,0.5,pgvarns(j2))
-        
-        call pgpage
-      enddo !j2
-      enddo !j1
+         p1 = j1
+         p2 = j2
+         if(j1.eq.6.and.j2.eq.7) then
+            p1 = j2
+            p2 = j1
+         end if
+         xmin = minval(alldat(p1,1:nt))
+         xmax = maxval(alldat(p1,1:nt))
+         ymin = minval(alldat(p2,1:nt))
+         ymax = maxval(alldat(p2,1:nt))
+         dx = xmax - xmin
+         dy = ymax - ymin
+         
+         xmin = xmin - 0.05*dx
+         xmax = xmax + 0.05*dx
+         ymin = ymin - 0.05*dy
+         ymax = ymax + 0.05*dy
+         
+         x(1,1:nt) = alldat(p1,1:nt)
+         y(1,1:nt) = alldat(p2,1:nt)
+         
+         call bindata2d(nt,x(1,1:nt),y(1,1:nt),0,nbin,nbin,xmin,xmax,ymin,ymax,z,tr)
+         
+         
+         z = z/(maxval(z)+1.e-30)
+         
+         if(file.eq.1) call pgsch(1.5)
+         call pgsvp(0.12,0.95,0.12,0.95)
+         call pgswin(xmin,xmax,ymin,ymax)
+         
+         call pggray(z,nbin,nbin,1,nbin,1,nbin,1.,0.,tr)
+         
+         do i=1,11
+            cont(i) = 0.01 + 2*real(i-1)/10.
+         enddo
+         call pgsls(1)
+         call pgslw(6)
+         call pgsci(0)
+         call pgcont(z,nbin,nbin,1,nbin,1,nbin,cont,4,tr)
+         call pgslw(2)
+         call pgsci(1)
+         call pgcont(z,nbin,nbin,1,nbin,1,nbin,cont,4,tr)
+         
+         if(file.eq.1.and.ps.eq.1) call pgslw(2)
+         call pgsci(6)
+         call pgsls(2)
+         !True value
+         call pgline(2,(/pldat0(p1),pldat0(p1)/),(/-1.e20,1.e20/))
+         call pgline(2,(/-1.e20,1.e20/),(/pldat0(p2),pldat0(p2)/))
+         call pgsls(4)
+         !Starting value
+         call pgline(2,(/pldat1(p1),pldat1(p1)/),(/-1.e20,1.e20/))
+         call pgline(2,(/-1.e20,1.e20/),(/pldat1(p2),pldat1(p2)/))
+         call pgsci(1)
+         !Interval ranges
+         call pgline(2,(/ranges(c0,p1,1),ranges(c0,p1,1)/),(/-1.e20,1.e20/))
+         call pgline(2,(/ranges(c0,p1,2),ranges(c0,p1,2)/),(/-1.e20,1.e20/))
+         call pgline(2,(/-1.e20,1.e20/),(/ranges(c0,p2,1),ranges(c0,p2,1)/))
+         call pgline(2,(/-1.e20,1.e20/),(/ranges(c0,p2,2),ranges(c0,p2,2)/))
+         call pgsls(2)
+         !Median
+         call pgline(2,(/median(p1),median(p1)/),(/-1.e20,1.e20/))
+         call pgline(2,(/-1.e20,1.e20/),(/median(p2),median(p2)/))
+         call pgsls(1)
+         if(file.eq.1.and.ps.eq.1) call pgslw(1)
+         if(file.eq.1) call pgsch(1.5)
+         
+         
+         call pgsls(1)
+         call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
+         
+         call pgmtxt('B',2.5,0.5,0.5,pgvarns(p1))
+         call pgmtxt('L',2.5,0.5,0.5,pgvarns(p2))
+         
+         call pgpage
+      enddo !p2
+      enddo !p1
         
         
       
-      
-      
-!      !Make sure gv auto-reloads on change
-!      if(1.eq.2.and.file.eq.1.and.ps.eq.1) then
-!        call pgpage
-!        call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-!      endif
-
       call pgend
-      endif !if(plpdf.eq.1) then
+      endif !if(plpdf.eq.1)
       
       
       
