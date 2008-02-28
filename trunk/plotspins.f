@@ -52,7 +52,7 @@ program plotspins
   r2d = real(180.d0/pi)
   r2h = real(12.d0/pi)
   
-  thin = 10       !If >1, 'thin' the output; read every thin-th line 
+  thin = 1          !If >1, 'thin' the output; read every thin-th line 
   nburn = 4e6       !If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number, but it becomes the line number later on in the code.  Nburn > Nchain sets Nburn = 0.1*Nchain
   file = 0          !Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf
   colour = 1        !Use colours: 0-no (grey scales), 1-yes
@@ -68,20 +68,20 @@ program plotspins
   prstat = 0        !Print statistics: 0-no, 1-yes
   prcorr = 0        !Print correlations: 0-no, 1-yes
   prival = 0        !Print interval info: 0-no, 1-yes
-  prconv = 0        !Print convergence information for multiple chains to screen and chains plot: 0-no, 1-yes: 1 summary line, 2-yes: medians, stdevs etc too.
+  prconv = 1        !Print convergence information for multiple chains to screen and chains plot: 0-no, 1-yes: 1 summary line, 2-yes: medians, stdevs etc too.
   savestats = 0     !Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
   savepdf = 0       !Save the binned data for 1d and/or 2d pdfs (depending on plpdf1d and plpdf2d).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
   
   plot = 1          !0: plot nothing at all, 1: plot the items selected below
   combinechainplots = 0  !Combine logL, chain, sigma and acc plots into one multipage file
   pllogl = 1        !Plot log L chains: 0-no, 1-yes
-  plchain = 0       !Plot parameter chains: 0-no, 1-yes
-  pljump = 0        !Plot actual jump sizes
+  plchain = 1       !Plot parameter chains: 0-no, 1-yes
+  pljump = 1        !Plot actual jump sizes
   logjump = 1       !Plot the log of the jump size: 0-no, 1-yes
-  rdsigacc = 0      !Read sigma and acceptance rate: 0-no, 1-yes   (0-Don't read these data, save 40% read-in time).  0 can give problems with large scale, or high-temperature chains
+  rdsigacc = 1      !Read sigma and acceptance rate: 0-no, 1-yes   (0-Don't read these data, save 40% read-in time).  0 can give problems with large scale, or high-temperature chains
   plsigacc = 0      !Plot sigma and acceptance rate: 0-no, 1-yes   (Sets rdsigacc to 1)
   logsig = 1        !Plot the log of sigma: 0-no, 1-yes
-  plpdf1d = 0       !Plot 1d posterior distributions: 0-no, 1-yes. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.
+  plpdf1d = 1       !Plot 1d posterior distributions: 0-no, 1-yes. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.
   plpdf2d = 0       !Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).
   placorr = 0e4     !Plot autocorrelations: 0-no, >0-yes: plot placorr steps
   plotsky = 0       !Plot 2d pdf with stars, implies plpdf2d=1
@@ -1073,7 +1073,7 @@ program plotspins
   
   
   !Test: get mean and stdev for log(L)
-  if(1.eq.1) then
+  if(1.eq.2) then
      write(*,*)''
      
      nn = minval(ntot(1:nchains0))/2
