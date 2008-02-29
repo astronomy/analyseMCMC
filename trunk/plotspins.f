@@ -2,7 +2,7 @@
 
 program plotspins
   implicit none
-  integer, parameter :: narr1=2.01e5+2,npar0=13,npar1=15,nchs=10,nbin=100,nbin2dx=60,nbin2dy=40,nival1=5,nr1=5,nstat1=10,ndets=3
+  integer, parameter :: narr1=2.01e5+2,npar0=13,npar1=15,nchs=10,nbin=50,nbin2dx=60,nbin2dy=40,nival1=5,nr1=5,nstat1=10,ndets=3
   integer :: n(nchs),ntot(nchs),n0,n1,n2,nd,i,j,j1,j2,k,nburn(nchs),nburn0(nchs),iargc,io,pgopen,system,thin,narr,maxdots,reverseread
   integer :: niter(nchs),seed(nchs),ndet(nchs)
   integer :: index(npar1,nchs*narr1),index1(nchs*narr1)
@@ -52,7 +52,7 @@ program plotspins
   r2d = real(180.d0/pi)
   r2h = real(12.d0/pi)
   
-  thin = 1          !If >1, 'thin' the output; read every thin-th line 
+  thin = 10         !If >1, 'thin' the output; read every thin-th line 
   nburn = 4e6       !If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number, but it becomes the line number later on in the code.  Nburn > Nchain sets Nburn = 0.1*Nchain
   file = 0          !Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf
   colour = 1        !Use colours: 0-no (grey scales), 1-yes
@@ -62,13 +62,14 @@ program plotspins
   mergechains = 1   !Merge the data from different files into one chain: 0-no (treat separately), 1-yes
   wrapdata = 1      !Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
   changevar = 1     !Change variables (e.g. logd->d, kappa->theta_SL, rad->deg)
+  
   prprogress = 1    !Print general messages about the progress of the program: 0-no, 1-yes
-  prruninfo = 0     !Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-yes.
-  prinitial = 0     !Print true values, starting values and their difference
+  prruninfo = 1     !Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files
+  prinitial = 1     !Print true values, starting values and their difference
   prstat = 0        !Print statistics: 0-no, 1-yes
   prcorr = 0        !Print correlations: 0-no, 1-yes
   prival = 0        !Print interval info: 0-no, 1-yes
-  prconv = 1        !Print convergence information for multiple chains to screen and chains plot: 0-no, 1-yes: 1 summary line, 2-yes: medians, stdevs etc too.
+  prconv = 1        !Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-medians, stdevs, etc. too.
   savestats = 0     !Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
   savepdf = 0       !Save the binned data for 1d and/or 2d pdfs (depending on plpdf1d and plpdf2d).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
   
@@ -82,7 +83,7 @@ program plotspins
   plsigacc = 0      !Plot sigma and acceptance rate: 0-no, 1-yes   (Sets rdsigacc to 1)
   logsig = 1        !Plot the log of sigma: 0-no, 1-yes
   plpdf1d = 1       !Plot 1d posterior distributions: 0-no, 1-yes. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.
-  plpdf2d = 0       !Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).
+  plpdf2d = 1       !Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).
   placorr = 0e4     !Plot autocorrelations: 0-no, >0-yes: plot placorr steps
   plotsky = 0       !Plot 2d pdf with stars, implies plpdf2d=1
   plmovie = 0       !Plot movie frames
@@ -184,7 +185,7 @@ program plotspins
   if(plmovie.eq.1) update = 0
   if(plotsky.ge.1) plpdf2d = 1
   
-  colournames(1:15) = (/'white','red','dark green','dark blue','very light blue','light purple','yellow','orange','light green','light blue-green','light blue','dark purple','red-purple','dark grey','light grey'/)
+  colournames(1:15) = (/'white','red','dark green','dark blue','cyan','magenta','yellow','orange','light green','brown','dark red','purple','red-purple','dark grey','light grey'/)
   if(file.ge.2) colournames(1) = 'black'
 
   
@@ -217,24 +218,24 @@ program plotspins
   
   
   
-  
+  write(*,*)
   j=0
   do i=1,nival
      if(abs(ivals(i)-ival0).lt.1.e-6) j=1
   end do
   if(j.eq.0) write(*,'(A44,F5.3,A35)')' !!! Error:  standard probability interval (',ival0,') is not present in array ivals !!!'
-
+  
   npar = 13
   nchains0 = iargc()
   if(nchains0.lt.1) then
-     write(*,'(A)')'  Syntax: plotspins <file1> [file2] ...'
-     goto 9999
+     write(*,'(A,/)')'  Syntax: plotspins <file1> [file2] ...'
+     stop
   end if
   if(prprogress.ge.1) then
      if(nchains0.gt.nchs) then
         write(*,'(A,I3,A)')' Too many chains, please increase nchs. Only',nchs,' files will be read.'
      else
-        write(*,'(I5,A)')nchains0,' input files will be read.'
+        write(*,'(I5,A)')nchains0,' input files will be read: '
      end if
   end if
   nchains0 = min(nchains0,nchs)
@@ -264,29 +265,24 @@ program plotspins
      
      open(unit=10,form='formatted',status='old',file=trim(infile),iostat=io)
      if(io.ne.0) then
-        write(*,'(A)')'File not found: '//trim(infile)//'. Quitting the programme.'
+        write(*,'(A)')'File not found: '//trim(infile)//', aborting.'
         goto 9999
      end if
      rewind(10)
      
      !if(update.ne.1) 
-     if(prprogress.ge.1) write(*,'(A19,I3,A,I3,A)')'Reading input file',ic,':  '//trim(infile)//'...    Using colour',colours(mod(ic-1,ncolours)+1),': '//trim(colournames(colours(mod(ic-1,ncolours)+1)))
+     if(prprogress.ge.1) write(*,'(A,I3,A,I3,A20,$)')'  Reading file',ic,':  '//trim(infile)//'    Using colour',colours(mod(ic-1,ncolours)+1),': '//colournames(colours(mod(ic-1,ncolours)+1))
      
      !NEW columns in dat: 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
      !Read the headers
      read(10,*,end=199,err=199)bla
-     if(prruninfo.eq.1.and.update.eq.0) write(*,'(6x,A10,A12,A8,A22,A8)')'niter','nburn','seed','null likelihood','ndet'
      read(10,'(I10,I12,I8,F22.10,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
-     if(prruninfo.eq.1.and.update.eq.0) write(*,'(6x,I10,I12,I8,F22.10,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
      read(10,*,end=199,err=199)bla
-     !if(prprogress.ge.1.and.update.eq.0) write(*,*)''
-     if(prruninfo.eq.1.and.update.eq.0) write(*,'(A16,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
      do i=1,ndet(ic)
         read(10,'(A16,F18.8,4F12.2,F22.8,F17.7,3I14)') detname(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
         if(detname(ic,i).eq.'         Hanford') detnr(ic,i) = 1
         if(detname(ic,i).eq.'      Livingston') detnr(ic,i) = 2
         if(detname(ic,i).eq.'            Pisa') detnr(ic,i) = 3
-        if(prruninfo.eq.1.and.update.eq.0) write(*,'(A16,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detname(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
      end do
      !if(prprogress.ge.1.and.update.eq.0) write(*,*)''
      read(10,*,end=199,err=199)bla
@@ -333,10 +329,26 @@ program plotspins
      i = i-1
 199  close(10)
      ntot(ic) = i-1
-     n(ic) = ntot(ic) !n can be changed in rearranging chains, ntot can't
-     !write(*,'(A,I,A,ES7.1,A,I,A,ES7.1,A,I4)')' Total number of lines: ',n(ic),'  (',real(n(ic)),'),   last iteration: ',nint(is(ic,n(ic))),'  (',is(ic,n(ic)),'),   thinning in file: ',nint(is(ic,n(ic))/real(n(ic)*max(thin,1)))
-     if(prruninfo.eq.1.and.update.eq.0) write(*,*)''
+     n(ic) = ntot(ic) !n can be changed in rearranging chains, ntot won't be changed
+     write(*,'(3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',nburn(ic),'.'
   end do !do ic = 1,nchains0
+  
+  
+  if(prruninfo.gt.0.and.update.eq.0) then
+     write(*,*)
+     do ic = 1,nchains0
+        if((prruninfo.eq.1.and.ic.eq.1) .or. prruninfo.eq.2) then
+           write(*,'(6x,A10,A12,A8,A22,A8)')'niter','nburn','seed','null likelihood','ndet'
+           write(*,'(6x,I10,I12,I8,F22.10,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
+           write(*,'(A16,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
+           
+           do i=1,ndet(ic)
+              write(*,'(A16,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detname(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+           end do
+           write(*,*)''
+        end if
+     end do !do ic = 1,nchains0
+  end if  !prruninfo.gt.0
   
   narr = maxval(n(1:nchains0))
   
@@ -360,7 +372,8 @@ program plotspins
      do i=1,ntot(ic)
         if(is(ic,i).le.isburn(ic)) nburn(ic) = i   !isburn is the true iteration number at which the burnin ends
      end do
-     if(prruninfo.eq.1.and.update.ne.1) write(*,'(I3,A,I9,A,ES7.1,A,I9,A,ES7.1,A,I4,A,ES9.1,A,ES9.1,A,I4)')ic,':  Lines:',n(ic),'  (',real(n(ic)),'),  Iterations:',nint(is(ic,n(ic))),'  (',is(ic,n(ic)),'),  thinning in file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),'     Burn-in:  line:',real(nburn(ic)),', iteration:',isburn(ic),', total thinning:',nint(isburn(ic)/real(nburn(ic)))
+     if(prruninfo.eq.1.and.update.ne.1.and.ic.eq.1) write(*,'(A5,I3,A,I9,A,ES7.1,A,I9,A,ES7.1,A,I4,A,ES9.1,A,ES9.1,A,I4)')'File',ic,':  Lines:',n(ic),'  (',real(n(ic)),'),  Iterations:',nint(is(ic,n(ic))),'  (',is(ic,n(ic)),'),  thinning in file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),'     Burn-in:  line:',real(nburn(ic)),', iteration:',isburn(ic),', total thinning:',nint(isburn(ic)/real(nburn(ic)))
+     if(prruninfo.eq.2.and.update.ne.1) write(*,'(I3,A,I9,A,ES7.1,A,I9,A,ES7.1,A,I4,A,ES9.1,A,ES9.1,A,I4)')ic,':  Lines:',n(ic),'  (',real(n(ic)),'),  Iterations:',nint(is(ic,n(ic))),'  (',is(ic,n(ic)),'),  thinning in file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),'     Burn-in:  line:',real(nburn(ic)),', iteration:',isburn(ic),', total thinning:',nint(isburn(ic)/real(nburn(ic)))
   end do
   avgtotthin = sum(isburn(1:nchains0))/real(sum(nburn(1:nchains0))) !Total thinning, averaged over all chains
   
@@ -382,7 +395,7 @@ program plotspins
   if(par2.eq.0) par2 = npar
   
   acc = acc*0.25  !Transfom back to the actual acceptance rate
-    
+  
   !*** Put plot data in pldat, startval and jumps
   allocate(pldat(nchains,npar,narr))
   jumps = 0.
@@ -484,7 +497,8 @@ program plotspins
   do ic=1,nchains
      ival = ival0
      index = 0
-     if(prprogress.ge.1.and.wrapdata.ge.1) write(*,'(A)')' Wrapping data...'
+     if(prprogress.ge.1.and.mergechains.eq.0) write(*,'(A,I2.2,A,$)')' Ch',ic,' '
+     if(prprogress.ge.1.and.ic.eq.i.and.wrapdata.ge.1) write(*,'(A,$)')' Wrap data. '
      do p=par1,par2
         if(wrapdata.eq.0 .or. (p.ne.8.and.p.ne.10.and.p.ne.12.and.p.ne.13)) then
            call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))
@@ -573,7 +587,8 @@ program plotspins
 
 
      !Do statistics
-     if(prprogress.ge.1) write(*,'(A)')' Calculating statistics...'
+     !if(prprogress.ge.1) write(*,'(A)')' Calculating: statistics...'
+     if(prprogress.ge.1.and.ic.eq.1) write(*,'(A,$)')' Calc: stats, '
      do p=par1,par2
         !Determine the median
         if(mod(n(ic),2).eq.0) medians(p) = 0.5*(alldat(ic,p,index(p,n(ic)/2)) + alldat(ic,p,index(p,n(ic)/2+1)))
@@ -611,7 +626,8 @@ program plotspins
      
      !Correlations:
      if(prcorr.gt.0.or.savestats.gt.0) then
-        write(*,'(A)')' Calculating correlations...'
+        !write(*,'(A)')' Calculating correlations...   '
+        write(*,'(A,$)')' corrs, '
         do p1=par1,par2
            !do p2=par1,par2
            do p2=p1,par2
@@ -629,7 +645,8 @@ program plotspins
      
      !Autocorrelations:
      if(placorr.gt.0) then
-        write(*,'(A)')' Calculating autocorrelations...'
+        !write(*,'(A)')' Calculating autocorrelations...'
+        write(*,'(A,$)')' autocorrs, '
         j1 = placorr/100 !Step size to get 100 autocorrelations per var
         do p=par1,par2
            acorrs(ic,p,:) = 0.
@@ -652,14 +669,15 @@ program plotspins
      
      
      !Determine interval ranges
-     if(prprogress.ge.1) write(*,'(A29,$)')' Determining interval levels: '
+     !if(prprogress.ge.1) write(*,'(A29,$)')' Determining interval levels: '
+     if(prprogress.ge.1.and.ic.eq.1) write(*,'(A,$)')' prob.ivals: '
      c0 = 0
      do c=1,nival
         ival = ivals(c)
         if(abs(ival-ival0).lt.0.001) c0 = c
         if(c.ne.c0.and.prival.eq.0.and.savestats.eq.0) cycle
         
-        if(prprogress.ge.1) write(*,'(F8.4,$)')ival
+        if(prprogress.ge.1.and.ic.eq.1) write(*,'(F6.3,$)')ival
         do p=par1,par2
            minrange = 1.e30
            !write(*,'(A8,4x,4F10.5,I4)')varnames(p),y1,y2,minrange,centre,wrap(ic,p)
@@ -688,8 +706,8 @@ program plotspins
            if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
         end do !p
      end do !c
-     if(prprogress.ge.1) write(*,'(A34,F8.4)')'.  Standard probability interval: ',ival0
-     
+     !if(prprogress.ge.1) write(*,'(A34,F8.4)')'.  Standard probability interval: ',ival0
+     !if(prprogress.ge.1) write(*,'(A,F8.4,$)')', default ival:',ival0
      
      
      
@@ -697,12 +715,13 @@ program plotspins
      !Change variables
      !Columns in alldat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:longi, 7:sinlati:, 8:phase, 9:spin,   10:kappa,     11:sinthJ0, 12:phiJ0, 13:alpha
      if(changevar.eq.1) then
-        if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' Changing some variables...   '
+        !if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' Changing some variables...   '
+        if(prprogress.ge.1.and.ic.eq.i.and.update.eq.0) write(*,'(A,$)')'.  Change vars. '
         do p=par1,par2
            if(p.eq.5) then
               alldat(ic,p,1:n(ic)) = exp(alldat(ic,p,1:n(ic)))     !logD -> Distance
               !startval(ic,p,1:2) = exp(startval(ic,p,1:2))
-              startval(1:nchains0,p,1:2) = exp(startval(1:nchains0,p,1:2))
+              if(ic.eq.1) startval(1:nchains0,p,1:2) = exp(startval(1:nchains0,p,1:2))
               stats(ic,p,1:nstat) = exp(stats(ic,p,1:nstat))
               ranges(ic,1:nival,p,1:nr) = exp(ranges(ic,1:nival,p,1:nr))
               !print*,ic,p
@@ -710,14 +729,14 @@ program plotspins
            if(p.eq.9.or.p.eq.11) then
               alldat(ic,p,1:n(ic)) = asin(alldat(ic,p,1:n(ic)))*r2d
               !startval(ic,p,1:2) = asin(startval(ic,p,1:2))*r2d
-              startval(1:nchains0,p,1:2) = asin(startval(1:nchains0,p,1:2))*r2d
+              if(ic.eq.1) startval(1:nchains0,p,1:2) = asin(startval(1:nchains0,p,1:2))*r2d
               stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*r2d
               ranges(ic,1:nival,p,1:nr) = asin(ranges(ic,1:nival,p,1:nr))*r2d
            end if
            if(p.eq.7) then
               alldat(ic,p,1:n(ic)) = acos(alldat(ic,p,1:n(ic)))*r2d
               !startval(ic,p,1:2) = acos(startval(ic,p,1:2))*r2d
-              startval(1:nchains0,p,1:2) = acos(startval(1:nchains0,p,1:2))*r2d
+              if(ic.eq.1) startval(1:nchains0,p,1:2) = acos(startval(1:nchains0,p,1:2))*r2d
               stats(ic,p,1:nstat) = acos(stats(ic,p,1:nstat))*r2d
               ranges(ic,1:nival,p,1:nr) = acos(ranges(ic,1:nival,p,1:nr))*r2d
               do c=1,nival
@@ -729,14 +748,14 @@ program plotspins
            if(p.eq.8) then
               alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*r2h
               !startval(ic,p,1:2) = startval(ic,p,1:2)*r2h
-              startval(1:nchains0,p,1:2) = startval(1:nchains0,p,1:2)*r2h
+              if(ic.eq.1) startval(1:nchains0,p,1:2) = startval(1:nchains0,p,1:2)*r2h
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*r2h
               ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*r2h
            end if
            if(p.eq.10.or.p.eq.12.or.p.eq.13) then
               alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*r2d
               !startval(ic,p,1:2) = startval(ic,p,1:2)*r2d
-              startval(1:nchains0,p,1:2) = startval(1:nchains0,p,1:2)*r2d
+              if(ic.eq.1) startval(1:nchains0,p,1:2) = startval(1:nchains0,p,1:2)*r2d
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*r2d
               ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*r2d
            end if
@@ -758,7 +777,7 @@ program plotspins
         !Units only
         pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
 
-        if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')'  Done.'
+        !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')'  Done.'
      end if !if(changevar.eq.1)
      
      
@@ -774,8 +793,13 @@ program plotspins
         !write(*,'(I3,2F10.4)')p,ranges(ic,nival+1,p,1),ranges(ic,nival+1,p,2)
      end do
      
-     
-     
+     if(prprogress.ge.1) then
+        if(ic.eq.nchains) then
+           write(*,*)
+        else
+           write(*,'(A,$)')'  '
+        end if
+     end if
      
      
      !**********************************************************************************************
@@ -1007,20 +1031,20 @@ program plotspins
      if(prconv.ge.1) then
         write(*,*)''
         if(prconv.ge.2) write(*,'(A,I7,A)')'  Convergence criterion for',nn,' parameters:'
-        write(*,'(18x,20A12)')varnames(par1:min(par2,13))
+        write(*,'(18x,20A11)')varnames(par1:min(par2,13))
         if(prconv.ge.2) then
            write(*,'(A)')'  Means:'
            do ic=1,nchains0
-              write(*,'(I16,A2,20F12.6)')ic,': ',chmean(ic,par1:min(par2,13))
+              write(*,'(I16,A2,20F11.6)')ic,': ',chmean(ic,par1:min(par2,13))
            end do
-           write(*,'(A18,20F12.6)')'           Total: ',totmean(par1:min(par2,13))
+           write(*,'(A18,20F11.6)')'           Total: ',totmean(par1:min(par2,13))
            
            write(*,*)''
            write(*,'(A)')'  Variances:'
         end if !if(prconv.ge.2)
      end if !if(prconv.ge.1)
      do ic=1,nchains0
-        !write(*,'(I16,A2,20F12.6)')ic,': ',chvar1(ic,par1:min(par2,13))
+        !write(*,'(I16,A2,20F11.6)')ic,': ',chvar1(ic,par1:min(par2,13))
         !if(chvar1(ic,2).lt.0.5*chvar(2).and.chvar1(ic,3).lt.0.5*chvar(3).and.chvar1(ic,2).lt.0.5*chvar(2).and.chvar1(ic,2).lt.0.5*chvar(2)) then
         lowvar = 0
         highvar = 0
@@ -1051,21 +1075,21 @@ program plotspins
               ch = ' '
               if(lowvar(p).eq.1) ch = '*'
               if(highvar(p).eq.1) ch = '#'
-              write(*,'(F11.7,A1,$)')chvar1(ic,p),ch
+              write(*,'(F10.7,A1,$)')chvar1(ic,p),ch
            end do
            write(*,*)''
         end if !if(prconv.ge.2)
      end do
      if(prconv.ge.2) then
-        write(*,'(A9,9x,20F12.7)')'  Total: ',chvar(par1:min(par2,13))
+        write(*,'(A9,9x,20F11.7)')'  Total: ',chvar(par1:min(par2,13))
         
         write(*,*)''
         write(*,'(A)')'  Variances:'
-        write(*,'(A18,20ES12.4)')'   Within chains: ',chvar(par1:min(par2,13))
-        write(*,'(A18,20ES12.4)')'  Between chains: ',totvar(par1:min(par2,13))
+        write(*,'(A18,20ES11.4)')'   Within chains: ',chvar(par1:min(par2,13))
+        write(*,'(A18,20ES11.4)')'  Between chains: ',totvar(par1:min(par2,13))
      end if
      
-     if(prconv.ge.1) write(*,'(A18,20F12.6)')'     Convergence: ',rhat(par1:min(par2,13)),sum(rhat(par1:min(par2,13)))/dble(min(par2,13)-par1+1)
+     if(prconv.ge.1) write(*,'(A18,20F11.6)')'     Convergence: ',rhat(par1:min(par2,13)),sum(rhat(par1:min(par2,13)))/dble(min(par2,13)-par1+1)
      !write(*,*)''
   end if
   
@@ -1082,7 +1106,7 @@ program plotspins
      nn = abs(nlogl2-nlogl1)
      
      write(*,'(A,I7,A)')'  Convergence criterion for',nn,' parameters:'
-     write(*,'(16x,16x,20A12)')'Mean','Stddev','M-S','M+S','KS d','KS prob'
+     write(*,'(16x,16x,20A11)')'Mean','Stddev','M-S','M+S','KS d','KS prob'
      
      do ic=1,nchains0
         nn1 = ntot(ic)/20
@@ -1118,7 +1142,7 @@ program plotspins
            chvar(p) = chvar(p)/dble(nchains0*(nn-1))
            totvar(p) = totvar(p)/dble(nchains0-1)
            
-           !write(*,'(I16,2I8,20F12.6)')ic,nlogl1,nlogl2,chmean(ic,1),chvar1(ic,1),chmean(ic,1)-chvar1(ic,1),chmean(ic,1)+chvar1(ic,1),ksd,ksprob
+           !write(*,'(I16,2I8,20F11.6)')ic,nlogl1,nlogl2,chmean(ic,1),chvar1(ic,1),chmean(ic,1)-chvar1(ic,1),chmean(ic,1)+chvar1(ic,1),ksd,ksprob
            !!print*,ic,p,nlogl1,nlogl2,nn
            ksdat1(1:nn) = dble(dat(p,ic,nlogl1:nlogl2))
            ksn1   = nn
@@ -1129,7 +1153,7 @@ program plotspins
            ksdat2(1:nn) = dble(dat(p,ic,nlogl1:nlogl2))
            ksn2 = ksn1
            
-           write(*,'(I16,2I8,20F12.6)')ic,nlogl1,nlogl2,chmean(ic,1),chvar1(ic,1),chmean(ic,1)-chvar1(ic,1),chmean(ic,1)+chvar1(ic,1),ksd,ksprob,dlog10(ksprob+1.d-100)
+           write(*,'(I16,2I8,20F11.6)')ic,nlogl1,nlogl2,chmean(ic,1),chvar1(ic,1),chmean(ic,1)-chvar1(ic,1),chmean(ic,1)+chvar1(ic,1),ksd,ksprob,dlog10(ksprob+1.d-100)
         end do
         write(*,*)''
      end do
@@ -1160,7 +1184,7 @@ program plotspins
            ksdat2(1:ksn2) = dble(dat(p,ic,nlogl1:ntot(ic)))
            
            if(ksn2.ne.0) call kstwo(ksdat1(1:ksn1),ksn1,ksdat2(1:ksn2),ksn2,ksd,ksprob)
-           !write(*,'(I16,2I8,20F12.6)')ic,nlogl1,nlogl2,ksd,ksprob,dlog10(ksprob+1.d-100)
+           !write(*,'(I16,2I8,20F11.6)')ic,nlogl1,nlogl2,ksd,ksprob,dlog10(ksprob+1.d-100)
            call pgpoint(1,real(nlogl1+nlogl2)/2.,real(dlog10(ksprob+1.d-100)),2)
         end do
         write(*,*)''
@@ -1214,12 +1238,14 @@ program plotspins
   end if
     
   
+  if(plot.eq.1.and.prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' Plotting: '
   
   
   !***********************************************************************************************************************************      
   !Plot likelihood chain
   if(pllogl.eq.1) then
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting chain likelihood...'
+     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting chain likelihood...'
+     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' chain likelihood, '
      if(file.eq.0) then
         io = pgopen('12/xs')
         call pgsch(1.5)
@@ -1348,7 +1374,8 @@ program plotspins
   !***********************************************************************************************************************************      
   !Plot chain for each parameter
   if(plchain.eq.1) then
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting parameter chains...'
+     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting parameter chains...'
+     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' parameter chains, '
      if(file.eq.0) then
         io = pgopen('13/xs')
         sch = 1.5
@@ -1482,21 +1509,13 @@ program plotspins
         call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
         call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
         
+        !Plot the actual chain values
         call pgsch(1.)
         call pgslw(1)
         do ic=1,nchains0
            !call pgsci(mod(ic*2,10))
            call pgsci(defcolour)
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !print*,ic,colours(mod(ic-1,ncolours)+1)
-           !if(thin.le.1) then
-           !   do i=1,ntot(ic),chainpli
-           !      call pgpoint(1,is(ic,i),pldat(ic,p,i),1)
-           !   end do
-           !else
-           !   call pgpoint(ntot(ic),is(ic,1:ntot(ic)),pldat(ic,p,1:ntot(ic)),1)
-           !end if
-           !if(thin.le.1) then
            if(chainsymbol.eq.0) then !Plot lines rather than symbols
               call pgline(ntot(ic),is(ic,1:ntot(ic)),pldat(ic,p,1:ntot(ic)))
            else
@@ -1512,18 +1531,24 @@ program plotspins
         end do
         call pgsch(sch)
         call pgslw(lw)
-
+        
+        
+        !Plot burn-in, true and starting values
         do ic=1,nchains0
            call pgsls(2)
            call pgsci(6)
-           !call pgline(2,(/real(nburn(ic)),real(nburn(ic))/),(/-1.e20,1.e20/))   !Burnin phase
+           
+           !Plot burn-in phase
            call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
            call pgsci(1)
            
+           
            !Plot true values in chains
            if(pltrue.eq.1) then
-              if(mergechains.ne.1.or.ic.le.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+              if(mergechains.ne.1.or.ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+              !if(ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  plx = startval(ic,p,1) !True value
+                 plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
                  if(p.eq.8) plx = rev24(plx)
                  if(p.eq.10.or.p.eq.12.or.p.eq.13) plx = rev360(plx)
                  call pgline(2,(/-1.e20,1.e20/),(/plx,plx/))
@@ -1538,6 +1563,7 @@ program plotspins
                  end if
               end if
            end if
+           
            
            !Plot starting values in chains
            if(plstart.eq.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/startval(ic,p,1)) .gt. 1.e-10) then
@@ -1556,7 +1582,7 @@ program plotspins
                  call pgline(2,(/-1.e20,1.e20/),(/plx+360.,plx+360./))
               end if
            end if
-        end do
+        end do !ic=1,nchains0
         
         call pgsci(1)
         call pgsls(1)
@@ -1604,7 +1630,8 @@ program plotspins
   !***********************************************************************************************************************************            
   !Plot jump sizes
   if(pljump.eq.1) then
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting jump sizes...'
+     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting jump sizes...'
+     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' jump sizes, '
      if(file.eq.0) then
         io = pgopen('18/xs')
         sch=1.5
@@ -1766,7 +1793,8 @@ program plotspins
   !***********************************************************************************************************************************            
   !Plot sigma values ('jump proposal width')
   if(plsigacc.eq.1) then
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting sigma...'
+     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting sigma...'
+     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' sigma, '
      if(file.eq.0) then
         io = pgopen('16/xs')
         call pgsch(1.5)
@@ -1920,7 +1948,8 @@ program plotspins
   !***********************************************************************************************************************************      
   !Plot acceptance rates
   if(plsigacc.eq.1) then
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting acceptance rates...'
+     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting acceptance rates...'
+     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' acceptance rates, '
      if(file.eq.0) then
         io = pgopen('17/xs')
         call pgsch(1.5)
@@ -2068,7 +2097,8 @@ program plotspins
   !***********************************************************************************************************************************      
   !Plot autocorrelations for each parameter
   if(placorr.gt.0) then
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting autocorrelations...'
+     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting autocorrelations...'
+     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' autocorrelations, '
      if(file.eq.0) then
         io = pgopen('19/xs')
         call pgsch(1.5)
@@ -2192,7 +2222,8 @@ program plotspins
   if(plpdf1d.eq.1) then
      if(plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')' Saving 1D pdfs...   '
      if(plot.eq.1) then
-        if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' Plotting 1D pdfs...   '
+        !if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' Plotting 1D pdfs...   '
+        if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' 1D pdfs, '
         if(file.eq.0) then
            io = pgopen('14/xs')
            sch = 1.5
@@ -2204,7 +2235,7 @@ program plotspins
            lw = 3
            if(nplvar.ge.10) lw = 2
            if(quality.lt.2) lw = max(lw-1,1)  !Draft/Paper
-           sch = 2.5
+           sch = 1.2!2.5
            if(nchains.eq.1.and.nplvar.gt.9) sch = 1.2
            if(quality.eq.0) then !Draft
               sch = sch*1.75
@@ -2239,7 +2270,7 @@ program plotspins
                  lw = 2
               end if
            end if
-        end if
+        end if !if(file.ge.1)
         if(io.le.0) then
            write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
            goto 9999
@@ -2253,6 +2284,7 @@ program plotspins
         call pgslw(lw)
         call pgsch(sch)
         call pgsfs(fillpdf)
+        
         
         if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
         
@@ -2393,6 +2425,7 @@ program plotspins
            if(file.ge.2) call pgslw(lw)
            !Plot 1D PDF
            do ic=1,nchains
+              if(fillpdf.ge.3) call pgshs(45.0*(-1)**ic,2.0,real(ic)/real(nchains0)) !Set hatch style: angle = +-45deg, phase between 0 and 1 (1/nchains0, 2/nchains0, ...)
               if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               xbin1(1:nbin+1) = xbin(ic,1:nbin+1)
               ybin1(1:nbin+1) = ybin(ic,1:nbin+1)
@@ -2642,7 +2675,7 @@ program plotspins
         if(quality.eq.0) then
            !Remove also the pgsvp at the beginning of the plot
            string=' '
-           do ic=1,nchains
+           do ic=1,1!nchains !Can't do this 10x for 10 chains
               write(string,'(A,I7,A,I6)')trim(string)//'n:',ntot(ic),', nburn:',nburn(ic)
            end do
            call pgsch(sch*0.7)
@@ -2671,7 +2704,7 @@ program plotspins
            i = system('rm -f pdfs.ppm')
         end if
      end if !if(plot.eq.1)
-     write(*,*)''   
+     !write(*,*)''   
   end if !if(plpdf1d.eq.1)
 
 
@@ -2690,7 +2723,8 @@ program plotspins
      ic = 1 !Can only do one chain
      if(plot.eq.0.and.savepdf.eq.1) write(*,'(A)')' Saving 2D pdfs...    '
      if(plot.eq.1) then
-        if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting 2D pdfs...    '
+        !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting 2D pdfs...    '
+        if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' 2D pdfs: '
         if(file.eq.0) then
            io = pgopen('15/xs')
            lw = 1
@@ -2764,7 +2798,8 @@ program plotspins
            if(plotthis.eq.0) cycle
            
            !print*,p1,p2
-           write(*,'(A)')'   PDF 2D:  '//trim(varnames(p1))//'-'//trim(varnames(p2))
+           !write(*,'(A)')'   PDF 2D:  '//trim(varnames(p1))//'-'//trim(varnames(p2))
+           if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')trim(varnames(p1))//'-'//trim(varnames(p2))//' '
            
            if(plot.eq.1) then
               if(file.eq.1) then
@@ -2987,6 +3022,7 @@ program plotspins
         end do !p2
      end do !p1
         
+     
      if(savepdf.eq.1) close(30)
      
      if(plot.eq.1) then
@@ -3000,12 +3036,13 @@ program plotspins
               i = system('mv -f pdf2d.eps bulk/'//trim(outputname)//'__pdf2d.eps')
            end if
         end if
-     end if
+     end if !plot.eq.1
      
   end if !if(plpdf2d.eq.1)
   
   
-  
+  if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')'done.  '
+  if(plot.eq.1) write(*,*)
   
   
   
@@ -3565,11 +3602,15 @@ subroutine pginitl(colour,file)  !Initialise pgplot
      do i=0,99
         call pgscr(i,0.,0.,0.)
      end do
-     call pgscr(0,1.,1.,1.)
-     call pgscr(14,0.3,0.3,0.3)
-     call pgscr(15,0.8,0.8,0.8)
+     call pgscr(0,1.,1.,1.)     !White
+     call pgscr(14,0.3,0.3,0.3) !Dark grey
+     call pgscr(15,0.8,0.8,0.8) !Light grey
   else
-     call pgscr(3,0.,0.5,0.) !Use darker green
+     call pgscr(2,1.,0.1,0.1)  !Make default red lighter
+     call pgscr(3,0.,0.5,0.)   !Make default green darker
+     call pgscr(4,0.,0.,0.8)   !Make default blue darker
+     call pgscr(10,0.5,0.3,0.) !10: brown
+     call pgscr(11,0.5,0.,0.)  !11: dark red
   end if
 end subroutine pginitl
 !************************************************************************************************************************************
