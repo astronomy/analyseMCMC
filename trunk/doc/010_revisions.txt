@@ -1,0 +1,20 @@
+
+  Revisions in the spinning_mcmc repository.  
+  Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
+    
+     5: sluys, 14/05/2008
+     - I added an input file (doc/plotspins.dat)
+     - I put subroutines in a different file (functions.f)
+     - Hence, the Makefile changed
+     - Most important smaller changes:
+       - the code recognises the new (12-par) output format
+       - different plot symbols can be used for different chains (chainsymbol in 
+         the input file)
+       - the point with maximum log(L) can be plotted (pllmax in input)
+       - a plot of L vs parameter value can be made (plparl in input)
+       - 1D PDFs can be normalised in different ways (normpdf1d in input)
+       - 2D binning was sped up ~2.5x, so plots are nicer now
+       - a new movie lay out was added
+       
+       
+
