@@ -3030,8 +3030,8 @@ program plotspins
            call pgsci(1)
            call pgsch(sch)
            !call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-           call pgbox('BNTS',0.0,0,'BNTS',0.0,0)
-           !call pgbox('BNTS',0.0,0,'',0.0,0)
+           !call pgbox('BNTS',0.0,0,'BNTS',0.0,0)
+           call pgbox('BNTS',0.0,0,'',0.0,0)
            !print*,sch,lw,trim(str)
         end if !if(plot.eq.1) 
      end do !p
