@@ -13,7 +13,7 @@ program plotsignal
   real*8 :: m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
   character :: m1s*20,m2s*20,dls*20,spins*20
   
-  file = 3 !0-screen, 1-file: eps, 2-file: pdf, 3-file: png
+  file = 0 !0-screen, 1-file: eps, 2-file: pdf, 3-file: png
   thin = 1 !Thin the number of points by this factor at read
   prname = 1 !Print detector name in frame: 0-no, 1-yes
   prtitle = 0 !Print plot title: 0-no, 1-yes
@@ -53,8 +53,10 @@ program plotsignal
   !fnames = (/'../Hanford-signal.dat','../Hanford-template.dat','../Pisa-signal.dat'/)
   !fnames = (/'signals/Hanford_a0.0_th20.dat','signals/Hanford_a0.1_th20.dat','signals/Hanford_a0.5_th20.dat'/)
   !fnames = (/'signals/Hanford_a0.0_th55.dat','signals/Hanford_a0.1_th55.dat','signals/Hanford_a0.5_th55.dat'/)
-  fnames = (/'signals/Hanford_a0.5_th20.dat','signals/Hanford_a0.5_th55.dat'/)
-  detnames = (/'\(0634)=20\(2218)','\(0634)=55\(2218)'/)
+  !fnames = (/'signals/Hanford_a0.5_th20.dat','signals/Hanford_a0.5_th55.dat'/)
+  !detnames = (/'\(0634)=20\(2218)','\(0634)=55\(2218)'/)
+  fnames = (/'~/work/GW/programs/MCMC/mcmc_code/trunk/Hanford-data.dat','~/work/GW/programs/MCMC/backup/spinning.backup/Hanford-data.dat'/)
+  detnames = (/'new','old'/)
   !detnames = (/'old 0.1','true 0.1','0.5','1.0'/)
   !detnames = ''
   !detnames = (/'Ref','Dec','RA'/)
@@ -318,90 +320,6 @@ program plotsignal
 
 9999 write(6,*)''
 end program plotsignal
-!************************************************************************************************************************************
-
-
-
-
-!************************************************************************************************************************************
-subroutine bindata(n,x,norm,nbin,xmin1,xmax1,xbin,ybin)  
-  ! x - input: data, n points
-  ! norm - input: normalise (1) or not (0)
-  ! nbin - input: number of bins
-  ! xmin, xmax - in/output: set xmin=xmax to auto-determine
-  ! xbin, ybin - output: binned data (x, y)
-
-  implicit none
-  integer :: i,k,n,nbin,norm
-  real :: x(n),xbin(nbin),ybin(nbin),xmin,xmax,dx,ybintot,xmin1,xmax1
-
-  xmin = xmin1
-  xmax = xmax1
-
-  if(abs(xmin-xmax)/(xmax+1.e-30).lt.1.e-20) then
-     xmin = minval(x(1:n))
-     xmax = maxval(x(1:n))
-  end if
-  dx = abs(xmax - xmin)/real(nbin)
-
-  do k=1,nbin+1
-     xbin(k) = xmin + (real(k)-0.5)*dx
-  end do
-  ybintot=0.
-  do k=1,nbin
-     ybin(k) = 0.
-     do i=1,n
-        if(x(i).ge.xbin(k).and.x(i).lt.xbin(k+1)) ybin(k) = ybin(k)+1.
-     end do
-     ybintot = ybintot + ybin(k)
-  end do
-  if(norm.eq.1) ybin = ybin/(ybintot+1.e-30)
-
-  if(abs(xmin1-xmax1)/(xmax1+1.e-30).lt.1.e-20) then
-     xmin1 = xmin
-     xmax1 = xmax
-  end if
-
-end subroutine bindata
-!************************************************************************************************************************************
-
-
-!************************************************************************************************************************************
-subroutine verthist(n,x,y)  !x is the left of the column 
-  implicit none
-  integer :: j,n
-  real :: x(n+1),y(n+1)
-
-  !call pgline(2,(/0.,x(1)/),(/y(1),y(1)/))
-  !do j=1,n
-  !  call pgline(2,(/x(j),x(j)/),y(j:j+1))
-  !  call pgline(2,x(j:j+1),(/y(j+1),y(j+1)/))
-  !end do
-
-  x(n+1) = x(n) + (x(n)-x(n-1))
-  y(n+1) = 0.
-  call pgline(2,(/x(1),x(1)/),(/0.,y(1)/))
-  do j=1,n
-     call pgline(2,x(j:j+1),(/y(j),y(j)/))
-     call pgline(2,(/x(j+1),x(j+1)/),y(j:j+1))
-  end do
-
-end subroutine verthist
-!************************************************************************************************************************************
-
-!************************************************************************************************************************************
-subroutine horzhist(n,x,y)
-  implicit none
-  integer :: j,n
-  real :: x(n),y(n)
-
-  call pgline(2,(/x(1),x(1)/),(/0.,y(1)/))
-  do j=1,n-2
-     call pgline(2,x(j:j+1),(/y(j),y(j)/))
-     call pgline(2,(/x(j+1),x(j+1)/),y(j:j+1))
-  end do
-  call pgline(2,x(n-1:n),(/y(n-1),y(n-1)/))
-end subroutine horzhist
 !************************************************************************************************************************************
 
 

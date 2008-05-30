@@ -5,6 +5,7 @@
         10                thin     If >1, "thin" the output; read every thin-th line 
     500000               nburn     If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number, but it becomes the line number later on in the code.  Nburn > Nchain sets Nburn = 0.1*Nchain
    0.50000           nburnfrac     If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
+   2.00000          autoburnin     If >0: Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoburnin. Overrides nburn and nburnfrac above
   1.00E+09            maxchlen     Maximum chain length to read in (number of iterations, not number of lines)
          1                file     Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter "outputdir" below.
          1              colour     Use colours: 0-no (grey scales), 1-yes
@@ -19,7 +20,7 @@
          2          prprogress     Print general messages about the progress of the program: 0-no, 1-some, 2-more
          0           prruninfo     Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files
          0           prinitial     Print true values, starting values and their difference
-         0              prstat     Print statistics: 0-no, 1-yes
+         1              prstat     Print statistics: 0-no, 1-yes
          0              prcorr     Print correlations: 0-no, 1-yes
          0              prival     Print interval info: 0-no, 1-yes
          0              prconv     Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-medians, stdevs, etc. too.
@@ -44,6 +45,8 @@
  Detailed plot settings:
          1         chainsymbol     Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols
          0            chainpli     Plot every chainpli-th point in chains, logL, jump plots:  chainpli=0: autodetermine, chainpli>0: use this chainpli.  All states in between *are* used for statistics, pdf generation, etc.
+         0            scloglpl     Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account
+         0          scchainspl     Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account
          1              pltrue     Plot true values in the chains and pdfs
          1             plstart     Plot starting values in the chains and pdfs
          1            plmedian     Plot median values in the pdfs
@@ -57,6 +60,17 @@
    0.90000               ival0     Standard probability interval, e.g. 0.90, 0.95
          1          nmovframes     Number of frames for the movie
          3         moviescheme     Moviescheme (1-3): determines what panels to show in a movie frame; see source code
+
+ Output format:
+  10.80000               scrsz     Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8
+   0.57000              scrrat     Screen ratio for X11 windows (PGPlot units), MacBook: 0.57
+       850              bmpxsz     X-size for bitmap (pixels):  1000  !!! Too large values give incomplete 2D PDFs somehow !!!
+       638              bmpysz     Y-size for bitmap (pixels):  700
+  10.50000                pssz     Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap
+   0.74200               psrat     Ratio for PS/PDF (PGPlot units). Default: 0.742  /
+         0             whitebg     Create white background for screen and .png plots: 0-no (black, default), 1-yes
+   1.20000               scfac     Still working on this one!  Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot
+        10             unsharp     Apply unsharp mask when creating .png plots. Default: 10
 
  Data settings:
  Plot variables:  1:logL, 2:Mc, 3:eta, 4:tc, 5:dL, 6:a, 7:th, 8:RA, 9:dec, 10:phi, 11:thJ, 12:phiJ, 13:alpha, 14:M1, 15:M2

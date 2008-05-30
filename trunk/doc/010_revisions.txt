@@ -2,6 +2,25 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+     7: sluys, 30/05/2008
+     - plotspins.dat changed:
+       - the parameter autoburnin, if >0, sets the burnin to the first point where 
+         log(L_chain) > max(log(L_allchains)) - autoburnin.
+       - scloglpl,sclogchainspl allow to scale the logL, chains plots in the vertical
+         direction as before, or using post-burnin data only
+       - srcsz,scrrat, bmpxsz,bmpysz and pssz,psrat allow the 'physical' sizes of the 
+         plots to be changed for screen, bitmap and ps/pdf respectively. Only in case
+	 of bitmap (.png), one sets pixel size, otherwise arbitrary size and plot ratio
+	 .pngs > 1000pix seem to give funny 2D-PDF plots!!!
+       - whitebg allows a white background in screen/.png plots
+       - scfac (not yet fully implemented), but should be used to make .png plots smoother
+       - unsharp sets the strength of an unsharp mask applied to .png plots
+     - I added some more options to plotspins:
+       - I changed the screen output a little here and there
+       - the parameters that give the maximum L are printed in the statistics table
+       - chains and logL before burnin are plotted in a different shade
+       - resolved some error messages that occured if plot ranges had zero width
+       
      5: sluys, 14/05/2008
      - I added an input file (doc/plotspins.dat)
      - I put subroutines in a different file (functions.f)

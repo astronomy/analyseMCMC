@@ -11,8 +11,10 @@ module plotsettings
   integer :: prprogress,prruninfo,prinitial,prstat,prcorr,prival,prconv,savestats,savepdf       
   integer :: plot,combinechainplots,pllogl,plchain,plparl,pljump,rdsigacc,plsigacc,plpdf1d,plpdf2d,placorr,plotsky,plmovie       
   integer :: chainsymbol,chainpli,pltrue,plstart,plmedian,plrange,plburn,pllmax,prvalues,smooth,fillpdf,normpdf1d
-  integer :: nmovframes,moviescheme
-  real :: ival0,nburnfrac
+  integer :: scloglpl,scchainspl,bmpxsz,bmpysz
+  integer :: nmovframes,moviescheme,whitebg,unsharp
+  real :: ival0,nburnfrac,autoburnin
+  real :: scrsz,scrrat,pssz,psrat,scfac
 end module plotsettings
 !***************************************************************************************************
 
@@ -47,6 +49,7 @@ subroutine read_inputfile
      nburn(i) = nburn(1)
   end do
   read(u,*,iostat=io)nburnfrac
+  read(u,*,iostat=io)autoburnin
   read(u,*,iostat=io)maxchlen
   read(u,*,iostat=io)file
   read(u,*,iostat=io)colour
@@ -88,6 +91,8 @@ subroutine read_inputfile
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)chainsymbol
   read(u,*,iostat=io)chainpli
+  read(u,*,iostat=io)scloglpl
+  read(u,*,iostat=io)scchainspl
   read(u,*,iostat=io)pltrue
   read(u,*,iostat=io)plstart
   read(u,*,iostat=io)plmedian
@@ -101,6 +106,17 @@ subroutine read_inputfile
   read(u,*,iostat=io)ival0
   read(u,*,iostat=io)nmovframes
   read(u,*,iostat=io)moviescheme
+
+  read(u,*,iostat=io)bla
+  read(u,*,iostat=io)scrsz
+  read(u,*,iostat=io)scrrat
+  read(u,*,iostat=io)bmpxsz
+  read(u,*,iostat=io)bmpysz
+  read(u,*,iostat=io)pssz
+  read(u,*,iostat=io)psrat
+  read(u,*,iostat=io)whitebg
+  read(u,*,iostat=io)scfac
+  read(u,*,iostat=io)unsharp
   
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)bla
@@ -148,10 +164,11 @@ subroutine write_inputfile
   
   write(u,'(/,A)')' Basic options:'
   write(u,11)thin, 'thin',   'If >1, "thin" the output; read every thin-th line '
-  write(u,11)maxval(nburn), 'nburn',   'If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number, but it becomes the line number later on in the code.  Nburn > Nchain sets Nburn = 0.1*Nchain'
-  write(u,21)nburnfrac, 'nburnfrac',   'If !=0: override length of the burn-in phase, as a fraction of the length of each chain.'
+  write(u,11)maxval(nburn), 'nburn',   'If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain'
+  write(u,21)nburnfrac, 'nburnfrac',   'If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides nburn above'
+  write(u,21)autoburnin, 'autoburnin',   'If >0: Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoburnin. Overrides nburn and nburnfrac above'
   write(u,31)dble(maxchlen), 'maxchlen',   'Maximum chain length to read in (number of iterations, not number of lines)'
-  write(u,11)file, 'file',   'Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter "outputdir" below.'
+  write(u,11)file, 'file',   'Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter "outputdir" below'
   write(u,11)colour, 'colour',   'Use colours: 0-no (grey scales), 1-yes'
   write(u,11)quality, 'quality',   '"Quality" of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster'
   write(u,11)reverseread, 'reverseread',   'Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too'
@@ -192,6 +209,8 @@ subroutine write_inputfile
   write(u,'(/,A)')' Detailed plot settings:'
   write(u,11)chainsymbol, 'chainsymbol',   'Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols'
   write(u,11)chainpli, 'chainpli',   'Plot every chainpli-th point in chains, logL, jump plots:  chainpli=0: autodetermine, chainpli>0: use this chainpli.  All states in between *are* used for statistics, pdf generation, etc.'
+  write(u,11)scloglpl, 'scloglpl',   'Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account'
+  write(u,11)scchainspl, 'scchainspl',   'Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account'
   write(u,11)pltrue, 'pltrue',   'Plot true values in the chains and pdfs'
   write(u,11)plstart, 'plstart',   'Plot starting values in the chains and pdfs'
   write(u,11)plmedian, 'plmedian',   'Plot median values in the pdfs'
@@ -205,6 +224,17 @@ subroutine write_inputfile
   write(u,21)ival0, 'ival0',   'Standard probability interval, e.g. 0.90, 0.95'
   write(u,11)nmovframes, 'nmovframes',   'Number of frames for the movie'
   write(u,11)moviescheme, 'moviescheme',   'Moviescheme (1-3): determines what panels to show in a movie frame; see source code'
+  
+  write(u,'(/,A)')' Output format:'
+  write(u,21)scrsz, 'scrsz',   'Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8'
+  write(u,21)scrrat, 'scrrat',   'Screen ratio for X11 windows (PGPlot units), MacBook: 0.57'
+  write(u,11)bmpxsz, 'bmpxsz',   'X-size for bitmap (pixels):  1000  !!! Too large values give incomplete 2D PDFs somehow !!!'
+  write(u,11)bmpysz, 'bmpysz',   'Y-size for bitmap (pixels):  700'
+  write(u,21)pssz, 'pssz',   'Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap'
+  write(u,21)psrat, 'psrat',   'Ratio for PS/PDF (PGPlot units). Default: 0.742  /'
+  write(u,11)whitebg, 'whitebg',   'Create white background for screen and .png plots: 0-no (black, default), 1-yes'
+  write(u,21)scfac, 'scfac',   '!!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot'
+  write(u,11)unsharp, 'unsharp',   'Apply unsharp mask when creating .png plots. Default: 10.'
   
   write(u,'(/,A)')' Data settings:'
   write(u,'(A)')' Plot variables:  1:logL, 2:Mc, 3:eta, 4:tc, 5:dL, 6:a, 7:th, 8:RA, 9:dec, 10:phi, 11:thJ, 12:phiJ, 13:alpha, 14:M1, 15:M2'
@@ -237,6 +267,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   thin = 10         !If >1, 'thin' the output; read every thin-th line 
   nburn = 1e5       !If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number, but it becomes the line number later on in the code.  Nburn > Nchain sets Nburn = 0.1*Nchain
   nburnfrac = 0.5   !If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
+  autoburnin = 1.   !Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoburnin
   maxchlen = 1e8    !Maximum chain length
   file = 1          !Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter 'outputdir' below.
   colour = 1        !Use colours: 0-no (grey scales), 1-yes
@@ -259,6 +290,9 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   
   plot = 1          !0: plot nothing at all, 1: plot the items selected below
   combinechainplots = 0  !Combine logL, chain, sigma and acc plots into one multipage file
+  autoburnin = 1.   !Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoburnin
+  scloglpl = 1      !Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account
+  scchainspl = 1    !Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account
   pllogl = 1        !Plot log L chains: 0-no, 1-yes
   plchain = 1       !Plot parameter chains: 0-no, 1-yes
   plparl = 1        !Plot L vs. parameter value: 0-no, 1-yes
@@ -287,6 +321,16 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   nmovframes = 1    !Number of frames for the movie
   moviescheme = 3   !Movie scheme: determines what panels to show in a movie frame
   
+  scrsz  = 10.8     !Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8
+  scrrat = 0.57     !Screen ratio for X11 windows (PGPlot units), MacBook: 0.57
+  bmpxsz = 1000     !X-size for bitmap (pixels):  1000
+  bmpysz = 700      !Y-size for bitmap (pixels):  700
+  pssz   = 10.5     !Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap
+  psrat  = 0.742    !Ratio for PS/PDF (PGPlot units). Default: 0.742  /
+  whitebg = 0       !White background for screen and .png plots: 0-no, 1-yes
+  scfac = 1.2       !Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot
+  unsharp = 10      !Apply unsharp mask when creating .png plots. Default: 10
+  
   nplvar = 15       !Number of plot variables for 1D plots
   plvars(1:nplvar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !The nplvar plot variables
   panels(1:2) = (/0,0/) !Number of panels for 1D plots in x,y direction
@@ -303,10 +347,10 @@ end subroutine set_plotsettings
 
 
 !************************************************************************************************************************************
-subroutine pginitl(colour,file)  !Initialise pgplot
+subroutine pginitl(colour,file,whitebg)  !Initialise pgplot
   implicit none
-  integer :: colour,file,i
-  if(1.eq.2) then
+  integer :: colour,file,i,whitebg
+  if(whitebg.ge.1) then
      call pgscr(0,1.,1.,1.) !Background colour always white (also on screen, bitmap)
      call pgscr(1,0.,0.,0.) !Default foreground colour always black
      if(file.le.1) then !png: create white background
@@ -1399,7 +1443,8 @@ subroutine sort(n,arr)
 5    arr(l+1)=arr(j)
      arr(j)=a
      jstack=jstack+2
-     if(jstack.gt.NSTACK)pause 'NSTACK too small in sort'
+     !if(jstack.gt.NSTACK)pause 'NSTACK too small in sort'
+     if(jstack.gt.NSTACK) write(*,'(A)')' NSTACK too small in dindexx'
      if(ir-i+1.ge.j-l)then
         istack(jstack)=ir
         istack(jstack-1)=i
@@ -1450,3 +1495,22 @@ function timestamp()  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
   i = system('rm -f ~/.tmp_timestamp')
 end function timestamp
 !************************************************************************
+
+
+
+!************************************************************************
+subroutine pgscidark(ci0,file,whitebg)  !Set the colour to ci, but use a darker shade if the background is black or a lighter shade if it is white
+  implicit none
+  integer :: ci0,ci,file,whitebg
+  real :: r,g,b,weight
+  ci = ci0
+  call pgqcr(ci,r,g,b)
+  call pgscr(99,r*0.5,g*0.5,b*0.5) !Use half the RGB value to create a darker shade
+  !if(file.ge.2.or.whitebg.ge.1) call pgscr(99,(r+1)/2.,(g+1)/2.,(b+1)/2.) !Use the mean of the RGB value and 1. to create a lighter shade
+  weight = 3.
+  if(file.ge.2.or.whitebg.ge.1) call pgscr(99,(r+weight)/(weight+1.),(g+weight)/(weight+1.),(b+weight)/(weight+1.)) !Use the weighted mean of the RGB value and 1. to create a lighter shade
+  call pgsci(99)
+end subroutine pgscidark
+!************************************************************************
+
+

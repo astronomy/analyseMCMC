@@ -4,10 +4,10 @@ program plotspins
   use plotsettings
   implicit none
   integer, parameter :: narr1=2.01e5+2,npar0=13,nival1=5,nr1=5,nstat1=10,ndets=3
-  integer :: n(nchs),ntot(nchs),n0,n1,n2,nd,i,j,j1,j2,k,nburn0(nchs),iargc,io,pgopen,system,narr,maxdots,offsetrun
-  integer :: niter(nchs),seed(nchs),ndet(nchs)
+  integer :: n(nchs),ntot(nchs),n0,n1,n2,nd,i,j,j1,j2,k,nburn0(nchs),iargc,io,pgopen,system,narr,maxdots,offsetrun,imin,imax
+  integer :: niter(nchs),totiter,totpts,seed(nchs),ndet(nchs),totthin(nchs),contrchains
   integer :: index(npar1,nchs*narr1),index1(nchs*narr1),fileversion
-  real :: is(nchs,narr1),isburn(nchs),jumps(nchs,npar1,narr1),startval(nchs,npar1,2)
+  real :: is(nchs,narr1),isburn(nchs),jumps(nchs,npar1,narr1),startval(nchs,npar1,3)
   real :: sig(npar1,nchs,narr1),acc(npar1,nchs,narr1),avgtotthin
   real :: sn,dlp,x(nchs,nchs*narr1),y(nchs,narr1),ybintot,xx(nchs*narr1),yy(nchs*narr1),zz(nchs*narr1)
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ybin2(:),ysum(:),yconv(:),ycum(:)  !These depend on nbin1d, allocate after reading input file
@@ -16,14 +16,14 @@ program plotspins
   real, allocatable :: dat(:,:,:),alldat(:,:,:),pldat(:,:,:)
   character :: js*4,varnames(npar1)*5,pgunits(npar1)*99,pgvarns(npar1)*99,pgvarnss(npar1)*99,pgorigvarns(npar1)*99,infile*100,infiles(nchs)*100,str*99,str1*99,str2*99,fmt*99,bla*10,command*99
   
-  integer :: nn,nn1,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nlogl1,nlogl2,ksn1,ksn2,iloglmx,icloglmx
-  real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),rhat(npar1),totrelvar,ksdat1(narr1),ksdat2(narr1),ksd,ksprob,loglmx
+  integer :: nn,nn1,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nlogl1,nlogl2,ksn1,ksn2,iloglmax,icloglmax,ci
+  real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),rhat(npar1),totrelvar,ksdat1(narr1),ksdat2(narr1),ksd,ksprob,loglmax
   character :: ch
   
   integer :: samplerate(nchs,ndets),samplesize(nchs,ndets),FTsize(nchs,ndets),detnr(nchs,ndets)
   real :: snr(nchs,ndets),flow(nchs,ndets),fhigh(nchs,ndets),t_before(nchs,ndets),t_after(nchs,ndets),deltaFT(nchs,ndets)
   real*8 :: FTstart(nchs,ndets)
-  character :: detname(nchs,ndets)*16,string*99
+  character :: detname(nchs,ndets)*14,string*99
   
   integer :: nfx,nfy,fx,fy,npdf
   real :: x0,x1,x2,y1,y2,dx,dy,xmin,xmax,ymin,ymax,xmin1,xmax1,xpeak,ymin1,ymax1,ymaxs(nchs+2)
@@ -40,9 +40,9 @@ program plotspins
   real :: stats(nchs,npar1,nstat1),corrs(npar1,npar1),acorrs(nchs,0:npar1,0:narr1)
   real :: norm
   
-  !integer :: xpanels,ypanels,panels(2)
-  real :: scrsz,scrrat,bmpsz,bmprat,pssz,psrat,rev360,rev24,rev2pi
-  character :: bmpxpix*99
+  real :: bmpsz,bmprat!,scrsz,scrrat,pssz,psrat
+  real :: rev360,rev24,rev2pi
+  character :: bmpxpix*99,unsharplogl*99,unsharpchain*99,unsharppdf1d*99,unsharppdf2d*99
   
   integer :: iframe,nplt
   real*8 :: timestamp,ts1,ts2
@@ -70,21 +70,34 @@ program plotspins
   par1 = 1          !First parameter to treat (stats, plot): 0-all
   par2 = 15         !Last parameter to treat (0: use npar)
   
-  scrsz  = 10.8     !Screen size for X11 windows:  MacOS: 16.4, Gentoo: 10.8
-  scrrat = 0.57     !Screen ratio for X11 windows, MacBook: 0.57
-  bmpsz  = 12.      !Size for bitmap:  10.6
-  bmprat = 0.75     !Ratio for bitmap: 0.75
-  !bmprat = 1.25     !Ratio for bitmap: 0.75
-  bmpxpix = '850'     !Final size of converted bitmap output in pixels (string)
+  !whitebg = 1       !White background for screen and png plots: 0-no, 1-yes
+  !scrsz  = 10.8     !Screen size for X11 windows:  MacOS: 16.4, Gentoo: 10.8
+  !scrrat = 0.57     !Screen ratio for X11 windows, MacBook: 0.57
+  !bmpsz  = 12.      !Size for bitmap:  10.6
+  !bmprat = 0.70     !Ratio for bitmap: 0.75
+  !!bmprat = 1.25    !Ratio for bitmap: 0.75
+  !!bmpxpix = '1000'  !Final size of converted bitmap output in pixels (string)
+  
+  !scfac = 1.2
+  bmpsz = real(bmpxsz-1)/85. * scfac !Make png larger, so that convert interpolates and makes the plot smoother
+  bmprat = real(bmpysz-1)/real(bmpxsz-1)
+  write(bmpxpix,'(I4)')nint(real(bmpsz)*85.)+1  !Used as a text string by convert
+  !print*,bmpxsz,bmpysz,bmpsz,bmprat,trim(bmpxpix)
+  
+  !Use full unsharp-mask strength for plots with many panels and dots, weaker for those with fewer panels and.or no dots
+  write(unsharplogl,'(I4)')max(nint(real(unsharp)/2.),1)  !Only one panel with dots
+  write(unsharpchain,'(I4)')unsharp                       !~12 panels with dots
+  write(unsharppdf1d,'(I4)')max(nint(real(unsharp)/2.),1) !~12 panels, no dots
+  write(unsharppdf2d,'(I4)')max(nint(real(unsharp)/4.),1) !1 panel, no dots
   
   !Trying to implement this, for chains plot at the moment
-  pssz   = 10.5   !Default: 10.5   \__ Gives same result as without pgpap
-  psrat  = 0.742  !Default: 0.742  /
+  !pssz   = 10.5   !Default: 10.5   \__ Gives same result as without pgpap
+  !psrat  = 0.742  !Default: 0.742  /
   
-  if(quality.eq.2) then
-     pssz   = 10.5
-     psrat  = 0.82     !Nice for presentation (Beamer)
-  end if
+  !if(quality.eq.2) then
+  !   pssz   = 10.5
+  !   psrat  = 0.82     !Nice for presentation (Beamer)
+  !end if
   
   outputdir = '.'  !Directory where output is saved (either relative or absolute path)
   
@@ -178,7 +191,7 @@ program plotspins
      plmovie = 0
   end if
   if(savepdf.eq.1) then
-     nplvar = 14; plvars(1:nplvar) = (/2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !All 12 + m1,m2
+     nplvar = 15; plvars(1:nplvar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !All 12 + m1,m2
      wrapdata = 0
   end if
   !if(par1.lt.2) par1 = 2
@@ -233,9 +246,9 @@ program plotspins
   npar = 13
   if(prprogress.ge.1) then
      if(nchains0.gt.nchs) then
-        write(*,'(A,I3,A)')' Too many chains, please increase nchs. Only',nchs,' files will be read.'
+        write(*,'(A,I3,A)')'  Too many chains, please increase nchs. Only',nchs,' files will be read.'
      else
-        write(*,'(I5,A)')nchains0,' input files will be read: '
+        write(*,'(A,I3,A)')'  Reading',nchains0,' input files: '
      end if
   end if
   nchains0 = min(nchains0,nchs)
@@ -271,8 +284,7 @@ program plotspins
      end if
      rewind(10)
      
-     !if(update.ne.1) 
-     if(prprogress.ge.2) write(*,'(A,I3,A,I3,A20,$)')'  Reading file',ic,':  '//trim(infile)//'    Using colour',colours(mod(ic-1,ncolours)+1),': '//colournames(colours(mod(ic-1,ncolours)+1))
+     !if(prprogress.ge.2) write(*,'(A,I3,A,I3,A20,$)')'    File',ic,':  '//trim(infile)//'    Using colour',colours(mod(ic-1,ncolours)+1),': '//colournames(colours(mod(ic-1,ncolours)+1))
      
      !NEW columns in dat: 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
      !Read the headers
@@ -280,10 +292,10 @@ program plotspins
      read(10,'(I10,I12,I8,F22.10,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
      read(10,*,end=199,err=199)bla
      do i=1,ndet(ic)
-        read(10,'(A16,F18.8,4F12.2,F22.8,F17.7,3I14)') detname(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
-        if(detname(ic,i).eq.'         Hanford') detnr(ic,i) = 1
-        if(detname(ic,i).eq.'      Livingston') detnr(ic,i) = 2
-        if(detname(ic,i).eq.'            Pisa') detnr(ic,i) = 3
+        read(10,'(2x,A14,F18.8,4F12.2,F22.8,F17.7,3I14)') detname(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+        if(detname(ic,i).eq.'       Hanford') detnr(ic,i) = 1
+        if(detname(ic,i).eq.'    Livingston') detnr(ic,i) = 2
+        if(detname(ic,i).eq.'          Pisa') detnr(ic,i) = 3
      end do
      !if(prprogress.ge.1.and.update.eq.0) write(*,*)''
      read(10,*,end=199,err=199)bla
@@ -341,7 +353,7 @@ program plotspins
      end if
      if(i1.lt.maxchlen) write(*,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
      goto 199
-198  write(*,'(A,I7,$)')' Read error in line',i
+198  write(*,'(A,I7,$)')'  Read error in file '//trim(infile)//', line',i
      i = i-1
      if(i.lt.25) then
         if(ic.eq.1.and.fileversion.eq.1) then
@@ -356,25 +368,32 @@ program plotspins
 199  close(10)
      ntot(ic) = i-1
      n(ic) = ntot(ic) !n can be changed in rearranging chains, ntot won't be changed
-     if(prprogress.ge.2.and.update.ne.1) write(*,'(3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',nburn(ic),'.'
+     !if(prprogress.ge.2.and.update.ne.1) write(*,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',nburn(ic),'.'
   end do !do ic = 1,nchains0
   
   
+  totiter = 0
+  do ic = 1,nchains0
+     totiter = totiter + nint(is(ic,ntot(ic)))
+  end do
+  !if(prprogress.ge.2.and.update.ne.1) write(*,'(A10,65x,2(A,I9),A1)')'Total:',' Lines:',sum(ntot(1:nchains0)),', iterations:',totiter
   
   
   
+  
+  !Print run info (detectors, SNR, amount of data, FFT, etc)
   if(prruninfo.gt.0.and.update.eq.0) then
-     write(*,*)
+     write(*,'(/,A)')'  Run inormation:'
      do ic = 1,nchains0
         if((prruninfo.eq.1.and.ic.eq.1) .or. prruninfo.eq.2) then
-           write(*,'(6x,A10,A12,A8,A22,A8)')'niter','nburn','seed','null likelihood','ndet'
-           write(*,'(6x,I10,I12,I8,F22.10,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
-           write(*,'(A16,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
+           write(*,'(4x,A10,A12,A8,A22,A8)')'niter','nburn','seed','null likelihood','ndet'
+           write(*,'(4x,I10,I12,I8,F22.10,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
+           write(*,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
            
            do i=1,ndet(ic)
-              write(*,'(A16,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detname(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+              write(*,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detname(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
            end do
-           write(*,*)''
+           write(*,*)
         end if
      end do !do ic = 1,nchains0
   end if  !prruninfo.gt.0
@@ -382,7 +401,9 @@ program plotspins
   narr = maxval(n(1:nchains0))
   
   
-  !*** It seems nburn is now the iteration number, but becomes the line number in the next bit, after isburn has taken that role
+  
+  !*** Until now, nburn is the iteration number.
+  !*** From here on, nburn is the line number, while isburn is the iteration number
   do ic=1,nchains0
      if(nburn(ic).le.0) nburn(ic) = nburn0(ic)
      if(abs(nburnfrac).gt.1.e-4.and.abs(nburnfrac).lt.1.) then
@@ -404,25 +425,68 @@ program plotspins
      isburn(ic) = real(nburn(ic))
      do i=1,ntot(ic)
         if(is(ic,i).le.isburn(ic)) nburn(ic) = i   !isburn is the true iteration number at which the burnin ends
+        totthin(ic) = nint(isburn(ic)/real(nburn(ic)))
      end do
-     if(prruninfo.eq.1.and.update.ne.1.and.ic.eq.1) write(*,'(A5,I3,A,I9,A,ES7.1,A,I9,A,ES7.1,A,I4,A,ES9.1,A,ES9.1,A,I4)')'File',ic,':  Lines:',n(ic),'  (',real(n(ic)),'),  Iterations:',nint(is(ic,n(ic))),'  (',is(ic,n(ic)),'),  thinning in file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),'     Burn-in:  line:',real(nburn(ic)),', iteration:',isburn(ic),', total thinning:',nint(isburn(ic)/real(nburn(ic)))
-     if(prruninfo.eq.2.and.update.ne.1) write(*,'(I3,A,I9,A,ES7.1,A,I9,A,ES7.1,A,I4,A,ES9.1,A,ES9.1,A,I4)')ic,':  Lines:',n(ic),'  (',real(n(ic)),'),  Iterations:',nint(is(ic,n(ic))),'  (',is(ic,n(ic)),'),  thinning in file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),'     Burn-in:  line:',real(nburn(ic)),', iteration:',isburn(ic),', total thinning:',nint(isburn(ic)/real(nburn(ic)))
   end do
   avgtotthin = sum(isburn(1:nchains0))/real(sum(nburn(1:nchains0))) !Total thinning, averaged over all chains
   
-  !Get point with maximum likelihood
-  loglmx = -1.d99
+  
+  
+  
+  !Get point with absolute maximum likelihood over all chains
+  loglmax = -1.d99
   do ic=1,nchains0
      do i=1,ntot(ic)
-        if(dat(1,ic,i).gt.loglmx) then
-           loglmx = dat(1,ic,i)
-           iloglmx = i
-           icloglmx = ic
+        if(dat(1,ic,i).gt.loglmax) then
+           loglmax = dat(1,ic,i)
+           iloglmax = i
+           icloglmax = ic
         end if
      end do
   end do
   
-  if(prprogress.ge.2.and.update.eq.0) write(*,'(A)')' Changing some variables...   '
+  !Autoburnin: for each chain, get the first point where log(L) > log(L_max)-autoburnin
+  if(autoburnin.gt.1.e-10) then
+     loop1: do ic=1,nchains0
+        isburn(ic) = is(ic,ntot(ic)) !Set burnin to last iteration, so that chain is completely excluded if condition is never fulfilled
+        nburn(ic) = ntot(ic)
+        do i=2,ntot(ic) !i=1 is true value?
+           if(dat(1,ic,i).gt.real(loglmax)-autoburnin) then
+              isburn(ic) = is(ic,i)
+              nburn(ic) = i
+              cycle loop1
+           end if
+        end do
+     end do loop1
+  end if
+  
+  
+  
+  
+  !Print info on number of iterations, burnin, thinning, etc.
+  do ic=1,nchains0
+     !if(prruninfo.ge.1.and.update.ne.1) write(*,'(2x,A5,I3,A,I9,A,ES7.1,A,I9,A,ES7.1,A,I4,A,ES9.1,A,ES9.1,A,I4)')'File',ic,':  Lines:',n(ic),'  (',real(n(ic)),'),  Iterations:',nint(is(ic,n(ic))),'  (',is(ic,n(ic)),'),  thinning in file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),'     Burn-in:  line:',real(nburn(ic)),', iteration:',isburn(ic),', total thinning:',totthin(ic)
+     if(prprogress.ge.2.and.update.ne.1) write(*,'(A9,I3,A2,A23,A12,A,ES7.1,A,ES7.1,A,ES7.1,A,ES7.1,A,I3,A,I4,A,ES8.2,A1)') &
+          'Chain',ic,': ',trim(infiles(ic)),', '//colournames(colours(mod(ic-1,ncolours)+1))//'.', '  Lines: ',real(n(ic)),', iter: ',is(ic,n(ic)), &
+          '.  Burn-in: line: ',real(nburn(ic)),', iter: ',isburn(ic),'.  Thin: file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),', tot:',totthin(ic),'.  Data pts: ',real(n(ic)-nburn(ic)),'.'
+  end do
+  totiter = 0
+  totpts  = 0
+  contrchains = 0
+  do ic=1,nchains0
+     totiter = totiter + nint(is(ic,ntot(ic)))
+     totpts = totpts + n(ic)-nburn(ic)
+     if(n(ic).gt.nburn(ic)) contrchains = contrchains + 1
+  end do
+  !if(prprogress.ge.2.and.update.ne.1) write(*,'(A10,40x,3(A,I9),A1)')'Total:',' Lines:',sum(ntot(1:nchains0)),', iterations:',totiter,', data points: ',totpts,'.'
+  !if(prprogress.ge.2.and.update.ne.1) write(*,'(A10,40x, A,ES7.1, A,ES7.1,A1, 68x, A,ES8.2,A1)')'Total:',' Lines: ',real(sum(ntot(1:nchains0))),', iter: ',real(totiter),',',' Data pts: ',real(totpts),'.'
+  if(prprogress.ge.1.and.update.ne.1) write(*,'(4x,A, A,ES10.4, A,ES10.4, A,ES10.4,A,I3,A1,I2,A1)') 'In all chains:','  lines read in: ',real(sum(ntot(1:nchains0))), &
+       ',  total number of iterations: ',real(totiter),',  total number of data points after burnin: ',real(totpts),', contributing chains:',contrchains,'/',nchains0,'.'
+  if(prruninfo.gt.0) write(*,*)
+  
+  
+  
+  if(prprogress.ge.2.and.update.eq.0) write(*,'(A)')'  Changing some variables...   '
   !NEW columns in dat: 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
   !Calculate the masses from Mch and eta:
   do ic=1,nchains0
@@ -439,28 +503,38 @@ program plotspins
   
   acc = acc*0.25  !Transfom back to the actual acceptance rate
   
-  !*** Put plot data in pldat, startval and jumps
+  
+  
+  !*** Put plot data in pldat, startval and jumps.  Print initial and starting values to screen.  Startval: 1: true value, 2: starting value, 3: Lmax value
   allocate(pldat(nchains,npar,narr))
   jumps = 0.
   offsetrun = 0
-  if(prinitial.ne.0) write(*,'(8x,A20,12A10)')varnames(1:13)
+  if(prinitial.ne.0) then
+     write(*,'(/,A)')'  True, starting and Lmax values for the chains:'
+     write(*,'(11x,A20,14A10)')varnames(1:15)
+  end if
   do ic=1,nchains
      pldat(ic,1:npar,1:n(ic)) = real(dat(1:npar,ic,1:n(ic))) !Note the change of order of indices!!!  Pldat has the same structure as alldat.  Pldat contains all data that's in dat (also before the burnin), but in single precision.  Use it to plot log(L), jumps, chains, etc., but not for statistics (and PDF creation).
-     startval(ic,1:npar,1:2) = real(dat(1:npar,ic,1:2)) !True value and starting value
+     startval(ic,1:npar,1:2)  = real(dat(1:npar,ic,1:2)) !True value and starting value
+     startval(ic,1:npar,3)    = real(dat(1:npar,icloglmax,iloglmax)) !Lmax value
      jumps(ic,1:npar,2:n(ic)) = real(dat(1:npar,ic,2:n(ic)) -  dat(1:npar,ic,1:n(ic)-1))
      if(prinitial.ne.0) then 
-        write(*,'(A8,F20.5,12F10.5)')' True:  ',startval(ic,1:13,1)
-        if(abs((sum(startval(ic,1:13,1))-sum(startval(ic,1:13,2)))/sum(startval(ic,1:13,1))).gt.1.e-10) then
+        if(ic.eq.1) write(*,'(5x,A11,F15.5,14F10.5,/)')'True:  ',startval(1,1:15,1)
+        if(abs((sum(startval(ic,1:15,1))-sum(startval(ic,1:15,2)))/sum(startval(ic,1:15,1))).gt.1.e-10) then
            offsetrun = 1
-           write(*,'(A8,F20.5,12F10.5)')' Start: ',startval(ic,1:13,2)
-           write(*,'(A8,F20.5,12F10.5,/)')' Diff:  ',abs(startval(ic,1:13,1)-startval(ic,1:13,2))!/abs(startval(ic,1:13,1))
+           write(*,'(I4,A1,A11,F15.5,14F10.5)')ic,':','  Start: ',startval(ic,1:15,2)
+           write(*,'(5x,A11,F15.5,14F10.5,/)')'Diff:  ',abs(startval(ic,1:15,1)-startval(ic,1:15,2))!/abs(startval(ic,1:15,1))
         end if
      end if
   end do
+  if(prinitial.ne.0) then
+     write(*,'(5x,A11,F15.5,14F10.5)')'Lmax:  ',startval(1,1:15,3)
+     write(*,'(5x,A11,F15.5,14F10.5,/)')'Diff:  ',abs(startval(1,1:15,1)-startval(1,1:15,3))
+  end if
   
   
   !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')'  Done.'
-  if(prprogress.ge.2.and.update.eq.0) write(*,'(A,I12)')' t0:',nint(t0)
+  if(prprogress.ge.2.and.update.eq.0) write(*,'(A,I12)')'  t0:',nint(t0)
   
   
   !Construct output file name
@@ -503,27 +577,29 @@ program plotspins
      end do
      nchains = 1
      n(1) = j-1
-     if(prprogress.ge.1) write(*,'(A,I8,A,ES7.1,A)')'  Data points in combined chains: ',n(1),'  (',real(n(1)),')'
+     !if(prprogress.ge.1) write(*,'(A,I8,A,ES7.1,A)')'  Data points in combined chains: ',n(1),'  (',real(n(1)),')'
   else
      allocate(alldat(nchains,npar1,narr))
      do ic=1,nchains
         alldat(ic,1:npar,1:n(ic)-nburn(ic)) = real(dat(1:npar,ic,nburn(ic)+1:n(ic)))  !Note the change of order of indices!!!  Alldat has the same structure as pldat, but contains only info AFTER the burnin.
         n(ic) = n(ic)-nburn(ic)
      end do
-     if(prprogress.ge.1) write(*,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
+     !if(prprogress.ge.1) write(*,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
   end if
   
-  maxdots = 10000 !~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much.  Use this to autoset chainpli
+  maxdots = 25000  !~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much.  Use this to autoset chainpli
   !if(file.ge.2) maxdots = 10000 !Smaller max for eps,pdf to reduce file size (?)
   !if(maxval(n(1:nchains)).gt.maxdots) chainpli = nint(real(maxval(n(1:nchains)))/real(maxdots).)  !Change the number of points plotted in chains
   !if(maxval(n(1:nchains)).gt.maxdots .and. (file.ge.2.and.chainpli.eq.0)) then  !Change the number of points plotted in chains, for eps,pdf, to reduce file size
   if(chainpli.le.0) then
-     if(sum(n(1:nchains)).gt.maxdots) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
-        chainpli = nint(real(sum(n(1:nchains)))/real(maxdots))
-        if(prprogress.ge.1.and.update.ne.0) write(*,'(A,I5,A,I5,A,I6,A)')' Plotting every',chainpli,'-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin),', for these plots it is',nint(avgtotthin*chainpli),'.'
+     !if(sum(n(1:nchains)).gt.maxdots) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
+     if(sum(ntot(1:nchains0)).gt.maxdots) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
+        !chainpli = nint(real(sum(n(1:nchains)))/real(maxdots))
+        chainpli = nint(real(sum(ntot(1:nchains0)))/real(maxdots))  !Use ntot and nchains0, since n low if many points are in the burnin
+        if(prprogress.ge.1.and.update.eq.0) write(*,'(A,I5,A,I5,A,I6,A)')'  Plotting every',chainpli,'-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin),', for these plots it is',nint(avgtotthin*chainpli),'.'
      else
         chainpli = 1
-        if(prprogress.ge.1.and.update.ne.0) write(*,'(A,I5,A)')' Plotting *every* state in likelihood, chains, jumps, etc. plots.  Average total thinning remais',nint(avgtotthin),' for these plots.'
+        if(prprogress.ge.1.and.update.eq.0) write(*,'(A,I5,A)')'  Plotting *every* state in likelihood, chains, jumps, etc. plots.  Average total thinning remais',nint(avgtotthin),' for these plots.'
      end if
   end if
   
@@ -633,7 +709,7 @@ program plotspins
 
      !Do statistics
      !if(prprogress.ge.2) write(*,'(A)')' Calculating: statistics...'
-     if(prprogress.ge.2.and.ic.eq.1) write(*,'(A,$)')' Calc: stats, '
+     if(prprogress.ge.2.and.ic.eq.1) write(*,'(A,$)')'  Calc: stats, '
      do p=par1,par2
         !Determine the median
         if(mod(n(ic),2).eq.0) medians(p) = 0.5*(alldat(ic,p,index(p,n(ic)/2)) + alldat(ic,p,index(p,n(ic)/2+1)))
@@ -765,23 +841,20 @@ program plotspins
         do p=par1,par2
            if(p.eq.5) then
               alldat(ic,p,1:n(ic)) = exp(alldat(ic,p,1:n(ic)))     !logD -> Distance
-              !startval(ic,p,1:2) = exp(startval(ic,p,1:2))
-              if(ic.eq.1) startval(1:nchains0,p,1:2) = exp(startval(1:nchains0,p,1:2))
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = exp(startval(1:nchains0,p,1:3))
               stats(ic,p,1:nstat) = exp(stats(ic,p,1:nstat))
               ranges(ic,1:nival,p,1:nr) = exp(ranges(ic,1:nival,p,1:nr))
               !print*,ic,p
            end if
            if(p.eq.9.or.p.eq.11) then
               alldat(ic,p,1:n(ic)) = asin(alldat(ic,p,1:n(ic)))*r2d
-              !startval(ic,p,1:2) = asin(startval(ic,p,1:2))*r2d
-              if(ic.eq.1) startval(1:nchains0,p,1:2) = asin(startval(1:nchains0,p,1:2))*r2d
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = asin(startval(1:nchains0,p,1:3))*r2d
               stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*r2d
               ranges(ic,1:nival,p,1:nr) = asin(ranges(ic,1:nival,p,1:nr))*r2d
            end if
            if(p.eq.7) then
               alldat(ic,p,1:n(ic)) = acos(alldat(ic,p,1:n(ic)))*r2d
-              !startval(ic,p,1:2) = acos(startval(ic,p,1:2))*r2d
-              if(ic.eq.1) startval(1:nchains0,p,1:2) = acos(startval(1:nchains0,p,1:2))*r2d
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = acos(startval(1:nchains0,p,1:3))*r2d
               stats(ic,p,1:nstat) = acos(stats(ic,p,1:nstat))*r2d
               ranges(ic,1:nival,p,1:nr) = acos(ranges(ic,1:nival,p,1:nr))*r2d
               do c=1,nival
@@ -792,15 +865,13 @@ program plotspins
            end if
            if(p.eq.8) then
               alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*r2h
-              !startval(ic,p,1:2) = startval(ic,p,1:2)*r2h
-              if(ic.eq.1) startval(1:nchains0,p,1:2) = startval(1:nchains0,p,1:2)*r2h
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*r2h
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*r2h
               ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*r2h
            end if
            if(p.eq.10.or.p.eq.12.or.p.eq.13) then
               alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*r2d
-              !startval(ic,p,1:2) = startval(ic,p,1:2)*r2d
-              if(ic.eq.1) startval(1:nchains0,p,1:2) = startval(1:nchains0,p,1:2)*r2d
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*r2d
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*r2d
               ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*r2d
            end if
@@ -854,13 +925,13 @@ program plotspins
      !Print statistics to screen
      o=6
      if(prstat.gt.0) then
-        write(o,*)''
+        write(o,'(/,A)')'  Main statistics:'
         c = c0
-        write(o,'(A8,13A10,A4,A12,I3,A2)')'param.','model','median','mean','stdev1','stdev2','abvar1','abvar2',  &
+        write(o,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,I3,A2)')'param.','model','median','mean','Lmax','stdev1','stdev2','abvar1','abvar2',  &
              'rng_c','rng1','rng2','drng','d/drng','delta','ok?','result (',nint(ivals(c0)*100),'%)'
         do p=par1,par2
            if(stdev1(p).lt.1.d-20) cycle !Parameter was probably not fitted
-           write(o,'(A8,13F10.4,$)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),stdev1(p),stdev2(p),absvar1(p),  &
+           write(o,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4,$)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absvar1(p),  &
                 absvar2(p),ranges(ic,c,p,3),ranges(ic,c,p,1),ranges(ic,c,p,2),ranges(ic,c,p,4),  &
                 !abs(startval(ic,p,1)-stats(ic,p,1))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt median
                 2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt centre of range
@@ -871,11 +942,12 @@ program plotspins
            end if
            write(o,'(F10.4,A3,F9.4)')ranges(ic,c,p,3),'+-',0.5*ranges(ic,c,p,4)
         end do
-        write(o,*)''
      end if
+     
      
      !Print correlations:
      if(prcorr.gt.0) then
+        write(o,'(/,A)')'  Correlations:'
         write(o,'(A8,$)')''
         do p=par1,par2
            if(stdev1(p).gt.1.d-20) write(o,'(A7,$)')trim(varnames(p))
@@ -895,11 +967,12 @@ program plotspins
            end do
            write(o,'(A)')'   '//varnames(p1)
         end do
-        write(o,*)''
      end if
+     
      
      !Print intervals:
      if(prival.gt.0) then
+        write(o,'(/,A)')'  Probability intervals:'
         write(o,'(A20,A8,$)')'Interval:',''
         do c=1,nival+1
            write(o,'(F20.4,A9,$)')ivals(c),''
@@ -952,7 +1025,7 @@ program plotspins
      write(o,*)''
      write(o,'(A16,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
      do i=1,ndet(ic)
-        write(o,'(A16,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detname(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+        write(o,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detname(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
      end do
      write(o,*)''
      
@@ -990,21 +1063,21 @@ program plotspins
      write(o,'(A,I3)')'Nival:',nival
      write(o,'(A22,$)')'Interval:'
      do c=1,nival+1
-        write(o,'(F20.5,A14,$)')ivals(c),''
+        write(o,'(F21.5,A14,$)')ivals(c),''
      end do
      write(o,*)''
      
      write(o,'(A8,2x,$)')'param.'
      do c=1,nival+1
         !write(o,'(2x,2A9,A8,$)')'rng1','rng2','in rnge'
-        write(o,'(2x,2A12,A8,$)')'centre','delta','in rnge'
+        write(o,'(2x,2A12,A9,$)')'centre','delta','in rnge'
      end do
      write(o,*)''
      do p=par1,par2
         write(o,'(A8,2x,$)')varnames(p)
         do c=1,nival+1
            !write(o,'(2x,2F11.6,F6.3,$)')ranges(ic,c,p,1),ranges(ic,c,p,2),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
-           write(o,'(2x,2F12.6,F6.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+           write(o,'(2x,2F12.6,F7.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
            if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
               write(o,'(A2,$)')'y'
            else
@@ -1075,7 +1148,7 @@ program plotspins
      
      if(prconv.ge.1) then
         write(*,*)''
-        if(prconv.ge.2) write(*,'(A,I7,A)')'  Convergence criterion for',nn,' iterations:'
+        if(prconv.ge.2) write(*,'(A,I7,A)')'  Convergence parameters for',nn,' iterations:'
         write(*,'(18x,20A11)')varnames(par1:min(par2,13))
         if(prconv.ge.2) then
            write(*,'(A)')'  Means:'
@@ -1263,14 +1336,14 @@ program plotspins
      end do
      !if(prprogress.ge.2.and.update.eq.0) write(*,'(A)')'  Done.'
   end if !if(changevar.eq.1)
-
-
-
-
+  
+  
+  
+  
   deallocate(dat)
-
-
-
+  
+  
+  
   ! **********************************************************************************************************************************
   ! ***  CREATE PLOTS   **************************************************************************************************************
   ! **********************************************************************************************************************************
@@ -1279,7 +1352,7 @@ program plotspins
   if(prprogress.ge.2) write(*,*)''
   if(combinechainplots.eq.1.and.(pllogl.eq.1.or.plchain.eq.1.or.plsigacc.ge.1)) then
      io = pgopen('chaininfo.eps'//trim(psclr))
-     call pginitl(colour,file)
+     call pginitl(colour,file,whitebg)
   end if
     
   
@@ -1309,7 +1382,7 @@ program plotspins
      if(file.eq.1) call pgpap(bmpsz,bmprat)
      if(file.eq.1) call pgsch(1.5)
      !call pgscr(3,0.,0.5,0.)
-     call pginitl(colour,file)
+     call pginitl(colour,file,whitebg)
      !call pgsubp(1,2)
      
      if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.94) !To make room for title
@@ -1323,14 +1396,23 @@ program plotspins
      do ic=1,nchains0
         xmin = 0.
         xmax = max(xmax,maxval(is(ic,1:ntot(ic))))
-        ymin = min(ymin,real(minval(pldat(ic,p,10:ntot(ic))))) !Use pldat iso alldat, to also take into account burn-in, ic should loop to nchains0 iso nchains
-        ymax = max(ymax,real(maxval(pldat(ic,p,10:ntot(ic)))))
+        imin = 10                                              !Take into account burn-in
+        if(scloglpl.eq.1) imin = nburn(ic)                   !Scale without taking into account burnin
+        ymin = min(ymin,minval(pldat(ic,p,imin:ntot(ic)))) 
+        ymax = max(ymax,maxval(pldat(ic,p,imin:ntot(ic))))
      end do
      ic = 1
      p = 1
      if(ymax.gt.0.) then !This is log(L)-log(Lo) (which we started saving later on), so that nullh=Lo=0
-        ymin = min(ymin,startval(ic,p,1),startval(ic,p,2),0.)
-        ymax = max(ymax,startval(ic,p,1),startval(ic,p,2),0.)
+        !ymin = min(ymin,startval(ic,p,1),startval(ic,p,2),0.)
+        !ymax = max(ymax,startval(ic,p,1),startval(ic,p,2),0.)
+        if(scloglpl.eq.0) then                                 !Take into account 0, true and starting values
+           ymin = min(ymin,startval(ic,p,1),startval(ic,p,2),0.)
+           ymax = max(ymax,startval(ic,p,1),startval(ic,p,2),0.)
+        else                                                     !Take into account true values only
+           ymin = min(ymin,startval(ic,p,1))
+           ymax = max(ymax,startval(ic,p,1))
+        end if
      else !This is log(L), so that Lo = nullh
         ymin = min(ymin,startval(ic,p,1),startval(ic,p,2),nullh)
         ymax = max(ymax,startval(ic,p,1),startval(ic,p,2),nullh)
@@ -1347,26 +1429,30 @@ program plotspins
      end if
      
      do ic=1,nchains0
-        call pgsci(defcolour)
-        if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-        !if(thin.le.1) then
-        !   do i=1,ntot(ic),chainpli
-        !      call pgpoint(1,is(ic,i),pldat(ic,p,i),1)
-        !   end do
-        !else
-        !   call pgpoint(ntot(ic),is(ic,1:ntot(ic)),pldat(ic,p,1:ntot(ic)),1)
-        !end if
-        !do i=1,ntot(ic),chainpli
-        do i=ic,ntot(ic),chainpli !Start at ic to reduce overplotting
+        !call pgsci(defcolour)
+        !if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+        !do i=ic,ntot(ic),chainpli !Start at ic to reduce overplotting
+        !   call pgpoint(1,is(ic,i),pldat(ic,p,i),1)
+        !end do
+        
+        !Give pre- and post-burnin different colour
+        ci = defcolour
+        if(nchains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
+        call pgscidark(ci,file,whitebg)
+        do i=ic,nburn(ic),chainpli !Start at ic to reduce overplotting
+           call pgpoint(1,is(ic,i),pldat(ic,p,i),1)
+        end do
+        call pgsci(ci)
+        do i=nburn(ic)+ic,ntot(ic),chainpli !Start at ic to reduce overplotting
            call pgpoint(1,is(ic,i),pldat(ic,p,i),1)
         end do
      end do
      
      !Plot max likelihood
      if(pllmax.ge.1) then
-        ply = pldat(icloglmx,p,iloglmx)
+        ply = pldat(icloglmax,p,iloglmax)
         call pgsci(1)
-        call pgpoint(1,is(icloglmx,iloglmx),ply,18)
+        call pgpoint(1,is(icloglmax,iloglmax),ply,18)
         call pgsls(5)
         call pgline(2,(/-1.e20,1.e20/),(/ply,ply/))
      end if
@@ -1376,8 +1462,9 @@ program plotspins
         call pgsls(2)
         call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p,1),startval(ic,p,1)/))
         call pgsci(6)
+        if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
         !call pgline(2,(/real(nburn(ic)),real(nburn(ic))/),(/-1.e20,1.e20/))
-        if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+        if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
         call pgsci(1)
         call pgsls(4)
         if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
@@ -1411,7 +1498,7 @@ program plotspins
         end if
      end if
      if(file.eq.1) then
-        i = system('convert -depth 8  -resize '//trim(bmpxpix)//' logL.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__logL.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharplogl)//' logL.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__logL.png')
         if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
         i = system('rm -f logL.ppm')
         !if(i.ne.0) write(*,'(A)')'  Error removing file',i
@@ -1520,7 +1607,7 @@ program plotspins
      do j=1,nplvar
         p = plvars(j)
         call pgpage
-        if(j.eq.1) call pginitl(colour,file)
+        if(j.eq.1) call pginitl(colour,file,whitebg)
         xmin = 0.
         !xmax = real(maxval(ntot(1:nchains0)))
         xmax = -1.e30
@@ -1528,27 +1615,19 @@ program plotspins
         ymax = -1.e30
         do ic=1,nchains0
            xmax = max(xmax,maxval(is(ic,1:ntot(ic))))
-           ymin = min(ymin,minval(pldat(ic,p,1:ntot(ic))))
-           ymax = max(ymax,maxval(pldat(ic,p,1:ntot(ic))))
+           imin = 1                                               !Take into account burn-in
+           if(scchainspl.eq.1) imin = nburn(ic)                   !Scale without taking into account burnin
+           ymin = min(ymin,minval(pldat(ic,p,imin:ntot(ic))))
+           ymax = max(ymax,maxval(pldat(ic,p,imin:ntot(ic))))
         end do
         
         if(p.eq.8) then
-           !ymin = max(ymin,0.)
-           !ymax = min(ymax,24.)
-           !ymin = max(rev24(ymin),0.)
-           !ymax = min(rev24(ymax),24.)
            if(ymin.lt.0..or.ymax.gt.24.) then
               ymin = 0.
               ymax = 24.
            end if
         end if
         if(p.eq.10.or.p.eq.12.or.p.eq.13) then
-           !ymin = max(ymin,0.)
-           !ymax = min(ymax,360.)
-           !write(*,'(I5,2F10.5,$)')p,ymin,ymax
-           !ymin = max(rev360(ymin),0.)
-           !ymax = min(rev360(ymax),360.)
-           !write(*,'(2F10.5)')ymin,ymax
            if(ymin.lt.0..or.ymax.gt.360.) then
               ymin = 0.
               ymax = 360.
@@ -1559,10 +1638,18 @@ program plotspins
         if(dx.eq.0) then
            xmin = 0.5*xmin
            xmax = 2*xmax
+           if(xmin.eq.0.) then
+              xmin = -1.
+              xmax = 1.
+           end if
         end if
         if(dy.eq.0) then
            ymin = 0.5*ymin
            ymax = 2*ymax
+           if(ymin.eq.0.) then
+              ymin = -1.
+              ymax = 1.
+           end if
         end if
         
         call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
@@ -1584,14 +1671,34 @@ program plotspins
            if(chainsymbol.eq.0) then !Plot lines rather than symbols
               call pgline(ntot(ic),is(ic,1:ntot(ic)),pldat(ic,p,1:ntot(ic)))
            else
-              !do i=1,ntot(ic),chainpli
-              do i=ic,ntot(ic),chainpli !Start at ic to reduce overplotting
+              !do i=ic,ntot(ic),chainpli !Start at ic to reduce overplotting
+              !   ply = pldat(ic,p,i)
+              !   if(p.eq.8) ply = rev24(ply)
+              !   if(p.eq.10.or.p.eq.12.or.p.eq.13) ply = rev360(ply)
+              !   !call pgpoint(1,is(ic,i),ply,1) !Plot small dots
+              !   call pgpoint(1,is(ic,i),ply,symbol) !Plot symbols
+              !end do
+              
+              
+              !Give pre- and post-burnin different colour
+              ci = defcolour
+              if(nchains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
+              call pgscidark(ci,file,whitebg)
+              do i=ic,nburn(ic),chainpli !Start at ic to reduce overplotting
                  ply = pldat(ic,p,i)
                  if(p.eq.8) ply = rev24(ply)
                  if(p.eq.10.or.p.eq.12.or.p.eq.13) ply = rev360(ply)
-                 !call pgpoint(1,is(ic,i),ply,1) !Plot small dots
-                 call pgpoint(1,is(ic,i),ply,symbol) !Plot symbols
+                 call pgpoint(1,is(ic,i),ply,symbol)
               end do
+              call pgsci(ci)
+              do i=nburn(ic)+ic,ntot(ic),chainpli !Start at ic to reduce overplotting
+                 ply = pldat(ic,p,i)
+                 if(p.eq.8) ply = rev24(ply)
+                 if(p.eq.10.or.p.eq.12.or.p.eq.13) ply = rev360(ply)
+                 call pgpoint(1,is(ic,i),ply,symbol)
+              end do
+              
+              
            end if
         end do
         call pgsch(sch)
@@ -1599,11 +1706,11 @@ program plotspins
         
         !Plot max likelihood
         if(pllmax.ge.1) then
-           ply = pldat(icloglmx,p,iloglmx)
+           ply = pldat(icloglmax,p,iloglmax)
            if(p.eq.8) ply = rev24(ply)
            if(p.eq.10.or.p.eq.12.or.p.eq.13) ply = rev360(ply)
            call pgsci(1)
-           call pgpoint(1,is(icloglmx,iloglmx),ply,12)
+           call pgpoint(1,is(icloglmax,iloglmax),ply,12)
            call pgsls(5)
            call pgline(2,(/-1.e20,1.e20/),(/ply,ply/))
         end if
@@ -1614,7 +1721,9 @@ program plotspins
            call pgsci(6)
            
            !Plot burn-in phase
-           if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+           !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
            call pgsci(1)
            
            
@@ -1689,7 +1798,7 @@ program plotspins
         end if
      end if
      if(file.eq.1) then
-        i = system('convert -depth 8 -resize '//trim(bmpxpix)//' chains.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__chains.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' chains.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__chains.png')
         if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
         i = system('rm -f chains.ppm')
      end if
@@ -1797,7 +1906,7 @@ program plotspins
      do j=1,nplvar
         p = plvars(j)
         call pgpage
-        if(j.eq.1) call pginitl(colour,file)
+        if(j.eq.1) call pginitl(colour,file,whitebg)
         xmin = 1.e30
         xmax = -1.e30
         ymin =  1.e30
@@ -1838,10 +1947,18 @@ program plotspins
         if(dx.eq.0) then
            xmin = 0.5*xmin
            xmax = 2*xmax
+           if(xmin.eq.0.) then
+              xmin = -1.
+              xmax = 1.
+           end if
         end if
         if(dy.eq.0) then
            ymin = 0.5*ymin
            ymax = 2*ymax
+           if(ymin.eq.0.) then
+              ymin = -1.
+              ymax = 1.
+           end if
         end if
         xmin = xmin - dx
         xmax = xmax + dx
@@ -1886,10 +2003,10 @@ program plotspins
         
         !Plot max likelihood
         if(pllmax.ge.1) then
-           plx = pldat(icloglmx,p,iloglmx)
+           plx = pldat(icloglmax,p,iloglmax)
            if(p.eq.8) plx = rev24(plx)
            if(p.eq.10.or.p.eq.12.or.p.eq.13) plx = rev360(plx)
-           ply = exp(pldat(icloglmx,1,iloglmx)-ymin)
+           ply = exp(pldat(icloglmax,1,iloglmax)-ymin)
            call pgsci(1)
            call pgpoint(1,plx,ply,12)
            call pgsls(5)
@@ -1949,7 +2066,7 @@ program plotspins
         end if
      end if
      if(file.eq.1) then
-        i = system('convert -depth 8 -resize '//trim(bmpxpix)//' parlogl.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' parlogl.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.png')
         if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
         i = system('rm -f parlogl.ppm')
      end if
@@ -1995,7 +2112,7 @@ program plotspins
      
      !call pgsubp(4,3)
      !call pgscr(3,0.,0.5,0.)
-     !call pginitl(colour,file)
+     !call pginitl(colour,file,whitebg)
      
      if(nplvar.eq.2) call pgsubp(2,1)
      if(nplvar.eq.3) call pgsubp(3,1)
@@ -2014,7 +2131,7 @@ program plotspins
      do j=1,nplvar
         p = plvars(j)
         call pgpage
-        if(j.eq.1) call pginitl(colour,file)
+        if(j.eq.1) call pginitl(colour,file,whitebg)
         xmax = -1.e30
         ymin =  1.e30
         ymax = -1.e30
@@ -2081,7 +2198,9 @@ program plotspins
         call pgsci(6)
         do ic=1,nchains0
            !call pgline(2,(/real(nburn(ic)),real(nburn(ic))/),(/-1.e20,1.e20/))
-           if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+           !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
         end do
         call pgsci(1)
         call pgsls(1)
@@ -2111,7 +2230,7 @@ program plotspins
         end if
      end if
      if(file.eq.1) then
-        i = system('convert -depth 8 -resize '//trim(bmpxpix)//' jumps.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__jumps.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' jumps.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__jumps.png')
         if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
         i = system('rm -f jumps.ppm')
      end if
@@ -2152,7 +2271,7 @@ program plotspins
 
      !call pgsubp(4,3)
      !call pgscr(3,0.,0.5,0.)
-     !call pginitl(colour,file)
+     !call pginitl(colour,file,whitebg)
 
      if(nplvar.eq.2) call pgsubp(2,1)
      if(nplvar.eq.3) call pgsubp(3,1)
@@ -2171,7 +2290,7 @@ program plotspins
      do j=1,nplvar
         p = plvars(j)
         call pgpage
-        if(j.eq.1) call pginitl(colour,file)
+        if(j.eq.1) call pginitl(colour,file,whitebg)
         xmax = -1.e30
         ymin =  1.e30
         ymax = -1.e30
@@ -2236,7 +2355,9 @@ program plotspins
         call pgsci(6)
         do ic=1,nchains0
            !call pgline(2,(/real(nburn(ic)),real(nburn(ic))/),(/-1.e20,1.e20/))
-           if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+           !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
         end do
         call pgsci(1)
         call pgsls(1)
@@ -2266,7 +2387,7 @@ program plotspins
         end if
      end if
      if(file.eq.1) then
-        i = system('convert -depth 8 -resize '//trim(bmpxpix)//' sigs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__sigs.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' sigs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__sigs.png')
         if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
         i = system('rm -f sigs.ppm')
      end if
@@ -2307,7 +2428,7 @@ program plotspins
 
      !call pgsubp(4,3)
      !call pgscr(3,0.,0.5,0.)
-     !call pginitl(colour,file)
+     !call pginitl(colour,file,whitebg)
 
      if(nplvar.eq.2) call pgsubp(2,1)
      if(nplvar.eq.3) call pgsubp(3,1)
@@ -2326,7 +2447,7 @@ program plotspins
      do j=1,nplvar
         p = plvars(j)
         call pgpage
-        if(j.eq.1) call pginitl(colour,file)
+        if(j.eq.1) call pginitl(colour,file,whitebg)
         xmax = -1.e30
         ymin =  1.e30
         ymax = -1.e30
@@ -2359,7 +2480,9 @@ program plotspins
         call pgsci(6)
         do ic=1,nchains0
            !call pgline(2,(/real(nburn(ic)),real(nburn(ic))/),(/-1.e20,1.e20/))
-           if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+           !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
         end do
         call pgsci(1)
         call pgsls(1)
@@ -2405,7 +2528,7 @@ program plotspins
         end if
      end if
      if(file.eq.1) then
-        i = system('convert -depth 8 -resize '//trim(bmpxpix)//' accs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__accs.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' accs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__accs.png')
         if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
         i = system('rm -f accs.ppm')
      end if
@@ -2456,7 +2579,7 @@ program plotspins
      
      !call pgsubp(4,3)
      !call pgscr(3,0.,0.5,0.)
-     !call pginitl(colour,file)
+     !call pginitl(colour,file,whitebg)
      
      if(nplvar.eq.2) call pgsubp(2,1)
      if(nplvar.eq.3) call pgsubp(3,1)
@@ -2475,7 +2598,7 @@ program plotspins
      do j=1,nplvar
         p = plvars(j)
         call pgpage
-        if(j.eq.1) call pginitl(colour,file)
+        if(j.eq.1) call pginitl(colour,file,whitebg)
         xmin = 0.
         xmin = minval(acorrs(1,0,0:100))
         xmax = maxval(acorrs(1,0,0:100))
@@ -2530,7 +2653,7 @@ program plotspins
         end if
      end if
      if(file.eq.1) then
-        i = system('convert -depth 8 -resize '//trim(bmpxpix)//' acorrs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' acorrs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.png')
         if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
         i = system('rm -f acorrs.ppm')
      end if
@@ -2616,7 +2739,7 @@ program plotspins
         if(file.ge.2.and.quality.eq.3.and.nplvar.eq.12) call pgpap(10.6,0.925)
         if(file.ge.2) call pgscf(2)
         !call pgscr(3,0.,0.5,0.)
-        !call pginitl(colour,file)
+        !call pginitl(colour,file,whitebg)
         call pgslw(lw)
         call pgsch(sch)
         call pgsfs(fillpdf)
@@ -2652,7 +2775,7 @@ program plotspins
         p = plvars(j)
         if(plot.eq.1) then
            call pgpage
-           if(j.eq.1) call pginitl(colour,file)
+           if(j.eq.1) call pginitl(colour,file,whitebg)
         end if
 
         !Set x-ranges, bin the data and get y-ranges
@@ -2698,7 +2821,7 @@ program plotspins
               end if
            end if
            
-           !Smoothen
+           !Smoothen 1D PDF
            ybin2 = ybin1
            if(smooth.gt.1) then
               !i0 = nbin1d/10
@@ -2757,6 +2880,10 @@ program plotspins
            if(dx.eq.0) then
               xmin = 0.5*xmin
               xmax = 2*xmax
+              if(xmin.eq.0.) then
+                 xmin = -1.
+                 xmax = 1.
+              end if
            end if
            !print*,xmin,xmax,ymin,ymax
            if(ymax.lt.1.e-19) ymax = 1.
@@ -2835,7 +2962,7 @@ program plotspins
            
            !Plot max likelihood
            if(pllmax.ge.1) then
-              ply = pldat(icloglmx,p,iloglmx)
+              ply = pldat(icloglmax,p,iloglmax)
               if(p.eq.8) ply = rev24(ply)
               if(p.eq.10.or.p.eq.12.or.p.eq.13) ply = rev360(ply)
               call pgsci(1)
@@ -3047,7 +3174,8 @@ program plotspins
            !Remove also the pgsvp at the beginning of the plot
            string=' '
            do ic=1,1!nchains !Can't do this 10x for 10 chains
-              write(string,'(A,I7,A,I6)')trim(string)//'n:',ntot(ic),', nburn:',nburn(ic)
+              !write(string,'(A,I7,A,I6)')trim(string)//'n:',ntot(ic),', nburn:',nburn(ic)
+              write(string,'(A,I8)')trim(string)//'n:',sum(ntot(1:nchains0))
            end do
            call pgsch(sch*0.7)
            call pgmtxt('T',-0.7,0.5,0.5,trim(outputname)//'  '//trim(string))  !Print title
@@ -3070,7 +3198,7 @@ program plotspins
            end if
            i = system('mv -f pdfs.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.eps')
         else if(file.eq.1) then
-           i = system('convert -resize '//trim(bmpxpix)//' -depth 8 pdfs.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.png')
+           i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharppdf1d)//' pdfs.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.png')
            if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
            i = system('rm -f pdfs.ppm')
         end if
@@ -3122,7 +3250,7 @@ program plotspins
         !if(file.eq.0) call pgpap(scrsz,scrrat)
         !if(file.eq.1) call pgpap(bmpsz,bmprat)
         if(file.ge.2) call pgscf(2)
-        if(file.gt.1) call pginitl(colour,file)
+        if(file.gt.1) call pginitl(colour,file,whitebg)
      end if !if(plot.eq.1)
      
      !NEW columns in dat: 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha, 14:M1, 15:M2
@@ -3186,12 +3314,12 @@ program plotspins
                  write(str,'(I3,A3)')200+npdf,'/xs'
                  io = pgopen(trim(str))
                  call pgpap(scrsz,scrrat)
-                 call pginitl(colour,file)
+                 call pginitl(colour,file,whitebg)
               end if
               if(file.eq.1) then
                  io = pgopen('pdf2d.ppm/ppm')
                  call pgpap(bmpsz,bmprat)
-                 call pginitl(colour,file)
+                 call pginitl(colour,file,whitebg)
               end if
               !call pgscr(3,0.,0.5,0.)
               call pgsch(sch)
@@ -3239,6 +3367,7 @@ program plotspins
                  ymax = a + 0.5*dy
               end if
            end if
+           
            
            call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,nbin2dx,nbin2dy,xmin,xmax,ymin,ymax,z,tr)  !Count number of chain elements in each bin
            
@@ -3332,7 +3461,7 @@ program plotspins
               if(pllmax.ge.1) then
                  call pgsci(1); call pgsls(5)
                  
-                 plx = pldat(icloglmx,p1,iloglmx)
+                 plx = pldat(icloglmax,p1,iloglmax)
                  if(p1.eq.8) plx = rev24(plx)
                  if(p1.eq.10.or.p1.eq.12.or.p1.eq.13) plx = rev360(plx)
                  call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Max logL
@@ -3345,7 +3474,7 @@ program plotspins
                     call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !Max logL
                  end if
                  
-                 ply = pldat(icloglmx,p2,iloglmx)
+                 ply = pldat(icloglmax,p2,iloglmax)
                  if(p2.eq.8) ply = rev24(ply)
                  if(p2.eq.10.or.p2.eq.12.or.p2.eq.13) ply = rev360(ply)
                  call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !Max logL
@@ -3468,7 +3597,7 @@ program plotspins
               
               if(file.eq.1) then
                  call pgend
-                 i = system('convert -resize '//trim(bmpxpix)//' -depth 8 pdf2d.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.png')
+                 i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharppdf2d)//' pdf2d.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.png')
                  if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
                  i = system('rm -f pdf2d.ppm')
               end if
@@ -3620,7 +3749,7 @@ program plotspins
         if(file.ge.1) call pgpap(24.08,0.72) !for 1024x738, change convert below. 1:1.388 for mpeg, make the output image twice as big, rescale in the end
         call pgsch(1.)
         !call pgscr(3,0.,0.5,0.)
-        call pginitl(colour,file)
+        call pginitl(colour,file,whitebg)
         lw = 2
         if(file.ge.1) lw = 5
         
@@ -3697,7 +3826,8 @@ program plotspins
            if(nchains0.gt.1) call pgsci(1)
            call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p,1),startval(ic,p,1)/)) !True value
            call pgsci(6)
-           if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
            call pgsci(2)
            call pgsls(4)
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
@@ -3774,7 +3904,8 @@ program plotspins
               end if
               call pgsci(6)
               !call pgline(2,(/real(nburn(ic)),real(nburn(ic))/),(/-1.e20,1.e20/))
-              if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))              !Burn-in
+              !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))              !Burn-in
+              if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
            !   call pgsci(2)
            !   call pgsls(4)
            !   if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
@@ -3833,7 +3964,8 @@ program plotspins
            call pgsci(6)
            do ic=1,nchains0
               !call pgline(2,(/real(nburn(ic)),real(nburn(ic))/),(/-1.e20,1.e20/))
-              if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+              !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+              if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
            end do
            call pgsci(1)
            call pgsls(1)
@@ -3881,7 +4013,8 @@ program plotspins
            call pgsci(6)
            do ic=1,nchains0
               !call pgline(2,(/real(nburn(ic)),real(nburn(ic))/),(/-1.e20,1.e20/))
-              if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+              !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+              if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
            end do
            
            do ic=1,nchains0
@@ -4208,10 +4341,10 @@ program plotspins
         
         call pgend
         
-        !if(file.ge.1) i = system('convert -depth 8 -resize 850x612 '//trim(framename)//' '//trim(framename))  !Rescale the output frame
+        !if(file.ge.1) i = system('convert -resize 850x612 -depth 8 -unsharp '//trim(unsharppdf1d)//' '//trim(framename)//' '//trim(framename))  !Rescale the output frame
         if(file.ge.1) then
            call pgend
-           write(command,'(A)')'convert -depth 8 -resize 1024x738 '//trim(framename)//' '//trim(framename)
+           write(command,'(A)')'convert -resize 1024x738 -depth 8 -unsharp '//trim(unsharppdf1d)//' '//trim(framename)//' '//trim(framename)
            i = system(trim(command))  !Rescale the output frame
            if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
         end if
