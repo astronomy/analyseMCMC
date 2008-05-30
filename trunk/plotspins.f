@@ -81,7 +81,7 @@ program plotspins
   !scfac = 1.2
   bmpsz = real(bmpxsz-1)/85. * scfac !Make png larger, so that convert interpolates and makes the plot smoother
   bmprat = real(bmpysz-1)/real(bmpxsz-1)
-  write(bmpxpix,'(I4)')nint(real(bmpsz)*85.)+1  !Used as a text string by convert
+  write(bmpxpix,'(I4)')bmpxsz  !Used as a text string by convert
   !print*,bmpxsz,bmpysz,bmpsz,bmprat,trim(bmpxpix)
   
   !Use full unsharp-mask strength for plots with many panels and dots, weaker for those with fewer panels and.or no dots
