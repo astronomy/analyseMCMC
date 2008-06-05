@@ -57,6 +57,7 @@
          0              smooth     Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!
          1             fillpdf     Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
          1           normpdf1d     Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains
+         0           normpdf2d     'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value
    0.90000               ival0     Standard probability interval, e.g. 0.90, 0.95
          1          nmovframes     Number of frames for the movie
          3         moviescheme     Moviescheme (1-3): determines what panels to show in a movie frame; see source code

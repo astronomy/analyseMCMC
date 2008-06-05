@@ -10,7 +10,7 @@ module plotsettings
   integer :: thin,nburn(nchs),file,colour,quality,reverseread,update,mergechains,wrapdata,changevar,maxchlen
   integer :: prprogress,prruninfo,prinitial,prstat,prcorr,prival,prconv,savestats,savepdf       
   integer :: plot,combinechainplots,pllogl,plchain,plparl,pljump,rdsigacc,plsigacc,plpdf1d,plpdf2d,placorr,plotsky,plmovie       
-  integer :: chainsymbol,chainpli,pltrue,plstart,plmedian,plrange,plburn,pllmax,prvalues,smooth,fillpdf,normpdf1d
+  integer :: chainsymbol,chainpli,pltrue,plstart,plmedian,plrange,plburn,pllmax,prvalues,smooth,fillpdf,normpdf1d,normpdf2d
   integer :: scloglpl,scchainspl,bmpxsz,bmpysz
   integer :: nmovframes,moviescheme,whitebg,unsharp
   real :: ival0,nburnfrac,autoburnin
@@ -103,6 +103,7 @@ subroutine read_inputfile
   read(u,*,iostat=io)smooth
   read(u,*,iostat=io)fillpdf
   read(u,*,iostat=io)normpdf1d
+  read(u,*,iostat=io)normpdf2d
   read(u,*,iostat=io)ival0
   read(u,*,iostat=io)nmovframes
   read(u,*,iostat=io)moviescheme
@@ -221,6 +222,7 @@ subroutine write_inputfile
   write(u,11)smooth, 'smooth',   'Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!'
   write(u,11)fillpdf, 'fillpdf',   'Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched'
   write(u,11)normpdf1d, 'normpdf1d',   'Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains'
+  write(u,11)normpdf2d, 'normpdf2d',   "'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value"
   write(u,21)ival0, 'ival0',   'Standard probability interval, e.g. 0.90, 0.95'
   write(u,11)nmovframes, 'nmovframes',   'Number of frames for the movie'
   write(u,11)moviescheme, 'moviescheme',   'Moviescheme (1-3): determines what panels to show in a movie frame; see source code'
@@ -317,6 +319,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   smooth = 3        !Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!
   fillpdf = 1       !Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
   normpdf1d = 1     !Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains
+  normpdf2d = 0     !'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value
   ival0 = 0.90      !Standard probability interval, e.g. 0.90, 0.95
   nmovframes = 1    !Number of frames for the movie
   moviescheme = 3   !Movie scheme: determines what panels to show in a movie frame

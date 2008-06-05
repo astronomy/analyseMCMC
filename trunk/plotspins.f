@@ -436,7 +436,7 @@ program plotspins
   !Get point with absolute maximum likelihood over all chains
   loglmax = -1.d99
   do ic=1,nchains0
-     do i=1,ntot(ic)
+     do i=3,ntot(ic)  !3: exclude true and starting values
         if(dat(1,ic,i).gt.loglmax) then
            loglmax = dat(1,ic,i)
            iloglmax = i
@@ -3369,12 +3369,15 @@ program plotspins
            end if
            
            
-           call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,nbin2dx,nbin2dy,xmin,xmax,ymin,ymax,z,tr)  !Count number of chain elements in each bin
+           !'Normalise' 2D PDF
+           if(normpdf2d.lt.3) then
+              call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,nbin2dx,nbin2dy,xmin,xmax,ymin,ymax,z,tr)  !Count number of chain elements in each bin
+              if(normpdf2d.eq.1) z = max(0.,log10(z + 1.e-30))
+              if(normpdf2d.eq.2) z = max(0.,sqrt(z + 1.e-30))
+           else
+              call bindata2da(n(ic),xx(1:n(ic)),yy(1:n(ic)),zz(1:n(ic)),0,nbin2dx,nbin2dy,xmin,xmax,ymin,ymax,z,tr)  !Measure amount of likelihood in each bin
+           end if
            
-           !Weigh with likelihood
-           !call bindata2da(n(ic),xx(1:n(ic)),yy(1:n(ic)),zz(1:n(ic)),0,nbin2dx,nbin2dy,xmin,xmax,ymin,ymax,z,tr)  !Measure amount of likelihood in each bin
-           
-           !z = max(0.,log10(z + 1.e-30))
            
            if(p1.eq.8.and.p2.eq.9) then !Swap RA boundaries
               a = xmin

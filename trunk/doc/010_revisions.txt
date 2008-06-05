@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+     8: sluys, 04/06/2008
+     - plotspins.dat changed:
+       - parameter normpdf2d was added
+    
      7: sluys, 30/05/2008
      - plotspins.dat changed:
        - the parameter autoburnin, if >0, sets the burnin to the first point where 
