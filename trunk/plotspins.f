@@ -14,7 +14,7 @@ program plotspins
   real :: a,b,r2d,r2h,rat,plx,ply,cputime,cputime0
   real*8 :: t,t0,pi,tpi,dvar,dvar1,dvar2,ra,nullh
   real, allocatable :: dat(:,:,:),alldat(:,:,:),pldat(:,:,:)
-  character :: js*4,varnames(npar1)*5,pgunits(npar1)*99,pgvarns(npar1)*99,pgvarnss(npar1)*99,pgorigvarns(npar1)*99,infile*100,infiles(nchs)*100,str*99,str1*99,str2*99,fmt*99,bla*10,command*99
+  character :: js*4,varnames(npar1)*8,pgunits(npar1)*99,pgvarns(npar1)*99,pgvarnss(npar1)*99,pgorigvarns(npar1)*99,infile*100,infiles(nchs)*100,str*99,str1*99,str2*99,fmt*99,bla*10,command*99
   
   integer :: nn,nn1,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nlogl1,nlogl2,ksn1,ksn2,iloglmax,icloglmax,ci
   real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),rhat(npar1),totrelvar,ksdat1(narr1),ksdat2(narr1),ksd,ksprob,loglmax
@@ -25,7 +25,7 @@ program plotspins
   real*8 :: FTstart(nchs,ndets)
   character :: detname(nchs,ndets)*14,string*99
   
-  integer :: nfx,nfy,fx,fy,npdf
+  integer :: nfx,nfy,fx,fy,npdf,ncont
   real :: x0,x1,x2,y1,y2,dx,dy,xmin,xmax,ymin,ymax,xmin1,xmax1,xpeak,ymin1,ymax1,ymaxs(nchs+2)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
   real :: coefs(100),coefs1(100),cont(11),tr(6)
@@ -35,7 +35,7 @@ program plotspins
   character :: header*1000,outputname*99,outputdir*99,psclr*4,colournames(15)*20
   
   integer :: o,o1,o2,do12,p,p1,p2,p11,p12,p21,p22,par1,par2,nr,c,c0,nstat,wrap(nchs,npar1),nival,npar,ncolours,colours(10),nsymbols,symbols(10),symbol,defcolour,plotthis,tempintarray(99)
-  real :: range,minrange,range1,range2,drange,maxgap,ranges(nchs,nival1+1,npar1,nr1),ival,ivals(nival1+1),centre,shift(nchs,npar1),plshift
+  real :: range,minrange,range1,range2,drange,maxgap,ranges(nchs,nival1+1,npar1,nr1),ival,ivals(nival1+1),centre,shift(nchs,npar1),plshift,probarea(nival1+1)
   real :: median,medians(npar1),mean(npar1),stdev1(npar1),stdev2(npar1),var1(npar1),var2(npar1),absvar1(npar1),absvar2(npar1)
   real :: stats(nchs,npar1,nstat1),corrs(npar1,npar1),acorrs(nchs,0:npar1,0:narr1)
   real :: norm
@@ -208,7 +208,7 @@ program plotspins
   
   
   !NEW columns in dat: 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
-  varnames(1:15) = (/'logL','Mc','eta','tc','log dl','spin','kappa','RA','sin dec','phase','sin thJo','phJo','alpha','M1','M2'/)
+  varnames(1:15) = (/'logL','Mc','eta','tc','log_dl','spin','kappa','RA','sin_dec','phase','sin_thJo','phJo','alpha','M1','M2'/)
   pgvarns(1:15)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ', &
        'logd\dL\u (Mpc)       ','a\dspin\u             ','\(2136)               ','R.A. (rad)            ', &
        'sin dec.              ','\(2147)\dc\u (rad)    ','sin \(2134)\dJ0\u     ','\(2147)\dJ0\u (rad)   ', &
@@ -225,12 +225,13 @@ program plotspins
   
   
   !nival = 1; ivals(1:nival) = (/0.9/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
-  !nival = 2; ivals(1:nival) = (/0.9,0.99/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
+  nival = 2; ivals(1:nival) = (/0.9,0.99/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
   !nival = 3; ivals(1:nival) = (/0.683,0.9,0.997/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
-  nival = 3; ivals(1:nival) = (/0.90,0.95,0.99/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
+  !nival = 3; ivals(1:nival) = (/0.50,0.7,0.9/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
+  !nival = 3; ivals(1:nival) = (/0.90,0.95,0.99/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
   !nival = 4; ivals(1:nival) = (/0.6827,0.9,0.9545,0.9973/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
   !nival = 4; ivals(1:nival) = (/0.8,0.9,0.95,0.99/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
-  ivals(nival+1) = 1.
+  ivals(nival+1) = 1. !The last interval is always 100%
   
   
   
@@ -599,7 +600,7 @@ program plotspins
         if(prprogress.ge.1.and.update.eq.0) write(*,'(A,I5,A,I5,A,I6,A)')'  Plotting every',chainpli,'-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin),', for these plots it is',nint(avgtotthin*chainpli),'.'
      else
         chainpli = 1
-        if(prprogress.ge.1.and.update.eq.0) write(*,'(A,I5,A)')'  Plotting *every* state in likelihood, chains, jumps, etc. plots.  Average total thinning remais',nint(avgtotthin),' for these plots.'
+        if(prprogress.ge.1.and.update.eq.0) write(*,'(A,I5,A)')'  Plotting *every* state in likelihood, chains, jumps, etc. plots.  Average total thinning remains',nint(avgtotthin),' for these plots.'
      end if
   end if
   
@@ -965,7 +966,7 @@ program plotspins
                  write(o,'(A7,$)')''
               end if
            end do
-           write(o,'(A)')'   '//varnames(p1)
+           write(o,'(A)')'   '//trim(varnames(p1))
         end do
      end if
      
@@ -1054,7 +1055,7 @@ program plotspins
         do p2=par1,par2
            write(o,'(F10.5,$)')corrs(p1,p2)
         end do
-        write(o,'(A)')'   '//varnames(p1)
+        write(o,'(A)')'   '//trim(varnames(p1))
      end do
      write(o,*)''
      
@@ -1074,7 +1075,7 @@ program plotspins
      end do
      write(o,*)''
      do p=par1,par2
-        write(o,'(A8,2x,$)')varnames(p)
+        write(o,'(A8,2x,$)')trim(varnames(p))
         do c=1,nival+1
            !write(o,'(2x,2F11.6,F6.3,$)')ranges(ic,c,p,1),ranges(ic,c,p,2),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
            write(o,'(2x,2F12.6,F7.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
@@ -1356,7 +1357,7 @@ program plotspins
   end if
     
   
-  if(plot.eq.1.and.prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')' Plotting: '
+  if(plot.eq.1.and.prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')'  Plotting: '
   
   
   !***********************************************************************************************************************************      
@@ -2736,6 +2737,7 @@ program plotspins
         end if
         if(file.eq.0) call pgpap(scrsz,scrrat)
         if(file.eq.1) call pgpap(bmpsz,bmprat)
+        if(file.ge.2) call pgpap(pssz,psrat)
         if(file.ge.2.and.quality.eq.3.and.nplvar.eq.12) call pgpap(10.6,0.925)
         if(file.ge.2) call pgscf(2)
         !call pgscr(3,0.,0.5,0.)
@@ -2982,7 +2984,7 @@ program plotspins
                  if(pltrue.ge.1) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !True value
                  !if(plstart.ge.1) call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))                   !Starting value
                  if(p.ne.1) then !Not if plotting log(L)
-                    if(plmedian.ge.1) call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))                          !Median
+                    if(plmedian.eq.1.or.plmedian.eq.3) call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))                          !Median
                     if(plrange.ge.1) then
                        if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) !Left limit of 90% interval
                        if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/)) !Right limit of 90% interval
@@ -2994,7 +2996,7 @@ program plotspins
               call pgslw(lw+1)
               !Draw coloured lines over the white ones
               !Median
-              if(plmedian.eq.1.and.p.ne.1) then
+              if((plmedian.eq.1.or.plmedian.eq.3) .and. p.ne.1) then
                  call pgsls(2); call pgsci(2); if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
                  call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))
               end if
@@ -3205,18 +3207,18 @@ program plotspins
      end if !if(plot.eq.1)
      !write(*,*)''   
   end if !if(plpdf1d.eq.1)
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   !***********************************************************************************************************************************      
   if(plpdf2d.ge.1) then
      ic = 1 !Can only do one chain
@@ -3226,13 +3228,11 @@ program plotspins
         !if(prprogress.ge.2.and.update.eq.0) write(*,'(A)')' Plotting 2D pdfs...    '
         if(prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')' 2D pdfs: '
         if(file.eq.0) then
-           !io = pgopen('15/xs')
            lw = 1
            lw2 = 1
            sch = 1.5
         end if
         if(file.ge.1) then
-           !if(file.eq.1) io = pgopen('pdf2d.ppm/ppm')
            if(file.ge.2) io = pgopen('pdf2d.eps'//trim(psclr))
            lw = 3
            lw2 = 2 !Font lw
@@ -3243,12 +3243,11 @@ program plotspins
               sch = 2.
            end if
         end if
-        if(io.le.0) then
+        if(file.ge.2.and.io.le.0) then
            write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
            goto 9999
         end if
-        !if(file.eq.0) call pgpap(scrsz,scrrat)
-        !if(file.eq.1) call pgpap(bmpsz,bmprat)
+        if(file.ge.2) call pgpap(pssz,psrat)
         if(file.ge.2) call pgscf(2)
         if(file.gt.1) call pginitl(colour,file,whitebg)
      end if !if(plot.eq.1)
@@ -3321,6 +3320,11 @@ program plotspins
                  call pgpap(bmpsz,bmprat)
                  call pginitl(colour,file,whitebg)
               end if
+              if(file.lt.2.and.io.le.0) then
+                 write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
+                 goto 9999
+              end if
+
               !call pgscr(3,0.,0.5,0.)
               call pgsch(sch)
            end if
@@ -3331,10 +3335,9 @@ program plotspins
            ymax = maxval(alldat(ic,p2,1:n(ic)))
            dx = xmax - xmin
            dy = ymax - ymin
-           !print*,xmin,xmax
-           !print*,ymin,ymax
-           !print*,ic
-
+           write(*,'(A,2F10.5)')'  Xmin,Xmax: ',xmin,xmax
+           write(*,'(A,2F10.5)')'  Ymin,Ymax: ',ymin,ymax
+           
            xx(1:n(ic)) = alldat(ic,p1,1:n(ic)) !Parameter 1
            yy(1:n(ic)) = alldat(ic,p2,1:n(ic)) !Parameter 2
            zz(1:n(ic)) = alldat(ic,1,1:n(ic))   !Likelihood
@@ -3345,7 +3348,8 @@ program plotspins
            ymax = ymax + 0.05*dy
            
            
-           if(plot.eq.1.and.plotsky.eq.1) then !Plot a cute sky map
+           !Plot a cute sky map in 2D PDF
+           if(plot.eq.1.and.plotsky.eq.1) then
               xmax = 18.2!14.
               xmin = 14.8!20.
               ymin = 20.!0.
@@ -3369,29 +3373,60 @@ program plotspins
            end if
            
            
+           
            !'Normalise' 2D PDF
-           if(normpdf2d.lt.3) then
+           if(normpdf2d.le.2.or.normpdf2d.eq.4) then
               call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,nbin2dx,nbin2dy,xmin,xmax,ymin,ymax,z,tr)  !Count number of chain elements in each bin
               if(normpdf2d.eq.1) z = max(0.,log10(z + 1.e-30))
               if(normpdf2d.eq.2) z = max(0.,sqrt(z + 1.e-30))
-           else
+              if(normpdf2d.eq.4) then
+                 call identify_2d_ranges(nival+1,ivals,nbin2dx+1,nbin2dy+1,z) !Get 2D probability ranges
+                 call calc_2d_areas(p1,p2,changevar,nival+1,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas
+                 write(*,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
+                 do i=1,nival+1
+                    write(*,'(I10,F13.2,2(2x,F21.5))')i,ivals(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)
+                 end do
+                 i=1
+                 open(unit=97,file='ranges_2d.dat',status='replace')
+                 write(97,'(2(2x,F21.5))')sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)
+                 close(97)
+                 write(*,'(A2,$)')'  '
+              end if
+           end if
+           if(normpdf2d.eq.3) then
               call bindata2da(n(ic),xx(1:n(ic)),yy(1:n(ic)),zz(1:n(ic)),0,nbin2dx,nbin2dy,xmin,xmax,ymin,ymax,z,tr)  !Measure amount of likelihood in each bin
            end if
            
            
-           if(p1.eq.8.and.p2.eq.9) then !Swap RA boundaries
+           !Swap RA boundaries for RA-Dec plot in 2D PDF
+           if(p1.eq.8.and.p2.eq.9) then
               a = xmin
               xmin = xmax
               xmax = a
               dx = -dx
            end if
            
-           
            z = z/(maxval(z)+1.e-30)
            
            if(plot.eq.1.and.plotsky.eq.1.and.file.ge.2) z = 1. - z !Invert grey scales
            
+           
+           !Plot 2D PDF
            if(plot.eq.1) then
+              
+              !Force boundaries
+              if(1.eq.1.and.p1.eq.8.and.p2.eq.9) then
+                 !xmin = 24.
+                 !xmax = 0.
+                 !ymin = -90.
+                 !ymax = 90.
+                 
+                 xmin = 14.83440
+                 xmax = 10.35767
+                 ymin = -32.63011
+                 ymax = 31.75267
+              end if
+              
               call pgsch(sch)
               !call pgsvp(0.12,0.95,0.12,0.95)
               call pgsvp(0.08*sch,0.95,0.08*sch,0.95)
@@ -3404,10 +3439,22 @@ program plotspins
                  !call pgsci(0)
               end if
               
-              if(plpdf2d.eq.1.or.plpdf2d.eq.2) call pggray(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,1.,0.,tr)
+              !Plot the actual 2D PDF (grey scales or colour)
+              if(plpdf2d.eq.1.or.plpdf2d.eq.2) then
+                 if(normpdf2d.lt.4) call pggray(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,1.,0.,tr)
+                 if(normpdf2d.eq.4) then
+                    call pgscr(30,1.,1.,1.) !BG colour
+                    call pgscr(31,0.,0.,1.) !Blue
+                    call pgscr(32,0.,1.,0.) !Green
+                    call pgscr(33,1.,1.,0.) !Yellow
+                    !call pgscr(34,1.,0.5,0.) !Orange
+                    call pgscr(34,1.,0.,0.) !Red
+                    call pgscir(30,34)
+                    call pgimag(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,0.,1.,tr)
+                 end if
+              end if
               
-              
-              !Plot stars (over the grey scales, but underneath contours, lines, etc)
+              !Plot stars in 2D PDF (over the grey scales, but underneath contours, lines, etc)
               if(plotsky.eq.1) then
                  call pgswin(xmin*15,xmax*15,ymin,ymax) !Map works in degrees
                  call plotthesky(xmin*15,xmax*15,ymin,ymax)
@@ -3416,26 +3463,40 @@ program plotspins
               call pgsci(1)
            end if !if(plot.eq.1)
            
-           if((plpdf2d.eq.1.or.plpdf2d.eq.3) .and. plot.eq.1) then
-              do i=1,11
-                 cont(i) = 0.01 + 2*real(i-1)/10.
-                 if(plotsky.eq.1) cont(i) = 1.-cont(i)
-              end do
            
+           !Plot contours in 2D PDF
+           if((plpdf2d.eq.1.or.plpdf2d.eq.3) .and. plot.eq.1) then
+              if(normpdf2d.lt.4) then
+                 ncont = 11
+                 do i=1,ncont
+                    cont(i) = 0.01 + 2*real(i-1)/real(ncont-1)
+                    if(plotsky.eq.1) cont(i) = 1.-cont(i)
+                 end do
+                 ncont = 4 !Only use the first 4
+              end if
+              if(normpdf2d.eq.4) then
+                 ncont = nival+1
+                 do i=1,ncont
+                    cont(i) = max(1. - real(i-1)/real(ncont-1),0.001)
+                    !if(plotsky.eq.1) cont(i) = 1.-cont(i)
+                 end do
+              end if
+              
               call pgsls(1)
-              if(plotsky.eq.0) then !First in black
+              if(plotsky.eq.0 .and. normpdf2d.ne.4) then !First in bg colour
                  call pgslw(2*lw)
                  call pgsci(0)
-                 call pgcont(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,cont,4,tr)
+                 !call pgcont(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,cont,4,tr)
+                 call pgcont(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,cont(1:ncont),ncont,tr)
               end if
               call pgslw(lw)
               call pgsci(1)
               if(plotsky.eq.1) call pgsci(7)
-              call pgcont(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,cont,4,tr)
+              call pgcont(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,cont(1:ncont),ncont,tr)
            end if
            
            
-           !Save binned data
+           !Save binned 2D PDF data
            if(savepdf.eq.1) then
               write(30,'(3I6,T100,A)')ic,p1,p2,'Chain number and variable number 1,2'
               write(30,'(2ES15.7,T100,A)')startval(ic,p1,1:2),'True and starting value p1'
@@ -3456,11 +3517,11 @@ program plotspins
            
            
            
+           !Plot true value, median, ranges, etc. in 2D PDF
            if(plot.eq.1) then
-              !Plot true value, median, ranges, etc.
               call pgsci(1)
               
-              !Plot max likelihood
+              !Plot max likelihood in 2D PDF
               if(pllmax.ge.1) then
                  call pgsci(1); call pgsls(5)
                  
@@ -3497,7 +3558,7 @@ program plotspins
               if(plotsky.eq.1) call pgsci(0)
               call pgsls(2)
               
-              !True value
+              !Plot true value in 2D PDF
               if(plotsky.eq.0) then
                  !call pgline(2,(/startval(ic,p1,1),startval(ic,p1,1)/),(/-1.e20,1.e20/))
                  !call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p2,1),startval(ic,p2,1)/))
@@ -3538,39 +3599,46 @@ program plotspins
               end if
               call pgsci(1)
               call pgsls(4)
-              !Starting value
-              !         call pgline(2,(/startval(ic,p1,2),startval(ic,p1,2)/),(/-1.e20,1.e20/))
-              !         call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p2,2),startval(ic,p2,2)/))
+              
+              
+              !Plot starting values in 2D PDF
+              !call pgline(2,(/startval(ic,p1,2),startval(ic,p1,2)/),(/-1.e20,1.e20/))
+              !call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p2,2),startval(ic,p2,2)/))
+              
               call pgsci(2)
-              !Interval ranges
-              !         call pgline(2,(/ranges(ic,c0,p1,1),ranges(ic,c0,p1,1)/),(/-1.e20,1.e20/))
-              !         call pgline(2,(/ranges(ic,c0,p1,2),ranges(ic,c0,p1,2)/),(/-1.e20,1.e20/))
-              !         call pgline(2,(/-1.e20,1.e20/),(/ranges(ic,c0,p2,1),ranges(ic,c0,p2,1)/))
-              !         call pgline(2,(/-1.e20,1.e20/),(/ranges(ic,c0,p2,2),ranges(ic,c0,p2,2)/))
-              call pgsls(1)
-              call pgsch(sch*0.6)
-              call pgsah(1,45.,0.1)
-              a = 0.0166667*sch
-              call pgarro(ranges(ic,c0,p1,3),ymin+dy*a,ranges(ic,c0,p1,1),ymin+dy*a)
-              call pgarro(ranges(ic,c0,p1,3),ymin+dy*a,ranges(ic,c0,p1,2),ymin+dy*a)
-              a = 0.0333333*sch
-              call pgptxt(ranges(ic,c0,p1,3),ymin+dy*a,0.,0.5,'\(2030)\d90%\u')
-              a = 0.0233333*sch
-              call pgarro(xmin+dx*a,ranges(ic,c0,p2,3),xmin+dx*a,ranges(ic,c0,p2,1))
-              call pgarro(xmin+dx*a,ranges(ic,c0,p2,3),xmin+dx*a,ranges(ic,c0,p2,2))
-              a = 0.01*sch
-              call pgptxt(xmin+dx*a,ranges(ic,c0,p2,3),90.,0.5,'\(2030)\d90%\u')
-              call pgsls(2)
+              
+              !Plot interval ranges in 2D PDF
+              if(plrange.eq.2.or.plrange.eq.3) then
+                 call pgsls(1)
+                 call pgsch(sch*0.6)
+                 call pgsah(1,45.,0.1)
+                 a = 0.0166667*sch
+                 call pgarro(ranges(ic,c0,p1,3),ymin+dy*a,ranges(ic,c0,p1,1),ymin+dy*a)
+                 call pgarro(ranges(ic,c0,p1,3),ymin+dy*a,ranges(ic,c0,p1,2),ymin+dy*a)
+                 a = 0.0333333*sch
+                 call pgptxt(ranges(ic,c0,p1,3),ymin+dy*a,0.,0.5,'\(2030)\d90%\u')
+                 a = 0.0233333*sch
+                 call pgarro(xmin+dx*a,ranges(ic,c0,p2,3),xmin+dx*a,ranges(ic,c0,p2,1))
+                 call pgarro(xmin+dx*a,ranges(ic,c0,p2,3),xmin+dx*a,ranges(ic,c0,p2,2))
+                 a = 0.01*sch
+                 call pgptxt(xmin+dx*a,ranges(ic,c0,p2,3),90.,0.5,'\(2030)\d90%\u')
+              end if
+              
               call pgsch(sch)
+              call pgsls(2)
               
-              !Median
-              call pgline(2,(/stats(ic,p1,1),stats(ic,p1,1)/),(/-1.e20,1.e20/))
-              call pgline(2,(/-1.e20,1.e20/),(/stats(ic,p2,1),stats(ic,p2,1)/))
-              call pgpoint(1,stats(ic,p1,1),stats(ic,p2,1),18)
+              
+              !Plot medians in 2D PDF
+              if(plmedian.eq.2.or.plmedian.eq.3) then
+                 call pgline(2,(/stats(ic,p1,1),stats(ic,p1,1)/),(/-1.e20,1.e20/))
+                 call pgline(2,(/-1.e20,1.e20/),(/stats(ic,p2,1),stats(ic,p2,1)/))
+                 call pgpoint(1,stats(ic,p1,1),stats(ic,p2,1),18)
+              end if
+              
               call pgsls(1)
               
               
-              !Big star at true position
+              !Big star at true position in 2D PDF
               if(plotsky.eq.1) then
                  call pgsch(sch*2)
                  call pgsci(9)
@@ -3583,7 +3651,7 @@ program plotspins
               
               
               
-              
+              !Plot coordinate axes and axis labels in 2D PDF
               call pgsls(1)
               call pgslw(lw2)
               if(plotsky.eq.1) then

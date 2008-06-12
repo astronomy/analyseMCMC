@@ -2,7 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
-     8: sluys, 04/06/2008
+    10: sluys, 12/06/2008
+     - Implementing probability areas, step 1
+     
+     9: sluys, 04/06/2008
      - plotspins.dat changed:
        - parameter normpdf2d was added
     

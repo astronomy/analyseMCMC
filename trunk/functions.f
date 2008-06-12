@@ -214,8 +214,8 @@ subroutine write_inputfile
   write(u,11)scchainspl, 'scchainspl',   'Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account'
   write(u,11)pltrue, 'pltrue',   'Plot true values in the chains and pdfs'
   write(u,11)plstart, 'plstart',   'Plot starting values in the chains and pdfs'
-  write(u,11)plmedian, 'plmedian',   'Plot median values in the pdfs'
-  write(u,11)plrange, 'plrange',   'Plot the probability range in the pdfs'
+  write(u,11)plmedian, 'plmedian',   'Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both'
+  write(u,11)plrange, 'plrange',   'Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both'
   write(u,11)plburn, 'plburn',   'Plot the burnin in logL, the chains, etc.'
   write(u,11)pllmax, 'pllmax',   'Plot the position of the max logL, in the chains and pdfs'
   write(u,11)prvalues, 'prvalues',   'Print values (true, median, range) in pdfs'
@@ -311,8 +311,8 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   chainpli = 0      !Plot every chainpli-th point in chains, logL, jump plots:  chainpli=0: autodetermine, chainpli>0: use this chainpli.  All states in between *are* used for statistics, pdf generation, etc.
   pltrue = 1        !Plot true values in the chains and pdfs
   plstart = 1       !Plot starting values in the chains and pdfs
-  plmedian = 1      !Plot median values in the pdfs
-  plrange = 1       !Plot the probability range in the pdfs
+  plmedian = 1      !Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
+  plrange = 1       !Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
   plburn = 1        !Plot the burnin in logL, the chains, etc.
   pllmax = 0        !Plot the position of the max of logL in chains and pdfs
   prvalues = 1      !Print values (true, median, range) in pdfs
@@ -561,7 +561,7 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Coun
      ymax1 = ymax
   end if
   
-  !Determine transformation elements for pgplot (pggray, pgcont)
+  !Determine transformation elements for pgplot (pggray, pgcont, pgimag)
   tr(1) = xmin - dx/2.
   tr(2) = dx
   tr(3) = 0.
@@ -707,13 +707,13 @@ end subroutine horzhist
 
 !************************************************************************************************************************************
 function ra(lon, GPSsec)
-  !/* Derives right ascension (in radians!) from longitude given GMST (radians). */
-  !/* Declination == latitude for equatorial coordinates.                        */
-
-
-  !/* Derive the `Greenwich Mean Sidereal Time' (in radians!) */
-  !/* from GPS time (in seconds).                              */
-  !/* (see K.R.Lang(1999), p.80sqq.)                           */
+  ! Derives right ascension (in radians!) from longitude given GMST (radians). 
+  ! Declination == latitude for equatorial coordinates.                        
+  
+  
+  ! Derive the `Greenwich Mean Sidereal Time' (in radians!) 
+  ! from GPS time (in seconds).                              
+  ! (see K.R.Lang(1999), p.80sqq.)                           
   implicit none
   real*8 :: ra,lon,gmst,seconds,days,centuries,secCurrentDay
   real*8 :: gps0,leapseconds,GPSsec,tpi
@@ -725,12 +725,12 @@ function ra(lon, GPSsec)
   if(GPSsec.lt.630720013.d0) write(*,'(A)')'WARNING: GMSTs before 1.1.2000 are inaccurate!'
   !Time since 1/1/2000 midnight
   seconds       = (GPSsec - gps0) + (leapseconds - 32.d0)
-  days          = floor(seconds/(24.d0*3600.d0)) - 0.5d0
-  secCurrentDay = mod(seconds, 24.d0*3600.d0)
+  days          = floor(seconds/86400.d0) - 0.5d0
+  secCurrentDay = mod(seconds, 86400.d0)
   centuries     = days/36525.d0
   gmst = 24110.54841d0 + (centuries*(8640184.812866d0 + centuries*(0.093104d0 + centuries*6.2d-6)))
   gmst = gmst + secCurrentDay * 1.002737909350795d0   !UTC day is 1.002 * MST day
-  gmst = mod(gmst/(24.d0*3600.d0),1.d0)
+  gmst = mod(gmst/86400.d0,1.d0)
   gmst = gmst * tpi
 
   ra = mod(lon + gmst + 10*tpi,tpi)
@@ -740,18 +740,18 @@ end function ra
 
 
 !************************************************************************************************************************************
-SUBROUTINE dindexx(n,arr,indx)
-  INTEGER :: n,indx(n),M,NSTACK
-  REAL*8 :: arr(n),a
-  PARAMETER (M=7,NSTACK=50)
-  INTEGER :: i,indxt,ir,itemp,j,jstack,k,l,istack(NSTACK)
+subroutine dindexx(n,arr,indx)
+  integer :: n,indx(n),m,nstack
+  real*8 :: arr(n),a
+  parameter (m=7,nstack=50)
+  integer :: i,indxt,ir,itemp,j,jstack,k,l,istack(nstack)
   do j=1,n
      indx(j)=j
   end do
   jstack=0
   l=1
   ir=n
-1 if(ir-l.lt.M)then
+1 if(ir-l.lt.m)then
      do j=l+1,ir
         indxt=indx(j)
         a=arr(indxt)
@@ -804,8 +804,8 @@ SUBROUTINE dindexx(n,arr,indx)
 5    indx(l+1)=indx(j)
      indx(j)=indxt
      jstack=jstack+2
-     !if(jstack.gt.NSTACK)pause 'NSTACK too small in indexx'
-     if(jstack.gt.NSTACK) write(*,'(A)')' NSTACK too small in dindexx'
+     !if(jstack.gt.nstack)pause 'nstack too small in indexx'
+     if(jstack.gt.nstack) write(*,'(A)')' nstack too small in dindexx'
      if(ir-i+1.ge.j-l)then
         istack(jstack)=ir
         istack(jstack-1)=i
@@ -817,23 +817,23 @@ SUBROUTINE dindexx(n,arr,indx)
      end if
   end if
   goto 1
-END SUBROUTINE dindexx
+end subroutine dindexx
 !************************************************************************************************************************************
 
 
 !************************************************************************************************************************************
-SUBROUTINE rindexx(n,arr,indx)
-  INTEGER :: n,indx(n),M,NSTACK
-  REAL :: arr(n),a
-  PARAMETER (M=7,NSTACK=50)
-  INTEGER :: i,indxt,ir,itemp,j,jstack,k,l,istack(NSTACK)
+subroutine rindexx(n,arr,indx)
+  integer :: n,indx(n),m,nstack
+  real :: arr(n),a
+  parameter (m=7,nstack=50)
+  integer :: i,indxt,ir,itemp,j,jstack,k,l,istack(nstack)
   do j=1,n
      indx(j)=j
   end do
   jstack=0
   l=1
   ir=n
-1 if(ir-l.lt.M)then
+1 if(ir-l.lt.m)then
      do j=l+1,ir
         indxt=indx(j)
         a=arr(indxt)
@@ -886,8 +886,8 @@ SUBROUTINE rindexx(n,arr,indx)
 5    indx(l+1)=indx(j)
      indx(j)=indxt
      jstack=jstack+2
-     !if(jstack.gt.NSTACK)pause 'NSTACK too small in indexx'
-     if(jstack.gt.NSTACK) write(*,'(A)')' NSTACK too small in rindexx'
+     !if(jstack.gt.nstack)pause 'nstack too small in indexx'
+     if(jstack.gt.nstack) write(*,'(A)')' nstack too small in rindexx'
      if(ir-i+1.ge.j-l)then
         istack(jstack)=ir
         istack(jstack-1)=i
@@ -899,20 +899,20 @@ SUBROUTINE rindexx(n,arr,indx)
      end if
   end if
   goto 1
-END SUBROUTINE rindexx
+end subroutine rindexx
 !************************************************************************************************************************************
 
 
 !************************************************************************************************************************************
-SUBROUTINE savgol(c,np,nl,nr,ld,m)
-  INTEGER :: ld,m,nl,np,nr,MMAX
-  REAL :: c(np)
-  PARAMETER (MMAX=6)
+subroutine savgol(c,np,nl,nr,ld,m)
+  integer :: ld,m,nl,np,nr,mmax
+  real :: c(np)
+  parameter (mmax=6)
   !     USES lubksb,ludcmp
-  INTEGER :: imj,ipj,j,k,kk,mm,indx(MMAX+1)
-  REAL :: d,fac,sum,a(MMAX+1,MMAX+1),b(MMAX+1)
-  !if(np.lt.nl+nr+1.or.nl.lt.0.or.nr.lt.0.or.ld.gt.m.or.m.gt.MMAX.or.nl+nr.lt.m) pause 'bad args in savgol'
-  if(np.lt.nl+nr+1.or.nl.lt.0.or.nr.lt.0.or.ld.gt.m.or.m.gt.MMAX.or.nl+nr.lt.m) write(*,'(A)')' Bad args in savgol'
+  integer :: imj,ipj,j,k,kk,mm,indx(mmax+1)
+  real :: d,fac,sum,a(mmax+1,mmax+1),b(mmax+1)
+  !if(np.lt.nl+nr+1.or.nl.lt.0.or.nr.lt.0.or.ld.gt.m.or.m.gt.mmax.or.nl+nr.lt.m) pause 'bad args in savgol'
+  if(np.lt.nl+nr+1.or.nl.lt.0.or.nr.lt.0.or.ld.gt.m.or.m.gt.mmax.or.nl+nr.lt.m) write(*,'(A)')' Bad args in savgol'
   do ipj=0,2*m
      sum=0.
      if(ipj.eq.0)sum=1.
@@ -927,12 +927,12 @@ SUBROUTINE savgol(c,np,nl,nr,ld,m)
         a(1+(ipj+imj)/2,1+(ipj-imj)/2)=sum
      end do
   end do
-  call ludcmp(a,m+1,MMAX+1,indx,d)
+  call ludcmp(a,m+1,mmax+1,indx,d)
   do j=1,m+1
      b(j)=0.
   end do
   b(ld+1)=1.
-  call lubksb(a,m+1,MMAX+1,indx,b)
+  call lubksb(a,m+1,mmax+1,indx,b)
   do kk=1,np
      c(kk)=0.
   end do
@@ -947,16 +947,16 @@ SUBROUTINE savgol(c,np,nl,nr,ld,m)
      c(kk)=sum
   end do
   return
-END SUBROUTINE savgol
+end subroutine savgol
 !************************************************************************************************************************************
 
 
 !************************************************************************************************************************************
-SUBROUTINE lubksb(a,n,np,indx,b)
-  INTEGER :: n,np,indx(n)
-  REAL :: a(np,np),b(n)
-  INTEGER :: i,ii,j,ll
-  REAL :: sum
+subroutine lubksb(a,n,np,indx,b)
+  integer :: n,np,indx(n)
+  real :: a(np,np),b(n)
+  integer :: i,ii,j,ll
+  real :: sum
   ii=0
   do i=1,n
      ll=indx(i)
@@ -979,18 +979,18 @@ SUBROUTINE lubksb(a,n,np,indx,b)
      b(i)=sum/a(i,i)
   end do
   return
-end SUBROUTINE lubksb
+end subroutine lubksb
 !************************************************************************************************************************************
 
 
 
 !************************************************************************************************************************************
-SUBROUTINE ludcmp(a,n,np,indx,d)
- INTEGER :: n,np,indx(n),NMAX
- REAL :: d,a(np,np),TINY
- PARAMETER (NMAX=500,TINY=1.0e-20)
- INTEGER :: i,imax,j,k
- REAL :: aamax,dum,sum,vv(NMAX)
+subroutine ludcmp(a,n,np,indx,d)
+ integer :: n,np,indx(n),nmax
+ real :: d,a(np,np),tiny
+ parameter (nmax=500,tiny=1.0e-20)
+ integer :: i,imax,j,k
+ real :: aamax,dum,sum,vv(nmax)
  d=1.
  do i=1,n
     aamax=0.
@@ -1032,7 +1032,7 @@ SUBROUTINE ludcmp(a,n,np,indx,d)
        vv(imax)=vv(j)
     end if
     indx(j)=imax
-    if(a(j,j).eq.0.)a(j,j)=TINY
+    if(a(j,j).eq.0.)a(j,j)=tiny
     if(j.ne.n)then
        dum=1./a(j,j)
        do i=j+1,n
@@ -1041,7 +1041,7 @@ SUBROUTINE ludcmp(a,n,np,indx,d)
     end if
  end do
  return
-end SUBROUTINE ludcmp
+end subroutine ludcmp
 !************************************************************************************************************************************
 
 
@@ -1365,8 +1365,8 @@ end subroutine kstwo
 
 !************************************************************************
 function probks(alam)
-  real*8 :: probks,alam,EPS1,EPS2
-  PARAMETER (EPS1=1.d-3, EPS2=1.d-8)
+  real*8 :: probks,alam,eps1,eps2
+  parameter (eps1=1.d-3, eps2=1.d-8)
   integer :: j
   real*8 :: a2,fac,term,termbf
   a2=-2.d0*alam**2
@@ -1376,7 +1376,7 @@ function probks(alam)
   do j=1,100
      term=fac*dexp(a2*j**2)
      probks=probks+term
-     if(dabs(term).le.EPS1*termbf.or.dabs(term).le.EPS2*probks)return
+     if(dabs(term).le.eps1*termbf.or.dabs(term).le.eps2*probks)return
      fac=-fac
      termbf=dabs(term)
   end do
@@ -1387,15 +1387,15 @@ end function probks
 
 !************************************************************************
 subroutine sort(n,arr)
-  integer :: n,M,NSTACK
+  integer :: n,m,nstack
   real*8 :: arr(n)
-  PARAMETER (M=7,NSTACK=50)
-  integer :: i,ir,j,jstack,k,l,istack(NSTACK)
+  parameter (m=7,nstack=50)
+  integer :: i,ir,j,jstack,k,l,istack(nstack)
   real*8 :: a,temp
   jstack=0
   l=1
   ir=n
-1 if(ir-l.lt.M)then
+1 if(ir-l.lt.m)then
      do j=l+1,ir
         a=arr(j)
         do i=j-1,l,-1
@@ -1446,8 +1446,8 @@ subroutine sort(n,arr)
 5    arr(l+1)=arr(j)
      arr(j)=a
      jstack=jstack+2
-     !if(jstack.gt.NSTACK)pause 'NSTACK too small in sort'
-     if(jstack.gt.NSTACK) write(*,'(A)')' NSTACK too small in dindexx'
+     !if(jstack.gt.nstack)pause 'nstack too small in sort'
+     if(jstack.gt.nstack) write(*,'(A)')' nstack too small in dindexx'
      if(ir-i+1.ge.j-l)then
         istack(jstack)=ir
         istack(jstack-1)=i
@@ -1517,3 +1517,83 @@ end subroutine pgscidark
 !************************************************************************
 
 
+
+!************************************************************************
+subroutine lbr2vec(l,b,r,vec)
+  !Transforms longitude l, latitude b and radius r into a vector with length r.  Use r=1 for a unit vector
+  implicit none
+  real*8 :: l,b,r,sinb,cosb,vec(3)
+  sinb = dsin(b)
+  cosb = dsqrt(1.d0-sinb*sinb)
+  vec(1) = dcos(l) * cosb;  !`Greenwich'
+  vec(2) = dsin(l) * cosb;  !`Ganges'
+  vec(3) = sinb;            !`North Pole'
+  vec = vec*r
+end subroutine lbr2vec
+!************************************************************************
+
+
+
+!************************************************************************
+!get the 2d probability intervals
+subroutine identify_2d_ranges(ni,ivals,nx,ny,z1)
+  implicit none
+  integer :: ni,nx,ny,ix,iy,nn,indx(nx*ny),i,b,ib
+  real :: ivals(ni),z1(nx,ny),x1(nx*ny),x2(nx*ny),bin,tot,np
+  
+  nn = nx*ny
+  x1 = reshape(z1,(/nn/))  !x1 is the 1D array with the same data as the 2D array z1
+  call rindexx(nn,-x1(1:nn),indx(1:nn)) ! -x1: sort descending
+  
+  np = sum(z1)
+  tot = 0.
+  do b=1,nn !Loop over bins in 1D array
+     ib = indx(b)
+     x2(ib) = 0.
+     if(x1(ib).eq.0.) cycle
+     tot = tot + x1(ib)
+     do i=ni,1,-1 !Loop over intervals
+        if(tot.le.np*ivals(i)) x2(ib) = real(ni-i+1)  !e.g. x2(b) = ni if within 90%, ni-1 if within 95%, etc
+        !if(tot.le.np*ivals(i)) x2(ib) = real(i)  !e.g. x2(b) = 0 if within 90%, 1, if within 95%, etc
+        !write(*,'(2I4, F6.2, 3F20.5)')b,i, ivals(i), np,tot,np*ivals(i)
+     end do
+  end do
+  
+  z1 = reshape(x2, (/nx,ny/))
+end subroutine identify_2d_ranges
+!************************************************************************
+
+
+
+!************************************************************************
+!Compute 2D probability areas
+subroutine calc_2d_areas(p1,p2,changevar,ni,nx,ny,z,tr,area)
+  implicit none
+  integer :: p1,p2,changevar,ni,nx,ny,ix,iy,i,i1,iv
+  real :: z(nx,ny),tr(6),x,y,dx,dy,d2r,area(ni)
+  
+  d2r = atan(1.)/45.
+  
+  !print*,ni,nx,ny
+  do ix = 1,nx
+     do iy = 1,ny
+        dx = tr(2)
+        dy = tr(6)
+        if(changevar.eq.1 .and. (p1.eq.8.and.p2.eq.9 .or. p1.eq.12.and.p2.eq.11) ) then !Then: RA-Dec or phi/theta_Jo plot, convert lon -> lon * 15 * cos(lat)
+           !x = tr(1) + tr(2)*ix + tr(3)*iy
+           !y = tr(4) + tr(5)*ix + tr(6)*iy
+           y = tr(4) + tr(6)*iy
+           dx = dx*cos(y*d2r)
+           if(p1.eq.8) dx = dx*15
+        end if
+        iv = nint(z(ix,iy))
+        !if(iv.gt.0) area(iv) = area(iv) + dx*dy
+        do i=1,ni
+           i1 = ni-i+1
+           if(iv.ge.i) area(i1) = area(i1) + dx*dy
+        end do
+        !if(iv.eq.3) write(*,'(7F10.2)')x,y,dx,dy,dx*dy,z(ix,iy),area(iv)
+     end do
+  end do
+end subroutine calc_2d_areas
+!************************************************************************
