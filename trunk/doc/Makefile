@@ -39,14 +39,17 @@ LFLAGS = -lpgplot_ifort -L/usr/X11R6/lib -lX11 -lm -lifcore -limf -lirc -lsvml -
 exit:
 
 
+comp_pdfs: $(STDOBJ) comp_pdfs_functions.o comp_pdfs.o
+	$(COMP) $(LFLAGS) -o comp_pdfs $(STDOBJ) comp_pdfs_functions.o comp_pdfs.o
+
 plotsignal: $(STDOBJ) plotsignal.o
 	$(COMP) $(LFLAGS) -o plotsignal $(STDOBJ) plotsignal.o
 
 plotspins: $(STDOBJ) plotspins_functions.o plotspins.o
 	$(COMP) -o plotspins $(LFLAGS) $(STDOBJ) plotspins_functions.o plotspins.o
 
-#mcmcstats: $(STDOBJ) mcmcstats.o
-#	$(COMP) $(LFLAGS) -o mcmcstats $(STDOBJ) mcmcstats.o
+mcmcstats: $(STDOBJ) mcmcstats.o
+	$(COMP) $(LFLAGS) -o mcmcstats $(STDOBJ) mcmcstats.o
 
 clean:
 	rm -f *.o *.mod

@@ -1,0 +1,37 @@
+ Input file for comp_pdfs.f
+
+
+ General plot options:
+         2        nf     Number of input files
+         2      file     Output file type: 0:screen, 1: png, 2:eps, 3:pdf
+         1      type     Type of plot:  1: default, 2: poster
+         1       dim     Dimension of PDF: 1 or 2
+         1    pltrue     Plot true values for 1D or 2D plots
+         0  plmedian     Plot medians for 1D or 2D plots, only if reading 1 file
+         2   plrange     Plot ranges  for 1D or 2D plots, only if reading 1 file
+         2       clr     Use colour: 0-no (grey), 1-yes, 2-no: grey values
+         3        fs     Fill style for PDFs: 1-solid, 2-outline, 3-hatched, 4-cross-hatched
+   2.00000       sch     Scale of font, etc.  Default: 2.
+
+
+ 1D plot options:
+   Number of frames in 1D plot: (w, h  or  x, y)  (frames):
+     4    3
+   Labels of the plot parameters for the 1d frames (plpars):
+     2  3  4  5  6  7  8  9 11 12 10 13  0  0  0  0  0  0  0  0
+
+
+ 2D plot options:
+   Labels of the plot parameters for the 2d plot (plpars2d):
+     8    9
+
+
+ Input files:
+   Base of input files names (without extension) (fnames):
+     1d1_0.50_020   2d12_0.50_020   2d12_0.50_020   2d12_0.80_020    
+
+   Directories of the input files (dirnames):
+     "../dat"   "../dat"   "../dat"   "../dat"    
+
+   Base of the output file name (without extention, can start with dir) (outnamebase)
+     comp_pdfs__1-2det_0.5_20

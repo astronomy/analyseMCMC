@@ -2,6 +2,14 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    12: sluys, 14/07/2008
+     - added program mcmcstats that handles *_statistics.dat files, created by 
+       plotspins
+     - added program comp_pdfs that plots 1-2D pdf comparisons, using the 
+       information in *__pdf1d.dat and *__pdf2d.dat created by plotspins.
+       comp_pdfs needs the input file comp_pdfs.dat in doc/  See also
+       doc/Makefile
+    
     11: sluys, 14/07/2008
      - renamed functions.f to plotspins_functions.f (change your Makefile)
      - added some stuff for Vivien's thesis plots, done some cleaning
