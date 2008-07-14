@@ -1,20 +1,20 @@
 !Read and plot the data output from the spinning MCMC code.
 
 program plotspins
-  use plotsettings
+  use plotspins_settings
   implicit none
   integer, parameter :: narr1=2.01e5+2,npar0=13,nival1=5,nr1=5,nstat1=10,ndets=3
-  integer :: n(nchs),ntot(nchs),n0,n1,n2,nd,i,j,j1,j2,k,nburn0(nchs),iargc,io,pgopen,system,narr,maxdots,offsetrun,imin,imax
+  integer :: n(nchs),ntot(nchs),n0,n1,n2,i,j,j1,j2,nburn0(nchs),iargc,io,pgopen,system,narr,maxdots,offsetrun,imin
   integer :: niter(nchs),totiter,totpts,seed(nchs),ndet(nchs),totthin(nchs),contrchains
   integer :: index(npar1,nchs*narr1),index1(nchs*narr1),fileversion
   real :: is(nchs,narr1),isburn(nchs),jumps(nchs,npar1,narr1),startval(nchs,npar1,3)
   real :: sig(npar1,nchs,narr1),acc(npar1,nchs,narr1),avgtotthin
-  real :: sn,dlp,x(nchs,nchs*narr1),y(nchs,narr1),ybintot,xx(nchs*narr1),yy(nchs*narr1),zz(nchs*narr1)
+  real :: x(nchs,nchs*narr1),xx(nchs*narr1),yy(nchs*narr1),zz(nchs*narr1)
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ybin2(:),ysum(:),yconv(:),ycum(:)  !These depend on nbin1d, allocate after reading input file
-  real :: a,b,r2d,r2h,rat,plx,ply,cputime,cputime0
-  real*8 :: t,t0,pi,tpi,dvar,dvar1,dvar2,ra,nullh
+  real :: a,r2d,r2h,rat,plx,ply
+  real*8 :: t,t0,pi,tpi,dvar,dvar1,dvar2,nullh
   real, allocatable :: dat(:,:,:),alldat(:,:,:),pldat(:,:,:)
-  character :: js*4,varnames(npar1)*8,pgunits(npar1)*99,pgvarns(npar1)*99,pgvarnss(npar1)*99,pgorigvarns(npar1)*99,infile*100,infiles(nchs)*100,str*99,str1*99,str2*99,fmt*99,bla*10,command*99
+  character :: varnames(npar1)*8,pgunits(npar1)*99,pgvarns(npar1)*99,pgvarnss(npar1)*99,pgorigvarns(npar1)*99,infile*100,infiles(nchs)*100,str*99,str1*99,str2*99,bla*10,command*99
   
   integer :: nn,nn1,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nlogl1,nlogl2,ksn1,ksn2,iloglmax,icloglmax,ci
   real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),rhat(npar1),totrelvar,ksdat1(narr1),ksdat2(narr1),ksd,ksprob,loglmax
@@ -25,16 +25,16 @@ program plotspins
   real*8 :: FTstart(nchs,ndets)
   character :: detname(nchs,ndets)*14,string*99
   
-  integer :: nfx,nfy,fx,fy,npdf,ncont
-  real :: x0,x1,x2,y1,y2,dx,dy,xmin,xmax,ymin,ymax,xmin1,xmax1,xpeak,ymin1,ymax1,ymaxs(nchs+2)
+  integer :: npdf,ncont!,nfx,nfy,fx,fy
+  real :: x0,x1,x2,y1,y2,dx,dy,xmin,xmax,ymin,ymax,xmin1,xmax1,xpeak!,ymin1,ymax1,ymaxs(nchs+2)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
   real :: coefs(100),coefs1(100),cont(11),tr(6)
   
-  integer :: nchains,nchains0,ic,ip,i0,i1,i2,lw,lw1,lw2
+  integer :: nchains,nchains0,ic,i0,i1,lw,lw2
   real :: sch
-  character :: header*1000,outputname*99,outputdir*99,psclr*4,colournames(15)*20
+  character :: outputname*99,outputdir*99,psclr*4,colournames(15)*20
   
-  integer :: o,o1,o2,do12,p,p1,p2,p11,p12,p21,p22,par1,par2,nr,c,c0,nstat,wrap(nchs,npar1),nival,npar,ncolours,colours(10),nsymbols,symbols(10),symbol,defcolour,plotthis,tempintarray(99)
+  integer :: o,p,p1,p2,par1,par2,nr,c,c0,nstat,wrap(nchs,npar1),nival,npar,ncolours,colours(10),nsymbols,symbols(10),symbol,defcolour,plotthis,tempintarray(99)
   real :: range,minrange,range1,range2,drange,maxgap,ranges(nchs,nival1+1,npar1,nr1),ival,ivals(nival1+1),centre,shift(nchs,npar1),plshift,probarea(nival1+1)
   real :: median,medians(npar1),mean(npar1),stdev1(npar1),stdev2(npar1),var1(npar1),var2(npar1),absvar1(npar1),absvar2(npar1)
   real :: stats(nchs,npar1,nstat1),corrs(npar1,npar1),acorrs(nchs,0:npar1,0:narr1)
@@ -307,8 +307,8 @@ program plotspins
         !do i=1,narr1
         i=1
         do while(i.le.narr1)
-           !read(10,*,end=199,err=198)i1,dat(1,ic,i),(dat(j,ic,i),sig(j,ic,i),acc(j,ic,i),j=2,3),  t,sig(4,ic,i),acc(4,ic,i),  (dat(j,ic,i),sig(j,ic,i),acc(j,ic,i),j=5,npar0)
            read(10,'(I12,F21.10,2(F17.10,F10.6,F7.4),F22.10,F10.6,F7.4,9(F17.10,F10.6,F7.4))',end=199,err=198)i1,dat(1,ic,i),(dat(j,ic,i),sig(j,ic,i),acc(j,ic,i),j=2,3),  t,sig(4,ic,i),acc(4,ic,i),  (dat(j,ic,i),sig(j,ic,i),acc(j,ic,i),j=5,npar0)
+           !read(10,*,end=199,err=198)i1,dat(1,ic,i),(dat(j,ic,i),sig(j,ic,i),acc(j,ic,i),j=2,3),  t,sig(4,ic,i),acc(4,ic,i),  (dat(j,ic,i),sig(j,ic,i),acc(j,ic,i),j=5,npar0)  !Only works when not using new output (otherwise, no read error)
            is(ic,i) = real(i1)
            if(ic.eq.1.and.i.eq.1) t0 = dble(floor(t/10.d0)*10)
            dat(4,ic,i) = real(t - t0)
@@ -1568,6 +1568,10 @@ program plotspins
               lw = 2
            end if
         end if
+        if(quality.eq.4) then !Vivien's thesis
+           sch = sch*2.5
+           lw = 2
+        end if
      end if
      if(io.le.0) then
         write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
@@ -1582,10 +1586,6 @@ program plotspins
      call pgsch(sch)
      call pgslw(lw)
      
-     if(file.eq.0.and.scrrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
-     if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
-     if(file.ge.2.and.psrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
-     if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
      
      if(nplvar.eq.2) call pgsubp(2,1)
      if(nplvar.eq.2.and.quality.ge.2) call pgsubp(1,2)
@@ -1607,8 +1607,17 @@ program plotspins
      !do p=2,npar0
      do j=1,nplvar
         p = plvars(j)
+        
         call pgpage
+        
+        
         if(j.eq.1) call pginitl(colour,file,whitebg)
+        if(file.eq.0.and.scrrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+        if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+        if(file.ge.2.and.psrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+        if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
+        if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
+        
         xmin = 0.
         !xmax = real(maxval(ntot(1:nchains0)))
         xmax = -1.e30
@@ -2730,6 +2739,10 @@ program plotspins
                  lw = 2
               end if
            end if
+           if(quality.eq.4) then !Vivien's thesis
+              sch = sch*2.5
+              lw = 2
+           end if
         end if !if(file.ge.1)
         if(io.le.0) then
            write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
@@ -2747,7 +2760,7 @@ program plotspins
         call pgsfs(fillpdf)
         
         
-        if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
+        !if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
         
         if(panels(1)*panels(2).lt.1) then
            if(nplvar.eq.2) call pgsubp(2,1)
@@ -2889,6 +2902,13 @@ program plotspins
            end if
            !print*,xmin,xmax,ymin,ymax
            if(ymax.lt.1.e-19) ymax = 1.
+           
+           
+           if(file.eq.0.and.scrrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+           if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+           if(file.ge.2.and.psrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+           if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
+           if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
            
            call pgsch(sch)
            call pgswin(xmin,xmax,ymin,ymax)
@@ -3046,7 +3066,7 @@ program plotspins
            call pgsci(1)
            ic = 1
            !if(nplvar.lt.7.or.nplvar.eq.9) then  !Three or less columns
-           if(quality.ne.2.and.quality.ne.3) then  !Not a talk/poster
+           if(quality.ne.2.and.quality.ne.3.and.quality.ne.4) then  !Not a talk/poster/thesis
               if(nplvar.lt.5) then
                  if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
                     write(str,'(A,F7.3,A5,F7.3,A9,F6.2,A1)')trim(pgvarns(p))//': mdl:',startval(ic,p,1),' med:',stats(ic,p,1),  &
@@ -3075,7 +3095,7 @@ program plotspins
            end if
            
            
-           if(quality.eq.2.or.quality.eq.3) then  !Talk/poster
+           if(quality.eq.2.or.quality.eq.3.or.quality.eq.4) then  !Talk/poster/thesis
               !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
               !   write(str,'(A9,F6.2,A1)')' \(2030):',ranges(ic,c0,p,5)*100,'%'
               !else
@@ -3335,8 +3355,8 @@ program plotspins
            ymax = maxval(alldat(ic,p2,1:n(ic)))
            dx = xmax - xmin
            dy = ymax - ymin
-           write(*,'(A,2F10.5)')'  Xmin,Xmax: ',xmin,xmax
-           write(*,'(A,2F10.5)')'  Ymin,Ymax: ',ymin,ymax
+           !write(*,'(A,2F10.5)')'  Xmin,Xmax: ',xmin,xmax
+           !write(*,'(A,2F10.5)')'  Ymin,Ymax: ',ymin,ymax
            
            xx(1:n(ic)) = alldat(ic,p1,1:n(ic)) !Parameter 1
            yy(1:n(ic)) = alldat(ic,p2,1:n(ic)) !Parameter 2
@@ -3387,9 +3407,9 @@ program plotspins
                     write(*,'(I10,F13.2,2(2x,F21.5))')i,ivals(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)
                  end do
                  i=1
-                 open(unit=97,file='ranges_2d.dat',status='replace')
-                 write(97,'(2(2x,F21.5))')sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)
-                 close(97)
+                 !open(unit=97,file='ranges_2d.dat',status='replace')
+                 !write(97,'(2(2x,F21.5))')sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)
+                 !close(97)
                  write(*,'(A2,$)')'  '
               end if
            end if
@@ -3415,7 +3435,7 @@ program plotspins
            if(plot.eq.1) then
               
               !Force boundaries
-              if(1.eq.1.and.p1.eq.8.and.p2.eq.9) then
+              if(1.eq.2.and.p1.eq.8.and.p2.eq.9) then
                  !xmin = 24.
                  !xmax = 0.
                  !ymin = -90.

@@ -2,7 +2,7 @@
 
 
 !***************************************************************************************************
-module plotsettings
+module plotspins_settings
   implicit none
   save
   integer, parameter :: nchs=10,npar1=15
@@ -15,7 +15,7 @@ module plotsettings
   integer :: nmovframes,moviescheme,whitebg,unsharp
   real :: ival0,nburnfrac,autoburnin
   real :: scrsz,scrrat,pssz,psrat,scfac
-end module plotsettings
+end module plotspins_settings
 !***************************************************************************************************
 
 
@@ -23,7 +23,7 @@ end module plotsettings
 
 !***************************************************************************************************
 subroutine read_inputfile
-  use plotsettings
+  use plotspins_settings
   implicit none
   integer :: i,u,io,io1
   character :: bla,filename*99
@@ -148,7 +148,7 @@ end subroutine read_inputfile
 
 !***************************************************************************************************
 subroutine write_inputfile
-  use plotsettings
+  use plotspins_settings
   implicit none
   integer :: u,i
   
@@ -263,7 +263,7 @@ end subroutine write_inputfile
 
 !***************************************************************************************************
 subroutine set_plotsettings  !Set plot settings to 'default' values
-  use plotsettings
+  use plotspins_settings
   implicit none
   
   thin = 10         !If >1, 'thin' the output; read every thin-th line 
@@ -395,7 +395,7 @@ subroutine bindata(n,x,norm,nbin,xmin1,xmax1,xbin,ybin)  !Count the number of po
 
   implicit none
   integer :: i,k,n,nbin,norm
-  real :: x(n),xbin(nbin+1),ybin(nbin+1),xmin,xmax,dx,ybintot,xmin1,xmax1
+  real :: x(n),xbin(nbin+1),ybin(nbin+1),xmin,xmax,dx,xmin1,xmax1
 
   xmin = xmin1
   xmax = xmax1
@@ -493,9 +493,9 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Coun
   !xbin, ybin - output: binned data (x, y).  The x values are the left side of the bin!
   
   implicit none
-  integer :: i,k,n,ix,iy,bx,by,nxbin,nybin,norm
-  real :: x(n),y(n),xbin(nxbin+1),ybin(nybin+1),z(nxbin+1,nybin+1),ztot,xmin,xmax,ymin,ymax,dx,dy,xmin1,xmax1,ymin1,ymax1
-  real :: tr(6),zmax
+  integer :: i,n,bx,by,nxbin,nybin,norm
+  real :: x(n),y(n),xbin(nxbin+1),ybin(nybin+1),z(nxbin+1,nybin+1)
+  real :: xmin,xmax,ymin,ymax,dx,dy,xmin1,xmax1,ymin1,ymax1,tr(6)
   
   !write(*,'(A4,5I8)')'n:',norm,nxbin,nybin
   !write(*,'(A4,2F8.3)')'x:',xmin1,xmax1
@@ -585,7 +585,7 @@ subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)  !
   !tr - output: transformation elements for pgplot (pggray, pgcont)
   
   implicit none
-  integer :: i,k,n,bx,by,nxbin,nybin,norm
+  integer :: i,n,bx,by,nxbin,nybin,norm
   real :: x(n),y(n),z(n),xbin(nxbin+1),ybin(nybin+1),zz(nxbin+1,nybin+1),zztot,xmin,xmax,ymin,ymax,dx,dy,xmin1,xmax1,ymin1,ymax1
   real :: tr(6),zmin
   
@@ -1054,8 +1054,8 @@ subroutine plotthesky(bx1,bx2,by1,by2)
   implicit none
   integer, parameter :: ns=9110, nsn=80
   integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,cf,spld,n,prslbl,rv
-  real*8 :: ra(ns),dec(ns),d2r,r2d,r2h,pi,dx,dx1,dx2,dy,dy1,ra1,dec1,rev,l0,b0,par
-  real :: pma,pmd,vm(ns),dist(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
+  real*8 :: ra(ns),dec(ns),d2r,r2d,r2h,pi,dx1,dx2,dy,ra1,dec1,rev,par
+  real :: pma,pmd,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
   real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,bx1,bx2,by1,by2,x,y,mlim
   character :: cn(100)*3,con(100)*20,name*10,vsopdir*99,sn(ns)*10,snam(nsn)*10,sni*10,getsname*10,mult,var*9
   
@@ -1538,8 +1538,8 @@ end subroutine lbr2vec
 !get the 2d probability intervals
 subroutine identify_2d_ranges(ni,ivals,nx,ny,z1)
   implicit none
-  integer :: ni,nx,ny,ix,iy,nn,indx(nx*ny),i,b,ib
-  real :: ivals(ni),z1(nx,ny),x1(nx*ny),x2(nx*ny),bin,tot,np
+  integer :: ni,nx,ny,nn,indx(nx*ny),i,b,ib
+  real :: ivals(ni),z1(nx,ny),x1(nx*ny),x2(nx*ny),tot,np
   
   nn = nx*ny
   x1 = reshape(z1,(/nn/))  !x1 is the 1D array with the same data as the 2D array z1
@@ -1570,7 +1570,7 @@ end subroutine identify_2d_ranges
 subroutine calc_2d_areas(p1,p2,changevar,ni,nx,ny,z,tr,area)
   implicit none
   integer :: p1,p2,changevar,ni,nx,ny,ix,iy,i,i1,iv
-  real :: z(nx,ny),tr(6),x,y,dx,dy,d2r,area(ni)
+  real :: z(nx,ny),tr(6),y,dx,dy,d2r,area(ni)
   
   d2r = atan(1.)/45.
   

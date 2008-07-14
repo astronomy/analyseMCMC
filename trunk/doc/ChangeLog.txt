@@ -2,8 +2,13 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    11: sluys, 14/07/2008
+     - renamed functions.f to plotspins_functions.f (change your Makefile)
+     - added some stuff for Vivien's thesis plots, done some cleaning
+     - renamed this file from 010_revisions to ChangeLog.txt
+    
     10: sluys, 12/06/2008
-     - Implementing probability areas, step 1
+     - implementing probability areas, step 1
      
      9: sluys, 04/06/2008
      - plotspins.dat changed:

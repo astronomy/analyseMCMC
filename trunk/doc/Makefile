@@ -30,7 +30,7 @@ LFLAGS = -lpgplot_ifort -L/usr/X11R6/lib -lX11 -lm -lifcore -limf -lirc -lsvml -
 
 
 
-STDOBJ = functions.o
+#STDOBJ = functions.o
 
 
 .f.o: 
@@ -39,26 +39,14 @@ STDOBJ = functions.o
 exit:
 
 
-#convergence: $(STDOBJ) convergence.o
-#	$(COMP) $(LFLAGS) -o convergence $(STDOBJ) convergence.o
-
-#plotdata: $(STDOBJ) plotdata.o
-#	$(COMP) $(LFLAGS) -o plotdata $(STDOBJ) plotdata.o
-
-#plotspectrum: $(STDOBJ) plotspectrum.o
-#	$(COMP) $(LFLAGS) -o plotspectrum $(STDOBJ) plotspectrum.o
-
 plotsignal: $(STDOBJ) plotsignal.o
 	$(COMP) $(LFLAGS) -o plotsignal $(STDOBJ) plotsignal.o
 
-plotspins: $(STDOBJ) plotspins.o
-	$(COMP) -o plotspins $(LFLAGS) $(STDOBJ) plotspins.o
+plotspins: $(STDOBJ) plotspins_functions.o plotspins.o
+	$(COMP) -o plotspins $(LFLAGS) $(STDOBJ) plotspins_functions.o plotspins.o
 
-#plotspins_old: $(STDOBJ) plotspins_old.o
-#	$(COMP) $(LFLAGS) -o plotspins_old $(STDOBJ) plotspins_old.o
-
-#plotstats: $(STDOBJ) plotstats.o
-#	$(COMP) $(LFLAGS) -o plotstats $(STDOBJ) plotstats.o
+#mcmcstats: $(STDOBJ) mcmcstats.o
+#	$(COMP) $(LFLAGS) -o mcmcstats $(STDOBJ) mcmcstats.o
 
 clean:
 	rm -f *.o *.mod
