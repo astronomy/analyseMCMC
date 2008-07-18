@@ -1535,17 +1535,17 @@ end subroutine lbr2vec
 
 
 !************************************************************************
-!get the 2d probability intervals
-subroutine identify_2d_ranges(ni,ivals,nx,ny,z1)
+subroutine identify_2d_ranges(ni,ivals,nx,ny,z)
+  !Get the 2d probability intervals; z lies between 1 (in 100% range) and ni (in lowest-% range, e.g. 90%)
   implicit none
   integer :: ni,nx,ny,nn,indx(nx*ny),i,b,ib
-  real :: ivals(ni),z1(nx,ny),x1(nx*ny),x2(nx*ny),tot,np
+  real :: ivals(ni),z(nx,ny),x1(nx*ny),x2(nx*ny),tot,np
   
   nn = nx*ny
-  x1 = reshape(z1,(/nn/))  !x1 is the 1D array with the same data as the 2D array z1
+  x1 = reshape(z,(/nn/))  !x1 is the 1D array with the same data as the 2D array z
   call rindexx(nn,-x1(1:nn),indx(1:nn)) ! -x1: sort descending
   
-  np = sum(z1)
+  np = sum(z)
   tot = 0.
   do b=1,nn !Loop over bins in 1D array
      ib = indx(b)
@@ -1553,13 +1553,12 @@ subroutine identify_2d_ranges(ni,ivals,nx,ny,z1)
      if(x1(ib).eq.0.) cycle
      tot = tot + x1(ib)
      do i=ni,1,-1 !Loop over intervals
-        if(tot.le.np*ivals(i)) x2(ib) = real(ni-i+1)  !e.g. x2(b) = ni if within 90%, ni-1 if within 95%, etc
-        !if(tot.le.np*ivals(i)) x2(ib) = real(i)  !e.g. x2(b) = 0 if within 90%, 1, if within 95%, etc
+        if(tot.le.np*ivals(i)) x2(ib) = real(ni-i+1)  !e.g. x2(b) = ni if within 90%, ni-1 if within 95%, etc, and 1 if within 100%
         !write(*,'(2I4, F6.2, 3F20.5)')b,i, ivals(i), np,tot,np*ivals(i)
      end do
   end do
   
-  z1 = reshape(x2, (/nx,ny/))
+  z = reshape(x2, (/nx,ny/))  ! z lies between 1 and ni
 end subroutine identify_2d_ranges
 !************************************************************************
 
@@ -1573,6 +1572,7 @@ subroutine calc_2d_areas(p1,p2,changevar,ni,nx,ny,z,tr,area)
   real :: z(nx,ny),tr(6),y,dx,dy,d2r,area(ni)
   
   d2r = atan(1.)/45.
+  area = 0.
   
   !print*,ni,nx,ny
   do ix = 1,nx
@@ -1589,8 +1589,10 @@ subroutine calc_2d_areas(p1,p2,changevar,ni,nx,ny,z,tr,area)
         iv = nint(z(ix,iy))
         !if(iv.gt.0) area(iv) = area(iv) + dx*dy
         do i=1,ni
-           i1 = ni-i+1
-           if(iv.ge.i) area(i1) = area(i1) + dx*dy
+           if(iv.ge.i) then
+              i1 = ni-i+1
+              area(i1) = area(i1) + dx*dy
+           end if
         end do
         !if(iv.eq.3) write(*,'(7F10.2)')x,y,dx,dy,dx*dy,z(ix,iy),area(iv)
      end do

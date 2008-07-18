@@ -714,8 +714,11 @@ program mcmcstats
            !Write the number of detectors, a_spin, theta_sl, distance and SNR:
            !write(output,'(I3,A,F6.1,A,I6,A,F6.1,A,F6.1,A)')ndet(f),'  $\!\!\!\!$ &  ',model(f,6),'  $\!\!\!\!$ &  ',nint(model(f,7)),'  $\!\!\!\!$ &  ',model(f,5),'  $\!\!\!\!$ &  ',totsnr(f),'  $\!\!\!\!$ &  ' 
            
+           !Write the number of detectors, a_spin, theta_sl and distance:
+           write(output,'(I3,A,F6.1,A,I6,A,F6.1,A)')ndet(f),'  $\!\!\!\!$ &  ',model(f,6),'  $\!\!\!\!$ &  ',nint(model(f,7)),'  $\!\!\!\!$ &  ',model(f,5),'  $\!\!\!\!$ &  ' 
+           
            !Write the number of detectors and SNR:
-           write(output,'(I3,A,F6.1,A)')ndet(f),'  $\!\!\!\!$ &  ',totsnr(f),'  $\!\!\!\!$ &  ' 
+           !write(output,'(I3,A,F6.1,A)')ndet(f),'  $\!\!\!\!$ &  ',totsnr(f),'  $\!\!\!\!$ &  ' 
            
            !do p1=2,npar(f)  !Leave out logL
            do p1=4,npar(f)  !Leave out logL, M1, M2

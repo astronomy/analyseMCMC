@@ -35,7 +35,7 @@ program plotspins
   character :: outputname*99,outputdir*99,psclr*4,colournames(15)*20
   
   integer :: o,p,p1,p2,par1,par2,nr,c,c0,nstat,wrap(nchs,npar1),nival,npar,ncolours,colours(10),nsymbols,symbols(10),symbol,defcolour,plotthis,tempintarray(99)
-  real :: range,minrange,range1,range2,drange,maxgap,ranges(nchs,nival1+1,npar1,nr1),ival,ivals(nival1+1),centre,shift(nchs,npar1),plshift,probarea(nival1+1)
+  real :: range,minrange,range1,range2,drange,maxgap,ranges(nchs,nival1+1,npar1,nr1),ival,ivals(nival1+1),centre,shift(nchs,npar1),plshift,probarea(nival1+1),probareas(npar1,npar1,nival1+1)
   real :: median,medians(npar1),mean(npar1),stdev1(npar1),stdev2(npar1),var1(npar1),var2(npar1),absvar1(npar1),absvar2(npar1)
   real :: stats(nchs,npar1,nstat1),corrs(npar1,npar1),acorrs(nchs,0:npar1,0:narr1)
   real :: norm
@@ -1005,97 +1005,6 @@ program plotspins
      
      
   end do !ic
-  
-  
-     
-     
-  
-  !Write statistics to file
-  if(savestats.ge.1) write(*,*)''
-  if(savestats.ge.1.and.nchains.gt.1) write(*,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
-  if(savestats.ge.1.and.nchains.eq.1) then
-     ic = 1 !Use chain 1
-     o = 20 !Output port
-     open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__statistics.dat')
-     write(o,'(A)')trim(outputname)
-     write(o,*)''
-     !write(o,'(3(A,I))')'Npoints: ',n(ic),'  Nburn: ',nburn(ic),'  Ndet: ',ndet(ic)
-     !write(o,*)''
-     write(o,'(6x,A10,A12,A8,A22,A8)')'niter','nburn','seed','null likelihood','ndet'
-     write(o,'(6x,I10,I12,I8,F22.10,I8)')n(ic),nint(isburn(ic)),seed(ic),nullh,ndet(ic)
-     write(o,*)''
-     write(o,'(A16,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
-     do i=1,ndet(ic)
-        write(o,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detname(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
-     end do
-     write(o,*)''
-     
-     write(o,'(A,I11)')' t0:',nint(t0)
-     write(o,*)''
-     
-     !Print statistics
-     write(o,'(A,2I3)')'Npar,ncol:',par2-par1+1,7
-     write(o,'(A8,7A12)')'param.','model','median','mean','stdev1','stdev2','abvar1','abvar2'
-     
-     do p=par1,par2
-        write(o,'(A8,7F12.6)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),stdev1(p),stdev2(p),absvar1(p),absvar2(p)
-     end do
-     write(o,*)''
-     
-     
-     !Print correlations:
-     write(o,'(A,I3)')'Npar:',par2-par1+1
-     write(o,'(A9,$)')''
-     do p=par1,par2
-        write(o,'(A10,$)')trim(varnames(p))
-     end do
-     write(o,*)''
-     do p1=par1,par2
-        write(o,'(A9,$)')trim(varnames(p1))
-        do p2=par1,par2
-           write(o,'(F10.5,$)')corrs(p1,p2)
-        end do
-        write(o,'(A)')'   '//trim(varnames(p1))
-     end do
-     write(o,*)''
-     
-     
-     !Print intervals:
-     write(o,'(A,I3)')'Nival:',nival
-     write(o,'(A22,$)')'Interval:'
-     do c=1,nival+1
-        write(o,'(F21.5,A14,$)')ivals(c),''
-     end do
-     write(o,*)''
-     
-     write(o,'(A8,2x,$)')'param.'
-     do c=1,nival+1
-        !write(o,'(2x,2A9,A8,$)')'rng1','rng2','in rnge'
-        write(o,'(2x,2A12,A9,$)')'centre','delta','in rnge'
-     end do
-     write(o,*)''
-     do p=par1,par2
-        write(o,'(A8,2x,$)')trim(varnames(p))
-        do c=1,nival+1
-           !write(o,'(2x,2F11.6,F6.3,$)')ranges(ic,c,p,1),ranges(ic,c,p,2),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
-           write(o,'(2x,2F12.6,F7.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
-           if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
-              write(o,'(A2,$)')'y'
-           else
-              write(o,'(A2,$)')'N'
-           end if
-        end do
-        write(o,*)''
-     end do
-     
-     close(o) !Statistics output file
-     if(savestats.eq.2) i = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
-     write(*,*)''
-     if(savestats.eq.1) write(*,'(A)')' Statistics saved in '//trim(outputname)//'__statistics.dat'
-     if(savestats.eq.2) write(*,'(A)')' Statistics saved in '//trim(outputname)//'__statistics.dat,ps'
-  end if !if(savestats.ge.1.and.nchains.eq.1) then
-  
-  
   
   
   
@@ -3400,13 +3309,14 @@ program plotspins
               if(normpdf2d.eq.1) z = max(0.,log10(z + 1.e-30))
               if(normpdf2d.eq.2) z = max(0.,sqrt(z + 1.e-30))
               if(normpdf2d.eq.4) then
-                 call identify_2d_ranges(nival+1,ivals,nbin2dx+1,nbin2dy+1,z) !Get 2D probability ranges
-                 call calc_2d_areas(p1,p2,changevar,nival+1,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas
+                 call identify_2d_ranges(nival+1,ivals,nbin2dx+1,nbin2dy+1,z) !Get 2D probability ranges; identify to which range each bin belongs
+                 call calc_2d_areas(p1,p2,changevar,nival+1,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
                  write(*,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
                  do i=1,nival+1
-                    write(*,'(I10,F13.2,2(2x,F21.5))')i,ivals(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)
+                    write(*,'(I10,F13.2,2(2x,F21.5))')i,ivals(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
+                    probareas(p1,p2,i) = probarea(i)*(pi/180.)**2/(4*pi)
                  end do
-                 i=1
+                 !i=1
                  !open(unit=97,file='ranges_2d.dat',status='replace')
                  !write(97,'(2(2x,F21.5))')sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)
                  !close(97)
@@ -3719,6 +3629,161 @@ program plotspins
   
   if(prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')'done.  '
   if(plot.eq.1) write(*,*)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  !***********************************************************************************************************************************      
+  !***********************************************************************************************************************************      
+  !***********************************************************************************************************************************      
+  
+  
+  
+  
+  
+  !Write statistics to file
+  if(savestats.ge.1) write(*,*)''
+  if(savestats.ge.1.and.nchains.gt.1) write(*,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
+  if(savestats.ge.1.and.nchains.eq.1) then
+     ic = 1 !Use chain 1
+     o = 20 !Output port
+     open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__statistics.dat')
+     write(o,'(A)')trim(outputname)
+     write(o,*)''
+     !write(o,'(3(A,I))')'Npoints: ',n(ic),'  Nburn: ',nburn(ic),'  Ndet: ',ndet(ic)
+     !write(o,*)''
+     write(o,'(6x,A10,A12,A8,A22,A8)')'niter','nburn','seed','null likelihood','ndet'
+     write(o,'(6x,I10,I12,I8,F22.10,I8)')n(ic),nint(isburn(ic)),seed(ic),nullh,ndet(ic)
+     write(o,*)''
+     write(o,'(A16,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
+     do i=1,ndet(ic)
+        write(o,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detname(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+     end do
+     write(o,*)''
+     
+     write(o,'(A,I11)')' t0:',nint(t0)
+     write(o,*)''
+     
+     !Print statistics
+     write(o,'(A,2I3)')'Npar,ncol:',par2-par1+1,7
+     write(o,'(A8,7A12)')'param.','model','median','mean','stdev1','stdev2','abvar1','abvar2'
+     
+     do p=par1,par2
+        write(o,'(A8,7F12.6)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),stdev1(p),stdev2(p),absvar1(p),absvar2(p)
+     end do
+     write(o,*)''
+     
+     
+     !Print correlations:
+     write(o,'(A,I3)')'Npar:',par2-par1+1
+     write(o,'(A9,$)')''
+     do p=par1,par2
+        write(o,'(A10,$)')trim(varnames(p))
+     end do
+     write(o,*)''
+     do p1=par1,par2
+        write(o,'(A9,$)')trim(varnames(p1))
+        do p2=par1,par2
+           write(o,'(F10.5,$)')corrs(p1,p2)
+        end do
+        write(o,'(A)')'   '//trim(varnames(p1))
+     end do
+     write(o,*)''
+     
+     
+     !Print probability intervals:
+     write(o,'(A,I3)')'Nival:',nival
+     write(o,'(A22,$)')'Interval:'
+     do c=1,nival+1
+        write(o,'(F21.5,A14,$)')ivals(c),''
+     end do
+     write(o,*)''
+     
+     write(o,'(A8,2x,$)')'param.'
+     do c=1,nival+1
+        !write(o,'(2x,2A9,A8,$)')'rng1','rng2','in rnge'
+        write(o,'(2x,2A12,A9,$)')'centre','delta','in rnge'
+     end do
+     write(o,*)''
+     do p=par1,par2
+        write(o,'(A8,2x,$)')trim(varnames(p))
+        do c=1,nival+1
+           !write(o,'(2x,2F11.6,F6.3,$)')ranges(ic,c,p,1),ranges(ic,c,p,2),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+           write(o,'(2x,2F12.6,F7.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+           if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
+              write(o,'(A2,$)')'y'
+           else
+              write(o,'(A2,$)')'N'
+           end if
+        end do
+        write(o,*)''
+     end do
+     
+     
+     
+     !Print 2D intervals
+     write(o,'(///,A,/)')'2D PROBABILITY INTERVALS:'
+     write(o,'(A,I5)')'Npdf2d: ',npdf2d
+     write(o,'(A,2I5)')'Nbin2dx,nbin2dy: ',nbin2dx,nbin2dy
+     !write(o,*)''
+     write(o,'(A28,$)')'Interval:'
+     do c=1,nival+1
+        write(o,'(F19.5,$)')ivals(c)
+     end do
+     write(o,*)''
+     
+     write(o,'(A9,A19,$)')'params.',''
+     do c=1,nival+1
+        write(o,'(A16,A3,$)')'delta','in'
+     end do
+     write(o,*)''
+     do p=1,npdf2d
+        p1 = pdf2dpairs(p,1)
+        p2 = pdf2dpairs(p,2)
+        write(o,'(2I4,2(2x,A8),2x,$)')p1,p2,trim(varnames(p1)),trim(varnames(p2))
+        do c=1,nival+1
+           write(o,'(2x,F14.8,A3,$)')probareas(p1,p2,c),'X'
+           !write(o,'(2x,2F12.6,F7.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+           !if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
+           !   write(o,'(A2,$)')'y'
+           !else
+           !   write(o,'(A2,$)')'N'
+           !end if
+        end do
+        write(o,*)''
+     end do
+     
+     
+     
+     close(o) !Statistics output file
+     if(savestats.eq.2) i = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
+     write(*,*)''
+     if(savestats.eq.1) write(*,'(A)')' Statistics saved in '//trim(outputname)//'__statistics.dat'
+     if(savestats.eq.2) write(*,'(A)')' Statistics saved in '//trim(outputname)//'__statistics.dat,ps'
+  end if !if(savestats.ge.1.and.nchains.eq.1) then
+  
+  
   
   
   

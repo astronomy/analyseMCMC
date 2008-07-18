@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    13: sluys, 18/07/2008
+     - values of 2D probability ranges saved in __statistics.dat
+     
     12: sluys, 14/07/2008
      - added program mcmcstats that handles *_statistics.dat files, created by 
        plotspins
