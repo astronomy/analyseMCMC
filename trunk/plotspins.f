@@ -4,8 +4,8 @@ program plotspins
   use plotspins_settings
   implicit none
   integer, parameter :: narr1=2.01e5+2,npar0=13,nival1=5,nr1=5,nstat1=10,ndets=3
-  integer :: n(nchs),ntot(nchs),n0,n1,n2,i,j,j1,j2,nburn0(nchs),iargc,io,pgopen,system,narr,maxdots,offsetrun,imin
-  integer :: niter(nchs),totiter,totpts,seed(nchs),ndet(nchs),totthin(nchs),contrchains
+  integer :: n(nchs),ntot(nchs),n0,n1,n2,i,j,j1,j2,nburn0(nchs),iargc,io,readerror,pgopen,system,narr,maxdots,offsetrun,imin
+  integer :: niter(nchs),totiter,totpts,totlines,seed(nchs),ndet(nchs),totthin(nchs),contrchains
   integer :: index(npar1,nchs*narr1),index1(nchs*narr1),fileversion
   real :: is(nchs,narr1),isburn(nchs),jumps(nchs,npar1,narr1),startval(nchs,npar1,3)
   real :: sig(npar1,nchs,narr1),acc(npar1,nchs,narr1),avgtotthin
@@ -17,7 +17,7 @@ program plotspins
   character :: varnames(npar1)*8,pgunits(npar1)*99,pgvarns(npar1)*99,pgvarnss(npar1)*99,pgorigvarns(npar1)*99,infile*100,infiles(nchs)*100,str*99,str1*99,str2*99,bla*10,command*99
   
   integer :: nn,nn1,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nlogl1,nlogl2,ksn1,ksn2,iloglmax,icloglmax,ci
-  real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),rhat(npar1),totrelvar,ksdat1(narr1),ksdat2(narr1),ksd,ksprob,loglmax
+  real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),rhat(npar1),totrelvar,ksdat1(narr1),ksdat2(narr1),ksd,ksprob,loglmax,loglmaxs(nchs)
   character :: ch
   
   integer :: samplerate(nchs,ndets),samplesize(nchs,ndets),FTsize(nchs,ndets),detnr(nchs,ndets)
@@ -35,7 +35,9 @@ program plotspins
   character :: outputname*99,outputdir*99,psclr*4,colournames(15)*20
   
   integer :: o,p,p1,p2,par1,par2,nr,c,c0,nstat,wrap(nchs,npar1),nival,npar,ncolours,colours(10),nsymbols,symbols(10),symbol,defcolour,plotthis,tempintarray(99)
-  real :: range,minrange,range1,range2,drange,maxgap,ranges(nchs,nival1+1,npar1,nr1),ival,ivals(nival1+1),centre,shift(nchs,npar1),plshift,probarea(nival1+1),probareas(npar1,npar1,nival1+1)
+  integer :: truerange2d,trueranges2d(npar1,npar1)
+  real :: range,minrange,range1,range2,drange,maxgap,ranges(nchs,nival1+1,npar1,nr1),ival,ivals(nival1+1),centre,shift(nchs,npar1),plshift
+  real :: probarea(nival1+1),probareas(npar1,npar1,nival1+1,2)
   real :: median,medians(npar1),mean(npar1),stdev1(npar1),stdev2(npar1),var1(npar1),var2(npar1),absvar1(npar1),absvar2(npar1)
   real :: stats(nchs,npar1,nstat1),corrs(npar1,npar1),acorrs(nchs,0:npar1,0:narr1)
   real :: norm
@@ -265,8 +267,10 @@ program plotspins
   !***   READ INPUT FILE(S)   ****************************************************************************************************
   !*******************************************************************************************************************************
   
-  fileversion = 1
+  !fileversion = 1
+  fileversion = 2  !Start trying the new format
 101 continue
+  readerror = 0
   narr = narr1
   allocate(dat(npar1,nchains,narr1))
   
@@ -302,9 +306,8 @@ program plotspins
      read(10,*,end=199,err=199)bla
      if(fileversion.eq.1) read(10,*,end=199,err=199)bla
      
-     !Read the data
+     !Read the data (old format, <04/2008)
      if(fileversion.eq.1.and.rdsigacc.eq.1) then
-        !do i=1,narr1
         i=1
         do while(i.le.narr1)
            read(10,'(I12,F21.10,2(F17.10,F10.6,F7.4),F22.10,F10.6,F7.4,9(F17.10,F10.6,F7.4))',end=199,err=198)i1,dat(1,ic,i),(dat(j,ic,i),sig(j,ic,i),acc(j,ic,i),j=2,3),  t,sig(4,ic,i),acc(4,ic,i),  (dat(j,ic,i),sig(j,ic,i),acc(j,ic,i),j=5,npar0)
@@ -336,10 +339,20 @@ program plotspins
            i = i+1
            if(i1.ge.maxchlen) exit
         end do !i
+        
      else if(fileversion.eq.2) then !New file format (04/2008)
         i=1
         do while(i.le.narr1)
-           read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',end=199,err=198)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
+           !read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',end=199,err=198)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
+           read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
+           if(io.lt.0) exit !EOF
+           if(io.gt.0) then !Read error
+              if(readerror.eq.1) goto 198 !Read error in previous line as well
+              readerror = 1
+              i = i-1
+              cycle
+           end if
+           readerror = 0
            is(ic,i) = real(i1)
            if(ic.eq.1.and.i.eq.1) t0 = dble(floor(t/10.d0)*10)
            dat(4,ic,i) = real(t - t0)
@@ -352,20 +365,29 @@ program plotspins
            if(i1.ge.maxchlen) exit
         end do !i
      end if
-     if(i1.lt.maxchlen) write(*,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
+     
+     !if(i1.lt.maxchlen) write(*,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
+     if(i.ge.narr1-2) write(*,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
      goto 199
 198  write(*,'(A,I7,$)')'  Read error in file '//trim(infile)//', line',i
      i = i-1
      if(i.lt.25) then
-        if(ic.eq.1.and.fileversion.eq.1) then
-           fileversion = 2
+        !if(ic.eq.1.and.fileversion.eq.1) then
+        !   fileversion = 2
+        !   deallocate(dat)
+        !   write(*,'(A)')"    I'll try the new file format..."
+        !   goto 101
+        !end if
+        if(ic.eq.1.and.fileversion.eq.2) then
+           fileversion = 1
            deallocate(dat)
-           write(*,'(A)')"    I'll try the new file format..."
+           write(*,'(A)')"    I'll try the old file format..."
            goto 101
         end if
         write(*,'(A,/)')'  Aborting program...'
         stop
      end if
+     write(*,*)
 199  close(10)
      ntot(ic) = i-1
      n(ic) = ntot(ic) !n can be changed in rearranging chains, ntot won't be changed
@@ -436,12 +458,16 @@ program plotspins
   
   !Get point with absolute maximum likelihood over all chains
   loglmax = -1.d99
+  loglmaxs = -1.d99
   do ic=1,nchains0
      do i=3,ntot(ic)  !3: exclude true and starting values
-        if(dat(1,ic,i).gt.loglmax) then
-           loglmax = dat(1,ic,i)
-           iloglmax = i
-           icloglmax = ic
+        if(dat(1,ic,i).gt.loglmaxs(ic)) then
+           loglmaxs(ic) = dat(1,ic,i)
+           if(dat(1,ic,i).gt.loglmax) then
+              loglmax = dat(1,ic,i)
+              iloglmax = i
+              icloglmax = ic
+           end if
         end if
      end do
   end do
@@ -467,9 +493,13 @@ program plotspins
   !Print info on number of iterations, burnin, thinning, etc.
   do ic=1,nchains0
      !if(prruninfo.ge.1.and.update.ne.1) write(*,'(2x,A5,I3,A,I9,A,ES7.1,A,I9,A,ES7.1,A,I4,A,ES9.1,A,ES9.1,A,I4)')'File',ic,':  Lines:',n(ic),'  (',real(n(ic)),'),  Iterations:',nint(is(ic,n(ic))),'  (',is(ic,n(ic)),'),  thinning in file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),'     Burn-in:  line:',real(nburn(ic)),', iteration:',isburn(ic),', total thinning:',totthin(ic)
-     if(prprogress.ge.2.and.update.ne.1) write(*,'(A9,I3,A2,A23,A12,A,ES7.1,A,ES7.1,A,ES7.1,A,ES7.1,A,I3,A,I4,A,ES8.2,A1)') &
-          'Chain',ic,': ',trim(infiles(ic)),', '//colournames(colours(mod(ic-1,ncolours)+1))//'.', '  Lines: ',real(n(ic)),', iter: ',is(ic,n(ic)), &
-          '.  Burn-in: line: ',real(nburn(ic)),', iter: ',isburn(ic),'.  Thin: file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),', tot:',totthin(ic),'.  Data pts: ',real(n(ic)-nburn(ic)),'.'
+     !if(prprogress.ge.2.and.update.ne.1) write(*,'(A9,I3,A2,A23,A12,A,ES7.1,A,ES7.1,A,ES7.1,A,ES7.1,A,I3,A,I4,A,ES8.2,A1)') &
+     !     'Chain',ic,': ',trim(infiles(ic)),', '//colournames(colours(mod(ic-1,ncolours)+1))//'.', '  Lines: ',real(n(ic)),', iter: ',is(ic,n(ic)), &
+     !     '.  Burn-in: line: ',real(nburn(ic)),', iter: ',isburn(ic),'.  Thin: file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),', tot:',totthin(ic),'.  Data pts: ',real(n(ic)-nburn(ic)),'.'
+     if(prprogress.ge.2.and.update.ne.1) write(*,'(A9,I3,A2,A23,A12,A,ES7.1,A,ES7.1,A,ES7.1,A,ES7.1, A,F8.2, A,I3,A,I4,A,ES8.2,A1)') &
+          'Chain',ic,': ',trim(infiles(ic)),', '//colournames(colours(mod(ic-1,ncolours)+1))//'.', '  Lines/iter: ',real(n(ic)),'/',is(ic,n(ic)), &
+          !'.  Burn-in: ',real(nburn(ic)),'/',isburn(ic),'.  Lmax:',maxval(dat(1,ic,:)),'.  Thin: file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),', tot:',totthin(ic),'.  Data pts: ',real(n(ic)-nburn(ic)),'.'
+          '.  Burn-in: ',real(nburn(ic)),'/',isburn(ic),'.  Lmax:',loglmaxs(ic),'.  Thin: file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),', tot:',totthin(ic),'.  Data pts: ',real(n(ic)-nburn(ic)),'.'
   end do
   totiter = 0
   totpts  = 0
@@ -479,10 +509,11 @@ program plotspins
      totpts = totpts + n(ic)-nburn(ic)
      if(n(ic).gt.nburn(ic)) contrchains = contrchains + 1
   end do
+  totlines = sum(ntot(1:nchains0))
   !if(prprogress.ge.2.and.update.ne.1) write(*,'(A10,40x,3(A,I9),A1)')'Total:',' Lines:',sum(ntot(1:nchains0)),', iterations:',totiter,', data points: ',totpts,'.'
   !if(prprogress.ge.2.and.update.ne.1) write(*,'(A10,40x, A,ES7.1, A,ES7.1,A1, 68x, A,ES8.2,A1)')'Total:',' Lines: ',real(sum(ntot(1:nchains0))),', iter: ',real(totiter),',',' Data pts: ',real(totpts),'.'
-  if(prprogress.ge.1.and.update.ne.1) write(*,'(4x,A, A,ES10.4, A,ES10.4, A,ES10.4,A,I3,A1,I2,A1)') 'In all chains:','  lines read in: ',real(sum(ntot(1:nchains0))), &
-       ',  total number of iterations: ',real(totiter),',  total number of data points after burnin: ',real(totpts),', contributing chains:',contrchains,'/',nchains0,'.'
+  if(prprogress.ge.1.and.update.ne.1) write(*,'(4x,A, A,ES10.4, A,ES10.4, A,ES10.4,  A2,F5.1, A,I3,A1,I2,A1)') 'In all chains:','  number of lines: ',real(totlines), &
+       ',  number of iterations: ',real(totiter),',  number of data points after burnin: ',real(totpts),' (',real(totpts)/real(totlines)*100,'%), contributing chains:',contrchains,'/',nchains0,'.'
   if(prruninfo.gt.0) write(*,*)
   
   
@@ -3311,16 +3342,14 @@ program plotspins
               if(normpdf2d.eq.4) then
                  call identify_2d_ranges(nival+1,ivals,nbin2dx+1,nbin2dy+1,z) !Get 2D probability ranges; identify to which range each bin belongs
                  call calc_2d_areas(p1,p2,changevar,nival+1,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
-                 write(*,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
+                 trueranges2d(p1,p2) = truerange2d(z,nbin2dx+1,nbin2dy+1,startval(1,p1,1),startval(1,p2,1),tr)
+                 !write(*,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
                  do i=1,nival+1
-                    write(*,'(I10,F13.2,2(2x,F21.5))')i,ivals(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
-                    probareas(p1,p2,i) = probarea(i)*(pi/180.)**2/(4*pi)
+                    !write(*,'(I10,F13.2,2(2x,F21.5))')i,ivals(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
+                    probareas(p1,p2,i,1) = probarea(i)*(pi/180.)**2/(4*pi)  !Fraction of the sky
+                    probareas(p1,p2,i,2) = sqrt(probarea(i)/pi)*2           !Equivalent diameter
                  end do
-                 !i=1
-                 !open(unit=97,file='ranges_2d.dat',status='replace')
-                 !write(97,'(2(2x,F21.5))')sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)
-                 !close(97)
-                 write(*,'(A2,$)')'  '
+                 !write(*,'(A2,$)')'  '
               end if
            end if
            if(normpdf2d.eq.3) then
@@ -3374,12 +3403,30 @@ program plotspins
                  if(normpdf2d.lt.4) call pggray(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,1.,0.,tr)
                  if(normpdf2d.eq.4) then
                     call pgscr(30,1.,1.,1.) !BG colour
-                    call pgscr(31,0.,0.,1.) !Blue
-                    call pgscr(32,0.,1.,0.) !Green
-                    call pgscr(33,1.,1.,0.) !Yellow
-                    !call pgscr(34,1.,0.5,0.) !Orange
-                    call pgscr(34,1.,0.,0.) !Red
-                    call pgscir(30,34)
+                    if(nival+1.eq.2) then
+                       call pgscr(31,1.,1.,0.) !Yellow
+                       call pgscr(32,1.,0.,0.) !Red
+                    end if
+                    if(nival+1.eq.3) then
+                       call pgscr(31,0.,0.,1.) !Blue
+                       call pgscr(32,1.,1.,0.) !Yellow
+                       call pgscr(33,1.,0.,0.) !Red
+                    end if
+                    if(nival+1.eq.4) then
+                       call pgscr(31,0.,0.,1.) !Blue
+                       call pgscr(32,0.,1.,0.) !Green
+                       call pgscr(33,1.,1.,0.) !Yellow
+                       !call pgscr(34,1.,0.5,0.) !Orange
+                       call pgscr(34,1.,0.,0.) !Red
+                    end if
+                    if(nival+1.eq.5) then
+                       call pgscr(31,0.,0.,1.) !Blue
+                       call pgscr(32,0.,1.,0.) !Green
+                       call pgscr(33,1.,1.,0.) !Yellow
+                       call pgscr(34,1.,0.5,0.) !Orange
+                       call pgscr(35,1.,0.,0.) !Red
+                    end if
+                    call pgscir(30,30+nival+1)
                     call pgimag(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,0.,1.,tr)
                  end if
               end if
@@ -3481,7 +3528,7 @@ program plotspins
                     call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !Max logL
                  end if
                  
-                 call pgpoint(1,plx,ply,18)
+                 call pgpoint(1,plx,ply,12)
               end if
               
               
@@ -3596,6 +3643,30 @@ program plotspins
               call pgmtxt('B',2.2,0.5,0.5,trim(pgvarns(p1)))
               call pgmtxt('L',1.7,0.5,0.5,trim(pgvarns(p2)))
               
+              
+              !Print 2D probability ranges in title
+              if(normpdf2d.eq.4) then
+                 string = ' '
+                 do c = 1,nival+1
+                    a = probareas(p1,p2,c,2)
+                    if(a.lt.1.) then
+                       write(string,'(I3,A3,F5.2,A7)')nint(ivals(c)*100),'%:',a,'\(2218)'
+                    else if(a.lt.10.) then
+                       write(string,'(I3,A3,F4.1,A7)')nint(ivals(c)*100),'%:',a,'\(2218)'
+                    else if(a.lt.100.) then
+                       write(string,'(I3,A3,F5.1,A7)')nint(ivals(c)*100),'%:',a,'\(2218)'
+                    else
+                       write(string,'(I3,A3,I4,A7)')nint(ivals(c)*100),'%:',nint(a),'\(2218)'
+                    end if
+                    a = (real(c-1)/real(nival) - 0.5)*0.7 + 0.5
+                    call pgsci(30+nival+2-c)
+                    call pgmtxt('T',0.5,a,0.5,trim(string))  !Print title
+                 end do
+                 call pgsci(1)
+              end if
+              
+              
+              !Convert plot
               if(file.eq.1) then
                  call pgend
                  i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharppdf2d)//' pdf2d.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.png')
@@ -3670,22 +3741,26 @@ program plotspins
      o = 20 !Output port
      open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__statistics.dat')
      write(o,'(A)')trim(outputname)
-     write(o,*)''
+     
+     !Print general run and detector info:
+     write(o,'(//,A,/)')'GENERAL INFORMATION:'
      !write(o,'(3(A,I))')'Npoints: ',n(ic),'  Nburn: ',nburn(ic),'  Ndet: ',ndet(ic)
      !write(o,*)''
-     write(o,'(6x,A10,A12,A8,A22,A8)')'niter','nburn','seed','null likelihood','ndet'
-     write(o,'(6x,I10,I12,I8,F22.10,I8)')n(ic),nint(isburn(ic)),seed(ic),nullh,ndet(ic)
+     !write(o,'(6x,A10,A12,A8,A22,A8,A10)')'niter','nburn','seed','null likelihood','ndet','nchains'
+     !write(o,'(6x,I10,I12,I8,F22.10,I8,I5.2,A2,I3.2)')n(ic),nint(isburn(ic)),seed(ic),nullh,ndet(ic),contrchains,'/',nchains0
+     write(o,'(6x,4A12,A12,A5  A8,A22,A8)')'totiter','totlines','totpts','totburn','nchains','used','seed','null likelihood','ndet'
+     write(o,'(6x,4I12,I12,I5, I8,F22.10,I8)')totiter,totlines,totpts,totlines-totpts,contrchains,nchains0,seed(ic),nullh,ndet(ic)
      write(o,*)''
-     write(o,'(A16,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
+     write(o,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
      do i=1,ndet(ic)
         write(o,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detname(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
      end do
      write(o,*)''
      
      write(o,'(A,I11)')' t0:',nint(t0)
-     write(o,*)''
      
      !Print statistics
+     write(o,'(///,A,/)')'BASIC STATISTICS:'
      write(o,'(A,2I3)')'Npar,ncol:',par2-par1+1,7
      write(o,'(A8,7A12)')'param.','model','median','mean','stdev1','stdev2','abvar1','abvar2'
      
@@ -3696,6 +3771,7 @@ program plotspins
      
      
      !Print correlations:
+     write(o,'(//,A,/)')'CORRELATIONS:'
      write(o,'(A,I3)')'Npar:',par2-par1+1
      write(o,'(A9,$)')''
      do p=par1,par2
@@ -3709,10 +3785,10 @@ program plotspins
         end do
         write(o,'(A)')'   '//trim(varnames(p1))
      end do
-     write(o,*)''
      
      
      !Print probability intervals:
+     write(o,'(///,A,/)')'1D PROBABILITY INTERVALS:'
      write(o,'(A,I3)')'Nival:',nival
      write(o,'(A22,$)')'Interval:'
      do c=1,nival+1
@@ -3763,13 +3839,13 @@ program plotspins
         p2 = pdf2dpairs(p,2)
         write(o,'(2I4,2(2x,A8),2x,$)')p1,p2,trim(varnames(p1)),trim(varnames(p2))
         do c=1,nival+1
-           write(o,'(2x,F14.8,A3,$)')probareas(p1,p2,c),'X'
-           !write(o,'(2x,2F12.6,F7.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
-           !if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
-           !   write(o,'(A2,$)')'y'
-           !else
-           !   write(o,'(A2,$)')'N'
-           !end if
+           write(o,'(2x,F14.8,$)')probareas(p1,p2,c,1)
+           !print*,c,trueranges2d(p1,p2),nival+2-trueranges2d(p1,p2)
+           if(c.ge.nival+2-trueranges2d(p1,p2) .and. trueranges2d(p1,p2).ne.0) then
+              write(o,'(A3,$)')'y'
+           else
+              write(o,'(A3,$)')'n'
+           end if
         end do
         write(o,*)''
      end do

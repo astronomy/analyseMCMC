@@ -2,6 +2,15 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    14: sluys, 19/07/2008
+     - plotspins: 
+       - try new file format first; continue after read error of only 1 line
+       - print more info on selection of data points due to Lmax criterion
+       - determine whether true values within 2D ranges
+       - print 2D probability area to 2D plot title
+     - __statistics.dat files: more stats to first lines, show if true val. in range
+     - mcmcstats: make it read the new stats files
+    
     13: sluys, 18/07/2008
      - values of 2D probability ranges saved in __statistics.dat
      

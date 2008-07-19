@@ -7,11 +7,14 @@ program mcmcstats
   integer :: prinput,plfile
   character :: infile*99,bla,str*99,output*1000
   
-  integer :: n(nf1),nburn(nf1),ndet(nf1),seed(nf1),detnr(nf1,nifo1),samplerate(nf1,nifo1),samplesize(nf1,nifo1),FTsize(nf1,nifo1),npar(nf1),ncol(nf1),nival(nf1),tbase(nf1)
+  integer :: totiter(nf1),totlines(nf1),totpts(nf1),totburn(nf1),totchains(nf1),usedchains(nf1),ndet(nf1),seed(nf1)
+  integer :: detnr(nf1,nifo1),samplerate(nf1,nifo1),samplesize(nf1,nifo1),FTsize(nf1,nifo1),npar(nf1),ncol(nf1),nival(nf1),tbase(nf1)
   real :: nullh(nf1),snr(nf1,nifo1),totsnr(nf1),flow(nf1,nifo1),fhigh(nf1,nifo1),t_before(nf1,nifo1),t_after(nf1,nifo1),FTstart(nf1,nifo1),deltaFT(nf1,nifo1)
   real :: model(nf1,npar1),median(nf1,npar1),mean(nf1,npar1),stdev1(nf1,npar1),stdev2(nf1,npar1),absvar1(nf1,npar1),absvar2(nf1,npar1),corrs(nf1,npar1,1:npar1)
-  real :: ivals(nf1,1:nival1),ivlcntr(nf1,npar1,nival1),ivldelta(nf1,npar1,nival1),ivlinrnge(nf1,npar1,nival1)
-  character :: detname(nf1,nifo1)*25,varnames(nf1,npar1)*25,outputnames(nf1)*99,ivlok(nf1,npar1,nival1)*3,pgvarns(1:npar1)*99,pgvarnss(1:npar1)*99
+  real :: ivals(nf1,1:nival1),ivlcntr(nf1,npar1,nival1),ivldelta(nf1,npar1,nival1),ivlinrnge(nf1,npar1,nival1),ivldelta2d(nf1,npar1,nival1)
+  character :: detname(nf1,nifo1)*25,varnames(nf1,npar1)*25,outputnames(nf1)*99,ivlok(nf1,npar1,nival1)*3,ivlok2d(nf1,npar1,nival1)*3,pgvarns(1:npar1)*99,pgvarnss(1:npar1)*99
+  
+  integer :: npdf2d(nf1),nbin2dx(nf1),nbin2dy(nf1),pdfpar2dx(nf1,npar1),pdfpar2dy(nf1,npar1)
   
   integer :: sym,ci,ci0,ls,ls0,p0,p1,p2,p3,p10,p20,p30,p11,p22
   real :: xmin,xmax,dx,ymin,ymax,dy,x0,y0,x1,y1,clr
@@ -24,7 +27,7 @@ program mcmcstats
   integer :: plotdeltas,plotsnrs,plotcorrelations,plotcorrmatrix,printdeltastable
   
   
-  prinput = 0  !Print input to screen: 0-no, 1-yes
+  prinput = 1  !Print input to screen: 0-no, 1-yes
   plfile  = 2  !Plot to file: 0-no (screen), 1-png, 2-eps, 3-pdf, 4-eps & pdf
   
   plotdeltas = 0  !0 or 1x
@@ -80,14 +83,18 @@ program mcmcstats
      if(prinput.eq.1) write(6,*)''
      if(prinput.eq.1) write(6,'(A)')outputnames(f)
      
+     
+     !Read general run info
      read(o,*)bla
-     read(o,'(6x,I10,I12,I8,F22.10,I8)')n(f),nburn(f),seed(f),nullh(f),ndet(f)
+     read(o,*)bla
+     read(o,'(6x,5I12,I5,I8,F22.10,I8)')totiter(f),totlines(f),totpts(f),totburn(f),totchains(f),usedchains(f),seed(f),nullh(f),ndet(f)
      if(prinput.eq.1) write(6,*)''
-     if(prinput.eq.1) write(6,'(A)')'           niter       nburn    seed       null likelihood    ndet'
-     if(prinput.eq.1) write(6,'(6x,I10,I12,I8,F22.10,I8)')n(f),nburn(f),seed(f),nullh(f),ndet(f)
-     if(prinput.eq.0) write(6,'(6x,I10,I12,2I8)')n(f),nburn(f),ndet(f),seed(f)
+     if(prinput.eq.1) write(6,'(A)')'           totiter    totlines      totpts     totburn   totchains used    seed       null likelihood    ndet'
+     if(prinput.eq.1) write(6,'(6x,4I12,I12,I5,I8,F22.10,I8)')totiter(f),totlines(f),totpts(f),totburn(f),totchains(f),usedchains(f),seed(f),nullh(f),ndet(f)
+     if(prinput.eq.0) write(6,'(6x,2I12,2I8)')totiter(f),totburn(f),ndet(f),seed(f)
      
      
+     !Read detector info
      read(o,*)bla
      if(prinput.eq.1) write(6,*)''
      if(prinput.eq.1) write(6,'(A)')'        Detector Nr               SNR       f_low      f_high   before tc    after tc    Sample start (GPS)    Sample length   Sample rate   Sample size       FT size'
@@ -104,6 +111,7 @@ program mcmcstats
 
      
      !Read correlations:
+     read(o,*)bla
      read(o,*)bla,bla,npar(f),ncol(f)
      if(prinput.eq.1) write(6,*)''
      if(prinput.eq.1) write(6,'(A,2I3)')' Npar,ncol: ',npar(f),ncol(f)
@@ -116,17 +124,20 @@ program mcmcstats
      
      
      !Read correlations:
+     read(o,*)bla
      if(prinput.eq.1) write(6,'(A)')''
      read(o,*)bla
      read(o,*)bla  !Correlation headers
      if(prinput.eq.1) write(6,'(A,2I3)')' Npar: ',npar(f)
-     if(prinput.eq.1) write(6,'(A)')'                Mc       eta        tc        dl      spin     th_SL        RA       Dec     phase      thJo      phJo     alpha        M1        M2 '
+     if(prinput.eq.1) write(6,'(A)')'              logL        Mc       eta        tc        dl      spin     th_SL        RA       Dec     phase      thJo      phJo     alpha        M1        M2 '
      do p=1,npar(f)
         read(o,*)varnames(f,p),corrs(f,p,1:npar(f))
         if(prinput.eq.1) write(6,'(A8,20F10.5)')trim(varnames(f,p)),corrs(f,p,1:npar(f))
      end do
      
-     !Read intervals:
+     
+     !Read 1D intervals:
+     read(o,*)bla
      if(prinput.eq.1) write(6,'(A)')''
      read(o,*)bla,nival(f)
      if(prinput.eq.1) write(6,'(A,I3)')' Nival: ',nival(f)
@@ -150,6 +161,36 @@ program mcmcstats
         end if
      end do !p
      if(prinput.eq.1) write(6,*)''
+     
+     
+     
+     !Read 2D intervals:
+     read(o,*)bla
+     read(o,*)bla,npdf2d(f)
+     if(prinput.eq.1) write(*,'(A,I6)')' Npdf2d:',npdf2d(f)
+     read(o,*)bla,bla,nbin2dx(f),nbin2dy(f)
+     if(prinput.eq.1) write(*,'(A,2I6)')' Nbin2dx,y:',nbin2dx(f),nbin2dy(f)
+     read(o,*)bla
+     read(o,*)bla
+     
+     do p=1,npdf2d(f)
+        read(o,*)pdfpar2dx(f,p),pdfpar2dx(f,p),bla,bla,(ivldelta2d(f,p,iv),ivlok2d(f,p,iv),iv=1,nival(f))
+        do iv=1,nival(f)
+           if(ivlok2d(f,p,iv).eq.'y  ') ivlok2d(f,p,iv) = ' y '
+           if(ivlok2d(f,p,iv).eq.'X  ') ivlok2d(f,p,iv) = '*X*'
+        end do
+        if(prinput.eq.1) write(*,'(2I4,5(F12.6,A3))')pdfpar2dx(f,p),pdfpar2dx(f,p),(ivldelta2d(f,p,iv),ivlok2d(f,p,iv),iv=1,nival(f))
+        iv = nival(f) !100%
+        !iv = 3 !99%
+        if(p.gt.1.and.ivlok2d(f,p,iv).eq.'*N*') then !Don't print LogL (p=1)
+           write(6,'(A16,A8,5x,2F12.6,5x,2F12.6,F6.3,A3,A3,F5.1,A2)')trim(outputnames(f)),trim(varnames(f,p)), &
+                model(f,p),median(f,p),ivlcntr(f,p,iv),ivldelta(f,p,iv),ivlinrnge(f,p,iv),ivlok(f,p,iv),'  (',ivals(f,iv)*100,'%)'
+        end if
+     end do !p
+     if(prinput.eq.1) write(6,*)''
+
+
+
      
      close(o) !Statistics file
   end do !f

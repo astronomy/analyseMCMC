@@ -1599,3 +1599,23 @@ subroutine calc_2d_areas(p1,p2,changevar,ni,nx,ny,z,tr,area)
   end do
 end subroutine calc_2d_areas
 !************************************************************************
+
+
+!************************************************************************
+function truerange2d(z,nx,ny,truex,truey,tr)
+  !Get the smallest probability area in which the true values lie
+  implicit none
+  integer :: nx,ny,ix,iy,truerange2d
+  real :: truex,truey,z(nx,ny),tr(6)
+  
+  !x = tr(1) + tr(2)*ix + tr(3)*iy
+  !y = tr(4) + tr(5)*ix + tr(6)*iy
+  ix = floor((truex - tr(1))/tr(2))
+  iy = floor((truey - tr(4))/tr(6))
+  if(ix.lt.1.or.ix.gt.nx.or.iy.lt.1.or.iy.gt.ny) then
+     truerange2d = 0
+  else
+     truerange2d = nint(z(ix,iy))
+  end if
+end function truerange2d
+!************************************************************************
