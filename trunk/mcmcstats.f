@@ -27,7 +27,7 @@ program mcmcstats
   integer :: plotdeltas,plotsnrs,plotcorrelations,plotcorrmatrix,printdeltastable
   
   
-  prinput = 1  !Print input to screen: 0-no, 1-yes
+  prinput = 0  !Print input to screen: 0-no, 1-yes
   plfile  = 2  !Plot to file: 0-no (screen), 1-png, 2-eps, 3-pdf, 4-eps & pdf
   
   plotdeltas = 0  !0 or 1x
@@ -188,9 +188,9 @@ program mcmcstats
         end if
      end do !p
      if(prinput.eq.1) write(6,*)''
-
-
-
+     
+     
+     
      
      close(o) !Statistics file
   end do !f
@@ -761,8 +761,8 @@ program mcmcstats
            !Write the number of detectors and SNR:
            !write(output,'(I3,A,F6.1,A)')ndet(f),'  $\!\!\!\!$ &  ',totsnr(f),'  $\!\!\!\!$ &  ' 
            
-           !do p1=2,npar(f)  !Leave out logL
-           do p1=4,npar(f)  !Leave out logL, M1, M2
+           do p1=2,npar(f)  !Leave out logL
+           !do p1=4,npar(f)  !Leave out logL, M1, M2
               !print*,p,npar(f)
               
               !Display M1,M2 iso Mc,eta
