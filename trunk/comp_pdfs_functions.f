@@ -172,9 +172,9 @@ subroutine plotpdf1d(pp,lbl)
         !Print number
         if(plrange.ge.2) then
            x = ranges(f,pp1,5)
-           if(pp1.eq.1.or.pp1.eq.2.or.pp1.eq.4.or.pp1.eq.5.or.pp1.eq.13.or.pp1.eq.14) x = x*100
+           if(pp1.eq.2.or.pp1.eq.3.or.pp1.eq.5.or.pp1.eq.6.or.pp1.eq.14.or.pp1.eq.15) x = x*100
            write(str,'(F10.3)')x
-           if(pp1.eq.1.or.pp1.eq.2.or.pp1.eq.4.or.pp1.eq.5.or.pp1.eq.13.or.pp1.eq.14) write(str,'(A)')trim(str)//'%'
+           if(pp1.eq.2.or.pp1.eq.3.or.pp1.eq.5.or.pp1.eq.6.or.pp1.eq.14.or.pp1.eq.15) write(str,'(A)')trim(str)//'%'
            
            if(x.lt.0.01) write(str,'(F6.4)')x
            if(x.ge.0.01.and.x.lt.0.1) write(str,'(F5.3)')x
@@ -183,10 +183,10 @@ subroutine plotpdf1d(pp,lbl)
            if(x.ge.10.and.x.lt.100) write(str,'(I2)')nint(x)
            if(x.ge.100) write(str,'(I3)')nint(x)
            write(str,'(A)')'\(2030): '//trim(str)
-           if(pp1.eq.1.or.pp1.eq.2.or.pp1.eq.4.or.pp1.eq.5.or.pp1.eq.13.or.pp1.eq.14) then
+           if(pp1.eq.2.or.pp1.eq.3.or.pp1.eq.5.or.pp1.eq.6.or.pp1.eq.14.or.pp1.eq.15) then
               write(str,'(A)')trim(str)//'%'
            else
-              write(str,'(A)')trim(str)//trim(pgunits(pp1+1))
+              write(str,'(A)')trim(str)//trim(pgunits(pp1))
            end if
            !call pgsch(sch*1.2)
            !call pgptxt(xmin+0.05*dx,ymax*0.9,0.,0.,trim(pgvarnss(pp1)))
@@ -197,7 +197,7 @@ subroutine plotpdf1d(pp,lbl)
      end if
      call pgsls(1)
   end do !f
-
+  
   !Plot lines again over surface of overlapping distributions
   if(1.eq.2) then
      call pgsls(4)
@@ -239,7 +239,7 @@ subroutine plotpdf1d(pp,lbl)
      end if
   end if !if(pltrue.eq.1)
   
-
+  
   
   
   !Plot median (if one file)
@@ -259,12 +259,12 @@ subroutine plotpdf1d(pp,lbl)
   !   call pgbox('BCNTS',0.0,0,'BC',0.0,0)
   !end if
   
-  !call pgmtxt('B',2.4,0.5,0.5,trim(pgvarnss(pp1+1)))  !Plot label under x axis, Cheat a bit
+  !call pgmtxt('B',2.4,0.5,0.5,trim(pgvarnss(pp1)))  !Plot label under x axis
   if(abs(xpeak-xmin).gt.abs(xpeak-xmax)) then  !Peak is right, plot varname left
-     call pgmtxt('T',-1.,0.05,0.,trim(pgvarnss(pp1+1)))  !Plot label in upper-left corner, Cheat a bit
+     call pgmtxt('T',-1.,0.05,0.,trim(pgvarnss(pp1)))  !Plot label in upper-left corner
      call pgmtxt('T',-1.5,0.95,1.,trim(lbl))
   else   !Peak is left, plot varname right
-     call pgmtxt('T',-1.,0.95,1.,trim(pgvarnss(pp1+1)))  !Plot label in upper-left corner, Cheat a bit
+     call pgmtxt('T',-1.,0.95,1.,trim(pgvarnss(pp1)))  !Plot label in upper-left corner
      call pgmtxt('T',-1.5,0.05,0.,trim(lbl))
   end if
   
@@ -286,7 +286,7 @@ end subroutine plotpdf1d
 subroutine plotpdf2d(pp1,pp2,lbl)
   use comp_pdfs_settings
   implicit none
-  integer, parameter :: np=15,nbinx1=100,nbiny1=100
+  integer, parameter :: np=15,nbinx1=500,nbiny1=500
   integer :: pp,pp1,pp2,bx,by,p1,p2,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2,nchains,nbinx,nbiny,p(np),ic,lw,c,foundit
   integer :: identical
   real :: startval(nf,np,2),stats(nf,np,6),ranges(nf,np,5),xmin1(nf,np),xmax1(nf,np),ymin1(nf,np),ymax1(nf,np),x
@@ -397,7 +397,7 @@ subroutine plotpdf2d(pp1,pp2,lbl)
      xmax = minval(xmax1(1:nf,pp11))
   end if
   
-  if(1.eq.1.and.pp1.eq.8.and.pp2.eq.9) then !Get whole sky for sky plot
+  if(1.eq.2.and.pp1.eq.8.and.pp2.eq.9) then !Get whole sky for sky plot
      xmin = 24.
      xmax = 0.
      ymin = -90.
@@ -463,9 +463,9 @@ subroutine plotpdf2d(pp1,pp2,lbl)
         !if(nf.eq.1) then
         if(plrange.ge.2.and.nf.eq.1) then
            x = ranges(f,pp1,5)
-           if(pp1.eq.1.or.pp1.eq.2.or.pp1.eq.4.or.pp1.eq.5.or.pp1.eq.13.or.pp1.eq.14) x = x*100
+           if(pp1.eq.2.or.pp1.eq.3.or.pp1.eq.5.or.pp1.eq.6.or.pp1.eq.14.or.pp1.eq.15) x = x*100
            write(str,'(F10.3)')x
-           if(pp1.eq.1.or.pp1.eq.2.or.pp1.eq.4.or.pp1.eq.5.or.pp1.eq.13.or.pp1.eq.14) write(str,'(A)')trim(str)//'%'
+           if(pp1.eq.2.or.pp1.eq.3.or.pp1.eq.5.or.pp1.eq.6.or.pp1.eq.14.or.pp1.eq.15) write(str,'(A)')trim(str)//'%'
            
            if(x.lt.0.01) write(str,'(F6.4)')x
            if(x.ge.0.01.and.x.lt.0.1) write(str,'(F5.3)')x
@@ -474,10 +474,10 @@ subroutine plotpdf2d(pp1,pp2,lbl)
            if(x.ge.10.and.x.lt.100) write(str,'(I2)')nint(x)
            if(x.ge.100) write(str,'(I3)')nint(x)
            write(str,'(A)')'\(2030): '//trim(str)
-           if(pp1.eq.1.or.pp1.eq.2.or.pp1.eq.4.or.pp1.eq.5.or.pp1.eq.13.or.pp1.eq.14) then
+           if(pp1.eq.2.or.pp1.eq.3.or.pp1.eq.5.or.pp1.eq.6.or.pp1.eq.14.or.pp1.eq.15) then
               write(str,'(A)')trim(str)//'%'
            else
-              write(str,'(A)')trim(str)//trim(pgunits(pp1+1))
+              write(str,'(A)')trim(str)//trim(pgunits(pp1))
            end if
            !call pgptxt(ranges(f,pp1,3),yrange(2)*1.05,0.,0.5,trim(str))
            call pgsls(1)

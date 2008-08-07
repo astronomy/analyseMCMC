@@ -23,7 +23,7 @@ program plotspins
   integer :: samplerate(nchs,ndets),samplesize(nchs,ndets),FTsize(nchs,ndets),detnr(nchs,ndets)
   real :: snr(nchs,ndets),flow(nchs,ndets),fhigh(nchs,ndets),t_before(nchs,ndets),t_after(nchs,ndets),deltaFT(nchs,ndets)
   real*8 :: FTstart(nchs,ndets)
-  character :: detname(nchs,ndets)*14,string*99
+  character :: detnames(nchs,ndets)*14,detname*14,string*99
   
   integer :: npdf,ncont!,nfx,nfy,fx,fy
   real :: x0,x1,x2,y1,y2,dx,dy,xmin,xmax,ymin,ymax,xmin1,xmax1,xpeak!,ymin1,ymax1,ymaxs(nchs+2)
@@ -294,13 +294,22 @@ program plotspins
      !NEW columns in dat: 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
      !Read the headers
      read(10,*,end=199,err=199)bla
-     read(10,'(I10,I12,I8,F22.10,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
+     !read(10,'(I10,I12,I8,F22.10,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
+     read(10,'(I10,I12,I8,F,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
      read(10,*,end=199,err=199)bla
      do i=1,ndet(ic)
-        read(10,'(2x,A14,F18.8,4F12.2,F22.8,F17.7,3I14)') detname(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
-        if(detname(ic,i).eq.'       Hanford') detnr(ic,i) = 1
-        if(detname(ic,i).eq.'    Livingston') detnr(ic,i) = 2
-        if(detname(ic,i).eq.'          Pisa') detnr(ic,i) = 3
+        !read(10,'(2x,A14,F18.8,4F12.2,F22.8,F17.7,3I14)') detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+        !read(10,'(2x,A14,F18.8,4F12.2,F22.8,F17.7,3I14)') detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+        read(10,*)detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+        !print*,trim(detnames(ic,i))
+        detname = detnames(ic,i)
+        !if(detname.eq.'       Hanford') detnr(ic,i) = 1
+        !if(detname.eq.'    Livingston') detnr(ic,i) = 2
+        !if(detname.eq.'          Pisa') detnr(ic,i) = 3
+        j = len_trim(detname)
+        if(detname(j-3:j).eq.'ford') detnr(ic,i) = 1
+        if(detname(j-3:j).eq.'ston') detnr(ic,i) = 2
+        if(detname(j-3:j).eq.'Pisa') detnr(ic,i) = 3
      end do
      !if(prprogress.ge.1.and.update.eq.0) write(*,*)''
      read(10,*,end=199,err=199)bla
@@ -343,8 +352,10 @@ program plotspins
      else if(fileversion.eq.2) then !New file format (04/2008)
         i=1
         do while(i.le.narr1)
+        !do while(i.le.100)
            !read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',end=199,err=198)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
-           read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
+           !read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
+           read(10,*,iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
            if(io.lt.0) exit !EOF
            if(io.gt.0) then !Read error
               if(readerror.eq.1) goto 198 !Read error in previous line as well
@@ -361,6 +372,7 @@ program plotspins
                  read(10,*,end=199,err=198)bla
               end do
            end if
+           !write(*,'(I10,F14.2,2(F13.7),F12.8,9(F12.7))')i1,dat(1,ic,i),(dat(j,ic,i),j=2,npar0)
            i = i+1
            if(i1.ge.maxchlen) exit
         end do !i
@@ -414,7 +426,7 @@ program plotspins
            write(*,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
            
            do i=1,ndet(ic)
-              write(*,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detname(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+              write(*,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detnames(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
            end do
            write(*,*)
         end if
@@ -2706,6 +2718,7 @@ program plotspins
            if(nplvar.eq.2) call pgsubp(2,1)
            if(nplvar.eq.3) call pgsubp(3,1)
            if(nplvar.eq.4) call pgsubp(2,2)
+           if(nplvar.eq.5) call pgsubp(5,1)
            if(nplvar.eq.6) call pgsubp(3,2)
            if(nplvar.eq.8) call pgsubp(4,2)
            if(nplvar.eq.9) call pgsubp(3,3)
@@ -2715,7 +2728,7 @@ program plotspins
            if(nplvar.eq.14.or.nplvar.eq.15) call pgsubp(5,3)
            if(nplvar.eq.16) call pgsubp(4,4)
         else
-           call pgsubp(panels(1),panels(1))
+           call pgsubp(panels(1),panels(2))
         end if
      end if !if(plot.eq.1)
      
@@ -2945,7 +2958,7 @@ program plotspins
                  !if(plstart.ge.1) call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))                   !Starting value
                  if(p.ne.1) then !Not if plotting log(L)
                     if(plmedian.eq.1.or.plmedian.eq.3) call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))                          !Median
-                    if(plrange.ge.1) then
+                    if(plrange.eq.1.or.plrange.eq.3) then
                        if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) !Left limit of 90% interval
                        if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/)) !Right limit of 90% interval
                        if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/-1.e20,1.e20/)) !Centre of 90% interval
@@ -2962,7 +2975,7 @@ program plotspins
               end if
               
               !Plot ranges in PDF
-              if(plrange.eq.1.and.p.ne.1) then
+              if((plrange.eq.1.or.plrange.eq.3) .and. p.ne.1) then
                  call pgsls(4); call pgsci(2); if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
                  if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) !Left limit of 90% interval
                  if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/)) !Right limit of 90% interval
@@ -3007,7 +3020,7 @@ program plotspins
            ic = 1
            !if(nplvar.lt.7.or.nplvar.eq.9) then  !Three or less columns
            if(quality.ne.2.and.quality.ne.3.and.quality.ne.4) then  !Not a talk/poster/thesis
-              if(nplvar.lt.5) then
+              if(nplvar.le.5) then
                  if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
                     write(str,'(A,F7.3,A5,F7.3,A9,F6.2,A1)')trim(pgvarns(p))//': mdl:',startval(ic,p,1),' med:',stats(ic,p,1),  &
                          !' \(2030):',abs(stats(ic,p,1)-startval(ic,p,1))/startval(ic,p,1)*100,'%'
@@ -3041,21 +3054,34 @@ program plotspins
               !else
               !   write(str,'(A9,F7.3)')' \(2030):',ranges(ic,c0,p,5)
               !end if
-              x0 = ranges(ic,c0,p,5)
-              if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) x0 = x0*100
-              !print*,p,x0,nint(x0)
-              if(x0.lt.0.01) write(str,'(F6.4)')x0
-              if(x0.ge.0.01.and.x0.lt.0.1) write(str,'(F5.3)')x0
-              if(x0.ge.0.1.and.x0.lt.1.) write(str,'(F4.2)')x0
-              if(x0.ge.1.and.x0.lt.9.95) write(str,'(F3.1)')x0
-              if(x0.ge.9.95.and.x0.lt.99.5) write(str,'(I2)')nint(x0)
-              if(x0.ge.99.5) write(str,'(I3)')nint(x0)
-              write(str,'(A)')'\(2030): '//trim(str)
-              if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
-                 write(str,'(A)')trim(str)//'%'
-              else
-                 write(str,'(A)')trim(str)//trim(pgunits(p))
+              if(plrange.eq.1.or.plrange.eq.3) then
+                 x0 = ranges(ic,c0,p,5)
+                 if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) x0 = x0*100
+                 !print*,p,x0,nint(x0)
+                 if(x0.lt.0.01) write(str,'(F6.4)')x0
+                 if(x0.ge.0.01.and.x0.lt.0.1) write(str,'(F5.3)')x0
+                 if(x0.ge.0.1.and.x0.lt.1.) write(str,'(F4.2)')x0
+                 if(x0.ge.1.and.x0.lt.9.95) write(str,'(F3.1)')x0
+                 if(x0.ge.9.95.and.x0.lt.99.5) write(str,'(I2)')nint(x0)
+                 if(x0.ge.99.5) write(str,'(I3)')nint(x0)
+                 write(str,'(A)')'\(2030): '//trim(str)
+                 if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
+                    write(str,'(A)')trim(str)//'%'
+                 else
+                    write(str,'(A)')trim(str)//trim(pgunits(p))
+                 end if
+              else if(pltrue.eq.1) then  !If not plotting ranges, but do plot true values
+                 x0 = startval(ic,p,1)
+                 !print*,p,x0,nint(x0)
+                 if(x0.lt.0.01) write(str,'(F7.4)')x0
+                 if(x0.ge.0.01.and.x0.lt.0.1) write(str,'(F6.3)')x0
+                 if(x0.ge.0.1.and.x0.lt.1.) write(str,'(F6.3)')x0
+                 if(x0.ge.1.and.x0.lt.9.995) write(str,'(F6.3)')x0
+                 if(x0.ge.9.995.and.x0.lt.99.9) write(str,'(F5.1)')x0
+                 if(x0.ge.99.9) write(str,'(F6.1)')x0
+                 write(str,'(A)')'true: '//trim(str)//trim(pgunits(p))
               end if
+              
               call pgsch(sch*1.2)
               !call pgptxt(xmin+0.05*dx,ymax*0.9,0.,0.,trim(pgvarnss(p)))
               if(abs(xmin-xpeak).lt.abs(xmax-xpeak)) then !peak is at left, put varname at right
@@ -3110,7 +3136,7 @@ program plotspins
                  !call pgarro(ranges(ic,c0,p,3),0.95*ymax,ranges(ic,c0,p,1),0.95*ymax)
                  !call pgarro(ranges(ic,c0,p,3),0.95*ymax,ranges(ic,c0,p,2),0.95*ymax)
                  call pgsci(2)
-                 call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,2)/),(/0.99*ymax,0.99*ymax/))  !Plot line at top over 90%-probability width
+                 if(plrange.eq.1.or.plrange.eq.3) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,2)/),(/0.99*ymax,0.99*ymax/))  !Plot line at top over 90%-probability width
                  call pgsci(1)
               end if
            end if
@@ -3749,11 +3775,11 @@ program plotspins
      !write(o,'(6x,A10,A12,A8,A22,A8,A10)')'niter','nburn','seed','null likelihood','ndet','nchains'
      !write(o,'(6x,I10,I12,I8,F22.10,I8,I5.2,A2,I3.2)')n(ic),nint(isburn(ic)),seed(ic),nullh,ndet(ic),contrchains,'/',nchains0
      write(o,'(6x,4A12,A12,A5  A8,A22,A8)')'totiter','totlines','totpts','totburn','nchains','used','seed','null likelihood','ndet'
-     write(o,'(6x,4I12,I12,I5, I8,F22.10,I8)')totiter,totlines,totpts,totlines-totpts,contrchains,nchains0,seed(ic),nullh,ndet(ic)
+     write(o,'(6x,4I12,I12,I5, I8,F22.10,I8)')totiter,totlines,totpts,totlines-totpts,nchains0,contrchains,seed(ic),nullh,ndet(ic)
      write(o,*)''
      write(o,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
      do i=1,ndet(ic)
-        write(o,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detname(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+        write(o,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detnames(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
      end do
      write(o,*)''
      

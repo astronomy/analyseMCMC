@@ -13,6 +13,7 @@ program mcmcstats
   real :: model(nf1,npar1),median(nf1,npar1),mean(nf1,npar1),stdev1(nf1,npar1),stdev2(nf1,npar1),absvar1(nf1,npar1),absvar2(nf1,npar1),corrs(nf1,npar1,1:npar1)
   real :: ivals(nf1,1:nival1),ivlcntr(nf1,npar1,nival1),ivldelta(nf1,npar1,nival1),ivlinrnge(nf1,npar1,nival1),ivldelta2d(nf1,npar1,nival1)
   character :: detname(nf1,nifo1)*25,varnames(nf1,npar1)*25,outputnames(nf1)*99,ivlok(nf1,npar1,nival1)*3,ivlok2d(nf1,npar1,nival1)*3,pgvarns(1:npar1)*99,pgvarnss(1:npar1)*99
+  character :: letters(5)
   
   integer :: npdf2d(nf1),nbin2dx(nf1),nbin2dy(nf1),pdfpar2dx(nf1,npar1),pdfpar2dy(nf1,npar1)
   
@@ -20,7 +21,7 @@ program mcmcstats
   real :: xmin,xmax,dx,ymin,ymax,dy,x0,y0,x1,y1,clr
   real :: par1,par2,par3,par1s(10),par2s(10),par3s(10)
   
-  integer :: rel,nplpar,plpar1,plpar2,plpars(20)
+  integer :: rel,nplpar,plpar1,plpar2,plpars(20),docycle
   real :: x,y,pi,d2r
   real :: papsize,paprat
   
@@ -47,7 +48,7 @@ program mcmcstats
   
   nf = iargc()
   if(nf.eq.0) then
-     write(*,'(/,A,/)')'  Syntax:  plotstats <file1 file2 ...>'
+     write(*,'(/,A,/)')'  Syntax:  mcmcstats <file1 file2 ...>'
      stop
   end if
   if(nf.gt.nf1) then
@@ -69,10 +70,11 @@ program mcmcstats
   !pgvarnss(1:14)  = (/'M\dc\u (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2134)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
   !     '\(2134)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','\(2127) (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
   
+  letters = (/'a','b','c','d','e'/)
   
   !Read input files
   o = 20
-  write(6,*)''
+  !write(6,*)''
   do f=1,nf
      call getarg(f,infile)
      if(prinput.eq.0) write(6,'(A,$)')' Reading file: '//trim(infile)
@@ -88,10 +90,11 @@ program mcmcstats
      read(o,*)bla
      read(o,*)bla
      read(o,'(6x,5I12,I5,I8,F22.10,I8)')totiter(f),totlines(f),totpts(f),totburn(f),totchains(f),usedchains(f),seed(f),nullh(f),ndet(f)
-     if(prinput.eq.1) write(6,*)''
-     if(prinput.eq.1) write(6,'(A)')'           totiter    totlines      totpts     totburn   totchains used    seed       null likelihood    ndet'
+     if(prinput.eq.1) write(6,'(/,A)')'           totiter    totlines      totpts     totburn   totchains used    seed       null likelihood    ndet'
      if(prinput.eq.1) write(6,'(6x,4I12,I12,I5,I8,F22.10,I8)')totiter(f),totlines(f),totpts(f),totburn(f),totchains(f),usedchains(f),seed(f),nullh(f),ndet(f)
-     if(prinput.eq.0) write(6,'(6x,2I12,2I8)')totiter(f),totburn(f),ndet(f),seed(f)
+     !if(prinput.eq.0) write(6,'(6x,2I12,2I8)')totiter(f),totburn(f),ndet(f),seed(f)
+     if(prinput.eq.0) write(6,'(6x,A,2(I7,A1),A,2(I2,A1))')'Data points: ',totpts(f),'/',totlines(f),',',' chains:',usedchains(f),'/',totchains(f),'.'
+     
      
      
      !Read detector info
@@ -108,7 +111,7 @@ program mcmcstats
      read(o,*)bla,tbase(f)
      if(prinput.eq.1) write(6,*)''
      if(prinput.eq.1) write(6,'(A,I)')' t0: ',tbase(f)
-
+     
      
      !Read correlations:
      read(o,*)bla
@@ -174,12 +177,12 @@ program mcmcstats
      read(o,*)bla
      
      do p=1,npdf2d(f)
-        read(o,*)pdfpar2dx(f,p),pdfpar2dx(f,p),bla,bla,(ivldelta2d(f,p,iv),ivlok2d(f,p,iv),iv=1,nival(f))
+        read(o,*)pdfpar2dx(f,p),pdfpar2dy(f,p),bla,bla,(ivldelta2d(f,p,iv),ivlok2d(f,p,iv),iv=1,nival(f))
         do iv=1,nival(f)
            if(ivlok2d(f,p,iv).eq.'y  ') ivlok2d(f,p,iv) = ' y '
-           if(ivlok2d(f,p,iv).eq.'X  ') ivlok2d(f,p,iv) = '*X*'
+           if(ivlok2d(f,p,iv).eq.'n  ') ivlok2d(f,p,iv) = '*N*'
         end do
-        if(prinput.eq.1) write(*,'(2I4,5(F12.6,A3))')pdfpar2dx(f,p),pdfpar2dx(f,p),(ivldelta2d(f,p,iv),ivlok2d(f,p,iv),iv=1,nival(f))
+        if(prinput.eq.1) write(*,'(2I4,5(F12.6,A3))')pdfpar2dx(f,p),pdfpar2dy(f,p),(ivldelta2d(f,p,iv),ivlok2d(f,p,iv),iv=1,nival(f))
         iv = nival(f) !100%
         !iv = 3 !99%
         if(p.gt.1.and.ivlok2d(f,p,iv).eq.'*N*') then !Don't print LogL (p=1)
@@ -335,7 +338,7 @@ program mcmcstats
   !***********************************************************************************************************************************      
   !Plot SNRs
   if(plotsnrs.eq.1.and.nf.gt.2) then
-     write(6,*)''
+     !write(6,*)''
      write(6,'(A)')' Plotting SNRs...'
      if(plfile.eq.0) then
         io = pgopen('13/xs')
@@ -451,7 +454,7 @@ program mcmcstats
   !***********************************************************************************************************************************      
   !Plot correlations
   if(plotcorrelations.eq.1.and.nf.gt.2) then
-     write(6,*)''
+     !write(6,*)''
      write(6,'(A)')' Plotting correlations...'
      
      do p0 = 1,12
@@ -574,7 +577,7 @@ program mcmcstats
   !***********************************************************************************************************************************      
   !Plot correlation matrix
   if(plotcorrmatrix.eq.1.and.nf.le.2) then
-     write(6,*)''
+     !write(6,*)''
      write(6,'(A)')' Plotting correlation matrix...'
      
      if(plfile.eq.0) then
@@ -737,7 +740,7 @@ program mcmcstats
   if(printdeltastable.eq.1) then
      !open(unit=30, form='formatted', status='replace', file='table.tex')
      open(unit=30, form='formatted', status='unknown', position='append', file='table.tex')
-     write(6,*)''
+     !write(6,*)''
      do f=1,nf
         iv = 0
         do i=1,nival(f)
@@ -758,9 +761,18 @@ program mcmcstats
            !Write the number of detectors, a_spin, theta_sl and distance:
            write(output,'(I3,A,F6.1,A,I6,A,F6.1,A)')ndet(f),'  $\!\!\!\!$ &  ',model(f,6),'  $\!\!\!\!$ &  ',nint(model(f,7)),'  $\!\!\!\!$ &  ',model(f,5),'  $\!\!\!\!$ &  ' 
            
+           !Write the number of detectors, a_spin, theta_sl and distance, AND the number of chains used
+           !write(output,'(I3,A,F6.1,A,I6,A,F6.1,A,I6,A,I8,A2,I2,A)')ndet(f),'  $\!\!\!\!$ &  ',model(f,6),'  $\!\!\!\!$ &  ',nint(model(f,7)),'  $\!\!\!\!$ &  ',model(f,5),'  $\!\!\!\!$ &  ',totchains(f),'  $\!\!\!\!$ &  '
+           
+           !Write the number of detectors, a_spin, theta_sl and distance, AND the number of chains used, number of data points:
+           !write(output,'(I3,A,F6.1,A,I6,A,F6.1,A,I6,A,I8,A2,I2,A)')ndet(f),'  $\!\!\!\!$ &  ',model(f,6),'  $\!\!\!\!$ &  ',nint(model(f,7)),'  $\!\!\!\!$ &  ',model(f,5),'  $\!\!\!\!$ &  ',totchains(f),'  $\!\!\!\!$ &  ',totpts(f),' (',nint(real(totpts(f))/real(totlines(f))*100.),'\%)  $\!\!\!\!$ &  '
+           
            !Write the number of detectors and SNR:
            !write(output,'(I3,A,F6.1,A)')ndet(f),'  $\!\!\!\!$ &  ',totsnr(f),'  $\!\!\!\!$ &  ' 
            
+           
+           
+           !Print probability ranges:
            do p1=2,npar(f)  !Leave out logL
            !do p1=4,npar(f)  !Leave out logL, M1, M2
               !print*,p,npar(f)
@@ -784,19 +796,88 @@ program mcmcstats
               end if
               
               
+              !if(p.ge.8.and.p.le.13) cycle !Skip RA, dec, phi_c, theta_Jo, phi_Jo, alpha_c
+              if(p.eq.8.or.p.eq.9.or.p.eq.11.or.p.eq.12) cycle !Skip RA, dec, theta_Jo, phi_Jo
+              
               iv1 = 0
               iv2 = 1
               !do iv=iv1,iv2 !90 and 95%
               do iv=iv2,iv2 !90% only
                  x = ivldelta(f,p,iv)
                  rel = 0
-                 if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) rel=1  !Use relative deltas (%)
+                 !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) rel=1  !Use relative deltas (%)
+                 if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.14.or.p.eq.15) rel=1  !Use relative deltas (%), not for a_spin
                  if(p.eq.4) x = x*1000                            !Time in ms
                  !if(p.eq.8) x = x*cos(40*d2r)*15                 !Convert RA to RA*cos(decl) and from hrs to deg
                  !if(p.eq.8) x = x*15                              !Convert RA from hrs to deg
                  if(p.eq.8) x = x*15 * cos(model(f,p)*d2r)            !Convert RA from hrs to deg and take into account decl
                  if(rel.eq.1) x = x/ivlcntr(f,p,iv)*100
-                 if(x.gt.10.) then
+                 
+                 
+                 if((p.eq.7.or.p.eq.13) .and. model(f,6).lt.9.e-4) then  !For theta_SL or alpha_c, when a_spin=0
+                    write(output,'(A)')trim(output)//'---'
+                 else  !Normal case
+                    if(x.gt.10.) then
+                       write(output,'(A,I6)')trim(output),nint(x)
+                    else if(x.gt.1.) then
+                       write(output,'(A,F6.1)')trim(output),x
+                    else  if(x.gt.0.1) then
+                       write(output,'(A,F6.2)')trim(output),x
+                    else
+                       write(output,'(A,F6.3)')trim(output),x
+                    end if
+                    !print*,p1,p,x,ivldelta(f,p,iv),ivlcntr(f,p,iv)
+                    
+                    !if(iv.eq.iv2.and.rel.eq.1) write(output,'(A)')trim(output)//'\%'
+                    if(iv.eq.iv1.and.iv1.ne.iv2) write(output,'(A)')trim(output)//';'
+                    
+                    !Flag if outside range:
+                    !if(ivlinrnge(f,p,1).gt.1.) write(output,'(A)')trim(output)//'*'
+                    !if(ivlinrnge(f,p,2).gt.1.) write(output,'(A)')trim(output)//'*'
+                    !if(ivlinrnge(f,p,3).gt.1.) write(output,'(A)')trim(output)//'*'
+                    !if(ivlinrnge(f,p,4).gt.1.) write(output,'(A)')trim(output)//'*'
+                    j = 0
+                    do i=1,nival(f)
+                       if(ivlinrnge(f,p,i).gt.1.) j = j+1
+                    end do
+                    !if(j.gt.0) write(output,'(A,I1,A)')trim(output)//'$^',j,'$'
+                    !if(j.gt.0) write(output,'(A,I1,A)')trim(output)//'\color{red}$^',j,'$\color{black}'
+                    if(j.gt.0) write(output,'(A)')trim(output)//'$^'//letters(j)//'$'
+                 end if
+                 
+                 !if(iv.eq.iv2.and.p.lt.npar(f)) write(output,'(A)')trim(output)//'  $\!\!\!\!$  &' !Add latex codes
+                 !if(iv.eq.iv2.and.p1.lt.12) write(output,'(A)')trim(output)//'  $\!\!\!\!$  &' !Add latex codes (p1.lt.12 iso p.lt.npar, in case npar=14)
+                 !if(iv.eq.iv2.and.p1.ne.npar(f)) write(output,'(A)')trim(output)//'  $\!\!\!\!$  &' !Add latex codes (p1.lt.12 iso p.lt.npar, in case npar=14)
+                 !if(iv.eq.iv2.and.p1.ne.npar(f)) write(output,'(A)')trim(output)//'  &' !Add latex codes (p1.lt.12 iso p.lt.npar, in case npar=14)
+                 if(iv.eq.iv2.and.p1.lt.npar(f)) write(output,'(A)')trim(output)//'   $\!\!\!$ &' !Add latex codes
+              end do !iv
+           end do !p1/p
+           
+           
+           !Add 2D probability ranges/areas:
+           do p=1,npdf2d(f)
+              p1 = pdfpar2dx(f,p)
+              p2 = pdfpar2dy(f,p)
+              !print*,p1,p2
+              !print*,pdfpar2dx
+              
+              docycle = 1
+              if(p1.eq.8.and.p2.eq.9) docycle = 0  !Sky position
+              if(p1.eq.12.and.p2.eq.11) docycle = 0  !Binary orientation
+              if(docycle.eq.1) cycle
+              
+              iv1 = 1
+              iv2 = 1
+              do iv=iv1,iv2
+                 x = ivldelta2d(f,p,iv)*(4*pi)*(180./pi)**2  !Sky fraction -> square degrees
+                 !x = sqrt(x/pi)*2                            !Square degrees -> equivalent diameter
+                 
+                 !LaTeX codes:
+                 write(output,'(A)')trim(output)//'   $\!\!\!$ &' !Add latex codes
+                 !if(p.gt.1) write(output,'(A)')trim(output)//'   $\!\!\!$ &' !Add latex codes, if last parameter (p1=npar) not printed
+                 
+                 !Print range:
+                 if(x.gt.100.) then
                     write(output,'(A,I6)')trim(output),nint(x)
                  else if(x.gt.1.) then
                     write(output,'(A,F6.1)')trim(output),x
@@ -805,23 +886,21 @@ program mcmcstats
                  else
                     write(output,'(A,F6.3)')trim(output),x
                  end if
-                 !print*,p1,p,x,ivldelta(f,p,iv),ivlcntr(f,p,iv)
                  
-                 !if(iv.eq.iv2.and.rel.eq.1) write(output,'(A)')trim(output)//'\%'
-                 if(iv.eq.iv1) write(output,'(A)')trim(output)//';'
-                 !if(ivlinrnge(f,p,iv).gt.1.) write(output,'(A)')trim(output)//'*'
-                 if(ivlinrnge(f,p,1).gt.1.) write(output,'(A)')trim(output)//'*'
-                 if(ivlinrnge(f,p,2).gt.1.) write(output,'(A)')trim(output)//'*'
-                 if(ivlinrnge(f,p,3).gt.1.) write(output,'(A)')trim(output)//'*'
-                 if(ivlinrnge(f,p,4).gt.1.) write(output,'(A)')trim(output)//'*'
+                 !Flag if outside range:
+                 j = 0
+                 do i=1,nival(f)
+                    !if(ivlok2d(f,p,i).eq.'*N*') write(output,'(A)')trim(output)//'*'
+                    if(ivlok2d(f,p,i).eq.'*N*') j = j+1
+                 end do
+                 !if(j.gt.0) write(output,'(A,I1,A1)')trim(output)//'$^',j,'$'
+                 !if(j.gt.0) write(output,'(A,I1,A)')trim(output)//'\color{red}$^',j,'$\color{black}'
+                 if(j.gt.0) write(output,'(A)')trim(output)//'$^'//letters(j)//'$'
                  
-                 !if(iv.eq.iv2.and.p.lt.npar(f)) write(output,'(A)')trim(output)//'  $\!\!\!\!$  &' !Add latex codes
-                 !if(iv.eq.iv2.and.p1.lt.12) write(output,'(A)')trim(output)//'  $\!\!\!\!$  &' !Add latex codes (p1.lt.12 iso p.lt.npar, in case npar=14)
-                 !if(iv.eq.iv2.and.p1.ne.npar(f)) write(output,'(A)')trim(output)//'  $\!\!\!\!$  &' !Add latex codes (p1.lt.12 iso p.lt.npar, in case npar=14)
-                 !if(iv.eq.iv2.and.p1.ne.npar(f)) write(output,'(A)')trim(output)//'  &' !Add latex codes (p1.lt.12 iso p.lt.npar, in case npar=14)
-                 if(iv.eq.iv2.and.p1.lt.npar(f)) write(output,'(A)')trim(output)//'   $\!\!\!$ &' !Add latex codes
               end do !iv
-           end do !p1
+           end do !p
+           
+           
            !write(6,*)''
            !if(f.ne.nf) write(output,'(A)')trim(output)//'  \\' !Add latex codes
            write(output,'(A)')trim(output)//'  \\' !Add latex codes
@@ -842,7 +921,7 @@ program mcmcstats
   
   !Swap columns and rows
   if(printdeltastable.eq.2) then
-     write(6,*)''
+     !write(6,*)''
      do p=1,npar(1)
         do f=1,nf
            iv = 0
