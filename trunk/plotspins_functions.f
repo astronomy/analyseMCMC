@@ -1619,3 +1619,67 @@ function truerange2d(z,nx,ny,truex,truey,tr)
   end if
 end function truerange2d
 !************************************************************************
+
+
+!************************************************************************
+subroutine ang2vec(l,b,vec)  !Convert longitude, latitude (rad) to a 3D normal vector
+  ! l in [0,2pi[; b in [-pi,pi]
+  implicit none
+  real*8 :: l,b,vec(3),cosb
+  cosb = dcos(b)
+  vec(1) = dcos(l)*cosb
+  vec(2) = dsin(l)*cosb
+  vec(3) = dsqrt(1.d0 - cosb*cosb) !sin(b)
+end subroutine  ang2vec
+!************************************************************************
+
+!************************************************************************
+function dotproduct(vec1,vec2) !Compute the dot product of two 3D cartesian vectors
+  implicit none
+  real*8 :: dotproduct,vec1(3),vec2(3)
+  dotproduct = vec1(1)*vec2(1) + vec1(2)*vec2(2) + vec1(3)*vec2(3)
+end function dotproduct
+!************************************************************************
+
+!************************************************************************
+subroutine crossproduct(vec1,vec2,crpr) !Compute the cross (outer) product of two cartesian vectors
+  implicit none
+  real*8 :: vec1(3),vec2(3),crpr(3)
+  crpr(1) = vec1(2)*vec2(3) - vec1(3)*vec2(2)
+  crpr(2) = vec1(3)*vec2(1) - vec1(1)*vec2(3)
+  crpr(3) = vec1(1)*vec2(2) - vec1(2)*vec2(1)
+end subroutine crossproduct
+!************************************************************************
+
+
+!************************************************************************
+function polangle(p,o)  !Compute the polarisation angle of a source with position normal vector p and orientation normal vector o, see Apostolatos et al. 1994, Eq.5
+  implicit none
+  real*8 :: polangle,p(3),o(3)
+  real*8 :: z(3),denom,ocz,numer,dotproduct,datan2
+  
+  z = (/0.d0,0.d0,1.d0/) !Vertical normal vector
+  denom = dotproduct(o,z) - dotproduct(o,p)*dotproduct(z,p) !Denominator
+  call crossproduct(o,z,ocz)
+  numer = dotproduct(p,ocz) !Numerator
+  
+  polangle = datan2(denom,numer)
+end function polangle
+!************************************************************************
+
+
+!************************************************************************
+subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) !Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
+  implicit none
+  !pl,ol in [0,2pi[;  pb,ob in [-pi,pi]
+  real*8 :: pl,pb,ol,ob
+  real*8 :: p(3),o(3),i,dotproduct,psi,polangle
+  
+  call ang2vec(pl,pb,p)       !Position normal vector
+  call ang2vec(ol,ob,o)       !Orientation normal vector
+  i = dacos(dotproduct(p,o))  !Compute inclination angle
+  psi = polangle(p,o)         !Compute polarisation angle
+  
+end subroutine compute_incli_polang
+!************************************************************************
+

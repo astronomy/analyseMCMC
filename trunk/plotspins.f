@@ -883,20 +883,14 @@ program plotspins
         !if(prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')' Changing some variables...   '
         if(prprogress.ge.2.and.ic.eq.i.and.update.eq.0) write(*,'(A,$)')'.  Change vars. '
         do p=par1,par2
-           if(p.eq.5) then
+           if(p.eq.5) then !Distance
               alldat(ic,p,1:n(ic)) = exp(alldat(ic,p,1:n(ic)))     !logD -> Distance
               if(ic.eq.1) startval(1:nchains0,p,1:3) = exp(startval(1:nchains0,p,1:3))
               stats(ic,p,1:nstat) = exp(stats(ic,p,1:nstat))
               ranges(ic,1:nival,p,1:nr) = exp(ranges(ic,1:nival,p,1:nr))
               !print*,ic,p
            end if
-           if(p.eq.9.or.p.eq.11) then
-              alldat(ic,p,1:n(ic)) = asin(alldat(ic,p,1:n(ic)))*r2d
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = asin(startval(1:nchains0,p,1:3))*r2d
-              stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*r2d
-              ranges(ic,1:nival,p,1:nr) = asin(ranges(ic,1:nival,p,1:nr))*r2d
-           end if
-           if(p.eq.7) then
+           if(p.eq.7) then !Kappa
               alldat(ic,p,1:n(ic)) = acos(alldat(ic,p,1:n(ic)))*r2d
               if(ic.eq.1) startval(1:nchains0,p,1:3) = acos(startval(1:nchains0,p,1:3))*r2d
               stats(ic,p,1:nstat) = acos(stats(ic,p,1:nstat))*r2d
@@ -907,13 +901,24 @@ program plotspins
                  ranges(ic,c,p,1) = y1
               end do
            end if
-           if(p.eq.8) then
+           if(p.eq.8) then !RA
               alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*r2h
               if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*r2h
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*r2h
               ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*r2h
            end if
-           if(p.eq.10.or.p.eq.12.or.p.eq.13) then
+           if(p.eq.9.or.p.eq.11) then  !Declination or theta_Jo
+           !if(p.eq.9) then  !Declination
+              alldat(ic,p,1:n(ic)) = asin(alldat(ic,p,1:n(ic)))*r2d
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = asin(startval(1:nchains0,p,1:3))*r2d
+              stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*r2d
+              ranges(ic,1:nival,p,1:nr) = asin(ranges(ic,1:nival,p,1:nr))*r2d
+           end if
+           !if(p.eq.11) then !theta_Jo; convert theta_Jo,phi_Jo to inclination and polarisation angle
+           !   
+           !end if
+           if(p.eq.10.or.p.eq.12.or.p.eq.13) then  !Phi_c, phi_Jo, alpha_c
+           !if(p.eq.10.or.p.eq.13) then  !Phi_c, alpha_c
               alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*r2d
               if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*r2d
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*r2d

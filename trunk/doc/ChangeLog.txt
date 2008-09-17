@@ -2,7 +2,7 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
-    15: sluys, 06/08/2008
+    16: sluys, 06/08/2008
      - plotspins: Read data unformatted to allow for huge logL + small changes
      - mcmcstats: Produce ApJL table with 2D ranges and letter superscripts
      - comp_pdfs: Read logL as first variable, Mc=2, etc.
