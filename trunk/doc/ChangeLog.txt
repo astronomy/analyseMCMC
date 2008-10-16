@@ -2,6 +2,15 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    18: sluys, 15/10/2008
+     - finalised implementation of conversion theta/phi_Jo -> i, psi
+     - started functions to plot vector between 2 detectors or plane of 3 detectors
+       in sky
+    
+    17: sluys, 17/09/2008
+     - started implementation for conversion theta/phi_Jo -> i, psi 
+       (inclination and polarisation angle)
+    
     16: sluys, 06/08/2008
      - plotspins: Read data unformatted to allow for huge logL + small changes
      - mcmcstats: Produce ApJL table with 2D ranges and letter superscripts

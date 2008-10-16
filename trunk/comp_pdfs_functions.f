@@ -28,11 +28,12 @@ subroutine plotpdf1d(pp,lbl)
   character :: fname1*99,fname2*99,fname*99,varnss(np)*99,pgvarnss(np)*99,pgunits(np)*99,lbl*99,str*99
   
   
-  varnss(1:15)  = (/'log L','Mc','eta','t_c','d_L','a_spin','theta_SL','R.A.','Dec.','phi_c','theta_J0','phi_J0','alpha_c','M1','M2'/)
-  pgvarnss(1:15)  = (/'log L','M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.','\(2147)\dc\u','\(2134)\dJ0\u','\(2147)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u'/)
+  !varnss(1:15)  = (/'log L','Mc','eta','t_c','d_L','a_spin','theta_SL','R.A.','Dec.','phi_c','theta_J0','phi_J0','alpha_c','M1','M2'/)
+  varnss(1:15)  = (/'log L','Mc','eta','t_c','d_L','a_spin','theta_SL','R.A.','Dec.','phi_c','incl','polang','alpha_c','M1','M2'/)
+  pgvarnss(1:15)  = (/'log L','M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.','\(2147)\dc\u','acos(J\(2236)N)','\(2149)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u'/)
   !Include units
   pgvarnss(1:15)  = (/'log L','M\dc\u (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2134)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
-       '\(2134)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
+       'acos(J\(2236)N) (\(2218))','\(2149)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
   !Units only
   pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
   
@@ -294,14 +295,14 @@ subroutine plotpdf2d(pp1,pp2,lbl)
   character :: fname1*99,fname2*99,fname*99,pgvarnss(np)*99,pgunits(np)*99,lbl*99,str*99
   
   
-  
-  pgvarnss(1:15)  = (/'log L','M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.','\(2147)\dc\u',  &
-       '\(2134)\dJ0\u','\(2147)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u'/)
+  pgvarnss(1:15)  = (/'log L','M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.','\(2147)\dc\u','acos(J\(2236)N)','\(2149)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u'/)
   !Include units
   pgvarnss(1:15)  = (/'log L','M\dc\u (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2134)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
-       '\(2134)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
+       'acos(J\(2236)N) (\(2218))','\(2149)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
+  
   !Units only
   pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
+
   
   
   do f=1,nf

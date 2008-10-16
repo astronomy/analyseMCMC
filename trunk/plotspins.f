@@ -1,6 +1,7 @@
 !Read and plot the data output from the spinning MCMC code.
 
 program plotspins
+  use constants
   use plotspins_settings
   implicit none
   integer, parameter :: narr1=2.01e5+2,npar0=13,nival1=5,nr1=5,nstat1=10,ndets=3
@@ -11,8 +12,9 @@ program plotspins
   real :: sig(npar1,nchs,narr1),acc(npar1,nchs,narr1),avgtotthin
   real :: x(nchs,nchs*narr1),xx(nchs*narr1),yy(nchs*narr1),zz(nchs*narr1)
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ybin2(:),ysum(:),yconv(:),ycum(:)  !These depend on nbin1d, allocate after reading input file
-  real :: a,r2d,r2h,rat,plx,ply
-  real*8 :: t,t0,pi,tpi,dvar,dvar1,dvar2,nullh
+  real :: a,rat,plx,ply!,r2d,r2h
+  real*8 :: t,t0,dvar,dvar1,dvar2,nullh!,pi,tpi
+  real*8 :: dra,ddec,dtj,dpj,din,dpa,ra
   real, allocatable :: dat(:,:,:),alldat(:,:,:),pldat(:,:,:)
   character :: varnames(npar1)*8,pgunits(npar1)*99,pgvarns(npar1)*99,pgvarnss(npar1)*99,pgorigvarns(npar1)*99,infile*100,infiles(nchs)*100,str*99,str1*99,str2*99,bla*10,command*99
   
@@ -32,7 +34,7 @@ program plotspins
   
   integer :: nchains,nchains0,ic,i0,i1,lw,lw2
   real :: sch
-  character :: outputname*99,outputdir*99,psclr*4,colournames(15)*20
+  character :: outputname*99,outputdir*99,psclr*9,colournames(15)*20
   
   integer :: o,p,p1,p2,par1,par2,nr,c,c0,nstat,wrap(nchs,npar1),nival,npar,ncolours,colours(10),nsymbols,symbols(10),symbol,defcolour,plotthis,tempintarray(99)
   integer :: truerange2d,trueranges2d(npar1,npar1)
@@ -50,10 +52,12 @@ program plotspins
   real*8 :: timestamp,ts1,ts2
   character :: framename*99,tms*8,upline*4
   
-  pi = 4*datan(1.d0)
-  tpi = 2*pi
-  r2d = real(180.d0/pi)
-  r2h = real(12.d0/pi)
+  call setconstants
+  !pi = 4*datan(1.d0)
+  !tpi = 2*pi
+  !r2d = real(180.d0/pi)
+  !r2h = real(12.d0/pi)
+  !print*,pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
   
   call set_plotsettings()  !Set plot settings to 'default' values
   call read_inputfile()    !Read the plot settings (overwrite the defaults)
@@ -121,8 +125,8 @@ program plotspins
   !nplvar = 9;  plvars(1:nplvar) = (/1,2,3,4,5,6,7,8,9/) !logL + 8 most important parameters
   !nplvar = 2;  plvars(1:nplvar) = (/1,2/)
   
-  panels(1) = 0 ! 0 - use default values, >0 have panels(1) panels in the horizontal direction   \
-  panels(2) = 0 ! 0 - use default values, >0 have panels(2) panels in the vertical direction     / Default values are use if either value = 0
+  !panels(1) = 0 ! 0 - use default values, >0 have panels(1) panels in the horizontal direction   \
+  !panels(2) = 0 ! 0 - use default values, >0 have panels(2) panels in the vertical direction     / Default values are use if either value = 0
   
   
   
@@ -134,7 +138,7 @@ program plotspins
   if(panels(1)*panels(2).lt.nplvar) panels = 0
   
   psclr = '/cps'
-  if(colour.eq.0) psclr = '/ps '
+  if(colour.eq.0) psclr = '/ps'
   
   ncolours = 5; colours(1:ncolours)=(/4,2,3,6,5/) !Paper
   ncolours = 10; colours(1:ncolours)=(/2,3,4,5,6,7,8,9,10,11/)
@@ -366,13 +370,27 @@ program plotspins
            readerror = 0
            is(ic,i) = real(i1)
            if(ic.eq.1.and.i.eq.1) t0 = dble(floor(t/10.d0)*10)
-           dat(4,ic,i) = real(t - t0)
            if(thin.gt.1.and.i.gt.2) then !'Thin' the output by reading every thin-th line
               do j=1,thin-1
                  read(10,*,end=199,err=198)bla
               end do
            end if
            !write(*,'(I10,F14.2,2(F13.7),F12.8,9(F12.7))')i1,dat(1,ic,i),(dat(j,ic,i),j=2,npar0)
+           
+           !Convert theta_Jo,phi_Jo to inclination and polarisation angle
+           dra = dble(dat(8,ic,i)) !RA in rad
+           ddec = dasin(dble(dat(9,ic,i))) !Dec in rad
+           dtj = dasin(dble(dat(11,ic,i))) !theta_Jo in rad
+           dpj = ra(dble(dat(12,ic,i)),t) !phi_Jo (hh->RA) in rad
+           
+           call compute_incli_polang(dra,ddec,dpj,dtj, din,dpa)
+           dat(11,ic,i) = real(din) !real(dsin(din))
+           dat(12,ic,i) = real(dpa)
+           
+           dat(4,ic,i) = real(t - t0)
+           
+           !if(din.lt.0.d0) i=i-1
+           
            i = i+1
            if(i1.ge.maxchlen) exit
         end do !i
@@ -483,6 +501,7 @@ program plotspins
         end if
      end do
   end do
+  if(prruninfo.ge.2) write(*,'(A,I4,A,I9,A,F10.3,A)')'    Maximum likelihood point:   chain:',icloglmax,',   iteration:',iloglmax,',   max log(L):',loglmax,'.'
   
   !Autoburnin: for each chain, get the first point where log(L) > log(L_max)-autoburnin
   if(autoburnin.gt.1.e-10) then
@@ -890,7 +909,7 @@ program plotspins
               ranges(ic,1:nival,p,1:nr) = exp(ranges(ic,1:nival,p,1:nr))
               !print*,ic,p
            end if
-           if(p.eq.7) then !Kappa
+           if(p.eq.7) then !Kappa -> theta_SL
               alldat(ic,p,1:n(ic)) = acos(alldat(ic,p,1:n(ic)))*r2d
               if(ic.eq.1) startval(1:nchains0,p,1:3) = acos(startval(1:nchains0,p,1:3))*r2d
               stats(ic,p,1:nstat) = acos(stats(ic,p,1:nstat))*r2d
@@ -907,18 +926,15 @@ program plotspins
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*r2h
               ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*r2h
            end if
-           if(p.eq.9.or.p.eq.11) then  !Declination or theta_Jo
-           !if(p.eq.9) then  !Declination
+           !if(p.eq.9.or.p.eq.11) then  !Declination or theta_Jo
+           if(p.eq.9) then  !Declination
               alldat(ic,p,1:n(ic)) = asin(alldat(ic,p,1:n(ic)))*r2d
               if(ic.eq.1) startval(1:nchains0,p,1:3) = asin(startval(1:nchains0,p,1:3))*r2d
               stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*r2d
               ranges(ic,1:nival,p,1:nr) = asin(ranges(ic,1:nival,p,1:nr))*r2d
            end if
-           !if(p.eq.11) then !theta_Jo; convert theta_Jo,phi_Jo to inclination and polarisation angle
-           !   
-           !end if
-           if(p.eq.10.or.p.eq.12.or.p.eq.13) then  !Phi_c, phi_Jo, alpha_c
-           !if(p.eq.10.or.p.eq.13) then  !Phi_c, alpha_c
+           !if(p.eq.10.or.p.eq.12.or.p.eq.13) then  !Phi_c, phi_Jo, alpha_c
+           if(p.ge.10.and.p.le.13) then  !Phi_c, incl, pol.ang, alpha_c
               alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*r2d
               if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*r2d
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*r2d
@@ -930,17 +946,30 @@ program plotspins
            if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,5)/ranges(ic,1:nival,p,3)
         end do !p
         !NEW columns in dat: 1:logL 2:mc, 3:eta, 4:tc, 5:dl, 6:spin,  7:theta_SL, 8: RA,   9:dec, 10:phase, 11:thJ0, 12:phiJ0, 13:alpha
-        varnames(1:15) = (/'logL','Mc','eta','tc','dl','spin','th_SL','RA','Dec','phase','thJo','phJo','alpha','M1','M2'/)
+        !varnames(1:15) = (/'logL','Mc','eta','tc','dl','spin','th_SL','RA','Dec','phase','thJo','phJo','alpha','M1','M2'/)
+        !pgvarns(1:15)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',  &
+        !     'd\dL\u (Mpc)          ','a\dspin\u             ','\(2134)\dSL\u(\(2218))','R.A. (h)              ','Dec. (\(2218))        ', &
+        !     '\(2147)\dc\u (\(2218))','\(2134)\dJ\u (\(2218))','\(2147)\dJ\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
+        !pgvarnss(1:15)  = (/'log L','M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.','\(2147)\dc\u',  &
+        !     '\(2134)\dJ0\u','\(2147)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u'/)
+        !!Include units
+        !pgvarnss(1:15)  = (/'log L','M\dc\u (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2134)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
+        !     '\(2134)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
+        !!Units only
+        !pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
+        
+        !NEW columns in dat: 1:logL 2:mc, 3:eta, 4:tc, 5:dl, 6:spin,  7:theta_SL, 8: RA,   9:dec, 10:phase, 11:incl, 12:pol.ang., 13:alpha
+        varnames(1:15) = (/'logL','Mc','eta','tc','dl','spin','th_SL','RA','Dec','phase','incl','polang','alpha','M1','M2'/)
         pgvarns(1:15)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',  &
              'd\dL\u (Mpc)          ','a\dspin\u             ','\(2134)\dSL\u(\(2218))','R.A. (h)              ','Dec. (\(2218))        ', &
-             '\(2147)\dc\u (\(2218))','\(2134)\dJ\u (\(2218))','\(2147)\dJ\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
+             '\(2147)\dc\u (\(2218))','acos(J\(2236)N)','\(2149)\dJ\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
         pgvarnss(1:15)  = (/'log L','M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.','\(2147)\dc\u',  &
-             '\(2134)\dJ0\u','\(2147)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u'/)
+             'acos(J\(2236)N)','\(2149)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u'/)
         !Include units
         pgvarnss(1:15)  = (/'log L','M\dc\u (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2134)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
-             '\(2134)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
+             'acos(J\(2236)N)','\(2149)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
         !Units only
-        pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
+        pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
 
         !if(prprogress.ge.2.and.update.eq.0) write(*,'(A)')'  Done.'
      end if !if(changevar.eq.1)
@@ -1286,10 +1315,12 @@ program plotspins
         !if(prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')'Changing some variables...   '
         do p=par1,par2
            if(p.eq.5) pldat(ic,p,1:ntot(ic)) = exp(pldat(ic,p,1:ntot(ic)))
-           if(p.eq.9.or.p.eq.11) pldat(ic,p,1:ntot(ic)) = asin(pldat(ic,p,1:ntot(ic)))*r2d
+           !if(p.eq.9.or.p.eq.11) pldat(ic,p,1:ntot(ic)) = asin(pldat(ic,p,1:ntot(ic)))*r2d
+           if(p.eq.9) pldat(ic,p,1:ntot(ic)) = asin(pldat(ic,p,1:ntot(ic)))*r2d
            if(p.eq.7) pldat(ic,p,1:ntot(ic)) = acos(pldat(ic,p,1:ntot(ic)))*r2d
            if(p.eq.8) pldat(ic,p,1:ntot(ic)) = pldat(ic,p,1:ntot(ic))*r2h
-           if(p.eq.10.or.p.eq.12.or.p.eq.13) pldat(ic,p,1:ntot(ic)) = pldat(ic,p,1:ntot(ic))*r2d
+           !if(p.eq.10.or.p.eq.12.or.p.eq.13) pldat(ic,p,1:ntot(ic)) = pldat(ic,p,1:ntot(ic))*r2d
+           if(p.ge.10.and.p.le.13) pldat(ic,p,1:ntot(ic)) = pldat(ic,p,1:ntot(ic))*r2d
         end do !p
      end do
      !if(prprogress.ge.2.and.update.eq.0) write(*,'(A)')'  Done.'
@@ -3233,6 +3264,7 @@ program plotspins
               lw2 = 3 !Font lw
               sch = 2.
            end if
+           if(pssz.lt.5) sch = sch * sqrt(5.0/pssz)
         end if
         if(file.ge.2.and.io.le.0) then
            write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
@@ -3363,6 +3395,18 @@ program plotspins
               end if
            end if
            
+           !Force plotting and binning boundaries
+           if(1.eq.2.and.p1.eq.8.and.p2.eq.9) then
+              xmin = 0.
+              xmax = 24.
+              ymin = -90.
+              ymax = 90.
+              
+              xmin = 10.35767
+              xmax = 14.83440
+              ymin = -32.63011
+              ymax = 31.75267
+           end if
            
            
            !'Normalise' 2D PDF
@@ -3375,10 +3419,12 @@ program plotspins
                  call calc_2d_areas(p1,p2,changevar,nival+1,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
                  trueranges2d(p1,p2) = truerange2d(z,nbin2dx+1,nbin2dy+1,startval(1,p1,1),startval(1,p2,1),tr)
                  !write(*,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
+                 write(*,*)
                  do i=1,nival+1
-                    !write(*,'(I10,F13.2,2(2x,F21.5))')i,ivals(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
-                    probareas(p1,p2,i,1) = probarea(i)*(pi/180.)**2/(4*pi)  !Fraction of the sky
+                    write(*,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probarea(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
+                    !probareas(p1,p2,i,1) = probarea(i)*(pi/180.)**2/(4*pi)  !Fraction of the sky
                     probareas(p1,p2,i,2) = sqrt(probarea(i)/pi)*2           !Equivalent diameter
+                    !probareas(p1,p2,i,2) = probarea(i) !Testing
                  end do
                  !write(*,'(A2,$)')'  '
               end if
@@ -3404,12 +3450,12 @@ program plotspins
            !Plot 2D PDF
            if(plot.eq.1) then
               
-              !Force boundaries
+              !Force plotting boundaries (not binning)
               if(1.eq.2.and.p1.eq.8.and.p2.eq.9) then
-                 !xmin = 24.
-                 !xmax = 0.
-                 !ymin = -90.
-                 !ymax = 90.
+                 xmin = 24.
+                 xmax = 0.
+                 ymin = -90.
+                 ymax = 90.
                  
                  xmin = 14.83440
                  xmax = 10.35767
@@ -3676,7 +3722,7 @@ program plotspins
               
               
               !Print 2D probability ranges in title
-              if(normpdf2d.eq.4) then
+              if(normpdf2d.eq.4.and. ((p1.eq.8.and.p2.eq.9) .or. (p1.eq.12.and.p2.eq.11))) then  !For sky position and orientation only
                  string = ' '
                  do c = 1,nival+1
                     a = probareas(p1,p2,c,2)
@@ -3689,6 +3735,7 @@ program plotspins
                     else
                        write(string,'(I3,A3,I4,A7)')nint(ivals(c)*100),'%:',nint(a),'\(2218)'
                     end if
+                    !write(*,'(2I4,ES13.3)')p1,c,a
                     a = (real(c-1)/real(nival) - 0.5)*0.7 + 0.5
                     call pgsci(30+nival+2-c)
                     call pgmtxt('T',0.5,a,0.5,trim(string))  !Print title

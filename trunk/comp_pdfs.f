@@ -54,7 +54,8 @@ program comp_pdfs
   
   
   
-  varnss(1:15)  = (/'logL','Mc','eta','t_c','d_L','a_spin','theta_SL','RA','Dec','phi_c','theta_J0','phi_J0','alpha_c','M1','M2'/)
+  !varnss(1:15)  = (/'logL','Mc','eta','t_c','d_L','a_spin','theta_SL','RA','Dec','phi_c','theta_J0','phi_J0','alpha_c','M1','M2'/)
+  varnss(1:15)  = (/'logL','Mc','eta','t_c','d_L','a_spin','theta_SL','RA','Dec','phi_c','incl','polang','alpha_c','M1','M2'/)
   do f=1,nf
      if(dim.eq.2) then
         write(fnames(f),'(A)')trim(dirnames(f))//'/'//trim(fnames(f))//'__pdf2d.dat'

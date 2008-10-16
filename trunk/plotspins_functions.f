@@ -18,7 +18,28 @@ module plotspins_settings
 end module plotspins_settings
 !***************************************************************************************************
 
+!***************************************************************************************************
+module constants
+  implicit none
+  save
+  real*8 :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
+end module constants
+!***************************************************************************************************
 
+!***************************************************************************************************
+subroutine setconstants
+  use constants
+  implicit none
+  pi = 4*datan(1.d0)
+  tpi = 2*pi
+  pi2 = 0.5d0*pi
+  r2d = 180.d0/pi
+  d2r = pi/180.d0
+  r2h = 12.d0/pi
+  h2r = pi/12.d0
+  c3rd = 1.d0/3.d0
+end subroutine setconstants
+!***************************************************************************************************
 
 
 !***************************************************************************************************
@@ -707,7 +728,7 @@ end subroutine horzhist
 
 !************************************************************************************************************************************
 function ra(lon, GPSsec)
-  ! Derives right ascension (in radians!) from longitude given GMST (radians). 
+  ! Derives right ascension (in radians!) from longitude (radians) and GPS time. 
   ! Declination == latitude for equatorial coordinates.                        
   
   
@@ -1318,12 +1339,22 @@ end function rev24
 !************************************************************************
 
 !************************************************************************
-function rev2pi(x)        !Returns angle in radians betwee 0 and 2pi
+function rev2pi(x)        !Returns angle in radians between 0 and 2pi
   real :: x,rev2pi,pi
   pi = 4*atan(1.)
   rev2pi = x-floor(x/(2.0*pi))*2.0*pi
   return
 end function rev2pi
+!************************************************************************
+
+!************************************************************************
+function drevpi(x)        !Returns angle in radians between 0 and pi
+  use constants
+  real*8 :: x,drevpi!,pi
+  !pi = 4*datan(1.d0)
+  drevpi = x-floor(x/pi)*pi
+  return
+end function drevpi
 !************************************************************************
 
 
@@ -1583,7 +1614,12 @@ subroutine calc_2d_areas(p1,p2,changevar,ni,nx,ny,z,tr,area)
            !x = tr(1) + tr(2)*ix + tr(3)*iy
            !y = tr(4) + tr(5)*ix + tr(6)*iy
            y = tr(4) + tr(6)*iy
-           dx = dx*cos(y*d2r)
+           if(p1.eq.8) then
+              dx = dx*cos(y*d2r)
+           else if(p1.eq.12) then
+              dx = dx*abs(sin(y*d2r))  !Necessary for i-psi plot?
+           end if
+           !print*,p1,y,cos(y*d2r)
            if(p1.eq.8) dx = dx*15
         end if
         iv = nint(z(ix,iy))
@@ -1621,16 +1657,47 @@ end function truerange2d
 !************************************************************************
 
 
+
+!************************************************************************
+function veclen(vec) !Compute the length of a 3D cartesian vector
+  implicit none
+  real*8 :: veclen,vec(3)
+  veclen = dsqrt(vec(1)*vec(1) + vec(2)*vec(2) + vec(3)*vec(3))
+end function veclen
+!************************************************************************
+
+!************************************************************************
+subroutine normvec(vec) !Normalise a 3D cartesian vector
+  implicit none
+  real*8 :: veclen,vec(3)
+  vec = vec/veclen(vec)
+end subroutine normvec
+!************************************************************************
+
+
+
 !************************************************************************
 subroutine ang2vec(l,b,vec)  !Convert longitude, latitude (rad) to a 3D normal vector
-  ! l in [0,2pi[; b in [-pi,pi]
+  !l in [0,2pi[; b in [-pi,pi]
   implicit none
   real*8 :: l,b,vec(3),cosb
   cosb = dcos(b)
   vec(1) = dcos(l)*cosb
   vec(2) = dsin(l)*cosb
-  vec(3) = dsqrt(1.d0 - cosb*cosb) !sin(b)
+  vec(3) = dsin(b)
 end subroutine  ang2vec
+!************************************************************************
+
+!************************************************************************
+subroutine vec2ang(vec,l,b)  !Convert a 3D normal vector to longitude, latitude (rad)
+  !l in [0,2pi[; b in [-pi,pi]
+  implicit none
+  real*8 :: l,b,vec(3),vec1(3)
+  vec1 = vec
+  call normvec(vec1) !Make sure vec1 is normalised
+  l = datan2(vec1(2),vec1(1))
+  b = dasin(vec1(3))
+end subroutine  vec2ang
 !************************************************************************
 
 !************************************************************************
@@ -1644,10 +1711,11 @@ end function dotproduct
 !************************************************************************
 subroutine crossproduct(vec1,vec2,crpr) !Compute the cross (outer) product of two cartesian vectors
   implicit none
-  real*8 :: vec1(3),vec2(3),crpr(3)
+  real*8 :: vec1(3),vec2(3),crpr(3),veclen
   crpr(1) = vec1(2)*vec2(3) - vec1(3)*vec2(2)
   crpr(2) = vec1(3)*vec2(1) - vec1(1)*vec2(3)
   crpr(3) = vec1(1)*vec2(2) - vec1(2)*vec2(1)
+  !write(*,'(3ES13.3)')veclen(vec1),veclen(vec2),veclen(crpr)
 end subroutine crossproduct
 !************************************************************************
 
@@ -1656,30 +1724,102 @@ end subroutine crossproduct
 function polangle(p,o)  !Compute the polarisation angle of a source with position normal vector p and orientation normal vector o, see Apostolatos et al. 1994, Eq.5
   implicit none
   real*8 :: polangle,p(3),o(3)
-  real*8 :: z(3),denom,ocz,numer,dotproduct,datan2
+  real*8 :: z(3),denom,ocz(3),numer,dotproduct!,datan2
   
   z = (/0.d0,0.d0,1.d0/) !Vertical normal vector
   denom = dotproduct(o,z) - dotproduct(o,p)*dotproduct(z,p) !Denominator
   call crossproduct(o,z,ocz)
   numer = dotproduct(p,ocz) !Numerator
   
-  polangle = datan2(denom,numer)
+  !polangle = datan2(denom,numer)
+  polangle = datan(denom/(numer+1.d-30))  !Take into account the degeneracy in psi
 end function polangle
+!************************************************************************
+
+!************************************************************************
+function posangle(p,o)  !Compute the position angle of a source with position normal vector p and orientation normal vector o
+  implicit none
+  real*8 :: posangle,p(3),o(3)
+  real*8 :: x1(3),o1(3),z(3),z1(3),dotproduct
+  
+  !write(*,'(3ES13.3)')p
+  !write(*,'(3ES13.3)')o
+  
+  call crossproduct(p,o,x1)
+  call crossproduct(x1,p,o1) !o1: projection of o in the plane of the sky
+  
+  z = (/0.d0,0.d0,1.d0/) !Vertical normal vector
+  call crossproduct(p,z,x1)
+  call crossproduct(x1,p,z1) !z1: projection of z in the plane of the sky
+  
+  call normvec(o1)
+  call normvec(z1)
+  posangle = dacos(dotproduct(o1,z1))
+  !write(*,'(3ES13.3)')p
+  !write(*,'(3ES13.3)')o
+  !write(*,'(3ES13.3)')o1
+  !write(*,'(3ES13.3)')z1
+  !write(*,'(3ES13.3)')dotproduct(o1,z1),dacos(dotproduct(o1,z1))
+end function posangle
 !************************************************************************
 
 
 !************************************************************************
 subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) !Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
+  use constants
   implicit none
   !pl,ol in [0,2pi[;  pb,ob in [-pi,pi]
   real*8 :: pl,pb,ol,ob
-  real*8 :: p(3),o(3),i,dotproduct,psi,polangle
+  real*8 :: p(3),o(3),i,dotproduct,psi,polangle,drevpi
   
   call ang2vec(pl,pb,p)       !Position normal vector
   call ang2vec(ol,ob,o)       !Orientation normal vector
-  i = dacos(dotproduct(p,o))  !Compute inclination angle
+  !i = pi2 - dacos(dotproduct(p,o))  !Compute inclination angle: <0: points towards us, >0 points away from us
+  i = dacos(dotproduct(p,o))  !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky
+  !i = dotproduct(p,o)         !Compute cos(inclination angle): 1: points exactly away from us, -1 points exactly towards us, 0: in the plane of the sky
   psi = polangle(p,o)         !Compute polarisation angle
+  !psi = drevpi(polangle(p,o))  !Compute polarisation angle
   
 end subroutine compute_incli_polang
+!************************************************************************
+
+!************************************************************************
+subroutine compute_incli_posang(pl,pb,ol,ob, i,psi) !Compute the inclination and position angle for a source with position (pl,pb) and orientation (ol,ob)
+  use constants
+  implicit none
+  !pl,ol in [0,2pi[;  pb,ob in [-pi,pi]
+  real*8 :: pl,pb,ol,ob
+  real*8 :: p(3),o(3),i,dotproduct,psi,posangle,drevpi
+  
+  call ang2vec(pl,pb,p)       !Position normal vector
+  call ang2vec(ol,ob,o)       !Orientation normal vector
+  !i = pi2 - dacos(dotproduct(p,o))  !Compute inclination angle: <0: points towards us, >0 points away from us
+  i = dacos(dotproduct(p,o))  !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky
+  psi = posangle(p,o)         !Compute position angle
+  !psi = drevpi(posangle(p,o))  !Compute position angle
+  
+end subroutine compute_incli_posang
+!************************************************************************
+
+
+
+!************************************************************************
+subroutine detectorvector(d1,d2,jd)  !Determine the sky position at which the vector that connects two detectors points
+  implicit none
+  integer :: d1,d2
+  real*8 :: jd,detcoords(3,2),vec1(3),vec2(3),dvec(3),l,b
+  
+  detcoords(1,:) = (/-119.41,46.45/)  !H1; l,b
+  detcoords(2,:) = (/-90.77,30.56/)   !L1
+  detcoords(3,:) = (/10.50,43.63/)    !V
+  
+  call ang2vec(detcoords(d1,1),detcoords(d1,2),vec1)
+  call ang2vec(detcoords(d2,1),detcoords(d2,2),vec2)
+  
+  dvec = vec2 - vec1
+  
+  call vec2ang(dvec,l,b)  !Searched point is in zenith/nadir for an observer on this location on the globe
+  
+end subroutine detectorvector
 !************************************************************************
 
