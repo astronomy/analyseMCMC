@@ -27,6 +27,11 @@ LFLAGS = -lpgplot_ifort -L/usr/X11R6/lib -lX11 -lm -lifcore -limf -lirc -lsvml -
 # O3: 68.5s
 
 
+#gfortran needs ~60% more time (mostly for reading data in plotspins, it seems)
+#COMP = gfortran
+#CFLAGS = -O0 -ffree-form -ffree-line-length-none
+#CFLAGS = -O3 -ffree-form -ffree-line-length-none
+#LFLAGS = -lpgplot_ifort -L/usr/X11R6/lib -lX11 -lm -L/opt/intel/fc/10.0.026/lib -lifcore -limf -lirc -lsvml -lifport -Xlinker
 
 
 

@@ -45,7 +45,7 @@ subroutine plotpdf1d(pp,lbl)
      fname = fnames(f)
      if(fname(1:3).eq.'   ') cycle
      !print*,f,trim(fname)
-     open(unit=10,action='read',form='formatted',status='old',position='rewind',name=trim(fname),iostat=io)
+     open(unit=10,action='read',form='formatted',status='old',position='rewind',file=trim(fname),iostat=io)
      !print*,trim(fname),io
      if(io.ne.0) then
         write(*,'(A,I5)')'  Error opening file '//trim(fname)//', error:',io
@@ -312,7 +312,7 @@ subroutine plotpdf2d(pp1,pp2,lbl)
      fname = fnames(f)
      if(fname(1:3).eq.'   ') cycle
      !print*,f,trim(fname)
-     open(unit=10,action='read',form='formatted',status='old',position='rewind',name=trim(fname),iostat=io)
+     open(unit=10,action='read',form='formatted',status='old',position='rewind',file=trim(fname),iostat=io)
      !print*,io
      if(io.ne.0) then
         write(*,'(A,I5)')'  Error reading file '//trim(fname)//', error:',io
@@ -582,7 +582,7 @@ subroutine plotwave(fname1,thingy,lbl)
         if(i.eq.1) t0 = (nint(t1*1.d-3)-1)*1.d3
         t(f,i) = real(t1-t0)
      end do
-195  write(6,'(A,I)')'error reading file '//trim(fname)//' line ',i+1
+195  write(6,'(A,I8)')'error reading file '//trim(fname)//' line',i+1
 199  close(10)
      n(f) = i-1
      !write(6,'(I,A12)')n(f),'lines read.'

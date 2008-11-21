@@ -298,8 +298,8 @@ program plotspins
      !NEW columns in dat: 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
      !Read the headers
      read(10,*,end=199,err=199)bla
-     !read(10,'(I10,I12,I8,F22.10,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
-     read(10,'(I10,I12,I8,F,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
+     read(10,'(I10,I12,I8,F22.10,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
+     !read(10,'(I10,I12,I8,F,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
      read(10,*,end=199,err=199)bla
      do i=1,ndet(ic)
         !read(10,'(2x,A14,F18.8,4F12.2,F22.8,F17.7,3I14)') detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
