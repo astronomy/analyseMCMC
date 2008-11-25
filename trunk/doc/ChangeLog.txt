@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    20: sluys, 25/11/2008
+     - probability-interval settings now in input file, use new plotspins.dat from doc/
+    
     18: sluys, 15/10/2008
      - finalised implementation of conversion theta/phi_Jo -> i, psi
      - started functions to plot vector between 2 detectors or plane of 3 detectors

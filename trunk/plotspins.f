@@ -4,7 +4,7 @@ program plotspins
   use constants
   use plotspins_settings
   implicit none
-  integer, parameter :: narr1=2.01e5+2,npar0=13,nival1=5,nr1=5,nstat1=10,ndets=3
+  integer, parameter :: narr1=2.01e5+2,npar0=13,nr1=5,nstat1=10,ndets=3
   integer :: n(nchs),ntot(nchs),n0,n1,n2,i,j,j1,j2,nburn0(nchs),iargc,io,readerror,pgopen,system,narr,maxdots,offsetrun,imin
   integer :: niter(nchs),totiter,totpts,totlines,seed(nchs),ndet(nchs),totthin(nchs),contrchains
   integer :: index(npar1,nchs*narr1),index1(nchs*narr1),fileversion
@@ -36,9 +36,9 @@ program plotspins
   real :: sch
   character :: outputname*99,outputdir*99,psclr*9,colournames(15)*20
   
-  integer :: o,p,p1,p2,par1,par2,nr,c,c0,nstat,wrap(nchs,npar1),nival,npar,ncolours,colours(10),nsymbols,symbols(10),symbol,defcolour,plotthis,tempintarray(99)
+  integer :: o,p,p1,p2,par1,par2,nr,c,c0,nstat,wrap(nchs,npar1),npar,ncolours,colours(10),nsymbols,symbols(10),symbol,defcolour,plotthis,tempintarray(99)
   integer :: truerange2d,trueranges2d(npar1,npar1)
-  real :: range,minrange,range1,range2,drange,maxgap,ranges(nchs,nival1+1,npar1,nr1),ival,ivals(nival1+1),centre,shift(nchs,npar1),plshift
+  real :: range,minrange,range1,range2,drange,maxgap,ranges(nchs,nival1+1,npar1,nr1),ival,centre,shift(nchs,npar1),plshift
   real :: probarea(nival1+1),probareas(npar1,npar1,nival1+1,2)
   real :: median,medians(npar1),mean(npar1),stdev1(npar1),stdev2(npar1),var1(npar1),var2(npar1),absvar1(npar1),absvar2(npar1)
   real :: stats(nchs,npar1,nstat1),corrs(npar1,npar1),acorrs(nchs,0:npar1,0:narr1)
@@ -76,19 +76,13 @@ program plotspins
   par1 = 1          !First parameter to treat (stats, plot): 0-all
   par2 = 15         !Last parameter to treat (0: use npar)
   
-  !whitebg = 1       !White background for screen and png plots: 0-no, 1-yes
-  !scrsz  = 10.8     !Screen size for X11 windows:  MacOS: 16.4, Gentoo: 10.8
-  !scrrat = 0.57     !Screen ratio for X11 windows, MacBook: 0.57
-  !bmpsz  = 12.      !Size for bitmap:  10.6
-  !bmprat = 0.70     !Ratio for bitmap: 0.75
-  !!bmprat = 1.25    !Ratio for bitmap: 0.75
-  !!bmpxpix = '1000'  !Final size of converted bitmap output in pixels (string)
   
-  !scfac = 1.2
+  ivals(nival+1) = 1. !The last probability interval is always 100%
+  
+  
   bmpsz = real(bmpxsz-1)/85. * scfac !Make png larger, so that convert interpolates and makes the plot smoother
   bmprat = real(bmpysz-1)/real(bmpxsz-1)
   write(bmpxpix,'(I4)')bmpxsz  !Used as a text string by convert
-  !print*,bmpxsz,bmpysz,bmpsz,bmprat,trim(bmpxpix)
   
   !Use full unsharp-mask strength for plots with many panels and dots, weaker for those with fewer panels and.or no dots
   write(unsharplogl,'(I4)')max(nint(real(unsharp)/2.),1)  !Only one panel with dots
@@ -106,24 +100,6 @@ program plotspins
   !end if
   
   outputdir = '.'  !Directory where output is saved (either relative or absolute path)
-  
-  !NEW columns in dat: 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
-  !Choose plot variables.  Number of variables to plot: 1,2,3,4,5,6,8,9,10,12,15,16
-  !nplvar = 1;  plvars(1:nplvar) = (/2/)
-  !nplvar = 1;  plvars(1:nplvar) = (/14/)
-  !nplvar = 2;  plvars(1:nplvar) = (/2,3/)
-  !nplvar = 4;  plvars(1:nplvar) = (/2,3,14,15/) !All masses
-  !nplvar = 4;  plvars(1:nplvar) = (/2,3,6,7/) !Masses, spins
-  !nplvar = 4;  plvars(1:nplvar) = (/4,5,8,9/) !tc, d, position
-  !nplvar = 8;  plvars(1:nplvar) = (/4,5,8,9,10,11,12,13/) !All except masses, spins
-  !nplvar = 9;  plvars(1:nplvar) = (/2,3,4,6,7,5,10,8,9/)
-  !nplvar = 12;  plvars(1:nplvar) = (/2,3,4,5, 6,7,8,9, 10,11,12,13/) !Default: all parameters
-  !nplvar = 12;  plvars(1:nplvar) = (/2,3,4, 6,7,5, 8,9,10, 11,12,13/) !For poster (3x4 rather than 4x3)
-  !nplvar = 14;  plvars(1:nplvar) = (/2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !All 12 + m1,m2
-  !nplvar = 15;  plvars(1:nplvar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/)
-  !nplvar = 6;  plvars(1:nplvar) = (/1,4,8,9,11,12/)
-  !nplvar = 9;  plvars(1:nplvar) = (/1,2,3,4,5,6,7,8,9/) !logL + 8 most important parameters
-  !nplvar = 2;  plvars(1:nplvar) = (/1,2/)
   
   !panels(1) = 0 ! 0 - use default values, >0 have panels(1) panels in the horizontal direction   \
   !panels(2) = 0 ! 0 - use default values, >0 have panels(2) panels in the vertical direction     / Default values are use if either value = 0
@@ -230,26 +206,11 @@ program plotspins
   pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','rad','rad','','rad','','rad','rad','M\d\(2281)\u','M\d\(2281)\u'/)
   
   
-  !nival = 1; ivals(1:nival) = (/0.9/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
-  nival = 2; ivals(1:nival) = (/0.9,0.99/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
-  !nival = 3; ivals(1:nival) = (/0.683,0.9,0.997/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
-  !nival = 3; ivals(1:nival) = (/0.50,0.7,0.9/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
-  !nival = 3; ivals(1:nival) = (/0.90,0.95,0.99/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
-  !nival = 4; ivals(1:nival) = (/0.6827,0.9,0.9545,0.9973/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
-  !nival = 4; ivals(1:nival) = (/0.8,0.9,0.95,0.99/)  !Number of ranges and values of 'interval levels', one of them should be 0.90. 1.00 is added automatically.
-  ivals(nival+1) = 1. !The last interval is always 100%
-  
   
   
   upline = char(27)//'[2A'  !Printing this makes the cursor move up one line (actually 2, for some reason that's needed)
   
   if(prprogress+prruninfo+prinitial.ge.1) write(*,*)
-  j=0
-  do i=1,nival
-     if(abs(ivals(i)-ival0).lt.1.e-6) j=1
-  end do
-  if(j.eq.0) write(*,'(A44,F5.3,A35)')' !!! Error:  standard probability interval (',ival0,') is not present in array ivals !!!'
-  
   npar = 13
   if(prprogress.ge.1) then
      if(nchains0.gt.nchs) then
@@ -679,7 +640,7 @@ program plotspins
   shift = 0.
   wrap = 0
   do ic=1,nchains
-     ival = ival0
+     ival = ivals(ival0)
      index = 0
      if(prprogress.ge.2.and.mergechains.eq.0) write(*,'(A,I2.2,A,$)')' Ch',ic,' '
      if(prprogress.ge.2.and.ic.eq.i.and.wrapdata.ge.1) write(*,'(A,$)')' Wrap data. '
@@ -856,10 +817,10 @@ program plotspins
      !if(prprogress.ge.2) write(*,'(A29,$)')' Determining interval levels: '
      if(prprogress.ge.2.and.ic.eq.1) write(*,'(A,$)')' prob.ivals: '
      c0 = 0
-     do c=1,nival
+     do c=1,nival+1
         ival = ivals(c)
-        if(abs(ival-ival0).lt.0.001) c0 = c
-        if(c.ne.c0.and.prival.eq.0.and.savestats.eq.0) cycle
+        c0 = ival0
+        if(c.ne.c0.and.prival.lt.2.and.savestats.eq.0) cycle
         
         if(prprogress.ge.2.and.ic.eq.1) write(*,'(F6.3,$)')ival
         do p=par1,par2
@@ -890,8 +851,8 @@ program plotspins
            if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
         end do !p
      end do !c
-     !if(prprogress.ge.2) write(*,'(A34,F8.4)')'.  Standard probability interval: ',ival0
-     !if(prprogress.ge.2) write(*,'(A,F8.4,$)')', default ival:',ival0
+     !if(prprogress.ge.2) write(*,'(A34,F8.4)')'.  Standard probability interval: ',ivals(ival0)
+     !if(prprogress.ge.2) write(*,'(A,F8.4,$)')', default ival:',ivals(ival0)
      
      
      
@@ -1004,21 +965,25 @@ program plotspins
      o=6
      if(prstat.gt.0) then
         write(o,'(/,A)')'  Main statistics:'
-        c = c0
-        write(o,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,I3,A2)')'param.','model','median','mean','Lmax','stdev1','stdev2','abvar1','abvar2',  &
-             'rng_c','rng1','rng2','drng','d/drng','delta','ok?','result (',nint(ivals(c0)*100),'%)'
-        do p=par1,par2
-           if(stdev1(p).lt.1.d-20) cycle !Parameter was probably not fitted
-           write(o,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4,$)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absvar1(p),  &
-                absvar2(p),ranges(ic,c,p,3),ranges(ic,c,p,1),ranges(ic,c,p,2),ranges(ic,c,p,4),  &
-                !abs(startval(ic,p,1)-stats(ic,p,1))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt median
-                2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt centre of range
-           if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
-              write(o,'(A4,$)')'y '
-           else
-              write(o,'(A4,$)')'*N*'
-           end if
-           write(o,'(F10.4,A3,F9.4)')ranges(ic,c,p,3),'+-',0.5*ranges(ic,c,p,4)
+        !c = c0
+        do c=1,nival+1
+           if(c.ne.c0.and.prival.lt.2) cycle
+           if(prival.ge.2) write(o,*)
+           write(o,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)')'param.','model','median','mean','Lmax','stdev1','stdev2','abvar1','abvar2',  &
+                'rng_c','rng1','rng2','drng','d/drng','delta','ok?','result (',ivals(c)*100,'%)'
+           do p=par1,par2
+              if(stdev1(p).lt.1.d-20) cycle !Parameter was probably not fitted
+              write(o,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4,$)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absvar1(p),  &
+                   absvar2(p),ranges(ic,c,p,3),ranges(ic,c,p,1),ranges(ic,c,p,2),ranges(ic,c,p,4),  &
+                   !abs(startval(ic,p,1)-stats(ic,p,1))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt median
+                   2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt centre of range
+              if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
+                 write(o,'(A4,$)')'y '
+              else
+                 write(o,'(A4,$)')'*N*'
+              end if
+              write(o,'(F10.4,A3,F9.4)')ranges(ic,c,p,3),'+-',0.5*ranges(ic,c,p,4)
+           end do
         end do
      end if
      

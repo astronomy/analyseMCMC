@@ -5,15 +5,15 @@
 module plotspins_settings
   implicit none
   save
-  integer, parameter :: nchs=10,npar1=15
+  integer, parameter :: nchs=10,npar1=15,nival1=9
   integer :: plvars(npar1),nplvar,nbin1d,nbin2dx,nbin2dy,npdf2d,pdf2dpairs(250,2),panels(2)
   integer :: thin,nburn(nchs),file,colour,quality,reverseread,update,mergechains,wrapdata,changevar,maxchlen
   integer :: prprogress,prruninfo,prinitial,prstat,prcorr,prival,prconv,savestats,savepdf       
   integer :: plot,combinechainplots,pllogl,plchain,plparl,pljump,rdsigacc,plsigacc,plpdf1d,plpdf2d,placorr,plotsky,plmovie       
   integer :: chainsymbol,chainpli,pltrue,plstart,plmedian,plrange,plburn,pllmax,prvalues,smooth,fillpdf,normpdf1d,normpdf2d
   integer :: scloglpl,scchainspl,bmpxsz,bmpysz
-  integer :: nmovframes,moviescheme,whitebg,unsharp
-  real :: ival0,nburnfrac,autoburnin
+  integer :: nmovframes,moviescheme,whitebg,unsharp,nival,ival0
+  real :: nburnfrac,autoburnin,ivals(nival1+1)
   real :: scrsz,scrrat,pssz,psrat,scfac
 end module plotspins_settings
 !***************************************************************************************************
@@ -125,9 +125,10 @@ subroutine read_inputfile
   read(u,*,iostat=io)fillpdf
   read(u,*,iostat=io)normpdf1d
   read(u,*,iostat=io)normpdf2d
-  read(u,*,iostat=io)ival0
   read(u,*,iostat=io)nmovframes
   read(u,*,iostat=io)moviescheme
+  read(u,*,iostat=io)nival,ival0
+  read(u,*,iostat=io1)(ivals(i),i=1,nival)
 
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)scrsz
@@ -206,7 +207,7 @@ subroutine write_inputfile
   write(u,11)prinitial, 'prinitial',   'Print true values, starting values and their difference'
   write(u,11)prstat, 'prstat',   'Print statistics: 0-no, 1-yes'
   write(u,11)prcorr, 'prcorr',   'Print correlations: 0-no, 1-yes'
-  write(u,11)prival, 'prival',   'Print interval info: 0-no, 1-yes'
+  write(u,11)prival, 'prival',   'Print interval info: 0-no, 1-some, 2-more'
   write(u,11)prconv, 'prconv',   'Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-medians, stdevs, etc. too.'
   write(u,11)savestats, 'savestats',   'Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS'
   write(u,11)savepdf, 'savepdf',   'Save the binned data for 1d and/or 2d pdfs (depending on plpdf1d and plpdf2d).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying'
@@ -244,9 +245,13 @@ subroutine write_inputfile
   write(u,11)fillpdf, 'fillpdf',   'Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched'
   write(u,11)normpdf1d, 'normpdf1d',   'Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains'
   write(u,11)normpdf2d, 'normpdf2d',   "'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value"
-  write(u,21)ival0, 'ival0',   'Standard probability interval, e.g. 0.90, 0.95'
   write(u,11)nmovframes, 'nmovframes',   'Number of frames for the movie'
   write(u,11)moviescheme, 'moviescheme',   'Moviescheme (1-3): determines what panels to show in a movie frame; see source code'
+  write(u,12)nival,ival0, 'nival ival0',   'Number of probability intervals,  number of the default probability interval (ival0<=nival). 100% is added automatically for nival+1'
+  do i=1,nival
+     write(u,'(F9.5,$)')ivals(i)
+  end do
+  write(u,*)'       Probability intervals (ivals())'
   
   write(u,'(/,A)')' Output format:'
   write(u,21)scrsz, 'scrsz',   'Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8'
@@ -341,9 +346,11 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   fillpdf = 1       !Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
   normpdf1d = 1     !Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains
   normpdf2d = 0     !'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value
-  ival0 = 0.90      !Standard probability interval, e.g. 0.90, 0.95
   nmovframes = 1    !Number of frames for the movie
-  moviescheme = 3   !Movie scheme: determines what panels to show in a movie frame
+  moviescheme = 3   !Movie scheme: determines what panels to show in a movie frame 
+  nival = 3         !Number of probability intervals
+  ival0 = 1         !Standard probability interval, e.g. 1 or 2, < nival
+  ivals(1:3) = (/0.6827,0.9545,0.9973/)  !Probability intervals
   
   scrsz  = 10.8     !Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8
   scrrat = 0.57     !Screen ratio for X11 windows (PGPlot units), MacBook: 0.57
