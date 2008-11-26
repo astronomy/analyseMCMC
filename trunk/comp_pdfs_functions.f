@@ -62,7 +62,8 @@ subroutine plotpdf1d(pp,lbl)
         read(10,'(5E15.7)')ranges(f,p1,1:5) !'Ranges: lower,upper limit, centre, width, relative width'
         read(10,'(2E15.7)')xmin1(f,p1),xmax1(f,p1) !'Xmin and Xmax of PDF'
         do b=1,nbin+1
-           read(10,'(2E15.7)',iostat=io)xbin1(f,p1,b),ybin1(f,p1,b)
+           !read(10,'(2E15.7)',iostat=io)xbin1(f,p1,b),ybin1(f,p1,b)
+           read(10,*,iostat=io)xbin1(f,p1,b),ybin1(f,p1,b)
            if(io.ne.0) write(*,'(A,I4,A1,I4,A1)')'  Error reading file '//trim(fname)//', variable '//trim(varnss(p1))//', bin', &
                 b,'/',nbin,'.'
            if(p(p1).eq.pp .and. (.not.ybin1(f,p1,b).gt.-1.e30) .and. (.not.ybin1(f,p1,b).lt.1.e30)) then  !Then it's probably a NaN
