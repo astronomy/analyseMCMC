@@ -38,8 +38,8 @@ program plotspins
   
   integer :: o,p,p1,p2,par1,par2,nr,c,c0,nstat,wrap(nchs,npar1),npar,ncolours,colours(10),nsymbols,symbols(10),symbol,defcolour,plotthis,tempintarray(99)
   integer :: truerange2d,trueranges2d(npar1,npar1),fixedpar(npar1),nfixedpar
-  real :: range,minrange,range1,range2,drange,maxgap,ranges(nchs,nival1+1,npar1,nr1),ival,wrapival,centre,rashift,shift(nchs,npar1),plshift
-  real :: probarea(nival1+1),probareas(npar1,npar1,nival1+1,2)
+  real :: range,minrange,range1,range2,drange,maxgap,ranges(nchs,nival1,npar1,nr1),ival,wrapival,centre,rashift,shift(nchs,npar1),plshift
+  real :: probarea(nival1),probareas(npar1,npar1,nival1,2)
   real :: median,medians(npar1),mean(npar1),stdev1(npar1),stdev2(npar1),var1(npar1),var2(npar1),absvar1(npar1),absvar2(npar1)
   real :: stats(nchs,npar1,nstat1),corrs(npar1,npar1),acorrs(nchs,0:npar1,0:narr1)
   real :: norm
@@ -666,13 +666,13 @@ program plotspins
   
   !Sort all data and find the interval limits for the default probability interval for the wrapable parameters
   if(prprogress.ge.2) write(*,*)''
-  ivals(nival+1) = 1. !The last probability interval is always 100% !Is this necessary?
+  !ivals(nival+1) = 1. !The last probability interval is always 100% !Is this necessary?
   shift = 0.
   wrap = 0
   rashift = 0.
   do ic=1,nchains
-     wrapival = ivals(nival) !Use the largest range
-     !wrapival = 0.999 !Always use a very large range (?)
+     !wrapival = ivals(nival) !Use the largest range
+     wrapival = 0.999 !Always use a very large range (?)
      index = 0
      if(prprogress.ge.2.and.mergechains.eq.0) write(*,'(A,I2.2,A,$)')' Ch',ic,' '
      if(prprogress.ge.2.and.ic.eq.i.and.wrapdata.ge.1) write(*,'(A,$)')' Wrap data. '
@@ -846,7 +846,7 @@ program plotspins
      !if(prprogress.ge.2) write(*,'(A29,$)')' Determining interval levels: '
      if(prprogress.ge.1.and.ic.eq.1) write(*,'(A,$)')' prob.ivals: '
      c0 = 0
-     do c=1,nival+1
+     do c=1,nival
         ival = ivals(c)
         c0 = ival0
         !if(c.ne.c0.and.prival.lt.2.and.savestats.eq.0) cycle
@@ -953,14 +953,19 @@ program plotspins
      
      
      !Find 100% range
-     do p=par1,par2
-        if(p.eq.1) cycle
-        ranges(ic,nival+1,p,1) = minval(alldat(ic,p,1:n(ic)))
-        ranges(ic,nival+1,p,2) = maxval(alldat(ic,p,1:n(ic)))
-        ranges(ic,nival+1,p,3) = 0.5*(ranges(ic,nival+1,p,1) + ranges(ic,nival+1,p,2))
-        ranges(ic,nival+1,p,4) = ranges(ic,nival+1,p,2) - ranges(ic,nival+1,p,1)
-        ranges(ic,nival+1,p,5) = ranges(ic,nival+1,p,4)
-        if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,nival+1,p,5) = ranges(ic,nival+1,p,5)/ranges(ic,nival+1,p,3)
+     do c = 1,nival
+        if(abs(ivals(c)-1.).lt.1.e-4) then !Then treat it as a 100% interval to prevent numerical problems
+           if(prprogress.ge.1) write(*,'(A,F9.4,A)')'  Treating probability interval',ivals(c)*100,'% as 100%'
+           do p=par1,par2
+              if(p.eq.1) cycle
+              ranges(ic,c,p,1) = minval(alldat(ic,p,1:n(ic)))
+              ranges(ic,c,p,2) = maxval(alldat(ic,p,1:n(ic)))
+              ranges(ic,c,p,3) = 0.5*(ranges(ic,c,p,1) + ranges(ic,c,p,2))
+              ranges(ic,c,p,4) = ranges(ic,c,p,2) - ranges(ic,c,p,1)
+              ranges(ic,c,p,5) = ranges(ic,c,p,4)
+              if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,5)/ranges(ic,c,p,3)
+           end do
+        end if
      end do
      
      if(prprogress.ge.1) then
@@ -981,7 +986,7 @@ program plotspins
      o=6
      if(prstat.gt.0) then
         write(o,'(/,A)')'  Main statistics:'
-        do c=1,nival+1
+        do c=1,nival
            if(c.ne.c0.and.prstat.lt.2) cycle
            if(c.gt.1.and.prstat.ge.2) write(o,*)
            write(o,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)')'param.','model','median','mean','Lmax','stdev1','stdev2','abvar1','abvar2',  &
@@ -1033,13 +1038,13 @@ program plotspins
      if(prival.eq.1.or.prival.eq.3) then
         write(o,'(/,A)')'  Probability intervals:'
         write(o,'(A22,A8,$)')'Interval:',''
-        do c=1,nival+1
+        do c=1,nival
            write(o,'(F20.4,A9,$)')ivals(c),''
         end do
         write(o,*)''
         
         write(o,'(A10,2x,2A9,$)')'param.','model','median'
-        do c=1,nival+1
+        do c=1,nival
            !write(o,'(2x,2A9,A8,$)')'rng1','rng2','in rnge'
            write(o,'(2x,3A9,$)')'centre','delta','in rnge'
         end do
@@ -1047,7 +1052,7 @@ program plotspins
         do p=par1,par2
            if(stdev1(p).lt.1.d-20) cycle
            write(o,'(A10,2x,2F9.4,$)')varnames(p),startval(ic,p,1),stats(ic,p,1)
-           do c=1,nival+1
+           do c=1,nival
               write(o,'(2x,2F9.4,F6.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
               if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
                  write(o,'(A3,$)')'y '
@@ -1065,20 +1070,20 @@ program plotspins
      if(prival.ge.2) then
         write(o,'(/,A)')'  Statistics and probability intervals:'
         write(o,'(A54,$)')'Interval:'
-        do c=1,nival+1
+        do c=1,nival
            write(o,'(F16.3,A1,A9,$)')ivals(c)*100,'%',''
         end do
         write(o,*)''
         
         write(o,'(A11,1x,3A11,$)')'Parameter','median','mean','Lmax'
-        do c=1,nival+1
+        do c=1,nival
            write(o,'(5x,A9,4x,A8,$)')'x','dx'
         end do
         write(o,*)''
         do p=max(par1,2),par2  !Leave out logL
            if(stdev1(p).lt.1.d-20) cycle
            write(o,'(A10,2x,3F11.4,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3)
-           do c=1,nival+1
+           do c=1,nival
               write(o,'(5x,F9.4,A4,F8.4$)')ranges(ic,c,p,3),' +- ',0.5d0*ranges(ic,c,p,4)
            end do
            write(o,*)''
@@ -3385,12 +3390,12 @@ program plotspins
               if(normpdf2d.eq.1) z = max(0.,log10(z + 1.e-30))
               if(normpdf2d.eq.2) z = max(0.,sqrt(z + 1.e-30))
               if(normpdf2d.eq.4) then
-                 call identify_2d_ranges(nival+1,ivals,nbin2dx+1,nbin2dy+1,z) !Get 2D probability ranges; identify to which range each bin belongs
-                 call calc_2d_areas(p1,p2,changevar,nival+1,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
+                 call identify_2d_ranges(nival,ivals,nbin2dx+1,nbin2dy+1,z) !Get 2D probability ranges; identify to which range each bin belongs
+                 call calc_2d_areas(p1,p2,changevar,nival,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
                  trueranges2d(p1,p2) = truerange2d(z,nbin2dx+1,nbin2dy+1,startval(1,p1,1),startval(1,p2,1),tr)
                  !write(*,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
                  if(prprogress.ge.3) write(*,*)
-                 do i=1,nival+1
+                 do i=1,nival
                     if(prprogress.ge.3) write(*,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probarea(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
                     !probareas(p1,p2,i,1) = probarea(i)*(pi/180.)**2/(4*pi)  !Fraction of the sky
                     probareas(p1,p2,i,2) = sqrt(probarea(i)/pi)*2           !Equivalent diameter
@@ -3450,30 +3455,30 @@ program plotspins
                  if(normpdf2d.lt.4) call pggray(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,1.,0.,tr)
                  if(normpdf2d.eq.4) then
                     call pgscr(30,1.,1.,1.) !BG colour
-                    if(nival+1.eq.2) then
+                    if(nival.eq.2) then
                        call pgscr(31,1.,1.,0.) !Yellow
                        call pgscr(32,1.,0.,0.) !Red
                     end if
-                    if(nival+1.eq.3) then
+                    if(nival.eq.3) then
                        call pgscr(31,0.,0.,1.) !Blue
                        call pgscr(32,1.,1.,0.) !Yellow
                        call pgscr(33,1.,0.,0.) !Red
                     end if
-                    if(nival+1.eq.4) then
+                    if(nival.eq.4) then
                        call pgscr(31,0.,0.,1.) !Blue
                        call pgscr(32,0.,1.,0.) !Green
                        call pgscr(33,1.,1.,0.) !Yellow
                        !call pgscr(34,1.,0.5,0.) !Orange
                        call pgscr(34,1.,0.,0.) !Red
                     end if
-                    if(nival+1.eq.5) then
+                    if(nival.eq.5) then
                        call pgscr(31,0.,0.,1.) !Blue
                        call pgscr(32,0.,1.,0.) !Green
                        call pgscr(33,1.,1.,0.) !Yellow
                        call pgscr(34,1.,0.5,0.) !Orange
                        call pgscr(35,1.,0.,0.) !Red
                     end if
-                    call pgscir(30,30+nival+1)
+                    call pgscir(30,30+nival)
                     call pgimag(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,0.,1.,tr)
                  end if
               end if
@@ -3499,7 +3504,7 @@ program plotspins
                  ncont = 4 !Only use the first 4
               end if
               if(normpdf2d.eq.4) then
-                 ncont = nival+1
+                 ncont = nival
                  do i=1,ncont
                     cont(i) = max(1. - real(i-1)/real(ncont-1),0.001)
                     !if(plotsky.eq.1) cont(i) = 1.-cont(i)
@@ -3583,7 +3588,7 @@ program plotspins
               call pgsls(2)
               
               !Plot true value in 2D PDF
-              if(plotsky.eq.0) then
+              if(pltrue.ge.1.and.plotsky.eq.0) then
                  !call pgline(2,(/startval(ic,p1,1),startval(ic,p1,1)/),(/-1.e20,1.e20/))
                  !call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p2,1),startval(ic,p2,1)/))
                  
@@ -3695,7 +3700,7 @@ program plotspins
               !Print 2D probability ranges in title
               if(normpdf2d.eq.4.and. ((p1.eq.8.and.p2.eq.9) .or. (p1.eq.12.and.p2.eq.11))) then  !For sky position and orientation only
                  string = ' '
-                 do c = 1,nival+1
+                 do c = 1,nival
                     a = probareas(p1,p2,c,2)
                     if(a.lt.1.) then
                        write(string,'(F5.1,A3,F5.2,A7)')ivals(c)*100,'%:',a,'\(2218)'
@@ -3706,9 +3711,8 @@ program plotspins
                     else
                        write(string,'(F5.1,A3,I4,A7)')ivals(c)*100,'%:',nint(a),'\(2218)'
                     end if
-                    !write(*,'(2I4,ES13.3)')p1,c,a
-                    a = (real(c-1)/real(nival) - 0.5)*0.7 + 0.5
-                    call pgsci(30+nival+2-c)
+                    a = (real(c-1)/real(nival-1) - 0.5)*0.7 + 0.5
+                    call pgsci(30+nival+1-c)
                     call pgmtxt('T',0.5,a,0.5,trim(string))  !Print title
                  end do
                  call pgsci(1)
@@ -3839,20 +3843,20 @@ program plotspins
      write(o,'(///,A,/)')'1D PROBABILITY INTERVALS:'
      write(o,'(A,I3)')'Nival:',nival
      write(o,'(A22,$)')'Interval:'
-     do c=1,nival+1
+     do c=1,nival
         write(o,'(F21.5,A14,$)')ivals(c),''
      end do
      write(o,*)''
      
      write(o,'(A8,2x,$)')'param.'
-     do c=1,nival+1
+     do c=1,nival
         !write(o,'(2x,2A9,A8,$)')'rng1','rng2','in rnge'
         write(o,'(2x,2A12,A9,$)')'centre','delta','in rnge'
      end do
      write(o,*)''
      do p=par1,par2
         write(o,'(A8,2x,$)')trim(varnames(p))
-        do c=1,nival+1
+        do c=1,nival
            !write(o,'(2x,2F11.6,F6.3,$)')ranges(ic,c,p,1),ranges(ic,c,p,2),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
            if(fixedpar(p).eq.0) then
               write(o,'(2x,2F12.6,F7.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
@@ -3876,13 +3880,13 @@ program plotspins
      write(o,'(A,2I5)')'Nbin2dx,nbin2dy: ',nbin2dx,nbin2dy
      !write(o,*)''
      write(o,'(A28,$)')'Interval:'
-     do c=1,nival+1
+     do c=1,nival
         write(o,'(F19.5,$)')ivals(c)
      end do
      write(o,*)''
      
      write(o,'(A9,A19,$)')'params.',''
-     do c=1,nival+1
+     do c=1,nival
         write(o,'(A16,A3,$)')'delta','in'
      end do
      write(o,*)''
@@ -3890,9 +3894,9 @@ program plotspins
         p1 = pdf2dpairs(p,1)
         p2 = pdf2dpairs(p,2)
         write(o,'(2I4,2(2x,A8),2x,$)')p1,p2,trim(varnames(p1)),trim(varnames(p2))
-        do c=1,nival+1
+        do c=1,nival
            write(o,'(2x,F14.8,$)')probareas(p1,p2,c,1)
-           if(c.ge.nival+2-trueranges2d(p1,p2) .and. trueranges2d(p1,p2).ne.0) then
+           if(c.ge.nival+1-trueranges2d(p1,p2) .and. trueranges2d(p1,p2).ne.0) then
               write(o,'(A3,$)')'y'
            else
               write(o,'(A3,$)')'n'

@@ -13,7 +13,7 @@ module plotspins_settings
   integer :: chainsymbol,chainpli,pltrue,plstart,plmedian,plrange,plburn,pllmax,prvalues,smooth,fillpdf,normpdf1d,normpdf2d
   integer :: scloglpl,scchainspl,bmpxsz,bmpysz
   integer :: nmovframes,moviescheme,whitebg,unsharp,nival,ival0
-  real :: nburnfrac,autoburnin,ivals(nival1+1)
+  real :: nburnfrac,autoburnin,ivals(nival1)
   real :: scrsz,scrrat,pssz,psrat,scfac
 end module plotspins_settings
 !***************************************************************************************************
@@ -48,6 +48,7 @@ subroutine read_inputfile
   implicit none
   integer :: i,u,io,io1
   character :: bla,filename*99
+  real*8 :: dblvar
   filename = 'plotspins.dat'
   
   u = 15
@@ -71,7 +72,8 @@ subroutine read_inputfile
   end do
   read(u,*,iostat=io)nburnfrac
   read(u,*,iostat=io)autoburnin
-  read(u,*,iostat=io)maxchlen
+  read(u,*,iostat=io)dblvar
+  maxchlen = nint(dblvar)
   read(u,*,iostat=io)file
   read(u,*,iostat=io)colour
   read(u,*,iostat=io)quality
@@ -249,11 +251,11 @@ subroutine write_inputfile
   write(u,11)normpdf2d, 'normpdf2d',   "'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value,  4-2D probability intervals"
   write(u,11)nmovframes, 'nmovframes',   'Number of frames for the movie'
   write(u,11)moviescheme, 'moviescheme',   'Moviescheme (1-3): determines what panels to show in a movie frame; see source code'
-  write(u,12)nival,ival0, 'nival ival0',   'Number of probability intervals,  number of the default probability interval (ival0<=nival). 100% is added automatically for nival+1'
+  write(u,12)nival,ival0, 'nival ival0',   'Number of probability intervals,  number of the default probability interval (ival0<=nival)'
   do i=1,nival
      write(u,'(F9.5,$)')ivals(i)
   end do
-  write(u,*)'       Probability intervals (ivals())'
+  write(u,*)'       Probability intervals (ivals()). Values > 0.9999 will be treated as 100%'
   
   write(u,'(/,A)')' Output format:'
   write(u,21)scrsz, 'scrsz',   'Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8'

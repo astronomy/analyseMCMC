@@ -2,6 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    26: sluys, 27/11/2008
+     - small changes in plotspins:
+       - the 100% probability interval is no longer automatically included
+       - intervals larger than 99.99% are treated as 100% because of numerical problems
+       
     25: sluys, 27/11/2008
      - some small updates in plotspins:
        - print run time at end of run
