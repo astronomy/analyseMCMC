@@ -25,7 +25,7 @@ subroutine plotpdf1d(pp,lbl)
   integer :: pp,b,p1,io,f,nplvar,nchains,nbin,p(np),pp1,ic,wrap(nf,np),lw,detnan(nf,np),identical
   real :: x,startval(nf,np,2),stats(nf,np,6),ranges(nf,np,5),xmin1(nf,np),xmax1(nf,np),plshift
   real :: xbin1(nf,np,nbin1),ybin1(nf,np,nbin1),xbin(nbin1),ybin(nbin1),xmin,xmax,ymin,ymax,dx,yrange(2),xpeak
-  character :: fname1*99,fname2*99,fname*99,varnss(np)*99,pgvarnss(np)*99,pgunits(np)*99,lbl*99,str*99
+  character :: fname*99,varnss(np)*99,pgvarnss(np)*99,pgunits(np)*99,lbl*99,str*99
   
   
   !varnss(1:15)  = (/'log L','Mc','eta','t_c','d_L','a_spin','theta_SL','R.A.','Dec.','phi_c','theta_J0','phi_J0','alpha_c','M1','M2'/)
@@ -40,8 +40,6 @@ subroutine plotpdf1d(pp,lbl)
   
   detnan = 0 !Used to detect NaNs
   do f=1,nf
-     !if(f.eq.1) fname = fname1
-     !if(f.eq.2) fname = fname2
      fname = fnames(f)
      if(fname(1:3).eq.'   ') cycle
      !print*,f,trim(fname)
@@ -88,6 +86,8 @@ subroutine plotpdf1d(pp,lbl)
   xmin = minval(xmin1(1:nf,pp1))
   xmax = maxval(xmax1(1:nf,pp1))
   dx = abs(xmax-xmin)
+  if(dx.lt.1.e-30) dx = xmin !xmin=xmax
+  if(dx.lt.1.e-30) dx = 0.1  !If it's still zero (i.e. xmin=xmax=0)
   xmin = xmin - 0.1*dx
   xmax = xmax + 0.1*dx
   ymin = 0.
@@ -105,6 +105,7 @@ subroutine plotpdf1d(pp,lbl)
   
   ymax = ymax*1.1
   if(nf.eq.1) ymax = ymax*1.2 !Make room for numbers
+  if(ymax.lt.1.e-30) ymax = 1.
   
   yrange = (/-1.e30,1.e30/) !Used to plot true value, probability range
   if(nf.eq.1) yrange = (/-1.e30,ymax*0.9/)
@@ -296,11 +297,11 @@ subroutine plotpdf2d(pp1,pp2,lbl)
   use comp_pdfs_settings
   implicit none
   integer, parameter :: np=15,nbinx1=500,nbiny1=500
-  integer :: pp,pp1,pp2,bx,by,p1,p2,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2,nchains,nbinx,nbiny,p(np),ic,lw,c,foundit
+  integer :: pp1,pp2,bx,by,p1,p2,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2,nchains,nbinx,nbiny,ic,lw,c,foundit
   integer :: identical
   real :: startval(nf,np,2),stats(nf,np,6),ranges(nf,np,5),xmin1(nf,np),xmax1(nf,np),ymin1(nf,np),ymax1(nf,np),x
   real :: xmin,xmax,ymin,ymax,dx,dy,z(nf,nbinx1,nbiny1),z1(nbinx1,nbiny1),tr(nf,np*np,6),cont(11)
-  character :: fname1*99,fname2*99,fname*99,pgvarnss(np)*99,pgunits(np)*99,lbl*99,str*99
+  character :: fname*99,pgvarnss(np)*99,pgunits(np)*99,lbl*99,str*99
   
   
   pgvarnss(1:15)  = (/'log L','M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.','\(2147)\dc\u','acos(J\(2236)N)','\(2149)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u'/)
@@ -315,8 +316,6 @@ subroutine plotpdf2d(pp1,pp2,lbl)
   
   do f=1,nf
      foundit = 0
-     !if(f.eq.1) fname = fname1
-     !if(f.eq.2) fname = fname2
      fname = fnames(f)
      if(fname(1:3).eq.'   ') cycle
      !print*,f,trim(fname)
@@ -415,6 +414,10 @@ subroutine plotpdf2d(pp1,pp2,lbl)
   
   dx = xmax - xmin
   dy = ymax - ymin
+  if(abs(dx).lt.1.e-30) dx = xmax  !If xmin=xmax
+  if(abs(dx).lt.1.e-30) dx = 0.1   !If xmin=xmax=0
+  if(abs(dy).lt.1.e-30) dy = ymax  !If ymin=ymax
+  if(abs(dy).lt.1.e-30) dy = 0.1   !If ymin=ymax=0
   
   lw = 3
   call pgsls(1)
@@ -569,8 +572,8 @@ subroutine plotwave(fname1,thingy,lbl)
   implicit none
   integer, parameter :: nf=1,n1=1e6
   integer :: i,f,n(nf),io,thingy,lw
-  integer :: nfrx,nfry,frx,fry,fr,colours(nf)
-  real :: xwinmin,xwinmax,ywinmin,ywinmax,dxwin,dywin,xfrmin,xfrmax,yfrmin,yfrmax,sch
+  integer :: nfrx,nfry
+  real :: xwinmin,xwinmax,ywinmin,ywinmax
   real :: t(nf,n1),h(nf,n1),dx,dy,xmin,xmax,ymin,ymax
   real*8 :: t1,t0,m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
   character :: fname*99,fname1*99,fname2*99,bla,lbl*99
@@ -664,7 +667,7 @@ end subroutine plotwave
 subroutine read_inputfile
   use comp_pdfs_settings
   implicit none
-  integer :: u,i,io
+  integer :: u,io
   character :: bla
   
   u = 14

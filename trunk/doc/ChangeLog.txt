@@ -2,6 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    24: sluys, 26/11/2008
+     - plotspins: automatic detection of MCMC parameters that were fixed
+     - plotspins: output 0's when saving the pdf of a fixed parameter to prevent NaNs
+     - comp_pdf:  improved handling of fixed MCMC parameters
+    
     23: sluys, 26/11/2008
      - several improvements in plotspins, use new input file in doc/ !!!
        - improved screen output at file read

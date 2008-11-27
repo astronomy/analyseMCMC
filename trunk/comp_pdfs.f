@@ -5,7 +5,7 @@ program comp_pdfs
   use comp_pdfs_settings
   integer :: nfrx,nfry,frx,fry,fr,fr1,f,i,system
   real :: size,rat,xwinmin,xwinmax,ywinmin,ywinmax,dxwin,dywin,xfrmin,xfrmax,yfrmin,yfrmax,dxfr,dyfr,space
-  character :: fname1*99,fname2*99,lbl*99,varnss(15)*99,outname*99,exts(0:3)*4
+  character :: lbl*99,varnss(15)*99,outname*99,exts(0:3)*4
   
   write(*,*)
   if(iargc().eq.1) then
@@ -121,8 +121,6 @@ program comp_pdfs
         end if
         call pgsvp(xfrmin,xfrmax,yfrmin,yfrmax)
         
-        !fname1 = '1d1_0.50_055_pdf1d.dat'
-        !fname2 = '2d12_0.50_055_pdf1d.dat'
         lbl = ' '
         !fr1 = fr+1 !The parameter that gets plotted: 2-13
         fr1 = plpars(fr) !The parameter that gets plotted
@@ -141,8 +139,6 @@ program comp_pdfs
            call plotpdf2d(plpars2d(1),plpars2d(2),lbl)
         end if
         
-        !fname1 = '1d1_0.50_055_pdf2d.dat'
-        !fname2 = '2d12_0.50_055_pdf2d.dat'
         !lbl = 'd)'
         !if(fr.eq.4) call plotpdf2d(fname1,fname2,14,15,lbl)    !M1,M2
         

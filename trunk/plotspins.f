@@ -18,8 +18,8 @@ program plotspins
   real, allocatable :: dat(:,:,:),alldat(:,:,:),pldat(:,:,:)
   character :: varnames(npar1)*8,pgunits(npar1)*99,pgvarns(npar1)*99,pgvarnss(npar1)*99,pgorigvarns(npar1)*99,infile*100,infiles(nchs)*100,str*99,str1*99,str2*99,bla*10,command*99
   
-  integer :: nn,nn1,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nlogl1,nlogl2,ksn1,ksn2,iloglmax,icloglmax,ci
-  real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),rhat(npar1),totrelvar,ksdat1(narr1),ksdat2(narr1),ksd,ksprob,loglmax,loglmaxs(nchs)
+  integer :: nn,nn1,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nlogl1,nlogl2,ksn1,ksn2,iloglmax,icloglmax,ci,nrhat
+  real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),rhat(npar1),totrhat,totrelvar,ksdat1(narr1),ksdat2(narr1),ksd,ksprob,loglmax,loglmaxs(nchs)
   character :: ch
   
   integer :: samplerate(nchs,ndets),samplesize(nchs,ndets),FTsize(nchs,ndets),detnr(nchs,ndets)
@@ -37,7 +37,7 @@ program plotspins
   character :: outputname*99,outputdir*99,psclr*9,colournames(15)*20
   
   integer :: o,p,p1,p2,par1,par2,nr,c,c0,nstat,wrap(nchs,npar1),npar,ncolours,colours(10),nsymbols,symbols(10),symbol,defcolour,plotthis,tempintarray(99)
-  integer :: truerange2d,trueranges2d(npar1,npar1)
+  integer :: truerange2d,trueranges2d(npar1,npar1),fixedpar(npar1),nfixedpar
   real :: range,minrange,range1,range2,drange,maxgap,ranges(nchs,nival1+1,npar1,nr1),ival,wrapival,centre,rashift,shift(nchs,npar1),plshift
   real :: probarea(nival1+1),probareas(npar1,npar1,nival1+1,2)
   real :: median,medians(npar1),mean(npar1),stdev1(npar1),stdev2(npar1),var1(npar1),var2(npar1),absvar1(npar1),absvar2(npar1)
@@ -663,6 +663,16 @@ program plotspins
   ! **********************************************************************************************************************************
   
   
+  !Check which parameters were fixed during the MCMC run
+  fixedpar = 0
+  do ic=1,nchains
+     do p=par1,par2
+        if( abs(minval(alldat(ic,p,5:n(ic))) - maxval(alldat(ic,p,5:n(ic))) ) .lt. 1.d-30) fixedpar(p) = 1  !Doesn't matter in which chain this happens
+     end do
+  end do
+  nfixedpar = sum(fixedpar)
+  
+  
   !Sort all data and find the interval limits for the default probability interval for the wrapable parameters
   if(prprogress.ge.2) write(*,*)''
   ivals(nival+1) = 1. !The last probability interval is always 100% !Is this necessary?
@@ -755,10 +765,6 @@ program plotspins
         !if(p.eq.8) write(*,'(I3,A8,4x,6F10.5,I4)')ic,varnames(p),y1,y2,minrange,centre,minval(alldat(ic,p,1:n(ic))),maxval(alldat(ic,p,1:n(ic))),wrap(ic,p)
         if(abs(abs(minval(alldat(ic,p,1:n(ic)))-maxval(alldat(ic,p,1:n(ic))))-2*pi).lt.1.e-3) wrap(ic,p)=1 !If centre is around pi, still needs to be flagged 'wrap' to plot PDF
      end do !p
-     
-     
-     
-     
      
      
      
@@ -989,6 +995,7 @@ program plotspins
      end if
      
      
+     
      !**********************************************************************************************
      !******   PRINT STATISTICS   ******************************************************************
      !**********************************************************************************************
@@ -1004,7 +1011,8 @@ program plotspins
            write(o,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)')'param.','model','median','mean','Lmax','stdev1','stdev2','abvar1','abvar2',  &
                 'rng_c','rng1','rng2','drng','d/drng','delta','ok?','result (',ivals(c)*100,'%)'
            do p=par1,par2
-              if(stdev1(p).lt.1.d-20) cycle !Parameter was probably not fitted
+              !if(stdev1(p).lt.1.d-20) cycle !Parameter was probably not fitted
+              if(fixedpar(p).eq.1) cycle !Parameter was not fitted
               write(o,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4,$)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absvar1(p),  &
                    absvar2(p),ranges(ic,c,p,3),ranges(ic,c,p,1),ranges(ic,c,p,2),ranges(ic,c,p,4),  &
                    !abs(startval(ic,p,1)-stats(ic,p,1))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt median
@@ -1160,13 +1168,29 @@ program plotspins
      if(prconv.ge.1) then
         write(*,*)''
         if(prconv.ge.2) write(*,'(A,I7,A)')'  Convergence parameters for',nn,' iterations:'
-        write(*,'(18x,20A11)')varnames(par1:min(par2,13))
+        write(*,'(A18,$)')''
+        do p=par1,min(par2,npar0)
+           if(fixedpar(p).eq.1) cycle
+           write(*,'(A11,$)')trim(varnames(p))
+        end do
+        write(*,'(A11)')'total'
+        
         if(prconv.ge.2) then
            write(*,'(A)')'  Means:'
            do ic=1,nchains0
-              write(*,'(I16,A2,20F11.6)')ic,': ',chmean(ic,par1:min(par2,13))
+              write(*,'(I16,A2,$)')ic,': '
+              do p=par1,min(par2,npar0)
+                 if(fixedpar(p).eq.1) cycle
+                 write(*,'(F11.6,$)')chmean(ic,p)
+              end do
+              write(*,*)
            end do
-           write(*,'(A18,20F11.6)')'           Total: ',totmean(par1:min(par2,13))
+           write(*,'(A18,$)')'           Total: '
+           do p=par1,min(par2,npar0)
+              if(fixedpar(p).eq.1) cycle
+              write(*,'(F11.6,$)')totmean(p)
+           end do
+           write(*,*)''
            
            write(*,*)''
            write(*,'(A)')'  Variances:'
@@ -1180,7 +1204,8 @@ program plotspins
         totrelvar = 1.d0
         ntotrelvar = 0
         do p=par1,min(par2,13)
-           if(abs(chvar1(ic,p)).gt.1.e-30) then  !The parameters that were not fitted or have a variance of 0
+           !if(abs(chvar1(ic,p)).gt.1.e-30) then  !Take only the parameters that were fitted and have a variance > 0
+           if(fixedpar(p).eq.0 .and.abs(chvar1(ic,p)).gt.1.e-30) then  !Take only the parameters that were fitted and have a variance > 0
               if(chvar1(ic,p).lt.0.5*chvar(p)) lowvar(p) = 1  !Too (?) low variance, mark it
               if(chvar1(ic,p).gt.2*chvar(p))  highvar(p) = 1  !Too (?) high variance, mark it
               totrelvar = totrelvar * chvar1(ic,p)/chvar(p) !Take geometric mean
@@ -1201,6 +1226,7 @@ program plotspins
            if(totrelvar.gt.2.0) ch = '#'
            write(*,'(F8.3,A1,$)')totrelvar,ch
            do p=par1,min(par2,13)
+              if(fixedpar(p).eq.1) cycle
               ch = ' '
               if(lowvar(p).eq.1) ch = '*'
               if(highvar(p).eq.1) ch = '#'
@@ -1210,15 +1236,45 @@ program plotspins
         end if !if(prconv.ge.2)
      end do
      if(prconv.ge.2) then
-        write(*,'(A9,9x,20F11.5)')'  Total: ',chvar(par1:min(par2,13))
+        write(*,'(A18,$)')'  Total:          '
+        do p=par1,min(par2,npar0)
+           if(fixedpar(p).eq.1) cycle
+           write(*,'(F11.5,$)')chvar(p)
+        end do
+        write(*,*)''
         
         write(*,*)''
         write(*,'(A)')'  Variances:'
-        write(*,'(A18,20ES11.3)')'   Within chains: ',chvar(par1:min(par2,13))
-        write(*,'(A18,20ES11.3)')'  Between chains: ',totvar(par1:min(par2,13))
+        write(*,'(A18,$)')'   Within chains: '
+        do p=par1,min(par2,npar0)
+           if(fixedpar(p).eq.1) cycle
+           write(*,'(ES11.3,$)')chvar(p)
+        end do
+        write(*,*)
+        write(*,'(A18,$)')'  Between chains: '
+        do p=par1,min(par2,npar0)
+           if(fixedpar(p).eq.1) cycle
+           write(*,'(ES11.3,$)')totvar(p)
+        end do
+        write(*,*)
      end if
      
-     if(prconv.ge.1) write(*,'(A18,20F11.5)')'     Convergence: ',rhat(par1:min(par2,13)),sum(rhat(par1:min(par2,13)))/dble(min(par2,13)-par1+1)
+     if(prconv.ge.1) then
+        write(*,'(A18,$)')'     Convergence: '
+        totrhat = 1.d0
+        nrhat = 0
+        do p=par1,min(par2,npar0)
+           if(fixedpar(p).eq.1) cycle
+           write(*,'(F11.5,$)')rhat(p)
+           if(p.gt.1) then !Don't include logL
+              totrhat = totrhat * rhat(p)
+              nrhat = nrhat + 1
+           end if
+        end do
+        !write(*,'(F11.5)')sum(rhat(par1:min(par2,13)))/dble(min(par2,13)-par1+1)
+        !write(*,'(F11.5)')totrhat/dble(nrhat)
+        write(*,'(F11.5)')totrhat**(1.d0/dble(nrhat))
+     end if
      !write(*,*)''
   end if
   
@@ -2781,6 +2837,7 @@ program plotspins
      if(savepdf.eq.1) then
         open(unit=30,action='write',form='formatted',status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__pdf1d.dat')
         write(30,'(3I6,T100,A)')nplvar,nchains,nbin1d,'Total number of plot variables, total number of chains, number of bins'
+        !write(30,'(3I6,T100,A)')nplvar-nfixedpar,nchains,nbin1d,'Total number of plot variables, total number of chains, number of bins'
      end if
      
      !do p=par1,par2
@@ -2862,6 +2919,8 @@ program plotspins
            
            !Save binned data
            if(savepdf.eq.1) then
+           !if(savepdf.eq.1.and.fixedpar(p).eq.0) then
+              if(fixedpar(p).eq.1) ybin1 = 0.  !Prevent NaNs
               write(30,'(3I6,T100,A)')ic,p,wrap(ic,p),'Chain number, variable number, and wrap'
               write(30,'(2ES15.7,T100,A)')startval(ic,p,1:2),'True and starting value'
               write(30,'(6ES15.7,T100,A)')stats(ic,p,1:6),'Stats: median, mean, absvar1, absvar2, stdev1, stdev2'
