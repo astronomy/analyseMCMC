@@ -22,7 +22,7 @@ subroutine plotpdf1d(pp,lbl)
   use comp_pdfs_settings
   implicit none
   integer, parameter :: np=15,nbin1=500
-  integer :: pp,b,p1,io,f,nplvar,nchains,nbin,p(np),pp1,ic,wrap(nf,np),lw,detnan,identical
+  integer :: pp,b,p1,io,f,nplvar,nchains,nbin,p(np),pp1,ic,wrap(nf,np),lw,detnan(nf,np),identical
   real :: x,startval(nf,np,2),stats(nf,np,6),ranges(nf,np,5),xmin1(nf,np),xmax1(nf,np),plshift
   real :: xbin1(nf,np,nbin1),ybin1(nf,np,nbin1),xbin(nbin1),ybin(nbin1),xmin,xmax,ymin,ymax,dx,yrange(2),xpeak
   character :: fname1*99,fname2*99,fname*99,varnss(np)*99,pgvarnss(np)*99,pgunits(np)*99,lbl*99,str*99
@@ -63,11 +63,16 @@ subroutine plotpdf1d(pp,lbl)
         read(10,'(2E15.7)')xmin1(f,p1),xmax1(f,p1) !'Xmin and Xmax of PDF'
         do b=1,nbin+1
            !read(10,'(2E15.7)',iostat=io)xbin1(f,p1,b),ybin1(f,p1,b)
-           read(10,*,iostat=io)xbin1(f,p1,b),ybin1(f,p1,b)
-           if(io.ne.0) write(*,'(A,I4,A1,I4,A1)')'  Error reading file '//trim(fname)//', variable '//trim(varnss(p1))//', bin', &
-                b,'/',nbin,'.'
-           if(p(p1).eq.pp .and. (.not.ybin1(f,p1,b).gt.-1.e30) .and. (.not.ybin1(f,p1,b).lt.1.e30)) then  !Then it's probably a NaN
-              detnan = 1
+           read(10,*,iostat=io)xbin1(f,p1,b),ybin1(f,p1,b)  !Formatted read doesn't work for gfortran when NaNs are present
+           if(io.ne.0) then
+              if(detnan(f,p1).eq.0) write(*,'(A,I4,A1,I4,A1)')'  Warning while reading file '//trim(fname)//', variable '// &
+                   trim(varnss(p1))//', bin',b,'/',nbin,'.'
+              ybin1(f,p1,b) = 0.0
+              detnan(f,p1) = 1
+           end if
+           !if(p(p1).eq.pp .and. (.not.ybin1(f,p1,b).gt.-1.e30) .and. (.not.ybin1(f,p1,b).lt.1.e30)) then  !Then it's probably a NaN
+           if(p(p1).eq.pp .and. ybin1(f,p1,b).ne.ybin1(f,p1,b) .and. ybin1(f,p1,b).ne.ybin1(f,p1,b)) then  !Then it's probably a NaN
+              detnan(f,p1) = 1
               ybin1(f,p1,b) = 0.
            end if
         end do
@@ -78,7 +83,7 @@ subroutine plotpdf1d(pp,lbl)
   end do !f
   
   !print*,pp1
-  if(detnan.gt.0) write(*,'(A)')'  Warning:  I think I detected NaNs and set them to zero in the PDF for '//trim(varnss(pp))//'.'
+  if(sum(detnan).gt.0) write(*,'(A)')'  Warning:  I think I detected NaNs and set them to zero in the PDF for '//trim(varnss(pp))//'.'
   
   xmin = minval(xmin1(1:nf,pp1))
   xmax = maxval(xmax1(1:nf,pp1))

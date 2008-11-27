@@ -8,7 +8,7 @@ module plotspins_settings
   integer, parameter :: nchs=10,npar1=15,nival1=9
   integer :: plvars(npar1),nplvar,nbin1d,nbin2dx,nbin2dy,npdf2d,pdf2dpairs(250,2),panels(2)
   integer :: thin,nburn(nchs),file,colour,quality,reverseread,update,mergechains,wrapdata,changevar,maxchlen
-  integer :: prprogress,prruninfo,prinitial,prstat,prcorr,prival,prconv,savestats,savepdf       
+  integer :: prprogress,prruninfo,prchaininfo,prinitial,prstat,prcorr,prival,prconv,savestats,savepdf       
   integer :: plot,combinechainplots,pllogl,plchain,plparl,pljump,rdsigacc,plsigacc,plpdf1d,plpdf2d,placorr,plotsky,plmovie       
   integer :: chainsymbol,chainpli,pltrue,plstart,plmedian,plrange,plburn,pllmax,prvalues,smooth,fillpdf,normpdf1d,normpdf2d
   integer :: scloglpl,scchainspl,bmpxsz,bmpysz
@@ -84,6 +84,7 @@ subroutine read_inputfile
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)prprogress
   read(u,*,iostat=io)prruninfo
+  read(u,*,iostat=io)prchaininfo
   read(u,*,iostat=io)prinitial
   read(u,*,iostat=io)prstat
   read(u,*,iostat=io)prcorr
@@ -202,12 +203,13 @@ subroutine write_inputfile
   
   
   write(u,'(/,A)')' Select what output to print to screen and write to file:'
-  write(u,11)prprogress, 'prprogress',   'Print general messages about the progress of the program: 0-no, 1-some, 2-more'
-  write(u,11)prruninfo, 'prruninfo',   'Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files'
+  write(u,11)prprogress, 'prprogress',   'Print general messages about the progress of the program: 0-no, 1-some, 2-more, 3-debug output'
+  write(u,11)prruninfo, 'prruninfo',   'Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files'
+  write(u,11)prchaininfo, 'prchaininfo',   'Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per chain (file name, plot colour, # iterations, burnin, Lmax, # data points)'
   write(u,11)prinitial, 'prinitial',   'Print true values, starting values and their difference'
-  write(u,11)prstat, 'prstat',   'Print statistics: 0-no, 1-yes'
+  write(u,11)prstat, 'prstat',   'Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals'
   write(u,11)prcorr, 'prcorr',   'Print correlations: 0-no, 1-yes'
-  write(u,11)prival, 'prival',   'Print interval info: 0-no, 1-some, 2-more'
+  write(u,11)prival, 'prival',   'Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both'
   write(u,11)prconv, 'prconv',   'Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-medians, stdevs, etc. too.'
   write(u,11)savestats, 'savestats',   'Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS'
   write(u,11)savepdf, 'savepdf',   'Save the binned data for 1d and/or 2d pdfs (depending on plpdf1d and plpdf2d).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying'
@@ -244,7 +246,7 @@ subroutine write_inputfile
   write(u,11)smooth, 'smooth',   'Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!'
   write(u,11)fillpdf, 'fillpdf',   'Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched'
   write(u,11)normpdf1d, 'normpdf1d',   'Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains'
-  write(u,11)normpdf2d, 'normpdf2d',   "'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value"
+  write(u,11)normpdf2d, 'normpdf2d',   "'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value,  4-2D probability intervals"
   write(u,11)nmovframes, 'nmovframes',   'Number of frames for the movie'
   write(u,11)moviescheme, 'moviescheme',   'Moviescheme (1-3): determines what panels to show in a movie frame; see source code'
   write(u,12)nival,ival0, 'nival ival0',   'Number of probability intervals,  number of the default probability interval (ival0<=nival). 100% is added automatically for nival+1'
@@ -266,7 +268,7 @@ subroutine write_inputfile
   
   write(u,'(/,A)')' Data settings:'
   write(u,'(A)')' Plot variables:  1:logL, 2:Mc, 3:eta, 4:tc, 5:dL, 6:a, 7:th, 8:RA, 9:dec, 10:phi, 11:thJ, 12:phiJ, 13:alpha, 14:M1, 15:M2'
-  write(u,11)nplvar, 'nplvar',   'Number of plot variables for 1D PDFs (and chain, jump plots, max 15).  Put the variables in the line below:'
+  write(u,11)nplvar, 'nplvar',   'Number of plot variables for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savepdf=1. Put the variables in the line below:'
   do i=1,nplvar
      write(u,'(I3,$)')plvars(i)
   end do
@@ -1078,13 +1080,13 @@ end subroutine ludcmp
 
 
 !************************************************************************************************************************************
-subroutine plotthesky(bx1,bx2,by1,by2)
+subroutine plotthesky(bx1,bx2,by1,by2,rashift)
   implicit none
   integer, parameter :: ns=9110, nsn=80
   integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,cf,spld,n,prslbl,rv
-  real*8 :: ra(ns),dec(ns),d2r,r2d,r2h,pi,dx1,dx2,dy,ra1,dec1,rev,par
+  real*8 :: ra(ns),dec(ns),d2r,r2d,r2h,pi,tpi,dx1,dx2,dy,ra1,dec1,rev,par
   real :: pma,pmd,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
-  real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,bx1,bx2,by1,by2,x,y,mlim
+  real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,bx1,bx2,by1,by2,x,y,mlim,rashift
   character :: cn(100)*3,con(100)*20,name*10,vsopdir*99,sn(ns)*10,snam(nsn)*10,sni*10,getsname*10,mult,var*9
   
   mlim = 6.
@@ -1093,8 +1095,8 @@ subroutine plotthesky(bx1,bx2,by1,by2)
   schlbl = 1.
   schfac = 1.
   schcon = 1.
-  plstar = 4
-  plcst = 1
+  plstar = 1  !0-no, 1-yes no label, 2-symbol, 3-name, 4-name or symbol, 5-name and symbol
+  plcst = 2   !0-no, 1-figures, 2-figures+abbreviations, 3-figures+names
   
   prinf = 150.**2
   
@@ -1105,6 +1107,7 @@ subroutine plotthesky(bx1,bx2,by1,by2)
   call pgscr(4,x,x,1.) !Blue (for constellations)
   
   pi = 4*datan(1.d0)
+  tpi = 2*pi
   d2r = pi/180.d0
   r2d = 180.d0/pi
   r2h = 12.d0/pi
@@ -1118,13 +1121,14 @@ subroutine plotthesky(bx1,bx2,by1,by2)
   end if
   
   !Read BSC
-  vsopdir = '/home/sluys/diverse/popular/fortran/VSOP87/'           !Linux pc
+  vsopdir = '/home/sluys/diverse/popular/TheSky/'           !Linux pc
   open(unit=20,form='formatted',status='old',file=trim(vsopdir)//'data/bsc.dat')
   rewind(20)
   do i=1,ns
      read(20,320)name,ra(i),dec(i),pma,pmd,rv,vm(i),par,mult,var
 320  format(A10,1x,2F10.6,1x,2F7.3,I5,F6.2,F6.3,A2,A10)
      sn(i) = getsname(name)
+     ra(i) = mod(ra(i)+rashift,tpi)-rashift
   end do
   close(20)
 
@@ -1153,7 +1157,8 @@ subroutine plotthesky(bx1,bx2,by1,by2)
      !call eq2xy(ra1,dec1,l0,b0,x1,y1)
      !constx(i) = x1
      !consty(i) = y1
-     constx(i) = real(ra1*r2h)
+     !constx(i) = real(ra1*r2h)
+     constx(i) = real((mod(ra1+rashift,tpi)-rashift)*r2h)
      consty(i) = real(dec1*r2d)
   end do
 340 close(40)
@@ -1246,8 +1251,8 @@ subroutine plotthesky(bx1,bx2,by1,by2)
         do i=1,nsn
            if(vm(snr(i)).lt.max(snlim,1.4)) then  !Regulus (1.35) will still be plotted, for conjunction maps
               !call eq2xy(ra(snr(i)),dec(snr(i)),l0,b0,x,y)
-              x = real(ra(snr(i)))
-              y = real(dec(snr(i)))
+              x = real(ra(snr(i))*r2h)
+              y = real(dec(snr(i))*r2d)
               if(x.lt.bx1.or.x.gt.bx2.or.y.lt.by1.or.y.gt.by2) cycle
               call pgtext(x+0.02*sz1,y-0.02*sz1,snam(i))
            end if
@@ -1718,7 +1723,7 @@ end function dotproduct
 !************************************************************************
 subroutine crossproduct(vec1,vec2,crpr) !Compute the cross (outer) product of two cartesian vectors
   implicit none
-  real*8 :: vec1(3),vec2(3),crpr(3),veclen
+  real*8 :: vec1(3),vec2(3),crpr(3)!,veclen
   crpr(1) = vec1(2)*vec2(3) - vec1(3)*vec2(2)
   crpr(2) = vec1(3)*vec2(1) - vec1(1)*vec2(3)
   crpr(3) = vec1(1)*vec2(2) - vec1(2)*vec2(1)
@@ -1777,7 +1782,7 @@ subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) !Compute the inclination and
   implicit none
   !pl,ol in [0,2pi[;  pb,ob in [-pi,pi]
   real*8 :: pl,pb,ol,ob
-  real*8 :: p(3),o(3),i,dotproduct,psi,polangle,drevpi
+  real*8 :: p(3),o(3),i,dotproduct,psi,polangle!,drevpi
   
   call ang2vec(pl,pb,p)       !Position normal vector
   call ang2vec(ol,ob,o)       !Orientation normal vector
@@ -1796,7 +1801,7 @@ subroutine compute_incli_posang(pl,pb,ol,ob, i,psi) !Compute the inclination and
   implicit none
   !pl,ol in [0,2pi[;  pb,ob in [-pi,pi]
   real*8 :: pl,pb,ol,ob
-  real*8 :: p(3),o(3),i,dotproduct,psi,posangle,drevpi
+  real*8 :: p(3),o(3),i,dotproduct,psi,posangle!,drevpi
   
   call ang2vec(pl,pb,p)       !Position normal vector
   call ang2vec(ol,ob,o)       !Orientation normal vector
@@ -1815,7 +1820,7 @@ subroutine detectorvector(d1,d2,jd)  !Determine the sky position at which the ve
   implicit none
   integer :: d1,d2
   real*8 :: jd,detcoords(3,2),vec1(3),vec2(3),dvec(3),l,b
-  
+  jd = 0 !get rid of warnings
   detcoords(1,:) = (/-119.41,46.45/)  !H1; l,b
   detcoords(2,:) = (/-90.77,30.56/)   !L1
   detcoords(3,:) = (/10.50,43.63/)    !V

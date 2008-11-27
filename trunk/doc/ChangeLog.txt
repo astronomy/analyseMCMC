@@ -2,6 +2,14 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    23: sluys, 26/11/2008
+     - several improvements in plotspins, use new input file in doc/ !!!
+       - improved screen output at file read
+       - improved control over screen output (new variable prchaininfo)
+       - new options for prival
+       - started global determination of panel arrangement
+       - skymap works again
+    
     20: sluys, 25/11/2008
      - probability-interval settings now in input file, use new plotspins.dat from doc/
     

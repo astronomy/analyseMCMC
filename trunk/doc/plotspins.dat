@@ -17,15 +17,16 @@
          1           changevar     Change variables (e.g. logd->d, kappa->theta_SL, rad->deg)
 
  Select what output to print to screen and write to file:
-         2          prprogress     Print general messages about the progress of the program: 0-no, 1-some, 2-more
-         0           prruninfo     Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files
+         1          prprogress     Print general messages about the progress of the program: 0-no, 1-some, 2-more, 3-debug output
+         0           prruninfo     Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files
+         1         prchaininfo     Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per chain (file name, plot colour, # iterations, burnin, Lmax, # data points)
          0           prinitial     Print true values, starting values and their difference
-         1              prstat     Print statistics: 0-no, 1-yes
+         1              prstat     Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals
          0              prcorr     Print correlations: 0-no, 1-yes
-         0              prival     Print interval info: 0-no, 1-some, 2-more
+         0              prival     Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both
          1              prconv     Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-medians, stdevs, etc. too.
-         1           savestats     Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
-         1             savepdf     Save the binned data for 1d and/or 2d pdfs (depending on plpdf1d and plpdf2d).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
+         0           savestats     Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
+         0             savepdf     Save the binned data for 1d and/or 2d pdfs (depending on plpdf1d and plpdf2d).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
 
  Select which plots to make:
          1                plot     0: plot nothing at all, 1: plot the items selected below
@@ -57,7 +58,7 @@
          3              smooth     Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!
          1             fillpdf     Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
          1           normpdf1d     Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains
-         4           normpdf2d     'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value
+         4           normpdf2d     'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value,  4-2D probability intervals
          1          nmovframes     Number of frames for the movie
          3         moviescheme     Moviescheme (1-3): determines what panels to show in a movie frame; see source code
     3    2         nival ival0     Number of probability intervals,  number of the default probability interval (ival0<=nival). 100% is added automatically for nival+1
@@ -76,12 +77,12 @@
 
  Data settings:
  Plot variables:  1:logL, 2:Mc, 3:eta, 4:tc, 5:dL, 6:a, 7:th, 8:RA, 9:dec, 10:phi, 11:thJ, 12:phiJ, 13:alpha, 14:M1, 15:M2
-        15              nplvar     Number of plot variables for 1D PDFs (and chain, jump plots, max 15).  Put the variables in the line below:
+        15              nplvar     Number of plot variables for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savepdf=1. Put the variables in the line below:
   1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 
     0    0              panels     Number of for 1D plots in x,y direction: 0: autodetermine
-       150              nbin1d     Number of bins for 1D PDFs
-       200             nbin2dx     Number of bins in x-direction for 2D PDFs
-       150             nbin2dy     Number of bins in y-direction for 2D PDFs
+       100              nbin1d     Number of bins for 1D PDFs
+       100             nbin2dx     Number of bins in x-direction for 2D PDFs
+        75             nbin2dy     Number of bins in y-direction for 2D PDFs
          2              npdf2d     Number of 2D-PDF plots to make
     8    9          pdf2dpairs     Pairs of parameters to plot a 2D PDF for
    12   11          pdf2dpairs     Pairs of parameters to plot a 2D PDF for
