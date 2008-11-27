@@ -12,8 +12,8 @@ program plotspins
   real :: sig(npar1,nchs,narr1),acc(npar1,nchs,narr1),avgtotthin
   real :: x(nchs,nchs*narr1),xx(nchs*narr1),yy(nchs*narr1),zz(nchs*narr1)
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ybin2(:),ysum(:),yconv(:),ycum(:)  !These depend on nbin1d, allocate after reading input file
-  real :: a,rat,plx,ply!,r2d,r2h
-  real*8 :: t,t0,dvar,dvar1,dvar2,nullh!,pi,tpi
+  real :: a,rat,plx,ply
+  real*8 :: t,t0,dvar,dvar1,dvar2,nullh
   real*8 :: dra,ddec,dtj,dpj,din,dpa,ra
   real, allocatable :: dat(:,:,:),alldat(:,:,:),pldat(:,:,:)
   character :: varnames(npar1)*8,pgunits(npar1)*99,pgvarns(npar1)*99,pgvarnss(npar1)*99,pgorigvarns(npar1)*99,infile*100,infiles(nchs)*100,str*99,str1*99,str2*99,bla*10,command*99
@@ -27,8 +27,8 @@ program plotspins
   real*8 :: FTstart(nchs,ndets)
   character :: detnames(nchs,ndets)*14,detname*14,string*99
   
-  integer :: npdf,ncont!,nfx,nfy,fx,fy
-  real :: x0,x1,x2,y1,y2,dx,dy,xmin,xmax,ymin,ymax,xmin1,xmax1,xpeak!,ymin1,ymax1,ymaxs(nchs+2)
+  integer :: npdf,ncont
+  real :: x0,x1,x2,y1,y2,dx,dy,xmin,xmax,ymin,ymax,xmin1,xmax1,xpeak
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
   real :: coefs(100),coefs1(100),cont(11),tr(6)
   
@@ -49,8 +49,11 @@ program plotspins
   character :: bmpxpix*99,unsharplogl*99,unsharpchain*99,unsharppdf1d*99,unsharppdf2d*99
   
   integer :: iframe,nplt
-  real*8 :: timestamp,ts1,ts2
+  real*8 :: timestamp,ts1,ts2,timestamps(9)
   character :: framename*99,tms*8,upline*4
+  
+  timestamps(1) = timestamp()
+  write(*,*)
   
   call setconstants        !Define mathematical constants
   call set_plotsettings()  !Set plot settings to 'default' values
@@ -103,6 +106,7 @@ program plotspins
   !Sort out implicit options:
   if(panels(1)*panels(2).lt.nplvar) panels = 0
   if(panels(1)*panels(2).lt.1) then
+     if(nplvar.eq.1) panels = (/1,1/)
      if(nplvar.eq.2) panels = (/2,1/)
      if(nplvar.eq.3) panels = (/3,1/)
      if(nplvar.eq.4) panels = (/2,2/)
@@ -186,7 +190,7 @@ program plotspins
      plmovie = 0
   end if
   if(savepdf.eq.1) then
-     if(nplvar.ne.15) write(*,'(/,A)')'*** WARNING:  Setting nplvar to 15, since savepdf is selected ***'
+     if(nplvar.ne.15) write(*,'(/,A)')'*** WARNING:  I changed nplvar to 15, since savepdf is selected ***'
      nplvar = 15; plvars(1:nplvar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !All 12 + m1,m2
      wrapdata = 0
   end if
@@ -227,15 +231,10 @@ program plotspins
   
   upline = char(27)//'[2A'  !Printing this makes the cursor move up one line (actually 2, for some reason that's needed)
   
-  if(prprogress+prruninfo+prinitial.ge.1) write(*,*)
+  !if(prprogress+prruninfo+prinitial.ge.1) write(*,*)
   npar = 13
-  if(prprogress.ge.1) then
-     if(nchains0.gt.nchs) then
-        write(*,'(A,I3,A)')'  Too many chains, please increase nchs. Only',nchs,' files will be read.'
-     else
-        write(*,'(A,I3,A)')'  Reading',nchains0,' input files '
-     end if
-  end if
+  if(nchains0.gt.nchs) write(*,'(A,I3,A)')'*** WARNING:  Too many input files (chains), please increase nchs in plotspins_functions.f. Only',nchs,' files can be read.'
+  if(prchaininfo.ge.1) write(*,'(A,I3,A)')'  Reading',nchains0,' chains '
   nchains0 = min(nchains0,nchs)
   nchains = nchains0
   
@@ -380,12 +379,6 @@ program plotspins
 198  write(*,'(A,I7,$)')'  Read error in file '//trim(infile)//', line',i
      i = i-1
      if(i.lt.25) then
-        !if(ic.eq.1.and.fileversion.eq.1) then
-        !   fileversion = 2
-        !   deallocate(dat)
-        !   write(*,'(A)')"    I'll try the new file format..."
-        !   goto 101
-        !end if
         if(ic.eq.1.and.fileversion.eq.2) then
            fileversion = 1
            deallocate(dat)
@@ -402,6 +395,7 @@ program plotspins
      !if(prprogress.ge.2.and.update.ne.1) write(*,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',nburn(ic),'.'
   end do !do ic = 1,nchains0
   
+  timestamps(2) = timestamp()
   
   totiter = 0
   do ic = 1,nchains0
@@ -525,15 +519,11 @@ program plotspins
   maxdots = 25000  !~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much and eps/pdf files from becoming huge.  Use this to autoset chainpli
   if(chainpli.le.0) then
      !if(sum(ntot(1:nchains0)).gt.maxdots) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
-     chainpli = max(1,nint(real(sum(ntot(1:nchains0)))/real(maxdots)))  !Use ntot and nchains0, since n low if many points are in the burnin
+     chainpli = max(1,nint(real(sum(ntot(1:nchains0)))/real(maxdots)))  !Use ntot and nchains0, since n is low if many points are in the burnin
      if(prchaininfo.ge.1.and.update.eq.0) then
         if(chainpli.gt.1) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
-           !chainpli = nint(real(sum(ntot(1:nchains0)))/real(maxdots))  !Use ntot and nchains0, since n low if many points are in the burnin
-           !if(prprogress.ge.1.and.update.eq.0) 
            write(*,'(A,I4,A,I5,A,I5,A)')'    Plotting every',chainpli,'-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*chainpli),'x.'
         else
-           !chainpli = 1
-           !if(prprogress.ge.1.and.update.eq.0) 
            write(*,'(A,I4,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.  Average total thinning remains',nint(avgtotthin),'x for these plots.'
         end if
      end if
@@ -662,6 +652,7 @@ program plotspins
   ! ***  DO STATISTICS   *************************************************************************************************************
   ! **********************************************************************************************************************************
   
+  timestamps(3) = timestamp()
   
   !Check which parameters were fixed during the MCMC run
   fixedpar = 0
@@ -680,7 +671,6 @@ program plotspins
   wrap = 0
   rashift = 0.
   do ic=1,nchains
-     !wrapival = ivals(ival0) !Use the default range
      wrapival = ivals(nival) !Use the largest range
      !wrapival = 0.999 !Always use a very large range (?)
      index = 0
@@ -770,7 +760,7 @@ program plotspins
      
      !Do statistics
      !if(prprogress.ge.2) write(*,'(A)')' Calculating: statistics...'
-     if(prprogress.ge.2.and.ic.eq.1) write(*,'(A,$)')'  Calc: stats, '
+     if(prprogress.ge.1.and.ic.eq.1) write(*,'(A,$)')'  Calc: stats, '
      do p=par1,par2
         !Determine the median
         if(mod(n(ic),2).eq.0) medians(p) = 0.5*(alldat(ic,p,index(p,n(ic)/2)) + alldat(ic,p,index(p,n(ic)/2+1)))
@@ -809,17 +799,19 @@ program plotspins
      !Correlations:
      if(prcorr.gt.0.or.savestats.gt.0) then
         !write(*,'(A)')' Calculating correlations...   '
-        write(*,'(A,$)')' corrs, '
+        if(prprogress.ge.1) write(*,'(A,$)')' corrs, '
         do p1=par1,par2
-           !do p2=par1,par2
+           !do p2par1,par2
            do p2=p1,par2
               corrs(p1,p2) = 0.
-              do i=1,n(ic)
-                 !corrs(p1,p2) = corrs(p1,p2) + (alldat(ic,p1,i) - medians(p1))*(alldat(ic,p2,i) - medians(p2))
-                 corrs(p1,p2) = corrs(p1,p2) + (alldat(ic,p1,i) - mean(p1))*(alldat(ic,p2,i) - mean(p2)) !Hardly differs from median method
-              end do
-              !corrs(p1,p2) = corrs(p1,p2) / (stdev1(p1)*stdev1(p2)*(n(ic)-1))
-              corrs(p1,p2) = corrs(p1,p2) / (stdev2(p1)*stdev2(p2)*(n(ic)-1))
+              if(fixedpar(p1)+fixedpar(p2).eq.0) then
+                 do i=1,n(ic)
+                    !corrs(p1,p2) = corrs(p1,p2) + (alldat(ic,p1,i) - medians(p1))*(alldat(ic,p2,i) - medians(p2))  !Use median
+                    corrs(p1,p2) = corrs(p1,p2) + (alldat(ic,p1,i) - mean(p1))*(alldat(ic,p2,i) - mean(p2)) !Use mean; hardly differs from median method
+                 end do
+                 !corrs(p1,p2) = corrs(p1,p2) / (stdev1(p1)*stdev1(p2)*(n(ic)-1))  !Use median
+                 corrs(p1,p2) = corrs(p1,p2) / (stdev2(p1)*stdev2(p2)*(n(ic)-1))  !Use mean
+              end if
            end do !p2
         end do !p1
      end if
@@ -828,7 +820,7 @@ program plotspins
      !Autocorrelations:
      if(placorr.gt.0) then
         !write(*,'(A)')' Calculating autocorrelations...'
-        write(*,'(A,$)')' autocorrs, '
+        if(prprogress.ge.1) write(*,'(A,$)')' autocorrs, '
         j1 = placorr/100 !Step size to get 100 autocorrelations per var
         do p=par1,par2
            acorrs(ic,p,:) = 0.
@@ -852,7 +844,7 @@ program plotspins
      
      !Determine interval ranges
      !if(prprogress.ge.2) write(*,'(A29,$)')' Determining interval levels: '
-     if(prprogress.ge.2.and.ic.eq.1) write(*,'(A,$)')' prob.ivals: '
+     if(prprogress.ge.1.and.ic.eq.1) write(*,'(A,$)')' prob.ivals: '
      c0 = 0
      do c=1,nival+1
         ival = ivals(c)
@@ -860,7 +852,7 @@ program plotspins
         !if(c.ne.c0.and.prival.lt.2.and.savestats.eq.0) cycle
         if(c.ne.c0 .and. prival.eq.0 .and. prstat.lt.2 .and. savestats.eq.0) cycle
         
-        if(prprogress.ge.2.and.ic.eq.1) write(*,'(F6.3,$)')ival
+        if(prprogress.ge.1.and.ic.eq.1) write(*,'(F6.3,$)')ival
         do p=par1,par2
            minrange = 1.e30
            !write(*,'(A8,4x,4F10.5,I4)')varnames(p),y1,y2,minrange,centre,wrap(ic,p)
@@ -899,7 +891,7 @@ program plotspins
      !Columns in alldat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:longi, 7:sinlati:, 8:phase, 9:spin,   10:kappa,     11:sinthJ0, 12:phiJ0, 13:alpha
      if(changevar.eq.1) then
         !if(prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')' Changing some variables...   '
-        if(prprogress.ge.2.and.ic.eq.i.and.update.eq.0) write(*,'(A,$)')'.  Change vars. '
+        if(prprogress.ge.1.and.ic.eq.i.and.update.eq.0) write(*,'(A,$)')'.  Change vars. '
         do p=par1,par2
            if(p.eq.5) then !Distance
               alldat(ic,p,1:n(ic)) = exp(alldat(ic,p,1:n(ic)))     !logD -> Distance
@@ -932,7 +924,7 @@ program plotspins
               stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*r2d
               ranges(ic,1:nival,p,1:nr) = asin(ranges(ic,1:nival,p,1:nr))*r2d
            end if
-           !if(p.eq.10.or.p.eq.12.or.p.eq.13) then  !Phi_c, phi_Jo, alpha_c
+           !if(p.eq.10.or.p.eq.12.or.p.eq.13) then  !hi_c, phi_Jo, alpha_c
            if(p.ge.10.and.p.le.13) then  !Phi_c, incl, pol.ang, alpha_c
               alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*r2d
               if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*r2d
@@ -944,18 +936,6 @@ program plotspins
            ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)
            if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,5)/ranges(ic,1:nival,p,3)
         end do !p
-        !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:dl, 6:spin,  7:theta_SL, 8: RA,   9:dec, 10:phase, 11:thJ0, 12:phiJ0, 13:alpha
-        !varnames(1:15) = (/'logL','Mc','eta','tc','dl','spin','th_SL','RA','Dec','phase','thJo','phJo','alpha','M1','M2'/)
-        !pgvarns(1:15)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',  &
-        !     'd\dL\u (Mpc)          ','a\dspin\u             ','\(2134)\dSL\u(\(2218))','R.A. (h)              ','Dec. (\(2218))        ', &
-        !     '\(2147)\dc\u (\(2218))','\(2134)\dJ\u (\(2218))','\(2147)\dJ\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
-        !pgvarnss(1:15)  = (/'log L','M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.','\(2147)\dc\u',  &
-        !     '\(2134)\dJ0\u','\(2147)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u'/)
-        !!Include units
-        !pgvarnss(1:15)  = (/'log L','M\dc\u (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2134)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
-        !     '\(2134)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
-        !!Units only
-        !pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
         
         !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:dl, 6:spin,  7:theta_SL, 8: RA,   9:dec, 10:phase, 11:incl, 12:pol.ang., 13:alpha
         varnames(1:15) = (/'logL','Mc','eta','tc','dl','spin','th_SL','RA','Dec','phase','incl','polang','alpha','M1','M2'/)
@@ -969,8 +949,6 @@ program plotspins
              'acos(J\(2236)N)','\(2149)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
         !Units only
         pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
-
-        !if(prprogress.ge.2.and.update.eq.0) write(*,'(A)')'  Done.'
      end if !if(changevar.eq.1)
      
      
@@ -983,10 +961,9 @@ program plotspins
         ranges(ic,nival+1,p,4) = ranges(ic,nival+1,p,2) - ranges(ic,nival+1,p,1)
         ranges(ic,nival+1,p,5) = ranges(ic,nival+1,p,4)
         if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,nival+1,p,5) = ranges(ic,nival+1,p,5)/ranges(ic,nival+1,p,3)
-        !write(*,'(I3,2F10.4)')p,ranges(ic,nival+1,p,1),ranges(ic,nival+1,p,2)
      end do
      
-     if(prprogress.ge.2) then
+     if(prprogress.ge.1) then
         if(ic.eq.nchains) then
            write(*,*)
         else
@@ -1004,7 +981,6 @@ program plotspins
      o=6
      if(prstat.gt.0) then
         write(o,'(/,A)')'  Main statistics:'
-        !c = c0
         do c=1,nival+1
            if(c.ne.c0.and.prstat.lt.2) cycle
            if(c.gt.1.and.prstat.ge.2) write(o,*)
@@ -1072,8 +1048,6 @@ program plotspins
            if(stdev1(p).lt.1.d-20) cycle
            write(o,'(A10,2x,2F9.4,$)')varnames(p),startval(ic,p,1),stats(ic,p,1)
            do c=1,nival+1
-              !write(o,'(2x,2F9.4,F6.3,$)')ranges(ic,c,p,1),ranges(ic,c,p,2),2*abs(startval(ic,p,1)-stats(ic,p,1))/ranges(ic,c,p,4) !Defined with median
-              !write(o,'(2x,2F9.4,F6.3,$)')ranges(ic,c,p,1),ranges(ic,c,p,2),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
               write(o,'(2x,2F9.4,F6.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
               if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
                  write(o,'(A3,$)')'y '
@@ -1089,7 +1063,7 @@ program plotspins
      
      !Print intervals as x +- dx:
      if(prival.ge.2) then
-        write(o,'(/,A)')'  Probability intervals:'
+        write(o,'(/,A)')'  Statistics and probability intervals:'
         write(o,'(A54,$)')'Interval:'
         do c=1,nival+1
            write(o,'(F16.3,A1,A9,$)')ivals(c)*100,'%',''
@@ -1417,6 +1391,7 @@ program plotspins
   ! ***  CREATE PLOTS   **************************************************************************************************************
   ! **********************************************************************************************************************************
   
+  timestamps(4) = timestamp()
   
   if(prprogress.ge.2) write(*,*)''
   if(combinechainplots.eq.1.and.(pllogl.eq.1.or.plchain.eq.1.or.plsigacc.ge.1)) then
@@ -1425,7 +1400,7 @@ program plotspins
   end if
     
   
-  if(plot.eq.1.and.prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')'  Plotting: '
+  if(plot.eq.1.and.prprogress.ge.1.and.update.eq.0) write(*,'(/,A,$)')'  Plotting: '
   
   
   !***********************************************************************************************************************************      
@@ -1655,21 +1630,7 @@ program plotspins
      call pgslw(lw)
      
      
-     if(nplvar.eq.2) call pgsubp(2,1)
-     if(nplvar.eq.2.and.quality.ge.2) call pgsubp(1,2)
-     if(nplvar.eq.3) call pgsubp(3,1)
-     if(nplvar.eq.4) call pgsubp(2,2)
-     if(nplvar.eq.6) call pgsubp(3,2)
-     if(nplvar.eq.8) call pgsubp(4,2)
-     if(nplvar.eq.9) call pgsubp(3,3)
-     if(nplvar.eq.10) call pgsubp(5,2)
-     if(nplvar.eq.12) call pgsubp(4,3)
-     if(nplvar.eq.12.and.quality.eq.3) call pgsubp(3,4)
-     if(nplvar.eq.14.or.nplvar.eq.15) call pgsubp(5,3)
-     if(nplvar.eq.16) call pgsubp(4,4)
-     
-     !call pgsubp(4,3)
-     !call pgscr(3,0.,0.5,0.)
+     call pgsubp(panels(1),panels(2))
      
      ic = 1
      !do p=2,npar0
@@ -1963,21 +1924,7 @@ program plotspins
      if(file.ge.2.and.psrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
      if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
      
-     if(nplvar.eq.2) call pgsubp(2,1)
-     if(nplvar.eq.2.and.quality.ge.2) call pgsubp(1,2)
-     if(nplvar.eq.3) call pgsubp(3,1)
-     if(nplvar.eq.4) call pgsubp(2,2)
-     if(nplvar.eq.6) call pgsubp(3,2)
-     if(nplvar.eq.8) call pgsubp(4,2)
-     if(nplvar.eq.9) call pgsubp(3,3)
-     if(nplvar.eq.10) call pgsubp(5,2)
-     if(nplvar.eq.12) call pgsubp(4,3)
-     if(nplvar.eq.12.and.quality.eq.3) call pgsubp(3,4)
-     if(nplvar.eq.14.or.nplvar.eq.15) call pgsubp(5,3)
-     if(nplvar.eq.16) call pgsubp(4,4)
-     
-     !call pgsubp(4,3)
-     !call pgscr(3,0.,0.5,0.)
+     call pgsubp(panels(1),panels(2))
      
      ic = 1
      !do p=2,npar0
@@ -2188,21 +2135,7 @@ program plotspins
      
      call pgsch(sch)
      
-     !call pgsubp(4,3)
-     !call pgscr(3,0.,0.5,0.)
-     !call pginitl(colour,file,whitebg)
-     
-     if(nplvar.eq.2) call pgsubp(2,1)
-     if(nplvar.eq.3) call pgsubp(3,1)
-     if(nplvar.eq.4) call pgsubp(2,2)
-     if(nplvar.eq.6) call pgsubp(3,2)
-     if(nplvar.eq.8) call pgsubp(4,2)
-     if(nplvar.eq.9) call pgsubp(3,3)
-     if(nplvar.eq.10) call pgsubp(5,2)
-     if(nplvar.eq.12) call pgsubp(4,3)
-     if(nplvar.eq.12.and.quality.eq.3) call pgsubp(3,4)
-     if(nplvar.eq.14.or.nplvar.eq.15) call pgsubp(5,3)
-     if(nplvar.eq.16) call pgsubp(4,4)
+     call pgsubp(panels(1),panels(2))
      
      ic = 1
      !do p=2,npar0
@@ -2347,21 +2280,7 @@ program plotspins
 
      if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
 
-     !call pgsubp(4,3)
-     !call pgscr(3,0.,0.5,0.)
-     !call pginitl(colour,file,whitebg)
-
-     if(nplvar.eq.2) call pgsubp(2,1)
-     if(nplvar.eq.3) call pgsubp(3,1)
-     if(nplvar.eq.4) call pgsubp(2,2)
-     if(nplvar.eq.6) call pgsubp(3,2)
-     if(nplvar.eq.8) call pgsubp(4,2)
-     if(nplvar.eq.9) call pgsubp(3,3)
-     if(nplvar.eq.10) call pgsubp(5,2)
-     if(nplvar.eq.12) call pgsubp(4,3)
-     if(nplvar.eq.12.and.quality.eq.3) call pgsubp(3,4)
-     if(nplvar.eq.14.or.nplvar.eq.15) call pgsubp(5,3)
-     if(nplvar.eq.16) call pgsubp(4,4)
+     call pgsubp(panels(1),panels(2))
      
      ic = 1
      !do p=2,npar0
@@ -2504,21 +2423,7 @@ program plotspins
 
      if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
 
-     !call pgsubp(4,3)
-     !call pgscr(3,0.,0.5,0.)
-     !call pginitl(colour,file,whitebg)
-
-     if(nplvar.eq.2) call pgsubp(2,1)
-     if(nplvar.eq.3) call pgsubp(3,1)
-     if(nplvar.eq.4) call pgsubp(2,2)
-     if(nplvar.eq.6) call pgsubp(3,2)
-     if(nplvar.eq.8) call pgsubp(4,2)
-     if(nplvar.eq.9) call pgsubp(3,3)
-     if(nplvar.eq.10) call pgsubp(5,2)
-     if(nplvar.eq.12) call pgsubp(4,3)
-     if(nplvar.eq.12.and.quality.eq.3) call pgsubp(3,4)
-     if(nplvar.eq.14.or.nplvar.eq.15) call pgsubp(5,3)
-     if(nplvar.eq.16) call pgsubp(4,4)
+     call pgsubp(panels(1),panels(2))
      
      ic = 1
      !do p=2,npar0
@@ -2655,21 +2560,7 @@ program plotspins
      
      if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
      
-     !call pgsubp(4,3)
-     !call pgscr(3,0.,0.5,0.)
-     !call pginitl(colour,file,whitebg)
-     
-     if(nplvar.eq.2) call pgsubp(2,1)
-     if(nplvar.eq.3) call pgsubp(3,1)
-     if(nplvar.eq.4) call pgsubp(2,2)
-     if(nplvar.eq.6) call pgsubp(3,2)
-     if(nplvar.eq.8) call pgsubp(4,2)
-     if(nplvar.eq.9) call pgsubp(3,3)
-     if(nplvar.eq.10) call pgsubp(5,2)
-     if(nplvar.eq.12) call pgsubp(4,3)
-     if(nplvar.eq.12.and.quality.eq.3) call pgsubp(3,4)
-     if(nplvar.eq.14.or.nplvar.eq.15) call pgsubp(5,3)
-     if(nplvar.eq.16) call pgsubp(4,4)
+     call pgsubp(panels(1),panels(2))
      
      ic = 1
      !do p=2,npar0
@@ -2751,12 +2642,13 @@ program plotspins
   
   
   
+  timestamps(5) = timestamp()
   
   
   !***********************************************************************************************************************************      
   !Plot pdfs (1d)
   if(plpdf1d.eq.1) then
-     if(plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')' Saving 1D pdfs...   '
+     if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')' Saving 1D pdfs...   '
      allocate(xbin(nchs,nbin1d+1),ybin(nchs,nbin1d+1),xbin1(nbin1d+1),ybin1(nbin1d+1),ybin2(nbin1d+1),ysum(nbin1d+1),yconv(nbin1d+1),ycum(nbin1d+1))
      if(plot.eq.1) then
         !if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' Plotting 1D pdfs...   '
@@ -3269,7 +3161,8 @@ program plotspins
            string=' '
            do ic=1,1!nchains !Can't do this 10x for 10 chains
               !write(string,'(A,I7,A,I6)')trim(string)//'n:',ntot(ic),', nburn:',nburn(ic)
-              write(string,'(A,I8)')trim(string)//'n:',sum(ntot(1:nchains0))
+              !write(string,'(A,I8)')trim(string)//'n:',sum(ntot(1:nchains0))
+              write(string,'(A,I8)')trim(string)//'n:',totpts
            end do
            call pgsch(sch*0.7)
            call pgmtxt('T',-0.7,0.5,0.5,trim(outputname)//'  '//trim(string))  !Print title
@@ -3310,11 +3203,12 @@ program plotspins
   
   
   
+  timestamps(6) = timestamp()
   
   !***********************************************************************************************************************************      
   if(plpdf2d.ge.1) then
      ic = 1 !Can only do one chain
-     if(plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')' Saving 2D pdfs...    '
+     if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')' Saving 2D pdfs...    '
      allocate(z(nbin2dx+1,nbin2dy+1),zs(nchs,nbin2dx+1,nbin2dy+1))
      if(plot.eq.1) then
         !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting 2D pdfs...    '
@@ -3337,7 +3231,7 @@ program plotspins
            if(pssz.lt.5) sch = sch * sqrt(5.0/pssz)
         end if
         if(file.ge.2.and.io.le.0) then
-           write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
+           write(*,'(A,I4)')'  Cannot open PGPlot device.  Quitting the programme',io
            goto 9999
         end if
         if(file.ge.2) call pgpap(pssz,psrat)
@@ -3460,14 +3354,14 @@ program plotspins
                  a = (xmin+xmax)*0.5
                  xmin = a - 0.5*dx
                  xmax = a + 0.5*dx
-                 write(*,'(A,F6.1,A3,F6.1,A,$)')'  Changing RA range to ',xmin,' - ',xmax,' h.'
+                 if(prprogress.ge.1) write(*,'(A,F6.1,A3,F6.1,A,$)')'  Changing RA range to ',xmin,' - ',xmax,' h.'
               end if
               if(abs(dx)*15.gt.dy/rat) then !Expand y
                  dy = abs(dx)*rat*15
                  a = (ymin+ymax)*0.5
                  ymin = a - 0.5*dy
                  ymax = a + 0.5*dy
-                 write(*,'(A,F6.1,A3,F6.1,A,$)')'  Changing declination range to ',ymin,' - ',ymax,' deg.'
+                 if(prprogress.ge.1) write(*,'(A,F6.1,A3,F6.1,A,$)')'  Changing declination range to ',ymin,' - ',ymax,' deg.'
               end if
            end if !if(plotsky.eq.1)
            
@@ -3804,13 +3698,13 @@ program plotspins
                  do c = 1,nival+1
                     a = probareas(p1,p2,c,2)
                     if(a.lt.1.) then
-                       write(string,'(I3,A3,F5.2,A7)')nint(ivals(c)*100),'%:',a,'\(2218)'
+                       write(string,'(F5.1,A3,F5.2,A7)')ivals(c)*100,'%:',a,'\(2218)'
                     else if(a.lt.10.) then
-                       write(string,'(I3,A3,F4.1,A7)')nint(ivals(c)*100),'%:',a,'\(2218)'
+                       write(string,'(F5.1,A3,F4.1,A7)')ivals(c)*100,'%:',a,'\(2218)'
                     else if(a.lt.100.) then
-                       write(string,'(I3,A3,F5.1,A7)')nint(ivals(c)*100),'%:',a,'\(2218)'
+                       write(string,'(F5.1,A3,F5.1,A7)')ivals(c)*100,'%:',a,'\(2218)'
                     else
-                       write(string,'(I3,A3,I4,A7)')nint(ivals(c)*100),'%:',nint(a),'\(2218)'
+                       write(string,'(F5.1,A3,I4,A7)')ivals(c)*100,'%:',nint(a),'\(2218)'
                     end if
                     !write(*,'(2I4,ES13.3)')p1,c,a
                     a = (real(c-1)/real(nival) - 0.5)*0.7 + 0.5
@@ -3853,8 +3747,7 @@ program plotspins
   
   !End of 2D PDF code
   
-  if(plot.eq.1.and.prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')'done.  '
-  if(plot.eq.1) write(*,*)
+  if(plot.eq.1.and.prprogress.ge.1.and.update.eq.0) write(*,'(A,/)')'done.  '
   
   
   
@@ -3886,6 +3779,7 @@ program plotspins
   
   
   
+  timestamps(7) = timestamp()
   
   !Write statistics to file
   if(savestats.ge.1) write(*,*)''
@@ -3898,10 +3792,6 @@ program plotspins
      
      !Print general run and detector info:
      write(o,'(//,A,/)')'GENERAL INFORMATION:'
-     !write(o,'(3(A,I))')'Npoints: ',n(ic),'  Nburn: ',nburn(ic),'  Ndet: ',ndet(ic)
-     !write(o,*)''
-     !write(o,'(6x,A10,A12,A8,A22,A8,A10)')'niter','nburn','seed','null likelihood','ndet','nchains'
-     !write(o,'(6x,I10,I12,I8,F22.10,I8,I5.2,A2,I3.2)')n(ic),nint(isburn(ic)),seed(ic),nullh,ndet(ic),contrchains,'/',nchains0
      write(o,'(6x,4A12,A12,A5  A8,A22,A8)')'totiter','totlines','totpts','totburn','nchains','used','seed','null likelihood','ndet'
      write(o,'(6x,4I12,I12,I5, I8,F22.10,I8)')totiter,totlines,totpts,totlines-totpts,nchains0,contrchains,seed(ic),nullh,ndet(ic)
      write(o,*)''
@@ -3919,7 +3809,11 @@ program plotspins
      write(o,'(A8,7A12)')'param.','model','median','mean','stdev1','stdev2','abvar1','abvar2'
      
      do p=par1,par2
-        write(o,'(A8,7F12.6)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),stdev1(p),stdev2(p),absvar1(p),absvar2(p)
+        if(fixedpar(p).eq.0) then
+           write(o,'(A8,7F12.6)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),stdev1(p),stdev2(p),absvar1(p),absvar2(p)
+        else
+           write(o,'(A8,7F12.6)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),0.,0.,0.,0.
+        end if
      end do
      write(o,*)''
      
@@ -3960,7 +3854,11 @@ program plotspins
         write(o,'(A8,2x,$)')trim(varnames(p))
         do c=1,nival+1
            !write(o,'(2x,2F11.6,F6.3,$)')ranges(ic,c,p,1),ranges(ic,c,p,2),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
-           write(o,'(2x,2F12.6,F7.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+           if(fixedpar(p).eq.0) then
+              write(o,'(2x,2F12.6,F7.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+           else
+              write(o,'(2x,2F12.6,F7.3,$)')0.,0.,99.999
+           end if
            if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
               write(o,'(A2,$)')'y'
            else
@@ -3994,7 +3892,6 @@ program plotspins
         write(o,'(2I4,2(2x,A8),2x,$)')p1,p2,trim(varnames(p1)),trim(varnames(p2))
         do c=1,nival+1
            write(o,'(2x,F14.8,$)')probareas(p1,p2,c,1)
-           !print*,c,trueranges2d(p1,p2),nival+2-trueranges2d(p1,p2)
            if(c.ge.nival+2-trueranges2d(p1,p2) .and. trueranges2d(p1,p2).ne.0) then
               write(o,'(A3,$)')'y'
            else
@@ -4009,8 +3906,10 @@ program plotspins
      close(o) !Statistics output file
      if(savestats.eq.2) i = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
      write(*,*)''
-     if(savestats.eq.1) write(*,'(A)')' Statistics saved in '//trim(outputname)//'__statistics.dat'
-     if(savestats.eq.2) write(*,'(A)')' Statistics saved in '//trim(outputname)//'__statistics.dat,ps'
+     if(prprogress.ge.1) then
+        if(savestats.eq.1) write(*,'(A)')' Statistics saved in '//trim(outputname)//'__statistics.dat'
+        if(savestats.eq.2) write(*,'(A)')' Statistics saved in '//trim(outputname)//'__statistics.dat,ps'
+     end if
   end if !if(savestats.ge.1.and.nchains.eq.1) then
   
   
@@ -4033,6 +3932,7 @@ program plotspins
   !***********************************************************************************************************************************      
   !***********************************************************************************************************************************      
   
+  timestamps(8) = timestamp()
   
   if(plmovie.eq.1) then
      !i = system('cpu_time_type=total_alltime')
@@ -4050,14 +3950,16 @@ program plotspins
         !nplt = nint(real(iframe)/real(nmovframes)*maxval(is))-1
         !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting movie frame...'
         if(prprogress.ge.1.and.update.eq.0) then
-           write(6,*)upline !Move cursor up 1 line
-           write(*,'(A,I5,A1,I5,A,I7,A,$)')' Plotting movie frame',iframe,'/',nmovframes,'  (',nplt,' points)'
+           if(prprogress.ge.1) then
+              write(6,*)upline !Move cursor up 1 line
+              write(*,'(A,I5,A1,I5,A,I7,A,$)')' Plotting movie frame',iframe,'/',nmovframes,'  (',nplt,' points)'
+           end if
            !Print remaining time
            !call cpu_time(cputime)
            !if(file.eq.1) write(6,'(A,A9)')'   Est.time left:',tms(dble(cputime-cputime0)*(nmovframes-iframe)/3600.d0)   !This does not take into account child processes, like convert
            !cputime0 = cputime
            ts2 = timestamp()
-           if(file.eq.1) write(6,'(A,A9)')'   Est.time left:',tms((ts2-ts1)*(nmovframes-iframe+1)/3600.d0)                 !Use the system clock
+           if(prprogress.ge.1.and.file.eq.1) write(6,'(A,A9)')'   Est.time left:',tms((ts2-ts1)*(nmovframes-iframe+1)/3600.d0)                 !Use the system clock
            ts1 = ts2
         end if
         
@@ -4762,6 +4664,26 @@ program plotspins
 9999 continue
   deallocate(pldat,alldat)
   !if(prprogress.ge.1) write(*,*)''
+  
+  timestamps(9) = timestamp()
+  
+  if(prprogress.ge.1) then
+     write(*,'(A,$)')'  Run time: '
+     write(*,'(A,F5.1,A,$)')'   input:',timestamps(2)-timestamps(1),'s,'
+     !write(*,'(A,F5.1,A,$)')'   info:',timestamps(3)-timestamps(2),'s,'
+     !write(*,'(A,F5.1,A,$)')'   stats:',timestamps(4)-timestamps(3),'s,'
+     write(*,'(A,F5.1,A,$)')'   stats:',timestamps(4)-timestamps(2),'s,'
+     if(plot.eq.1) then
+        write(*,'(A,F5.1,A,$)')'   chains:',timestamps(5)-timestamps(4),'s,'
+        write(*,'(A,F5.1,A,$)')'   1d pdfs:',timestamps(6)-timestamps(5),'s,'
+        write(*,'(A,F6.1,A,$)')'   2d pdfs:',timestamps(7)-timestamps(6),'s,'
+        !write(*,'(A,F6.1,A,$)')'   plots:',timestamps(7)-timestamps(4),'s,'
+     end if
+     !write(*,'(A,F5.1,A,$)')'   save stats:',timestamps(8)-timestamps(7),'s,'
+     if(plmovie.eq.1) write(*,'(A,F5.1,A,$)')'   movie:',timestamps(9)-timestamps(8),'s,'
+     write(*,'(A,F6.1,A)')'   total:',timestamps(9)-timestamps(1),'s.'
+  end if
+  
   write(*,*)''
 end program plotspins
 !************************************************************************************************************************************

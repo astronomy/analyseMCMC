@@ -1531,14 +1531,16 @@ function timestamp()  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
   implicit none
   real*8 :: timestamp
   integer :: i,system
-
-  i = system('date +%s.%N &> ~/.tmp_timestamp')
-  !i = system('date +%s &> ~/.tmp_timestamp') !%N for fractional seconds doesn't work on MacOS!!! (But it does with GNU date)
-  open(unit=9,status='old',file='~/.tmp_timestamp')
+  character :: fname*99
+  
+  fname = './.plotspins_timestamp'  !gfortran doesn't want to read from ~ for some reason
+  i = system('date +%s.%N >& '//trim(fname))
+  !i = system('date +%s >& '//trim(fname)) !%N for fractional seconds doesn't work on MacOS!!! (But it does with GNU date)
+  open(unit=9,status='old',file=trim(fname))
   read(9,'(F20.9)')timestamp
   !print*,timestamp
   close(9)
-  i = system('rm -f ~/.tmp_timestamp')
+  i = system('rm -f '//trim(fname))
 end function timestamp
 !************************************************************************
 

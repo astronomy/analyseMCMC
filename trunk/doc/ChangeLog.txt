@@ -2,6 +2,13 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    25: sluys, 27/11/2008
+     - some small updates in plotspins:
+       - print run time at end of run
+       - improved screen output
+       - got rid of NaNs in statistics output file for fixed parameters 
+       - global determination of panel arrangement for given number of panels
+    
     24: sluys, 26/11/2008
      - plotspins: automatic detection of MCMC parameters that were fixed
      - plotspins: output 0's when saving the pdf of a fixed parameter to prevent NaNs
