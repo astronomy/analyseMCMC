@@ -79,10 +79,10 @@
  Plot variables:  1:logL, 2:Mc, 3:eta, 4:tc, 5:dL, 6:a, 7:th, 8:RA, 9:dec, 10:phi, 11:thJ, 12:phiJ, 13:alpha, 14:M1, 15:M2
         15              nplvar     Number of plot variables for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savepdf=1. Put the variables in the line below:
   1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 
-    0    0              panels     Number of for 1D plots in x,y direction: 0: autodetermine
-       100              nbin1d     Number of bins for 1D PDFs
-       100             nbin2dx     Number of bins in x-direction for 2D PDFs
-        75             nbin2dy     Number of bins in y-direction for 2D PDFs
+    0    0              panels     Number of for 1D plots in x,y direction:  0: autodetermine
+       100              nbin1d     Number of bins for 1D PDFs:  0: autodetermine
+       100             nbin2dx     Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)
+        75             nbin2dy     Number of bins in y-direction for 2D PDFs and 2D probability ranges:  0: use nbin2dx, -1: use nbin2dx*(scr/bmp/ps)rat
          2              npdf2d     Number of 2D-PDF plots to make
     8    9          pdf2dpairs     Pairs of parameters to plot a 2D PDF for
    12   11          pdf2dpairs     Pairs of parameters to plot a 2D PDF for

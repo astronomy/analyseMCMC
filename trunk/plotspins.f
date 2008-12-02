@@ -12,7 +12,7 @@ program plotspins
   real :: sig(npar1,nchs,narr1),acc(npar1,nchs,narr1),avgtotthin
   real :: x(nchs,nchs*narr1),xx(nchs*narr1),yy(nchs*narr1),zz(nchs*narr1)
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ybin2(:),ysum(:),yconv(:),ycum(:)  !These depend on nbin1d, allocate after reading input file
-  real :: a,rat,plx,ply
+  real :: a,rat,plx,ply,pltsz,pltrat
   real*8 :: t,t0,dvar,dvar1,dvar2,nullh
   real*8 :: dra,ddec,dtj,dpj,din,dpa,ra
   real, allocatable :: dat(:,:,:),alldat(:,:,:),pldat(:,:,:)
@@ -39,7 +39,7 @@ program plotspins
   integer :: o,p,p1,p2,par1,par2,nr,c,c0,nstat,wrap(nchs,npar1),npar,ncolours,colours(10),nsymbols,symbols(10),symbol,defcolour,plotthis,tempintarray(99)
   integer :: truerange2d,trueranges2d(npar1,npar1),fixedpar(npar1),nfixedpar
   real :: range,minrange,range1,range2,drange,maxgap,ranges(nchs,nival1,npar1,nr1),ival,wrapival,centre,rashift,shift(nchs,npar1),plshift
-  real :: probarea(nival1),probareas(npar1,npar1,nival1,2)
+  real :: probarea(nival1),probareas(npar1,npar1,nival1,3)
   real :: median,medians(npar1),mean(npar1),stdev1(npar1),stdev2(npar1),var1(npar1),var2(npar1),absvar1(npar1),absvar2(npar1)
   real :: stats(nchs,npar1,nstat1),corrs(npar1,npar1),acorrs(nchs,0:npar1,0:narr1)
   real :: norm
@@ -73,12 +73,20 @@ program plotspins
   par1 = 1          !First parameter to treat (stats, plot): 0-all
   par2 = 15         !Last parameter to treat (0: use npar)
   
+  maxdots = 25000  !~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much and eps/pdf files from becoming huge.  Use this to autoset chainpli
   
   
-  
+  !Determine plot sizes and ratios:   (ratio ~ y/x and usually < 1 ('landscape'))
   bmpsz = real(bmpxsz-1)/85. * scfac !Make png larger, so that convert interpolates and makes the plot smoother
   bmprat = real(bmpysz-1)/real(bmpxsz-1)
   write(bmpxpix,'(I4)')bmpxsz  !Used as a text string by convert
+  if(file.eq.0) pltsz = scrsz
+  if(file.eq.0) pltrat = scrrat
+  if(file.eq.1) pltsz = bmpsz
+  if(file.eq.1) pltrat = bmprat
+  if(file.ge.2) pltsz = pssz
+  if(file.ge.2) pltrat = psrat
+
   
   !Use full unsharp-mask strength for plots with many panels and dots, weaker for those with fewer panels and.or no dots
   write(unsharplogl,'(I4)')max(nint(real(unsharp)/2.),1)  !Only one panel with dots
@@ -86,6 +94,7 @@ program plotspins
   write(unsharppdf1d,'(I4)')max(nint(real(unsharp)/2.),1) !~12 panels, no dots
   write(unsharppdf2d,'(I4)')max(nint(real(unsharp)/4.),1) !1 panel, no dots
   
+  !CHECK: still needed?
   !Trying to implement this, for chains plot at the moment
   !pssz   = 10.5   !Default: 10.5   \__ Gives same result as without pgpap
   !psrat  = 0.742  !Default: 0.742  /
@@ -474,8 +483,8 @@ program plotspins
         end if
      end do
   end do
-  if(prruninfo.ge.1) write(*,'(A,I4,A,I9,A,F10.3,A,/)')'    Maximum likelihood point:   chain:',icloglmax,',   iteration:',iloglmax,',   max log(L):',loglmax,'.'
-  
+  if(prruninfo.ge.1) write(*,'(A,I4,2(A,I9),A,F10.3,A,/)')'    Maximum likelihood point:   chain:',icloglmax,',   line:',iloglmax,',   iteration:',nint(is(icloglmax,iloglmax)),',   max log(L):',loglmax,'.'
+  if(prruninfo.ge.3) write(6,'(2F10.5,F20.5,9F10.5)')dat(2:13,icloglmax,iloglmax)  !Test: get parameter values for L=Lmax
   
   !Autoburnin: for each chain, get the first point where log(L) > log(L_max)-autoburnin
   if(autoburnin.gt.1.e-10) then
@@ -516,7 +525,6 @@ program plotspins
   
   
   !Determine extra thinning for logL, chain, jump plots
-  maxdots = 25000  !~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much and eps/pdf files from becoming huge.  Use this to autoset chainpli
   if(chainpli.le.0) then
      !if(sum(ntot(1:nchains0)).gt.maxdots) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
      chainpli = max(1,nint(real(sum(ntot(1:nchains0)))/real(maxdots)))  !Use ntot and nchains0, since n is low if many points are in the burnin
@@ -2654,10 +2662,27 @@ program plotspins
   !Plot pdfs (1d)
   if(plpdf1d.eq.1) then
      if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')' Saving 1D pdfs...   '
+     if(prprogress.ge.1.and.plot.eq.1.and.update.eq.0) write(*,'(A,$)')' 1D pdfs'
+     
+     !Autodetermine number of bins:
+     if(nbin1d.le.0) then
+        if(totpts.le.100) then
+           nbin1d = floor(2*sqrt(real(totpts)))
+        else
+           nbin1d = floor(10*log10(real(totpts)))
+        end if
+        if(prprogress.ge.2.and.plot.eq.1.and.update.eq.0) then
+           if(nbin1d.lt.100) write(*,'(A2,I2,A8,$)')' (',nbin1d,' bins), '
+           if(nbin1d.ge.100) write(*,'(A2,I3,A8,$)')' (',nbin1d,' bins), '
+        end if
+     else
+        if(prprogress.ge.1.and.plot.eq.1.and.update.eq.0) write(*,'(A2,$)')', '
+     end if
+     
+     !Allocate memory:
      allocate(xbin(nchs,nbin1d+1),ybin(nchs,nbin1d+1),xbin1(nbin1d+1),ybin1(nbin1d+1),ybin2(nbin1d+1),ysum(nbin1d+1),yconv(nbin1d+1),ycum(nbin1d+1))
+     
      if(plot.eq.1) then
-        !if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' Plotting 1D pdfs...   '
-        if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' 1D pdfs, '
         if(file.eq.0) then
            io = pgopen('14/xs')
            sch = 1.5
@@ -3164,12 +3189,8 @@ program plotspins
         if(quality.eq.0) then
            !Remove also the pgsvp at the beginning of the plot
            string=' '
-           do ic=1,1!nchains !Can't do this 10x for 10 chains
-              !write(string,'(A,I7,A,I6)')trim(string)//'n:',ntot(ic),', nburn:',nburn(ic)
-              !write(string,'(A,I8)')trim(string)//'n:',sum(ntot(1:nchains0))
-              write(string,'(A,I8)')trim(string)//'n:',totpts
-           end do
-           call pgsch(sch*0.7)
+           write(string,'(A,I7,A,I4)')trim(string)//'n:',totpts,', nbin:',nbin1d
+           call pgsch(sch*0.5)
            call pgmtxt('T',-0.7,0.5,0.5,trim(outputname)//'  '//trim(string))  !Print title
            call pgsch(sch)
         end if
@@ -3214,10 +3235,32 @@ program plotspins
   if(plpdf2d.ge.1) then
      ic = 1 !Can only do one chain
      if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')' Saving 2D pdfs...    '
+     if(prprogress.ge.1.and.plot.eq.1.and.update.eq.0) write(*,'(A,$)')' 2D pdfs: '
+     
+     
+     !Autodetermine number of bins for 2D PDFs:
+     if(nbin2dx.le.0) then
+        if(totpts.le.100) then
+           nbin2dx = floor(2*sqrt(real(totpts))/pltrat)
+           nbin2dy = floor(2*sqrt(real(totpts)))           !Same as for 1D case (~50)
+        else
+           nbin2dx = floor(10*log10(real(totpts))/pltrat)  
+           nbin2dy = floor(10*log10(real(totpts)))         !Same as for 1D case (~50)
+        end if
+        if(prprogress.ge.2.and.plot.eq.1.and.update.eq.0) then
+           if(nbin2dx.lt.100) write(*,'(A1,I2,A1,$)')'(',nbin2dx,'x'
+           if(nbin2dx.ge.100) write(*,'(A1,I3,A1,$)')'(',nbin2dx,'x'
+           if(nbin2dy.lt.100) write(*,'(I2,A7,$)')nbin2dy,' bins) '
+           if(nbin2dy.ge.100) write(*,'(I3,A7,$)')nbin2dy,' bins) '
+        end if
+     end if
+     if(nbin2dy.eq.0) nbin2dy = nbin2dx
+     if(nbin2dy.le.-1) nbin2dy = nbin2dx*pltrat
+     
+     !Allocate memory:
      allocate(z(nbin2dx+1,nbin2dy+1),zs(nchs,nbin2dx+1,nbin2dy+1))
+     
      if(plot.eq.1) then
-        !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting 2D pdfs...    '
-        if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' 2D pdfs: '
         if(file.eq.0) then
            lw = 1
            lw2 = 1
@@ -3397,9 +3440,9 @@ program plotspins
                  if(prprogress.ge.3) write(*,*)
                  do i=1,nival
                     if(prprogress.ge.3) write(*,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probarea(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
-                    !probareas(p1,p2,i,1) = probarea(i)*(pi/180.)**2/(4*pi)  !Fraction of the sky
+                    probareas(p1,p2,i,1) = probarea(i)*(pi/180.)**2/(4*pi)  !Fraction of the sky
                     probareas(p1,p2,i,2) = sqrt(probarea(i)/pi)*2           !Equivalent diameter
-                    !probareas(p1,p2,i,2) = probarea(i) !Testing
+                    probareas(p1,p2,i,3) = probarea(i)                      !Square degrees
                  end do
                  !write(*,'(A2,$)')'  '
               end if
@@ -3454,29 +3497,56 @@ program plotspins
               if(plpdf2d.eq.1.or.plpdf2d.eq.2) then
                  if(normpdf2d.lt.4) call pggray(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,1.,0.,tr)
                  if(normpdf2d.eq.4) then
-                    call pgscr(30,1.,1.,1.) !BG colour
-                    if(nival.eq.2) then
-                       call pgscr(31,1.,1.,0.) !Yellow
-                       call pgscr(32,1.,0.,0.) !Red
+                    if(colour.eq.0) then
+                       call pgscr(30,1.,1.,1.) !BG colour
+                       if(nival.eq.2) then
+                          call pgscr(31,0.5,0.5,0.5) !Grey
+                          call pgscr(32,0.,0.,0.) !Black
+                       end if
+                       if(nival.eq.3) then
+                          call pgscr(31,0.7,0.7,0.7) !
+                          call pgscr(32,0.4,0.4,0.4) !
+                          call pgscr(33,0.0,0.0,0.0) !
+                       end if
+                       if(nival.eq.4) then
+                          call pgscr(31,0.75,0.75,0.75) !
+                          call pgscr(32,0.50,0.50,0.50) !
+                          call pgscr(33,0.25,0.25,0.25) !
+                          call pgscr(34,0.00,0.00,0.00) !
+                       end if
+                       if(nival.eq.5) then
+                          call pgscr(31,0.8,0.8,0.8) !
+                          call pgscr(32,0.6,0.6,0.6) !
+                          call pgscr(33,0.4,0.4,0.4) !
+                          call pgscr(34,0.2,0.2,0.2) !
+                          call pgscr(35,0.0,0.0,0.0) !
+                       end if
                     end if
-                    if(nival.eq.3) then
-                       call pgscr(31,0.,0.,1.) !Blue
-                       call pgscr(32,1.,1.,0.) !Yellow
-                       call pgscr(33,1.,0.,0.) !Red
-                    end if
-                    if(nival.eq.4) then
-                       call pgscr(31,0.,0.,1.) !Blue
-                       call pgscr(32,0.,1.,0.) !Green
-                       call pgscr(33,1.,1.,0.) !Yellow
-                       !call pgscr(34,1.,0.5,0.) !Orange
-                       call pgscr(34,1.,0.,0.) !Red
-                    end if
-                    if(nival.eq.5) then
-                       call pgscr(31,0.,0.,1.) !Blue
-                       call pgscr(32,0.,1.,0.) !Green
-                       call pgscr(33,1.,1.,0.) !Yellow
-                       call pgscr(34,1.,0.5,0.) !Orange
-                       call pgscr(35,1.,0.,0.) !Red
+                    if(colour.ge.1) then
+                       call pgscr(30,1.,1.,1.) !BG colour
+                       if(nival.eq.2) then
+                          call pgscr(31,1.,1.,0.) !Yellow
+                          call pgscr(32,1.,0.,0.) !Red
+                       end if
+                       if(nival.eq.3) then
+                          call pgscr(31,0.,0.,1.) !Blue
+                          call pgscr(32,1.,1.,0.) !Yellow
+                          call pgscr(33,1.,0.,0.) !Red
+                       end if
+                       if(nival.eq.4) then
+                          call pgscr(31,0.,0.,1.) !Blue
+                          call pgscr(32,0.,1.,0.) !Green
+                          call pgscr(33,1.,1.,0.) !Yellow
+                          !call pgscr(34,1.,0.5,0.) !Orange
+                          call pgscr(34,1.,0.,0.) !Red
+                       end if
+                       if(nival.eq.5) then
+                          call pgscr(31,0.,0.,1.) !Blue
+                          call pgscr(32,0.,1.,0.) !Green
+                          call pgscr(33,1.,1.,0.) !Yellow
+                          call pgscr(34,1.,0.5,0.) !Orange
+                          call pgscr(35,1.,0.,0.) !Red
+                       end if
                     end if
                     call pgscir(30,30+nival)
                     call pgimag(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,0.,1.,tr)
@@ -3501,7 +3571,7 @@ program plotspins
                     cont(i) = 0.01 + 2*real(i-1)/real(ncont-1)
                     if(plotsky.eq.1) cont(i) = 1.-cont(i)
                  end do
-                 ncont = 4 !Only use the first 4
+                 ncont = min(4,ncont) !Only use the first 4
               end if
               if(normpdf2d.eq.4) then
                  ncont = nival
@@ -3697,19 +3767,19 @@ program plotspins
               call pgmtxt('L',1.7,0.5,0.5,trim(pgvarns(p2)))
               
               
-              !Print 2D probability ranges in title
-              if(normpdf2d.eq.4.and. ((p1.eq.8.and.p2.eq.9) .or. (p1.eq.12.and.p2.eq.11))) then  !For sky position and orientation only
+              !Print 2D probability ranges in plot title
+              if(prival.ge.1.and.normpdf2d.eq.4.and. ((p1.eq.8.and.p2.eq.9) .or. (p1.eq.12.and.p2.eq.11))) then  !For sky position and orientation only
                  string = ' '
                  do c = 1,nival
                     a = probareas(p1,p2,c,2)
                     if(a.lt.1.) then
-                       write(string,'(F5.1,A3,F5.2,A7)')ivals(c)*100,'%:',a,'\(2218)'
+                       write(string,'(F5.1,A2,F5.2,A7)')ivals(c)*100,'%:',a,'\(2218)'
                     else if(a.lt.10.) then
-                       write(string,'(F5.1,A3,F4.1,A7)')ivals(c)*100,'%:',a,'\(2218)'
+                       write(string,'(F5.1,A2,F4.1,A7)')ivals(c)*100,'%:',a,'\(2218)'
                     else if(a.lt.100.) then
-                       write(string,'(F5.1,A3,F5.1,A7)')ivals(c)*100,'%:',a,'\(2218)'
+                       write(string,'(F5.1,A2,F5.1,A7)')ivals(c)*100,'%:',a,'\(2218)'
                     else
-                       write(string,'(F5.1,A3,I4,A7)')ivals(c)*100,'%:',nint(a),'\(2218)'
+                       write(string,'(F5.1,A2,I4,A7)')ivals(c)*100,'%:',nint(a),'\(2218)'
                     end if
                     a = (real(c-1)/real(nival-1) - 0.5)*0.7 + 0.5
                     call pgsci(30+nival+1-c)

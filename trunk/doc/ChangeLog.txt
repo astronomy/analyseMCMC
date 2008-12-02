@@ -2,6 +2,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    27: sluys, 01/12/2008
+     - changes to plotspins:
+       - autodetermine number of bins for 1D and 2D PDFs (need better prescription)
+       - colour now switches between grey and colour 2D probability-area plots
+       - prival = 0 switches off printing of probability areas in title of 2D PDF
+       
     26: sluys, 27/11/2008
      - small changes in plotspins:
        - the 100% probability interval is no longer automatically included
