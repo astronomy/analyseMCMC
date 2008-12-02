@@ -2,6 +2,14 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    28: sluys, 02/12/2008
+     - changes to comp_pdfs:
+       - pltrue = 2 uses different line styles for different sets of true parameters 
+         (as well as different colours if clr=1)
+       - a "0" in plpars leaves the corresponding panel empty; 
+         there's no longer need for 20 values for plpars
+       - screen/bitmap plots now have a white background
+     
     27: sluys, 01/12/2008
      - changes to plotspins:
        - autodetermine number of bins for 1D and 2D PDFs (need better prescription)

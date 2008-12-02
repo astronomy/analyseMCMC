@@ -36,6 +36,8 @@ program comp_pdfs
   if(clr.eq.0) clrs = 1 !All white or black
   if(clr.eq.2) clrs(1:9) = (/15,14,16,15,14,1,15,14,1/) !Grey values
   
+  lss(1:9) = (/2,5,4,3,1,2,5,4,3/)  !Line styles
+  
   size = 10.8
   rat  = 0.57
   if(file.eq.1) then
@@ -85,6 +87,19 @@ program comp_pdfs
   call pgscr(15,0.8,0.8,0.8)  !Default: 0.7
   call pgscr(14,0.45,0.45,0.45) !Default: 0.33
   
+  if(file.le.1) then
+     call pgscr(0,1.0,1.0,1.0) !White background
+     call pgscr(1,0.0,0.0,0.0) !Black foreground
+     if(file.eq.1) then !png: create white background
+        call pgsvp(-100.,100.,-100.,100.)
+        call pgswin(0.,1.,0.,1.)
+        call pgsci(0)
+        call pgrect(-1.,2.,-1.,2.)
+        call pgsvp(0.08,0.95,0.06,0.87) !Default viewport size (?)
+        call pgsci(1)
+     end if
+  end if
+  
   nfrx = frames(1)      !Number of frames
   nfry = frames(2)
   if(dim.eq.2) then
@@ -133,7 +148,7 @@ program comp_pdfs
         
         if(dim.eq.1) then
            !call plotpdf1d(nf,fnames,fr1,lbl,clr,sch)
-           call plotpdf1d(fr1,lbl)
+           if(plpars(fr).gt.0) call plotpdf1d(fr1,lbl)  !Skip panel if plpars.eq.0
         else
            !call plotpdf2d(nf,fnames,plpars2d(1),plpars2d(2),lbl,clr,sch)
            call plotpdf2d(plpars2d(1),plpars2d(2),lbl)

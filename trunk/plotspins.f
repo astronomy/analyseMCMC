@@ -3061,13 +3061,13 @@ program plotspins
                     if(pltrue.eq.1) then
                        write(str,'(A4,F7.3,A9,F6.2,A1)')'mdl:',startval(ic,p,1),' \(2030):',ranges(ic,c0,p,5)*100,'%'
                     else
-                       write(str,'(A4,F7.3,A9,F6.2,A1)')'med:',stats(ic,p,1),' \(2030):',ranges(ic,c0,p,5)*100,'%'
+                       write(str,'(A4,F8.3,A9,F6.2,A1)')'med:',stats(ic,p,1),' \(2030):',ranges(ic,c0,p,5)*100,'%'
                     end if
                  else
                     if(pltrue.eq.1) then
                        write(str,'(A4,F7.3,A9,F7.3)')'mdl:',startval(ic,p,1),' \(2030):',ranges(ic,c0,p,5)
                     else
-                       write(str,'(A4,F7.3,A9,F7.3)')'med:',stats(ic,p,1),' \(2030):',ranges(ic,c0,p,5)
+                       write(str,'(A4,F8.3,A9,F7.3)')'med:',stats(ic,p,1),' \(2030):',ranges(ic,c0,p,5)
                     end if
                  end if
                  call pgsch(sch*1.2)

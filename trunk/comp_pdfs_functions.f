@@ -6,7 +6,7 @@ module comp_pdfs_settings
   implicit none
   save
   integer, parameter :: nf1=9
-  integer :: nf,file,type,dim,clr,fs,frames(2),plpars(20),plpars2d(2),clrs(nf1)
+  integer :: nf,file,type,dim,clr,fs,frames(2),plpars(20),plpars2d(2),clrs(nf1),lss(nf1)
   integer :: pltrue,plmedian,plrange
   real :: sch
   character :: fnames(nf1)*99,dirnames(nf1)*99,outnamebase*99,settingsfile*99
@@ -227,7 +227,7 @@ subroutine plotpdf1d(pp,lbl)
   
   
   !Plot true values
-  if(pltrue.eq.1) then
+  if(pltrue.ge.1) then
      identical = 1
      if(nf.gt.1) then
         do f=2,nf
@@ -243,11 +243,13 @@ subroutine plotpdf1d(pp,lbl)
         do f=1,nf
            if(pp1.eq.6.and.abs(startval(f,5,1)).lt.0.001) cycle  !If a=0, don't plot theta_SL (pp1=6)
            call pgslw(lw); call pgsls(2); call pgsci(1)
+           if(clr.eq.1) call pgsci(clrs(f))
+           if(pltrue.eq.2) call pgsls(lss(f))
            !call pgsci(clrs(f))  !it seems clearer when all true values are white
            call pgline(2,(/startval(f,pp1,1),startval(f,pp1,1)/),yrange)
         end do
      end if
-  end if !if(pltrue.eq.1)
+  end if !if(pltrue.ge.1)
   
   
   
@@ -502,7 +504,7 @@ subroutine plotpdf2d(pp1,pp2,lbl)
   
   
   !Plot true values 
-  if(pltrue.eq.1) then
+  if(pltrue.ge.1) then
      !call pgline(2,(/startval(1,pp11,1),startval(1,pp11,1)/),(/-1.e20,1.e20/))
      !call pgline(2,(/-1.e20,1.e20/),(/startval(1,pp22,1),startval(1,pp22,1)/))
      
@@ -541,7 +543,7 @@ subroutine plotpdf2d(pp1,pp2,lbl)
            call pgline(2,(/-1.e20,1.e20/),(/startval(f,pp22,1),startval(f,pp22,1)/))
         end do
      end if
-  end if !if(pltrue.eq.1)
+  end if !if(pltrue.ge.1)
   
   
   !Plot median (if one file)
@@ -693,8 +695,10 @@ subroutine read_inputfile
     read(u,*)bla
     read(u,*)frames
     read(u,*)bla
-    read(u,*)plpars
-
+    plpars = 0
+    !read(u,*)plpars
+    read(u,*)plpars(1:frames(1)*frames(2))  !Don't always read 20 parameters
+       
     read(u,*)bla
     read(u,*)bla
     read(u,*)plpars2d
@@ -738,10 +742,10 @@ subroutine write_inputfile
   write(u,11)file, 'file',   'Output file type: 0:screen, 1: png, 2:eps, 3:pdf'
   write(u,11)type, 'type',   'Type of plot:  1: default, 2: poster, 3: talk'
   write(u,11)dim, 'dim',   'Dimension of PDF: 1 or 2'
-  write(u,11)pltrue, 'pltrue',   'Plot true values for 1D or 2D plots'
+  write(u,11)pltrue, 'pltrue',   'Plot true values for 1D or 2D plots:  0-no, 1-yes, 2-use different line styles for multiple sets of true values'
   write(u,11)plmedian, 'plmedian',   'Plot medians for 1D or 2D plots, only if reading 1 file'
   write(u,11)plrange, 'plrange',   'Plot ranges  for 1D or 2D plots, only if reading 1 file: 0-no, 1:plot lines, 2:plot numbers too'
-  write(u,11)clr, 'clr',   'Use colour: 0-no (grey), 1-yes'
+  write(u,11)clr, 'clr',   'Use colour: 0-B/W, 1-colour, 2-grey scales'
   write(u,11)fs, 'fs',   'Fill style for PDFs: 1-solid, 2-outline, 3-hatched, 4-cross-hatched'
   write(u,21)sch, 'sch',   'Scale of font, etc.  Default: 2.'
   
@@ -749,7 +753,7 @@ subroutine write_inputfile
   write(u,'(//,A)')' 1D plot options:'
   write(u,'(A)')'   Number of frames in 1D plot: (w, h  or  x, y)  (frames):'
   write(u,12)frames
-  write(u,'(A)')'   Labels of the plot parameters for the 1d frames (plpars):'
+  write(u,'(A)')"   Labels of the plot parameters for the 1d frames (plpars)  (need at least one for each frame.  0-don't plot panel):  "
   write(u,13)plpars !Array of size 20
   
   
