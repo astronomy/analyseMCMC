@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    30: sluys, 03/12/2008
+     - plotspins: changing parameters (m1,m2,incl,p.ang.) is now done in subroutines
+          
     29: sluys, 03/12/2008
      - changes to plotspins:
        - got rid of old input file support

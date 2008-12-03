@@ -1693,6 +1693,31 @@ end subroutine normvec
 
 
 !************************************************************************
+subroutine mc_eta_2_m1_m2(mc,eta,m1,m2)  !Convert chirp mass and eta to m1 and m2 - double precision
+  implicit none
+  real*8 :: mc,eta,m1,m2, dvar,dvar1,dvar2
+  dvar = dsqrt(0.25d0-eta)
+  dvar1 = (0.5d0-dvar)/(0.5d0+dvar)
+  dvar2 = dvar1**0.6d0
+  m1 = mc * ((1.d0+dvar1)**0.2d0 / dvar2)
+  m2 = mc * ((1.d0+1.d0/dvar1)**0.2d0 * dvar2)
+end subroutine mc_eta_2_m1_m2
+!************************************************************************
+
+!************************************************************************
+subroutine mc_eta_2_m1_m2r(mcr,etar,m1r,m2r)  !Convert chirp mass and eta to m1 and m2 - single precision
+  implicit none
+  real*8 :: mc,eta,m1,m2
+  real :: mcr,etar,m1r,m2r
+  mc = dble(mcr)
+  eta = dble(etar)
+  call mc_eta_2_m1_m2(mc,eta,m1,m2)
+  m1r = real(m1)
+  m2r = real(m2)
+end subroutine mc_eta_2_m1_m2r
+!************************************************************************
+
+!************************************************************************
 subroutine ang2vec(l,b,vec)  !Convert longitude, latitude (rad) to a 3D normal vector
   !l in [0,2pi[; b in [-pi,pi]
   implicit none
@@ -1797,6 +1822,22 @@ subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) !Compute the inclination and
   !psi = drevpi(polangle(p,o))  !Compute polarisation angle
   
 end subroutine compute_incli_polang
+!************************************************************************
+
+!************************************************************************
+subroutine compute_incli_polangr(plr,pbr,olr,obr, ir,psir) !Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob) - single precision I/O
+  implicit none
+  real*8 :: pl,pb,ol,ob,i,psi
+  real :: plr,pbr,olr,obr,ir,psir
+  
+  pl = dble(plr)
+  pb = dble(pbr)
+  ol = dble(olr)
+  ob = dble(obr)
+  call compute_incli_polang(pl,pb,ol,ob, i,psi)
+  ir = real(i)
+  psir = real(psi)
+end subroutine compute_incli_polangr
 !************************************************************************
 
 !************************************************************************

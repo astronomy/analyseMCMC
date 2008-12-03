@@ -13,8 +13,7 @@ program plotspins
   real :: x(nchs,nchs*narr1),xx(nchs*narr1),yy(nchs*narr1),zz(nchs*narr1)
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ybin2(:),ysum(:),yconv(:),ycum(:)  !These depend on nbin1d, allocate after reading input file
   real :: a,rat,plx,ply,pltsz,pltrat
-  real*8 :: t,t0,dvar,dvar1,dvar2,nullh
-  real*8 :: dra,ddec,dtj,dpj,din,dpa,ra
+  real*8 :: t,t0,nullh,ra
   real, allocatable :: dat(:,:,:),alldat(:,:,:),pldat(:,:,:)
   character :: varnames(npar1)*8,pgunits(npar1)*99,pgvarns(npar1)*99,pgvarnss(npar1)*99,pgorigvarns(npar1)*99,infile*100,infiles(nchs)*100,str*99,str1*99,str2*99,bla*10,command*99
   
@@ -432,7 +431,10 @@ program plotspins
   !Test: get parameter values for L=Lmax
   if(prprogress.ge.3) write(6,'(I10,F14.6,1x,2F12.7,F20.8,9F12.7)')nint(is(icloglmax,iloglmax)),loglmax,dat(2:3,icloglmax,iloglmax),dat(4,icloglmax,iloglmax)+t0,dat(5:13,icloglmax,iloglmax)
   
-  !Autoburnin: for each chain, get the first point where log(L) > log(L_max)-autoburnin
+  
+  
+  
+  !***Autoburnin: for each chain, get the first point where log(L) > log(L_max)-autoburnin
   if(autoburnin.gt.1.e-10) then
      loop1: do ic=1,nchains0
         isburn(ic) = is(ic,ntot(ic)) !Set burnin to last iteration, so that chain is completely excluded if condition is never fulfilled
@@ -449,6 +451,8 @@ program plotspins
   
   
   
+  
+  !*** Print chain info to screen
   !Print info on number of iterations, burnin, thinning, etc.
   do ic=1,nchains0
      if(prchaininfo.ge.2.and.update.ne.1) write(*,'(A9,I3,A2,A23,A12,A,ES7.1,A,ES7.1,A,ES7.1,A,ES7.1, A,F8.2, A,I3,A,I4,A,ES8.2,A1)') &
@@ -470,7 +474,9 @@ program plotspins
        ',  # iterations: ',real(totiter),',  total thinning:',nint(avgtotthin),'x, # data points after burnin: ',real(totpts),' (',real(totpts)/real(totlines)*100,'%), contributing chains:',contrchains,'/',nchains0,'.'
   
   
-  !Determine extra thinning for logL, chain, jump plots
+  
+  
+  !*** Determine extra thinning for logL, chain, jump plots
   if(chainpli.le.0) then
      !if(sum(ntot(1:nchains0)).gt.maxdots) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
      chainpli = max(1,nint(real(sum(ntot(1:nchains0)))/real(maxdots)))  !Use ntot and nchains0, since n is low if many points are in the burnin
@@ -488,27 +494,15 @@ program plotspins
   
   
   
-  !Change some variables:
+  !*** Change some variables:
   if(prprogress.ge.2.and.update.eq.0) write(*,'(A)')'  Changing some variables...   '
   !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
   do ic=1,nchains0
      do i=1,ntot(ic)
         !Calculate the masses from Mch and eta:
-        dvar = dsqrt(0.25d0-dat(3,ic,i))
-        dvar1 = (0.5d0-dvar)/(0.5d0+dvar)
-        dvar2 = dvar1**0.6d0
-        dat(14,ic,i) = dat(2,ic,i) * ((1.d0+dvar1)**0.2d0 / dvar2)
-        dat(15,ic,i) = dat(2,ic,i) * ((1.d0+1.d0/dvar1)**0.2d0 * dvar2)
-        
-        !Convert theta_Jo,phi_Jo to inclination and polarisation angle
-        dra = dble(dat(8,ic,i)) !RA in rad
-        ddec = dasin(dble(dat(9,ic,i))) !Dec in rad
-        dpj = ra(dble(dat(12,ic,i)),t) !phi_Jo (hh->RA) in rad
-        dtj = dasin(dble(dat(11,ic,i))) !theta_Jo in rad
-        
-        call compute_incli_polang(dra,ddec,dpj,dtj, din,dpa)
-        dat(11,ic,i) = real(din) !real(dsin(din))
-        dat(12,ic,i) = real(dpa)
+        call mc_eta_2_m1_m2r(dat(2,ic,i),dat(3,ic,i), dat(14,ic,i),dat(15,ic,i))
+        !Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
+        call compute_incli_polangr(dat(8,ic,i), asin(dat(9,ic,i)), real(ra(dble(dat(12,ic,i)), dble(dat(4,ic,i)) + t0)), asin(dat(11,ic,i)),   dat(11,ic,i),dat(12,ic,i))  !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad)
      end do
   end do
   npar = 15
