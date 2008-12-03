@@ -7,7 +7,7 @@ program plotspins
   integer, parameter :: narr1=2.01e5+2,npar0=13,nr1=5,nstat1=10,ndets=3
   integer :: n(nchs),ntot(nchs),n0,n1,n2,i,j,j1,j2,nburn0(nchs),iargc,io,readerror,pgopen,system,narr,maxdots,offsetrun,imin
   integer :: niter(nchs),totiter,totpts,totlines,seed(nchs),ndet(nchs),totthin(nchs),contrchains
-  integer :: index(npar1,nchs*narr1),index1(nchs*narr1),fileversion
+  integer :: index(npar1,nchs*narr1),index1(nchs*narr1)
   real :: is(nchs,narr1),isburn(nchs),jumps(nchs,npar1,narr1),startval(nchs,npar1,3)
   real :: sig(npar1,nchs,narr1),acc(npar1,nchs,narr1),avgtotthin
   real :: x(nchs,nchs*narr1),xx(nchs*narr1),yy(nchs*narr1),zz(nchs*narr1)
@@ -257,8 +257,6 @@ program plotspins
   !***   READ INPUT FILE(S)   ****************************************************************************************************
   !*******************************************************************************************************************************
   
-  !fileversion = 1
-  fileversion = 2  !Start trying the new format
 101 continue
   readerror = 0
   narr = narr1
@@ -289,7 +287,6 @@ program plotspins
      read(10,*,end=199,err=199)bla
      do i=1,ndet(ic)
         !read(10,'(2x,A14,F18.8,4F12.2,F22.8,F17.7,3I14)') detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
-        !read(10,'(2x,A14,F18.8,4F12.2,F22.8,F17.7,3I14)') detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
         read(10,*)detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
         !print*,trim(detnames(ic,i))
         detname = detnames(ic,i)
@@ -303,84 +300,37 @@ program plotspins
      end do
      !if(prprogress.ge.1.and.update.eq.0) write(*,*)''
      read(10,*,end=199,err=199)bla
-     if(fileversion.eq.1) read(10,*,end=199,err=199)bla
      
-     !Read the data (old format, <04/2008)
-     if(fileversion.eq.1.and.rdsigacc.eq.1) then
-        i=1
-        do while(i.le.narr1)
-           read(10,'(I12,F21.10,2(F17.10,F10.6,F7.4),F22.10,F10.6,F7.4,9(F17.10,F10.6,F7.4))',end=199,err=198)i1,dat(1,ic,i),(dat(j,ic,i),sig(j,ic,i),acc(j,ic,i),j=2,3),  t,sig(4,ic,i),acc(4,ic,i),  (dat(j,ic,i),sig(j,ic,i),acc(j,ic,i),j=5,npar0)
-           !read(10,*,end=199,err=198)i1,dat(1,ic,i),(dat(j,ic,i),sig(j,ic,i),acc(j,ic,i),j=2,3),  t,sig(4,ic,i),acc(4,ic,i),  (dat(j,ic,i),sig(j,ic,i),acc(j,ic,i),j=5,npar0)  !Only works when not using new output (otherwise, no read error)
-           is(ic,i) = real(i1)
-           if(ic.eq.1.and.i.eq.1) t0 = dble(floor(t/10.d0)*10)
-           dat(4,ic,i) = real(t - t0)
-           if(thin.gt.1.and.i.gt.2) then !'Thin' the output by reading every thin-th line
-              do j=1,thin-1
-                 read(10,*,end=199,err=198)bla
-              end do
-           end if
-           i = i+1
-           if(i1.ge.maxchlen) exit
-        end do !i
-     else if(fileversion.eq.1.and.rdsigacc.eq.0) then !Read 40% quicker
-        i=1
-        do while(i.le.narr1)
-           read(10,'(I12,F21.10,2(F17.10,17x),F22.10,17x,9(F17.10,17x))',end=199,err=198)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
-           is(ic,i) = real(i1)
-           if(ic.eq.1.and.i.eq.1) t0 = dble(floor(t/10.d0)*10)
-           dat(4,ic,i) = real(t - t0)
-           !if(abs(dat(7,ic,i)).gt.0.995) i=i-1
-           if(thin.gt.1.and.i.gt.2) then !'Thin' the output by reading every thin-th line
-              do j=1,thin-1
-                 read(10,*,end=199,err=198)bla
-              end do
-           end if
-           i = i+1
-           if(i1.ge.maxchlen) exit
-        end do !i
-        
-     else if(fileversion.eq.2) then !New file format (04/2008)
-        i=1
-        do while(i.le.narr1)
+     i=1
+     do while(i.le.narr1)
         !do while(i.le.100)
-           !read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',end=199,err=198)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
-           !read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
-           read(10,*,iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
-           if(io.lt.0) exit !EOF
-           if(io.gt.0) then !Read error
-              if(readerror.eq.1) goto 198 !Read error in previous line as well
-              readerror = 1
-              i = i-1
-              cycle
-           end if
-           readerror = 0
-           is(ic,i) = real(i1)
-           if(ic.eq.1.and.i.eq.1) t0 = dble(floor(t/10.d0)*10)
-           if(thin.gt.1.and.i.gt.2) then !'Thin' the output by reading every thin-th line
-              do j=1,thin-1
-                 read(10,*,end=199,err=198)bla
-              end do
-           end if
-           !write(*,'(I10,F14.2,2(F13.7),F12.8,9(F12.7))')i1,dat(1,ic,i),(dat(j,ic,i),j=2,npar0)
-           
-           !Convert theta_Jo,phi_Jo to inclination and polarisation angle
-           dra = dble(dat(8,ic,i)) !RA in rad
-           ddec = dasin(dble(dat(9,ic,i))) !Dec in rad
-           dtj = dasin(dble(dat(11,ic,i))) !theta_Jo in rad
-           dpj = ra(dble(dat(12,ic,i)),t) !phi_Jo (hh->RA) in rad
-           
-           call compute_incli_polang(dra,ddec,dpj,dtj, din,dpa)
-           dat(11,ic,i) = real(din) !real(dsin(din))
-           dat(12,ic,i) = real(dpa)
-           
-           dat(4,ic,i) = real(t - t0)
-           
-           !if(din.lt.0.d0) i=i-1
-           
-           i = i+1
-           if(i1.ge.maxchlen) exit
-        end do !i
-     end if
+        !read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',end=199,err=198)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
+        !read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
+        read(10,*,iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
+        if(io.lt.0) exit !EOF
+        if(io.gt.0) then !Read error
+           if(readerror.eq.1) goto 198 !Read error in previous line as well
+           readerror = 1
+           i = i-1
+           cycle
+        end if
+        readerror = 0
+        is(ic,i) = real(i1)
+        if(ic.eq.1.and.i.eq.1) t0 = dble(floor(t/10.d0)*10)
+        if(thin.gt.1.and.i.gt.2) then !'Thin' the output by reading every thin-th line
+           do j=1,thin-1
+              read(10,*,end=199,err=198)bla
+           end do
+        end if
+        !write(*,'(I10,F14.2,2(F13.7),F12.8,9(F12.7))')i1,dat(1,ic,i),(dat(j,ic,i),j=2,npar0)
+        
+        dat(4,ic,i) = real(t - t0)
+        
+        !if(din.lt.0.d0) i=i-1
+        
+        i = i+1
+        if(i1.ge.maxchlen) exit
+     end do !i
      
      !if(i1.lt.maxchlen) write(*,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
      if(i.ge.narr1-2) write(*,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
@@ -388,12 +338,6 @@ program plotspins
 198  write(*,'(A,I7,$)')'  Read error in file '//trim(infile)//', line',i
      i = i-1
      if(i.lt.25) then
-        if(ic.eq.1.and.fileversion.eq.2) then
-           fileversion = 1
-           deallocate(dat)
-           write(*,'(A)')"    I'll try the old file format..."
-           goto 101
-        end if
         write(*,'(A,/)')'  Aborting program...'
         stop
      end if
@@ -483,8 +427,10 @@ program plotspins
         end if
      end do
   end do
-  if(prruninfo.ge.1) write(*,'(A,I4,2(A,I9),A,F10.3,A,/)')'    Maximum likelihood point:   chain:',icloglmax,',   line:',iloglmax,',   iteration:',nint(is(icloglmax,iloglmax)),',   max log(L):',loglmax,'.'
-  if(prruninfo.ge.3) write(6,'(2F10.5,F20.5,9F10.5)')dat(2:13,icloglmax,iloglmax)  !Test: get parameter values for L=Lmax
+  if(prruninfo.ge.1) write(*,'(A,I4,2(A,I9),A,F10.3,A,/)')'    Maximum likelihood point:   chain:',icloglmax,' ('//trim(infiles(icloglmax))//'),   line:',iloglmax*thin+7+ndet(icloglmax), &
+       ',   iteration:',nint(is(icloglmax,iloglmax)),',   max log(L):',loglmax,'.'
+  !Test: get parameter values for L=Lmax
+  if(prprogress.ge.3) write(6,'(I10,F14.6,1x,2F12.7,F20.8,9F12.7)')nint(is(icloglmax,iloglmax)),loglmax,dat(2:3,icloglmax,iloglmax),dat(4,icloglmax,iloglmax)+t0,dat(5:13,icloglmax,iloglmax)
   
   !Autoburnin: for each chain, get the first point where log(L) > log(L_max)-autoburnin
   if(autoburnin.gt.1.e-10) then
@@ -545,20 +491,31 @@ program plotspins
   !Change some variables:
   if(prprogress.ge.2.and.update.eq.0) write(*,'(A)')'  Changing some variables...   '
   !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
-  !Calculate the masses from Mch and eta:
   do ic=1,nchains0
      do i=1,ntot(ic)
+        !Calculate the masses from Mch and eta:
         dvar = dsqrt(0.25d0-dat(3,ic,i))
         dvar1 = (0.5d0-dvar)/(0.5d0+dvar)
         dvar2 = dvar1**0.6d0
         dat(14,ic,i) = dat(2,ic,i) * ((1.d0+dvar1)**0.2d0 / dvar2)
         dat(15,ic,i) = dat(2,ic,i) * ((1.d0+1.d0/dvar1)**0.2d0 * dvar2)
+        
+        !Convert theta_Jo,phi_Jo to inclination and polarisation angle
+        dra = dble(dat(8,ic,i)) !RA in rad
+        ddec = dasin(dble(dat(9,ic,i))) !Dec in rad
+        dpj = ra(dble(dat(12,ic,i)),t) !phi_Jo (hh->RA) in rad
+        dtj = dasin(dble(dat(11,ic,i))) !theta_Jo in rad
+        
+        call compute_incli_polang(dra,ddec,dpj,dtj, din,dpa)
+        dat(11,ic,i) = real(din) !real(dsin(din))
+        dat(12,ic,i) = real(dpa)
      end do
   end do
   npar = 15
   if(par2.eq.0) par2 = npar
   
   acc = acc*0.25  !Transfom back to the actual acceptance rate
+  
   
   
   
@@ -594,7 +551,9 @@ program plotspins
   if(prprogress.ge.2.and.update.eq.0) write(*,'(A,I12)')'  t0:',nint(t0)
   
   
-  !Construct output file name
+  
+  
+  !*** Construct output file name
   ic = 1
   outputname = ' '
   !Number of detectors
@@ -619,6 +578,7 @@ program plotspins
      if(ic.gt.1.and.startval(ic,7,1).ne.startval(1,7,1)) write(outputname,'(A,I3.3)')trim(outputname)//'-',nint(acos(startval(ic,7,1))*r2d)
   end do
   !print*,outputname
+  
   
   
   
@@ -3526,17 +3486,21 @@ program plotspins
                        call pgscr(30,1.,1.,1.) !BG colour
                        if(nival.eq.2) then
                           call pgscr(31,1.,1.,0.) !Yellow
+                          if(file.ge.2) call pgscr(31,0.8,0.7,0.) !Dark yellow
                           call pgscr(32,1.,0.,0.) !Red
                        end if
                        if(nival.eq.3) then
                           call pgscr(31,0.,0.,1.) !Blue
                           call pgscr(32,1.,1.,0.) !Yellow
+                          if(file.ge.2) call pgscr(32,0.8,0.7,0.) !Dark yellow
+                          !call pgscr(32,0.,1.,0.) !Green
                           call pgscr(33,1.,0.,0.) !Red
                        end if
                        if(nival.eq.4) then
                           call pgscr(31,0.,0.,1.) !Blue
                           call pgscr(32,0.,1.,0.) !Green
                           call pgscr(33,1.,1.,0.) !Yellow
+                          if(file.ge.2) call pgscr(33,0.8,0.7,0.) !Dark yellow
                           !call pgscr(34,1.,0.5,0.) !Orange
                           call pgscr(34,1.,0.,0.) !Red
                        end if
@@ -3544,6 +3508,7 @@ program plotspins
                           call pgscr(31,0.,0.,1.) !Blue
                           call pgscr(32,0.,1.,0.) !Green
                           call pgscr(33,1.,1.,0.) !Yellow
+                          if(file.ge.2) call pgscr(33,0.8,0.7,0.) !Dark yellow
                           call pgscr(34,1.,0.5,0.) !Orange
                           call pgscr(35,1.,0.,0.) !Red
                        end if
@@ -3771,19 +3736,39 @@ program plotspins
               if(prival.ge.1.and.normpdf2d.eq.4.and. ((p1.eq.8.and.p2.eq.9) .or. (p1.eq.12.and.p2.eq.11))) then  !For sky position and orientation only
                  string = ' '
                  do c = 1,nival
-                    a = probareas(p1,p2,c,2)
-                    if(a.lt.1.) then
-                       write(string,'(F5.1,A2,F5.2,A7)')ivals(c)*100,'%:',a,'\(2218)'
-                    else if(a.lt.10.) then
-                       write(string,'(F5.1,A2,F4.1,A7)')ivals(c)*100,'%:',a,'\(2218)'
-                    else if(a.lt.100.) then
-                       write(string,'(F5.1,A2,F5.1,A7)')ivals(c)*100,'%:',a,'\(2218)'
-                    else
-                       write(string,'(F5.1,A2,I4,A7)')ivals(c)*100,'%:',nint(a),'\(2218)'
+                    i = 3  !2-use degrees, 3-square degrees
+                    a = probareas(p1,p2,c,i)
+                    if(i.eq.2) then
+                       if(a.lt.1.) then
+                          write(string,'(F5.1,A2,F5.2,A7)')ivals(c)*100,'%:',a,'\(2218)'
+                       else if(a.lt.10.) then
+                          write(string,'(F5.1,A2,F4.1,A7)')ivals(c)*100,'%:',a,'\(2218)'
+                       else if(a.lt.100.) then
+                          write(string,'(F5.1,A2,F5.1,A7)')ivals(c)*100,'%:',a,'\(2218)'
+                       else
+                          write(string,'(F5.1,A2,I4,A7)')ivals(c)*100,'%:',nint(a),'\(2218)'
+                       end if
+                    end if
+                    if(i.eq.3) then
+                       call pgsch(sch*0.9) !Needed to fit the square-degree sign in
+                       if(a.lt.1.) then
+                          write(string,'(F5.1,A2,F5.2,A11)')ivals(c)*100,'%:',a,'\u\(0841)\d'
+                       else if(a.lt.10.) then
+                          write(string,'(F5.1,A2,F4.1,A11)')ivals(c)*100,'%:',a,'\u\(0841)\d'
+                       else if(a.lt.100.) then
+                          write(string,'(F5.1,A2,F5.1,A11)')ivals(c)*100,'%:',a,'\u\(0841)\d'
+                       else if(a.lt.1000.) then
+                          write(string,'(F5.1,A2,I4,A11)')ivals(c)*100,'%:',nint(a),'\u\(0841)\d'
+                       else if(a.lt.10000.) then
+                          write(string,'(F5.1,A2,I5,A11)')ivals(c)*100,'%:',nint(a),'\u\(0841)\d'
+                       else
+                          write(string,'(F5.1,A2,I6,A11)')ivals(c)*100,'%:',nint(a),'\u\(0841)\d'
+                       end if
                     end if
                     a = (real(c-1)/real(nival-1) - 0.5)*0.7 + 0.5
                     call pgsci(30+nival+1-c)
                     call pgmtxt('T',0.5,a,0.5,trim(string))  !Print title
+                    call pgsch(sch)
                  end do
                  call pgsci(1)
               end if

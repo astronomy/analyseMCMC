@@ -2,6 +2,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    29: sluys, 03/12/2008
+     - changes to plotspins:
+       - got rid of old input file support
+       - use darker yellow for 2D probability areas in .eps or .pdf output
+       - print square degrees in 2D probability-area plot
+     
     28: sluys, 02/12/2008
      - changes to comp_pdfs:
        - pltrue = 2 uses different line styles for different sets of true parameters 
