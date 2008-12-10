@@ -19,6 +19,7 @@ program plotspins
   
   integer :: nn,nn1,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nlogl1,nlogl2,ksn1,ksn2,iloglmax,icloglmax,ci,nrhat
   real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),rhat(npar1),totrhat,totrelvar,ksdat1(narr1),ksdat2(narr1),ksd,ksprob,loglmax,loglmaxs(nchs)
+  real :: m1,m2
   character :: ch
   
   integer :: samplerate(nchs,ndets),samplesize(nchs,ndets),FTsize(nchs,ndets),detnr(nchs,ndets)
@@ -426,12 +427,25 @@ program plotspins
         end if
      end do
   end do
-  if(prruninfo.ge.1) write(*,'(A,I4,2(A,I9),A,F10.3,A,/)')'    Maximum likelihood point:   chain:',icloglmax,' ('//trim(infiles(icloglmax))//'),   line:',iloglmax*thin+7+ndet(icloglmax), &
-       ',   iteration:',nint(is(icloglmax,iloglmax)),',   max log(L):',loglmax,'.'
-  !Test: get parameter values for L=Lmax
-  if(prprogress.ge.3) write(6,'(I10,F14.6,1x,2F12.7,F20.8,9F12.7)')nint(is(icloglmax,iloglmax)),loglmax,dat(2:3,icloglmax,iloglmax),dat(4,icloglmax,iloglmax)+t0,dat(5:13,icloglmax,iloglmax)
   
-  
+  if(prruninfo.ge.1) then
+     ic = icloglmax
+     i = iloglmax
+     write(*,'(A,I4,2(A,I9),A,F10.3,A)')'    Maximum likelihood point:   chain:',ic,' ('//trim(infiles(ic))//'),   line:',i*thin+7+ndet(ic), &
+          ',   iteration:',nint(is(ic,i)),',   max log(L):',loglmax,'.'
+     
+     !Test: get parameter values for L=Lmax
+     if(prprogress.ge.3) then
+        write(6,'(I10,F14.6,1x,2F12.7,F20.8,9F12.7)')nint(is(ic,i)),loglmax,dat(2:3,ic,i),dat(4,ic,i)+t0,dat(5:13,ic,i)
+        call mc_eta_2_m1_m2r(dat(2,ic,i),dat(3,ic,i), m1,m2)
+        !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
+        !call compute_incli_polangr(dat(8,ic,i), asin(dat(9,ic,i)), real(ra(dble(dat(12,ic,i)), dble(dat(4,ic,i)) + t0)), asin(dat(11,ic,i)),   inc,psi)  !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad)
+        !write(6,'(F9.4,F10.4,F21.6,F11.4,F10.4,F12.4,2F11.4,F12.4,3F11.4)')m1,m2,dat(4,ic,i)+t0,dat(5:10,ic,i),inc,psi,dat(13,ic,i)
+        
+        write(6,'(F9.4,F10.4,F21.6,F11.4,F10.4,F12.4,2F11.4,F12.4,3F11.4)')m1,m2,dat(4,ic,i)+t0,exp(dat(5,ic,i)),dat(6,ic,i),acos(dat(7,ic,i))*r2d,dat(8,ic,i)*r2h,asin(dat(9,ic,i))*r2d,dat(10,ic,i)*r2d,asin(dat(11,ic,i))*r2d,dat(12,ic,i)*r2d,dat(13,ic,i)*r2d
+     end if
+     if(prruninfo.ge.1) write(*,*)
+  end if
   
   
   !***Autoburnin: for each chain, get the first point where log(L) > log(L_max)-autoburnin
@@ -3746,17 +3760,17 @@ program plotspins
                     if(i.eq.3) then
                        call pgsch(sch*0.9) !Needed to fit the square-degree sign in
                        if(a.lt.1.) then
-                          write(string,'(F5.1,A2,F5.2,A11)')ivals(c)*100,'%:',a,'\u\(0841)\d'
+                          write(string,'(F5.1,A2,F5.2,A9)')ivals(c)*100,'%:',a,'deg\u2\d'
                        else if(a.lt.10.) then
-                          write(string,'(F5.1,A2,F4.1,A11)')ivals(c)*100,'%:',a,'\u\(0841)\d'
+                          write(string,'(F5.1,A2,F4.1,A9)')ivals(c)*100,'%:',a,'deg\u2\d'
                        else if(a.lt.100.) then
-                          write(string,'(F5.1,A2,F5.1,A11)')ivals(c)*100,'%:',a,'\u\(0841)\d'
+                          write(string,'(F5.1,A2,F5.1,A9)')ivals(c)*100,'%:',a,'deg\u2\d'
                        else if(a.lt.1000.) then
-                          write(string,'(F5.1,A2,I4,A11)')ivals(c)*100,'%:',nint(a),'\u\(0841)\d'
+                          write(string,'(F5.1,A2,I4,A9)')ivals(c)*100,'%:',nint(a),'deg\u2\d'
                        else if(a.lt.10000.) then
-                          write(string,'(F5.1,A2,I5,A11)')ivals(c)*100,'%:',nint(a),'\u\(0841)\d'
+                          write(string,'(F5.1,A2,I5,A9)')ivals(c)*100,'%:',nint(a),'deg\u2\d'
                        else
-                          write(string,'(F5.1,A2,I6,A11)')ivals(c)*100,'%:',nint(a),'\u\(0841)\d'
+                          write(string,'(F5.1,A2,I6,A9)')ivals(c)*100,'%:',nint(a),'deg\u2\d'
                        end if
                     end if
                     a = (real(c-1)/real(nival-1) - 0.5)*0.7 + 0.5
