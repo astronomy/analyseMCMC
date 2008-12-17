@@ -22,7 +22,7 @@ subroutine plotpdf1d(pp,lbl)
   use comp_pdfs_settings
   implicit none
   integer, parameter :: np=15,nbin1=500
-  integer :: pp,b,p1,io,f,nplvar,nchains,nbin,p(np),pp1,ic,wrap(nf,np),lw,detnan(nf,np),identical
+  integer :: pp,b,p1,io,f,nplvar,nchains,nbin(nf),p(np),pp1,ic,wrap(nf,np),lw,detnan(nf,np),identical
   real :: x,startval(nf,np,2),stats(nf,np,6),ranges(nf,np,5),xmin1(nf,np),xmax1(nf,np),plshift
   real :: xbin1(nf,np,nbin1),ybin1(nf,np,nbin1),xbin(nbin1),ybin(nbin1),xmin,xmax,ymin,ymax,dx,yrange(2),xpeak
   character :: fname*99,varnss(np)*99,pgvarnss(np)*99,pgunits(np)*99,lbl*99,str*99
@@ -51,7 +51,7 @@ subroutine plotpdf1d(pp,lbl)
         write(*,'(A,/)')'  Aborting.'
         stop
      end if
-     read(10,'(3I6)')nplvar,nchains,nbin !'Total number of plot variables, total number of chains, number of bins'
+     read(10,'(3I6)')nplvar,nchains,nbin(f) !'Total number of plot variables, total number of chains, number of bins'
      !print*,nplvar,nchains,nbin
      do p1=1,nplvar
         read(10,'(3I6)')ic,p(p1),wrap(f,p1) !'Chain number, variable number, and wrap'
@@ -59,12 +59,12 @@ subroutine plotpdf1d(pp,lbl)
         read(10,'(6E15.7)')stats(f,p1,1:6) !'Stats: median, mean, absvar1, absvar2, stdev1, stdev2'
         read(10,'(5E15.7)')ranges(f,p1,1:5) !'Ranges: lower,upper limit, centre, width, relative width'
         read(10,'(2E15.7)')xmin1(f,p1),xmax1(f,p1) !'Xmin and Xmax of PDF'
-        do b=1,nbin+1
+        do b=1,nbin(f)+1
            !read(10,'(2E15.7)',iostat=io)xbin1(f,p1,b),ybin1(f,p1,b)
            read(10,*,iostat=io)xbin1(f,p1,b),ybin1(f,p1,b)  !Formatted read doesn't work for gfortran when NaNs are present
            if(io.ne.0) then
               if(detnan(f,p1).eq.0) write(*,'(A,I4,A1,I4,A1)')'  Warning while reading file '//trim(fname)//', variable '// &
-                   trim(varnss(p1))//', bin',b,'/',nbin,'.'
+                   trim(varnss(p1))//', bin',b,'/',nbin(f),'.'
               ybin1(f,p1,b) = 0.0
               detnan(f,p1) = 1
            end if
@@ -93,8 +93,8 @@ subroutine plotpdf1d(pp,lbl)
   ymin = 0.
   ymax = -1.e30
   do f=1,nf
-     !ymax = max(ymax,maxval(ybin1(f,pp1,1:nbin+1)))
-     do b=1,nbin+1
+     !ymax = max(ymax,maxval(ybin1(f,pp1,1:nbin(f)+1)))
+     do b=1,nbin(f)+1
         if(ybin1(f,pp1,b).gt.ymax) then
            ymax = ybin1(f,pp1,b)
            xpeak = xbin1(f,pp1,b)
@@ -134,39 +134,40 @@ subroutine plotpdf1d(pp,lbl)
      if(wrap(f,pp1).eq.0) then
         !if(clr.eq.0) call pgsci(15)
         call pgslw(1)
-        call pgpoly(nbin+2,(/xbin(1),xbin(1:nbin+1)/),(/0.,ybin(1:nbin+1)/))
+        call pgpoly(nbin(f)+2,(/xbin(1),xbin(1:nbin(f)+1)/),(/0.,ybin(1:nbin(f)+1)/))
+        
         !Plot pdf contour
         if(nf.eq.1.and.clr.eq.1) call pgsci(2)
         if(clr.eq.0.or.clr.eq.2) call pgsci(1)
         call pgslw(lw)
-        call pgline(nbin+1,xbin(1:nbin+1),ybin(1:nbin+1)) !:nbin) ?
+        call pgline(nbin(f)+1,xbin(1:nbin(f)+1),ybin(1:nbin(f)+1)) !:nbin(f)) ?
         
         !Fix the loose ends
         call pgline(2,(/xbin(1),xbin(1)/),(/0.,ybin(1)/))
-        call pgline(2,(/xbin(nbin+1),xbin(nbin+1)/),(/ybin(nbin+1),0./))
+        call pgline(2,(/xbin(nbin(f)+1),xbin(nbin(f)+1)/),(/ybin(nbin(f)+1),0./))
      else
         !plshift = real(2*pi)
         plshift = 360.
         !if(clr.eq.0) call pgsci(15)
         call pgslw(1)
-        call pgpoly(nbin+3,(/xbin(1),xbin(1:nbin),xbin(1)+plshift,xbin(1)+plshift/),(/0.,ybin(1:nbin),ybin(1),0./))
+        call pgpoly(nbin(f)+3,(/xbin(1),xbin(1:nbin(f)),xbin(1)+plshift,xbin(1)+plshift/),(/0.,ybin(1:nbin(f)),ybin(1),0./))
         
         !Plot pdf contour
         if(nf.eq.1.and.clr.eq.1) call pgsci(2)
         if(clr.eq.0.or.clr.eq.2) call pgsci(1)
         !if(clr.eq.0) call pgsci(1)
         call pgslw(lw)
-        call pgline(nbin,xbin(1:nbin),ybin(1:nbin))
+        call pgline(nbin(f),xbin(1:nbin(f)),ybin(1:nbin(f)))
         
         !Plot dotted lines outside the pdf for wrapped periodic variables
         call pgsls(4)
-        call pgline(nbin+1,(/xbin(1:nbin)-plshift,xbin(1)/),(/ybin(1:nbin),ybin(1)/))
-        call pgline(nbin,xbin+plshift,ybin)
+        call pgline(nbin(f)+1,(/xbin(1:nbin(f))-plshift,xbin(1)/),(/ybin(1:nbin(f)),ybin(1)/))
+        call pgline(nbin(f),xbin+plshift,ybin)
         
         !Fix the loose end
         call pgsls(1)
         call pgslw(lw)
-        call pgline(2,(/xbin(nbin),xbin(1)+plshift/),(/ybin(nbin),ybin(1)/))
+        call pgline(2,(/xbin(nbin(f)),xbin(1)+plshift/),(/ybin(nbin(f)),ybin(1)/))
      end if
      
      !plot probability ranges
@@ -216,9 +217,9 @@ subroutine plotpdf1d(pp,lbl)
         xbin = xbin1(f,pp1,:)
         ybin = ybin1(f,pp1,:)
         if(wrap(f,pp1).eq.0) then
-           call pgline(nbin+1,xbin(1:nbin+1),ybin(1:nbin+1))
+           call pgline(nbin(f)+1,xbin(1:nbin(f)+1),ybin(1:nbin(f)+1))
         else
-           call pgline(nbin,xbin(1:nbin),ybin(1:nbin))
+           call pgline(nbin(f),xbin(1:nbin(f)),ybin(1:nbin(f)))
         end if
      end do
      call pgsls(1)
@@ -299,7 +300,7 @@ subroutine plotpdf2d(pp1,pp2,lbl)
   use comp_pdfs_settings
   implicit none
   integer, parameter :: np=15,nbinx1=500,nbiny1=500
-  integer :: pp1,pp2,bx,by,p1,p2,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2,nchains,nbinx,nbiny,ic,lw,c,foundit
+  integer :: pp1,pp2,bx,by,p1,p2,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2,nchains,nbinx(nf),nbiny(nf),ic,lw,c,foundit
   integer :: identical
   real :: startval(nf,np,2),stats(nf,np,6),ranges(nf,np,5),xmin1(nf,np),xmax1(nf,np),ymin1(nf,np),ymax1(nf,np),x
   real :: xmin,xmax,ymin,ymax,dx,dy,z(nf,nbinx1,nbiny1),z1(nbinx1,nbiny1),tr(nf,np*np,6),cont(11)
@@ -327,9 +328,9 @@ subroutine plotpdf2d(pp1,pp2,lbl)
         write(*,'(A,I5)')'  Error reading file '//trim(fname)//', error:',io
         cycle
      end if
-     read(10,'(5I6)')nplvar1,nplvar2,nchains,nbinx,nbiny !Plot variable 1,2, total number of chains, number of bins x,y
+     read(10,'(5I6)')nplvar1,nplvar2,nchains,nbinx(f),nbiny(f) !Plot variable 1,2, total number of chains, number of bins x,y
      nplvar = nplvar2-nplvar1+1
-     !print*,nplvar1,nplvar2,nchains,nbinx,nbiny
+     !print*,nplvar1,nplvar2,nchains,nbinx(f),nbiny(f)
      p12 = 0
      !print*,nplvar1,nplvar2-1,p11,nplvar2
      do p11=nplvar1,nplvar2-1
@@ -355,8 +356,8 @@ subroutine plotpdf2d(pp1,pp2,lbl)
            read(10,'(4E15.7)')xmin1(f,p1),xmax1(f,p1),ymin1(f,p2),ymax1(f,p2) !'Xmin,Xmax,Ymin,Ymax of PDF'
            read(10,'(6E15.7)')tr(f,p12,1:6) !'Tr'              
            !print*,tr
-           do bx=1,nbinx+1
-              do by=1,nbiny
+           do bx=1,nbinx(f)+1
+              do by=1,nbiny(f)
                  read(10,'(E15.7)',advance='no')z1(bx,by)
               end do
               read(10,'(E15.7)')z1(bx,by)
@@ -454,10 +455,10 @@ subroutine plotpdf2d(pp1,pp2,lbl)
      if(f.eq.2) call pgsci(14) !Dark grey
      !if(f.eq.2) call pgshs(-45.,0.7,0.) !Hatches down
      call pgsci(clrs(f))
-     call pgconf(z(f,1:nbinx+1,1:nbiny+1),nbinx+1,nbiny+1,1,nbinx+1,1,nbiny,cont(1),cont(11),tr(f,pp12,1:6))
+     call pgconf(z(f,1:nbinx(f)+1,1:nbiny(f)+1),nbinx(f)+1,nbiny(f)+1,1,nbinx(f)+1,1,nbiny(f),cont(1),cont(11),tr(f,pp12,1:6))
      !call pgsci(1) !When not using hatches
      call pgslw(lw)
-     call pgcont(z(f,1:nbinx+1,1:nbiny+1),nbinx+1,nbiny+1,1,nbinx+1,1,nbiny,cont(1:1),1,tr(f,pp12,1:6))
+     call pgcont(z(f,1:nbinx(f)+1,1:nbiny(f)+1),nbinx(f)+1,nbiny(f)+1,1,nbinx(f)+1,1,nbiny(f),cont(1:1),1,tr(f,pp12,1:6))
      
      
      !plot probability ranges

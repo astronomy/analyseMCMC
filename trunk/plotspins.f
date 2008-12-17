@@ -1442,6 +1442,7 @@ program plotspins
         ymin = min(ymin,startval(ic,p,1),startval(ic,p,2),nullh)
         ymax = max(ymax,startval(ic,p,1),startval(ic,p,2),nullh)
      end if
+     ymin = max(0.,ymin)  !Since we're using null logL := 0 now
      dx = abs(xmax-xmin)*0.01
      dy = abs(ymax-ymin)*0.05
      
@@ -2639,11 +2640,13 @@ program plotspins
         else
            nbin1d = floor(10*log10(real(totpts)))
         end if
+        nbin1d = max(nbin1d,5)
         if(prprogress.ge.2.and.plot.eq.1.and.update.eq.0) then
            if(nbin1d.lt.100) write(*,'(A2,I2,A8,$)')' (',nbin1d,' bins), '
            if(nbin1d.ge.100) write(*,'(A2,I3,A8,$)')' (',nbin1d,' bins), '
         end if
      else
+        nbin1d = max(nbin1d,5)
         if(prprogress.ge.1.and.plot.eq.1.and.update.eq.0) write(*,'(A2,$)')', '
      end if
      
@@ -3008,35 +3011,36 @@ program plotspins
            
            
            
-           !Print median, model value and range widths in panel title
+           !Print median, model value and range widths in 1D PDF panel title
            call pgslw(lw)
            call pgsci(1)
            ic = 1
            !if(nplvar.lt.7.or.nplvar.eq.9) then  !Three or less columns
            if(quality.ne.2.and.quality.ne.3.and.quality.ne.4) then  !Not a talk/poster/thesis
               if(nplvar.le.5) then
-                 if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
-                    write(str,'(A,F7.3,A5,F7.3,A9,F6.2,A1)')trim(pgvarns(p))//': mdl:',startval(ic,p,1),' med:',stats(ic,p,1),  &
-                         !' \(2030):',abs(stats(ic,p,1)-startval(ic,p,1))/startval(ic,p,1)*100,'%'
-                         ' \(2030):',ranges(ic,c0,p,5)*100,'%'
-                 else
-                    write(str,'(A,F7.3,A5,F7.3,A9,F7.3)')trim(pgvarns(p))//': mdl:',startval(ic,p,1),' med:',stats(ic,p,1),  &
-                         !' \(2030):',abs(stats(ic,p,1)-startval(ic,p,1))  
-                         ' \(2030):',ranges(ic,c0,p,5)
+                 write(str,'(A,F7.3,A5,F7.3)')trim(pgvarns(p))//': mdl:',startval(ic,p,1),' med:',stats(ic,p,1)
+                 if(prival.ge.1) then
+                    if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
+                       write(str,'(A,F6.2,A1)')trim(str)//' \(2030):',ranges(ic,c0,p,5)*100,'%'
+                    else
+                       write(str,'(A,F7.3)')trim(str)//' \(2030):',ranges(ic,c0,p,5)
+                    end if
                  end if
               else  !if nplvar>=5
                  if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
                     if(pltrue.eq.1) then
-                       write(str,'(A4,F7.3,A9,F6.2,A1)')'mdl:',startval(ic,p,1),' \(2030):',ranges(ic,c0,p,5)*100,'%'
+                       write(str,'(A4,F7.3)')'mdl:',startval(ic,p,1)
                     else
-                       write(str,'(A4,F8.3,A9,F6.2,A1)')'med:',stats(ic,p,1),' \(2030):',ranges(ic,c0,p,5)*100,'%'
+                       write(str,'(A4,F8.3)')'med:',stats(ic,p,1)
                     end if
+                    if(prival.ge.1) write(str,'(A,F6.2,A1)')trim(str)//' \(2030):',ranges(ic,c0,p,5)*100,'%'
                  else
                     if(pltrue.eq.1) then
-                       write(str,'(A4,F7.3,A9,F7.3)')'mdl:',startval(ic,p,1),' \(2030):',ranges(ic,c0,p,5)
+                       write(str,'(A4,F7.3)')'mdl:',startval(ic,p,1)
                     else
-                       write(str,'(A4,F8.3,A9,F7.3)')'med:',stats(ic,p,1),' \(2030):',ranges(ic,c0,p,5)
+                       write(str,'(A4,F8.3)')'med:',stats(ic,p,1)
                     end if
+                    if(prival.ge.1) write(str,'(A,F7.3)')trim(str)//' \(2030):',ranges(ic,c0,p,5)
                  end if
                  call pgsch(sch*1.2)
                  call pgptxt(xmin+0.05*dx,ymax*0.9,0.,0.,trim(pgvarnss(p)))
@@ -3210,9 +3214,11 @@ program plotspins
      if(nbin2dx.le.0) then
         if(totpts.le.100) then
            nbin2dx = floor(2*sqrt(real(totpts))/pltrat)
+           nbin2dx = max(nbin2dx,5)
            nbin2dy = floor(2*sqrt(real(totpts)))           !Same as for 1D case (~50)
         else
            nbin2dx = floor(10*log10(real(totpts))/pltrat)  
+           nbin2dx = max(nbin2dx,5)
            nbin2dy = floor(10*log10(real(totpts)))         !Same as for 1D case (~50)
         end if
         if(prprogress.ge.2.and.plot.eq.1.and.update.eq.0) then

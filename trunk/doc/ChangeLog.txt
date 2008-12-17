@@ -2,6 +2,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    32: sluys, 17/12/2008
+     - plotspins: negative logL no longer plotted, 
+                  intervals printing in 1D/2D PDF plots depends on prival
+     - comp_pdfs: you can now compare PDFs with different numbers of bins
+     
+          
     30: sluys, 03/12/2008
      - plotspins: changing parameters (m1,m2,incl,p.ang.) is now done in subroutines
           
