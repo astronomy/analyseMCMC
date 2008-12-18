@@ -6,7 +6,7 @@ program plotspins
   implicit none
   integer, parameter :: narr1=2.01e5+2,npar0=13,nr1=5,nstat1=10,ndets=3
   integer :: n(nchs),ntot(nchs),n0,n1,n2,i,j,j1,j2,nburn0(nchs),iargc,io,readerror,pgopen,system,narr,maxdots,offsetrun,imin
-  integer :: niter(nchs),totiter,totpts,totlines,seed(nchs),ndet(nchs),totthin(nchs),contrchains
+  integer :: niter(nchs),totiter,totpts,totlines,seed(nchs),ndet(nchs),totthin(nchs),contrchains,contrchain(nchs)
   integer :: index(npar1,nchs*narr1),index1(nchs*narr1)
   real :: is(nchs,narr1),isburn(nchs),jumps(nchs,npar1,narr1),startval(nchs,npar1,3)
   real :: sig(npar1,nchs,narr1),acc(npar1,nchs,narr1),avgtotthin
@@ -476,10 +476,14 @@ program plotspins
   totiter = 0
   totpts  = 0
   contrchains = 0
+  contrchain = 0
   do ic=1,nchains0
      totiter = totiter + nint(is(ic,ntot(ic)))
      totpts = totpts + n(ic)-nburn(ic)
-     if(n(ic).gt.nburn(ic)) contrchains = contrchains + 1
+     if(n(ic).gt.nburn(ic)) then
+        contrchains = contrchains + 1
+        contrchain(ic) = 1
+     end if
   end do
   totlines = sum(ntot(1:nchains0))
   !if(prchaininfo.ge.1.and.update.ne.1) write(*,'(4x,A, A,ES10.4, A,ES10.4, A,ES10.4,  A2,F5.1, A,I3,A1,I2,A1)') 'In all chains:','  number of lines: ',real(totlines), &
@@ -607,7 +611,7 @@ program plotspins
      allocate(alldat(nchains,npar1,narr))
      do ic=1,nchains
         alldat(ic,1:npar,1:n(ic)-nburn(ic)) = real(dat(1:npar,ic,nburn(ic)+1:n(ic)))  !Note the change of order of indices!!!  Alldat has the same structure as pldat, but contains only info AFTER the burnin.
-        n(ic) = n(ic)-nburn(ic)
+        n(ic) = n(ic)-nburn(ic) !n(ic)=0 if a chain is not contributing (in which case contrchain(ic)=0)!
      end do
      !if(prprogress.ge.1) write(*,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
   end if
@@ -647,6 +651,7 @@ program plotspins
   wrap = 0
   rashift = 0.
   do ic=1,nchains
+     if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
      !wrapival = ivals(nival) !Use the largest range
      wrapival = 0.999 !Always use a very large range (?)
      index = 0
@@ -1029,7 +1034,11 @@ program plotspins
            if(stdev1(p).lt.1.d-20) cycle
            write(o,'(A10,2x,2F9.4,$)')varnames(p),startval(ic,p,1),stats(ic,p,1)
            do c=1,nival
-              write(o,'(2x,2F9.4,F6.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+              if(mergechains.eq.0) then
+                 write(o,'(2x,2F9.4,F6.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),9.999) !Defined with centre of prob. range, need some extra security to print correctly
+              else
+                 write(o,'(2x,2F9.4,F6.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+              end if
               if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
                  write(o,'(A3,$)')'y '
               else
