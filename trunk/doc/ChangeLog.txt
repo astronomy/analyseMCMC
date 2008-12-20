@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    35: sluys, 20/12/2008
+     - renamed plotspins to analysemcmc and split the code into several source files
+     - see doc/ for an example Makefile, analysemcmc.dat and getanalysemcmcdat
+    
     32: sluys, 17/12/2008
      - plotspins: negative logL no longer plotted, 
                   intervals printing in 1D/2D PDF plots depends on prival
