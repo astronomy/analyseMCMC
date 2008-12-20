@@ -2754,6 +2754,7 @@ program plotspins
         xmin = 1.e30
         xmax = -1.e30
         do ic=1,nchains
+           if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
            xmin = min(xmin,minval(alldat(ic,p,1:n(ic))))
            xmax = max(xmax,maxval(alldat(ic,p,1:n(ic))))
         end do
@@ -2761,6 +2762,7 @@ program plotspins
         !dx = max(xmax - xmin,1.e-30)
         
         do ic=1,nchains
+           if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
            x(ic,1:n(ic)) = alldat(ic,p,1:n(ic))
            xmin1 = minval(alldat(ic,p,1:n(ic)))
            xmax1 = maxval(alldat(ic,p,1:n(ic)))
@@ -2841,6 +2843,7 @@ program plotspins
            ymax = 1.e-20
            !print*,xmin,xmax,ymin,ymax
            do ic=1,nchains
+              if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
               !ymax = max(ymax,maxval(ybin(ic,1:nbin1d+1)))
               do i=1,nbin1d+1
                  !print*,ybin(ic,i),ymax
@@ -2880,6 +2883,7 @@ program plotspins
            call pgsci(1)
            if(file.ge.2) call pgslw(lw)
            do ic=1,nchains
+              if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
               if(fillpdf.ge.3) call pgshs(45.0*(-1)**ic,2.0,real(ic)/real(nchains0)) !Set hatch style: angle = +-45deg, phase between 0 and 1 (1/nchains0, 2/nchains0, ...)
               if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               xbin1(1:nbin1d+1) = xbin(ic,1:nbin1d+1)
@@ -2927,6 +2931,7 @@ program plotspins
            if(nchains.gt.1.and.fillpdf.eq.1) then
               call pgsls(4)
               do ic=1,nchains
+                 if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
                  call pgsci(1)
                  !call pgsci(colours(mod(ic-1,ncolours)+1))
                  xbin1(1:nbin1d+1) = xbin(ic,1:nbin1d+1)
@@ -2956,6 +2961,7 @@ program plotspins
            call pgsch(sch)
            
            do ic=1,nchains
+              if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
               !Draw white lines
               if(nchains.gt.1) then
                  call pgslw(lw)
@@ -2980,7 +2986,7 @@ program plotspins
                  call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))
               end if
               
-              !Plot ranges in PDF
+              !Plot ranges in 1D PDF
               if((plrange.eq.1.or.plrange.eq.3) .and. p.ne.1) then
                  call pgsls(4); call pgsci(2); if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
                  if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) !Left limit of 90% interval
@@ -3007,7 +3013,7 @@ program plotspins
                  end if
               end if
               
-              !Plot starting value in PDF
+              !Plot starting value in 1D PDF
               !if(plstart.eq.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/startval(ic,p,1)).gt.1.e-10) then
               !   call pgsls(4); call pgsci(1); if(nchains.gt.1) call pgsci(1)
               !   call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))
@@ -3057,7 +3063,7 @@ program plotspins
            end if
            
            
-           if(quality.eq.2.or.quality.eq.3.or.quality.eq.4) then  !Talk/poster/thesis
+           if(quality.eq.2.or.quality.eq.3.or.quality.eq.4) then  !Talk/poster/thesis quality for 1D PDF
               !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
               !   write(str,'(A9,F6.2,A1)')' \(2030):',ranges(ic,c0,p,5)*100,'%'
               !else
@@ -3213,6 +3219,11 @@ program plotspins
   timestamps(6) = timestamp()
   
   !***********************************************************************************************************************************      
+  if(plpdf2d.ge.1.and.mergechains.eq.0) then
+     write(*,'(A,$)')', (skipping 2D PDFs since mergechains=0), '
+     plpdf2d = 0
+  end if
+  
   if(plpdf2d.ge.1) then
      ic = 1 !Can only do one chain
      if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')' Saving 2D pdfs...    '
@@ -3291,8 +3302,8 @@ program plotspins
      !   do p2=p1+1,j2
      do p1=j1,j2
         do p2=j1,j2
-     !do p1=3,3
-        !do p2=6,6
+           !do p1=3,3
+           !do p2=6,6
            
            !Skip some 2d pdfs to save time:
            !if(p1.eq.4.or.p1.eq.5.or.p1.eq.10.or.p1.eq.11.or.p1.eq.12.or.p1.eq.13) cycle
