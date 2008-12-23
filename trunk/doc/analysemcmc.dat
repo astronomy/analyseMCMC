@@ -1,4 +1,4 @@
- Input file for plotspins.f
+ Input file for analysemcmc.f
 
 
  Basic options:
@@ -83,6 +83,6 @@
        100              nbin1d     Number of bins for 1D PDFs:  0: autodetermine
        100             nbin2dx     Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)
         75             nbin2dy     Number of bins in y-direction for 2D PDFs and 2D probability ranges:  0: use nbin2dx, -1: use nbin2dx*(scr/bmp/ps)rat
-         2              npdf2d     Number of 2D-PDF plots to make
+         2              npdf2d     Number of 2D-PDF plots to make:  -1: all plots (91 for 12+2 parameters),  >0: read parameters from the lines below
     8    9          pdf2dpairs     Pairs of parameters to plot a 2D PDF for
    12   11          pdf2dpairs     Pairs of parameters to plot a 2D PDF for

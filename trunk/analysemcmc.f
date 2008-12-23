@@ -332,9 +332,11 @@ program analysemcmc
      if(exitcode.ne.0) goto 9999
   end if !if(plpdf2d.eq.1)
   
-  !End of 2D PDF code
-  
-  if(plot.eq.1.and.prprogress.ge.1.and.update.eq.0) write(*,'(A,/)')'done.  '
+  if(npdf2d.lt.0) then !Then we just plotted all 2D PDFs
+     write(*,*)
+  else
+     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,/)')'done.  '
+  end if
   
   
   
@@ -399,8 +401,8 @@ program analysemcmc
   timestamps(8) = timestamp(os)
   
   if(plmovie.eq.1) then
-     !call animation(exitcode)
-     !if(exitcode.ne.0) goto 9999
+     call animation(exitcode)
+     if(exitcode.ne.0) goto 9999
   end if
   
   
@@ -435,12 +437,14 @@ program analysemcmc
      !write(*,'(A,F5.1,A,$)')'   info:',min(dabs(timestamps(3)-timestamps(2)),999.9),'s,'
      !write(*,'(A,F5.1,A,$)')'   stats:',min(dabs(timestamps(4)-timestamps(3)),999.9),'s,'
      write(*,'(A,F5.1,A,$)')'   stats:',min(dabs(timestamps(4)-timestamps(2)),999.9),'s,'
-     if(plot.eq.1) then
+     if(plot.eq.1.and.pllogl+plchain+pljump+plsigacc+placorr.gt.0) then
         write(*,'(A,F5.1,A,$)')'   chains:',min(dabs(timestamps(5)-timestamps(4)),999.9),'s,'
-        write(*,'(A,F5.1,A,$)')'   1d pdfs:',min(dabs(timestamps(6)-timestamps(5)),999.9),'s,'
-        write(*,'(A,F6.1,A,$)')'   2d pdfs:',min(dabs(timestamps(7)-timestamps(6)),999.9),'s,'
-        !write(*,'(A,F6.1,A,$)')'   plots:',min(dabs(timestamps(7)-timestamps(4)),999.9),'s,'
      end if
+     if(plot.eq.1.or.savepdf.ge.1) then
+        if(plpdf1d.ge.1) write(*,'(A,F5.1,A,$)')'   1d pdfs:',min(dabs(timestamps(6)-timestamps(5)),999.9),'s,'
+        if(plpdf2d.ge.1) write(*,'(A,F6.1,A,$)')'   2d pdfs:',min(dabs(timestamps(7)-timestamps(6)),999.9),'s,'
+     end if
+     !write(*,'(A,F6.1,A,$)')'   plots:',min(dabs(timestamps(7)-timestamps(4)),999.9),'s,'
      !write(*,'(A,F5.1,A,$)')'   save stats:',min(dabs(timestamps(8)-timestamps(7)),999.9),'s,'
      if(plmovie.eq.1) write(*,'(A,F5.1,A,$)')'   movie:',min(dabs(timestamps(9)-timestamps(8)),999.9),'s,'
      write(*,'(A,F6.1,A)')'   total:',min(dabs(timestamps(9)-timestamps(1)),999.9),'s.'

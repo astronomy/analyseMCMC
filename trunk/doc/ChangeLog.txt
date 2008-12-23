@@ -2,6 +2,14 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    36: sluys, 22/12/2008
+     - analysemcmc: 
+       - sped up 2D binning ~10x. npdf2d=-1 now makes *all* 2D plots 
+       - 2D bitmap files are now converted in the background, the .ppm's are removed after
+         all files are converted to .png
+       - creating all (91 for 12+2 parameters) takes ~1min on my laptop for 1000x700, ~100x100 bins
+       - wrapdata=0 creates a whole-sky map (24-0h, -90-90deg)
+     
     35: sluys, 20/12/2008
      - renamed plotspins to analysemcmc and split the code into several source files
      - see doc/ for an example Makefile, analysemcmc.dat and getanalysemcmcdat

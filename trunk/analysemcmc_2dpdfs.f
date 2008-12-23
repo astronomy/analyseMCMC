@@ -11,17 +11,35 @@ subroutine pdfs2d(exitcode)
   !use pdf2d_data
   implicit none
   integer :: i,j,j1,j2,p1,p2,ic,lw,io,exitcode,c,system,pgopen
-  integer :: npdf,ncont,lw2,plotthis,truerange2d
+  integer :: npdf,ncont,lw2,plotthis,truerange2d,countplots,totplots
   real :: rev360,rev24
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: xmin,xmax,ymin,ymax,dx,dy,xx(nchs*narr1),yy(nchs*narr1),zz(nchs*narr1)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
-  character :: string*99,str*99
+  character :: string*99,str*99,tempfile*99
   
   exitcode = 0
+  countplots = 0
   ic = 1 !Can only do one chain
-  if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')' Saving 2D pdfs...    '
-  if(prprogress.ge.1.and.plot.eq.1.and.update.eq.0) write(*,'(A,$)')' 2D pdfs: '
+  
+  !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha, 14:M1, 15:M2
+  j1 = 2
+  j2 = npar
+  
+  if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1.and.plpdf1d.eq.0) write(*,'(A,$)')'  Saving'
+  if(prprogress.ge.1.and.update.eq.0.and.npdf2d.ge.0) write(*,'(A,$)')'  2D pdfs: '
+  if(npdf2d.lt.0) then
+     totplots = 0
+     do i=j1,j2
+        totplots = totplots + i - j1
+     end do
+     if(prprogress.ge.1.and.update.eq.0) then
+        if(totplots.lt.100) write(*,'(A,I2,A,/)')'  *ALL* (',totplots,') 2D pdfs: '
+        if(totplots.ge.100) write(*,'(A,I3,A,/)')'  *ALL* (',totplots,') 2D pdfs: '
+     end if
+  end if
+  
+
   
   
   !Autodetermine number of bins for 2D PDFs:
@@ -76,12 +94,6 @@ subroutine pdfs2d(exitcode)
      if(file.gt.1) call pginitl(colour,file,whitebg)
   end if !if(plot.eq.1)
   
-  !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha, 14:M1, 15:M2
-  j1 = 2
-  j2 = npar
-  !j2 = 13 !Don't do M1,M2
-  !j1 = 6
-  !j2 = 7
   if(plotsky.eq.1) then
      j1 = 8
      j2 = 9
@@ -93,44 +105,24 @@ subroutine pdfs2d(exitcode)
   end if
   
   npdf=0 !Count iterations to open windows with different numbers
-  !do p1=j1,j2-1
-  !   do p2=p1+1,j2
   do p1=j1,j2
      do p2=j1,j2
-        !do p1=3,3
-        !do p2=6,6
-
-        !Skip some 2d pdfs to save time:
-        !if(p1.eq.4.or.p1.eq.5.or.p1.eq.10.or.p1.eq.11.or.p1.eq.12.or.p1.eq.13) cycle
-        !if(p2.eq.4.or.p2.eq.5.or.p2.eq.10.or.p2.eq.11.or.p2.eq.12.or.p2.eq.13) cycle
-
-        !if(p1.eq.2.and.p2.ne.3 .or. p2.eq.2.or.p1.eq.3) cycle !Mc only with eta
-        !if(p1.eq.6.and.p2.ne.7 .or. p2.eq.6.or.p1.eq.7) cycle !a_spin only with theta
-        !if(p1.eq.8.and.p2.ne.9 .or. p2.eq.8.or.p1.eq.9) cycle !a_spin only with theta
-        !if(p1.eq.14.and.p2.ne.15 .or. p2.eq.14.or.p1.eq.15) cycle !M1 only with M2
-
-        !if(p1.ne.5.and.p1.ne.8.and.p1.ne.9) cycle  !Only position and distance
-        !if(p2.ne.5.and.p2.ne.8.and.p2.ne.9) cycle  !Only position and distance
-
-        plotthis = 0  !Determine to plot or save this combination of j1/j2 or p1/p2
-        !if(p1.eq.2.and.p2.eq.3) plotthis = 1    !Mc-eta
-        !if(p1.eq.6.and.p2.eq.7) plotthis = 1    !a-theta
-        !if(p1.eq.8.and.p2.eq.9) plotthis = 1    !RA-dec
-        !if(p1.eq.11.and.p2.eq.12) plotthis = 1  !theta/phi_Jo
-        !if(p1.eq.12.and.p2.eq.11) plotthis = 1  !phi/theta_Jo
-        !if(p1.eq.14.and.p2.eq.15) plotthis = 1  !M1-M2
-
-        do i=1,npdf2d
-           if(p1.eq.pdf2dpairs(i,1).and.p2.eq.pdf2dpairs(i,2)) plotthis = 1  !Use the data from the input file
-        end do
-
-
-        if(plotthis.eq.0) cycle
-
-        !print*,p1,p2
-        !write(*,'(A)')'   PDF 2D:  '//trim(varnames(p1))//'-'//trim(varnames(p2))
-        if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')trim(varnames(p1))//'-'//trim(varnames(p2))//' '
-
+        
+        if(npdf2d.ge.0) then
+           plotthis = 0  !Determine to plot or save this combination of j1/j2 or p1/p2
+           do i=1,npdf2d
+              if(p1.eq.pdf2dpairs(i,1).and.p2.eq.pdf2dpairs(i,2)) plotthis = 1  !Use the data from the input file
+           end do
+           if(plotthis.eq.0) cycle
+           if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')trim(varnames(p1))//'-'//trim(varnames(p2))//' '
+        else
+           if(p2.le.p1) cycle
+           write(6,*)upline !Move cursor up 1 line
+           if(prprogress.ge.1.and.update.eq.0) write(*,'(F7.1,A)')real(countplots+1)/real(totplots)*100,'%    ('//trim(varnames(p1))//'-'//trim(varnames(p2))//')                                      '
+        end if
+        
+        
+        
         if(plot.eq.1) then
            if(file.eq.0) then
               npdf=npdf+1
@@ -140,7 +132,8 @@ subroutine pdfs2d(exitcode)
               call pginitl(colour,file,whitebg)
            end if
            if(file.eq.1) then
-              io = pgopen('pdf2d.ppm/ppm')
+              write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.ppm'
+              io = pgopen(trim(tempfile)//'/ppm')
               call pgpap(bmpsz,bmprat)
               call pginitl(colour,file,whitebg)
            end if
@@ -204,22 +197,24 @@ subroutine pdfs2d(exitcode)
         end if !if(plotsky.eq.1)
 
         !Force plotting and binning boundaries
-        if(1.eq.2.and.p1.eq.8.and.p2.eq.9) then
+        !if(1.eq.2.and.p1.eq.8.and.p2.eq.9) then
+        if(1.eq.1..and.wrapdata.eq.0.and.p1.eq.8.and.p2.eq.9) then
            xmin = 0.
            xmax = 24.
            ymin = -90.
            ymax = 90.
 
-           xmin = 10.35767
-           xmax = 14.83440
-           ymin = -32.63011
-           ymax = 31.75267
+           !xmin = 10.35767
+           !xmax = 14.83440
+           !ymin = -32.63011
+           !ymax = 31.75267
         end if
 
 
         !'Normalise' 2D PDF
         if(normpdf2d.le.2.or.normpdf2d.eq.4) then
-           call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,nbin2dx,nbin2dy,xmin,xmax,ymin,ymax,z,tr)  !Count number of chain elements in each bin
+           !call bindata2dold(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,nbin2dx,nbin2dy,xmin,xmax,ymin,ymax,z,tr)  !Count number of chain elements in each bin
+           call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,nbin2dx,nbin2dy,xmin,xmax,ymin,ymax,z,tr)  !Compute bin number rather than find it, ~10x faster
            if(normpdf2d.eq.1) z = max(0.,log10(z + 1.e-30))
            if(normpdf2d.eq.2) z = max(0.,sqrt(z + 1.e-30))
            if(normpdf2d.eq.4) then
@@ -227,9 +222,11 @@ subroutine pdfs2d(exitcode)
               call calc_2d_areas(p1,p2,changevar,nival,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
               trueranges2d(p1,p2) = truerange2d(z,nbin2dx+1,nbin2dy+1,startval(1,p1,1),startval(1,p2,1),tr)
               !write(*,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
-              if(prprogress.ge.3) write(*,*)
               do i=1,nival
-                 if(prprogress.ge.3) write(*,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probarea(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
+                 if(prival.ge.1.and.prprogress.ge.2) then
+                    if(i.eq.1) write(*,*)
+                    write(*,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probarea(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
+                 end if
                  probareas(p1,p2,i,1) = probarea(i)*(pi/180.)**2/(4*pi)  !Fraction of the sky
                  probareas(p1,p2,i,2) = sqrt(probarea(i)/pi)*2           !Equivalent diameter
                  probareas(p1,p2,i,3) = probarea(i)                      !Square degrees
@@ -528,10 +525,10 @@ subroutine pdfs2d(exitcode)
               call pgline(2,(/-1.e20,1.e20/),(/stats(ic,p2,1),stats(ic,p2,1)/))
               call pgpoint(1,stats(ic,p1,1),stats(ic,p2,1),18)
            end if
-
+           
            call pgsls(1)
-
-
+           
+           
            !Big star at true position in 2D PDF
            if(plotsky.eq.1.and.pltrue.eq.1) then
               call pgsch(sch*2)
@@ -540,11 +537,11 @@ subroutine pdfs2d(exitcode)
               call pgsch(sch)
               call pgsci(1)
            end if
-
-
-
-
-
+           
+           
+           
+           
+           
            !Plot coordinate axes and axis labels in 2D PDF
            call pgsls(1)
            call pgslw(lw2)
@@ -602,38 +599,66 @@ subroutine pdfs2d(exitcode)
               end do
               call pgsci(1)
            end if
-
+           
+           countplots = countplots + 1  !The current plot is number countplots
+           
            !Convert plot
            if(file.eq.1) then
               call pgend
-              i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharppdf2d)//' pdf2d.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.png')
+              if(countplots.eq.npdf2d) then !Convert the last plot in the foreground, so that the process finishes before deleting the original file
+                 i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharppdf2d)//' '//trim(tempfile)//' '// &
+                      trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.png')
+              else !in the background
+                 i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharppdf2d)//' '//trim(tempfile)//' '// &
+                      trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.png &')
+              end if
               if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
-              i = system('rm -f pdf2d.ppm')
+              !i = system('rm -f '//trim(tempfile))
            end if
            if(file.ge.2) call pgpage
         end if !if(plot.eq.1)
-
+        
      end do !p2
   end do !p1
-
-
+  
+  
   if(savepdf.eq.1) close(30)
-
+  
   if(plot.eq.1) then
      if(file.ne.1) call pgend
      if(file.ge.2) then
         if(abs(j2-j1).le.1) then
-           if(file.eq.3) i = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(varnames(j1))//'-'//trim(varnames(j2))//'.pdf  >& /dev/null')
+           if(file.eq.3) i = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(varnames(j1))//'-'//trim(varnames(j2))//'.pdf  &> /dev/null')
            i = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(varnames(j1))//'-'//trim(varnames(j2))//'.eps')
         else
-           if(file.eq.3) i = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.pdf  >& /dev/null')
+           if(file.eq.3) i = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.pdf  &> /dev/null')
            i = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.eps')
         end if
      end if
+     
+     !Remove all the .ppm files
+     if(file.eq.1) then
+        do p1=j1,j2
+           do p2=j1,j2
+              if(npdf2d.ge.0) then
+                 plotthis = 0  !Determine to plot or save this combination of j1/j2 or p1/p2
+                 do i=1,npdf2d
+                    if(p1.eq.pdf2dpairs(i,1).and.p2.eq.pdf2dpairs(i,2)) plotthis = 1  !Use the data from the input file
+                 end do
+                 if(plotthis.eq.0) cycle
+              else
+                 if(p2.le.p1) cycle
+              end if
+              write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.ppm'
+              i = system('rm -f '//trim(tempfile))
+           end do
+        end do
+     end if
+     
   end if !plot.eq.1
-
-
-
+  
+  
+  
 end subroutine pdfs2d
 !************************************************************************************************************************************
 
@@ -643,7 +668,7 @@ end subroutine pdfs2d
 
 
 !************************************************************************************************************************************
-subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Count the number of points in each bin
+subroutine bindata2dold(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Count the number of points in each bin
   !x - input: data, n points
   !norm - input: normalise (1) or not (0)
   !nbin - input: number of bins
@@ -698,7 +723,7 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Coun
                  if(y(i).ge.ybin(by)) then
                     if(y(i).lt.ybin(by+1)) then
                        z(bx,by) = z(bx,by) + 1.
-                       exit bxl !exit bx loop; if point i fits this bin, don't try other bins
+                       exit bxl !exit bx loop; if point i fits this bin, don't try other bins. Speeds things up ~2x
                     end if
                  end if
               end if
@@ -726,6 +751,78 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Coun
   tr(4) = ymin - dy/2.
   tr(5) = 0.
   tr(6) = dy
+  
+end subroutine bindata2dold
+!************************************************************************************************************************************
+
+
+!************************************************************************************************************************************
+subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Compute bin number rather than search for it ~10x faster
+  !x - input: data, n points
+  !norm - input: normalise (1) or not (0)
+  !nbin - input: number of bins
+  !xmin, xmax - in/output: set xmin=xmax to auto-determine
+  
+  implicit none
+  integer :: i,n,bx,by,nxbin,nybin,norm
+  real :: x(n),y(n),z(nxbin+1,nybin+1)
+  real :: xmin,xmax,ymin,ymax,dx,dy,xmin1,xmax1,ymin1,ymax1,tr(6)
+  
+  xmin = xmin1
+  xmax = xmax1
+  ymin = ymin1
+  ymax = ymax1
+  
+  if(abs(xmin-xmax)/(xmax+1.e-30).lt.1.e-20) then !Autodetermine
+     xmin = minval(x(1:n))
+     xmax = maxval(x(1:n))
+  end if
+  dx = abs(xmax - xmin)/real(nxbin)
+  if(abs(ymin-ymax)/(ymax+1.e-30).lt.1.e-20) then !Autodetermine
+     ymin = minval(y(1:n))
+     ymax = maxval(y(1:n))
+  end if
+  dy = abs(ymax - ymin)/real(nybin)
+  
+  
+  
+  !Determine transformation elements for pgplot (pggray, pgcont, pgimag)
+  tr(1) = xmin - dx/2.
+  tr(2) = dx
+  tr(3) = 0.
+  tr(4) = ymin - dy/2.
+  tr(5) = 0.
+  tr(6) = dy
+  
+  z = 0.
+  do i=1,n
+     bx = floor((x(i) - xmin)/dx) + 1 
+     by = floor((y(i) - ymin)/dy) + 1
+     if(bx.lt.1.or.bx.gt.nxbin.or.by.lt.1.or.by.gt.nybin) then
+        if(bx.lt.0.or.bx.gt.nxbin+1.or.by.lt.0.or.by.gt.nybin+1) then  !Treat an error of 1 bin as round-off
+           bx = max(min(bx,nxbin),1)
+           by = max(min(by,nybin),1)
+           z(bx,by) = z(bx,by) + 1.
+        else
+           if(bx.lt.0.or.bx.gt.nxbin+1) write(*,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for X data point',i,' (',x(i),').  I found bin',bx,', but it should lie between 1 and',nxbin,'.'
+           if(by.lt.0.or.by.gt.nybin+1) write(*,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for Y data point',i,' (',y(i),').  I found bin',by,', but it should lie between 1 and',nybin,'.'
+        end if
+     else
+        z(bx,by) = z(bx,by) + 1.
+     end if
+  end do
+  
+  !if(norm.eq.1) z = z/(ztot+1.e-30)
+  if(norm.eq.1) z = z/maxval(z+1.e-30)
+  
+  if(abs(xmin1-xmax1)/(xmax1+1.e-30).lt.1.e-20) then
+     xmin1 = xmin
+     xmax1 = xmax
+  end if
+  if(abs(ymin1-ymax1)/(ymax1+1.e-30).lt.1.e-20) then
+     ymin1 = ymin
+     ymax1 = ymax
+  end if
   
 end subroutine bindata2d
 !************************************************************************************************************************************

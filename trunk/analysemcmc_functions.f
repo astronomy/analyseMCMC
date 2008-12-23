@@ -257,7 +257,7 @@ subroutine write_settingsfile
   write(u,11)nbin1d, 'nbin1d',   'Number of bins for 1D PDFs:  0: autodetermine'
   write(u,11)nbin2dx, 'nbin2dx',   'Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)'
   write(u,11)nbin2dy, 'nbin2dy',   'Number of bins in y-direction for 2D PDFs and 2D probability ranges:  0: use nbin2dx, -1: use nbin2dx*(scr/bmp/ps)rat'
-  write(u,11)npdf2d, 'npdf2d',     'Number of 2D-PDF plots to make'
+  write(u,11)npdf2d, 'npdf2d',     'Number of 2D-PDF plots to make:  -1: all plots (91 for 12+2 parameters),  >0: read parameters from the lines below'
   do i=1,npdf2d
      write(u,12)pdf2dpairs(i,1:2), 'pdf2dpairs', 'Pairs of parameters to plot a 2D PDF for'
   end do
@@ -1577,3 +1577,13 @@ subroutine detectorvector(d1,d2,jd)  !Determine the sky position at which the ve
 end subroutine detectorvector
 !************************************************************************
 
+
+!************************************************************************
+subroutine swapint(i1,i2)                        !Swap two integers
+  implicit none
+  integer :: i,i1,i2
+  i = i1
+  i1 = i2
+  i2 = i
+end subroutine swapint
+!************************************************************************

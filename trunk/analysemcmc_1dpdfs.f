@@ -17,7 +17,7 @@ subroutine pdfs1d(exitcode)
   character :: string*99,str*99,str1*99,str2*99
   
   exitcode=0
-  if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')' Saving 1D pdfs...   '
+  if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')'  Saving 1D pdfs,'
   if(prprogress.ge.1.and.plot.eq.1.and.update.eq.0) write(*,'(A,$)')' 1D pdfs, '
   
   !Autodetermine number of bins:
