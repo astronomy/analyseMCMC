@@ -218,12 +218,12 @@ subroutine pdfs2d(exitcode)
            if(normpdf2d.eq.1) z = max(0.,log10(z + 1.e-30))
            if(normpdf2d.eq.2) z = max(0.,sqrt(z + 1.e-30))
            if(normpdf2d.eq.4) then
-              call identify_2d_ranges(nival,ivals,nbin2dx+1,nbin2dy+1,z) !Get 2D probability ranges; identify to which range each bin belongs
+              call identify_2d_ranges(nival,ivals,nbin2dx+1,nbin2dy+1,z,prprogress) !Get 2D probability ranges; identify to which range each bin belongs
               call calc_2d_areas(p1,p2,changevar,nival,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
               trueranges2d(p1,p2) = truerange2d(z,nbin2dx+1,nbin2dy+1,startval(1,p1,1),startval(1,p2,1),tr)
               !write(*,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
               do i=1,nival
-                 if(prival.ge.1.and.prprogress.ge.2) then
+                 if(prival.ge.1.and.prprogress.ge.2 .and. (p1.eq.8.and.p2.eq.9 .or. p1.eq.11.and.p2.eq.12)) then  !For sky position and orientation only
                     if(i.eq.1) write(*,*)
                     write(*,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probarea(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
                  end if
@@ -1173,10 +1173,10 @@ end function getmag
 
 
 !************************************************************************
-subroutine identify_2d_ranges(ni,ivals,nx,ny,z)
+subroutine identify_2d_ranges(ni,ivals,nx,ny,z,prprogress)
   !Get the 2d probability intervals; z lies between 1 (in 100% range) and ni (in lowest-% range, e.g. 90%)
   implicit none
-  integer :: ni,nx,ny,nn,indx(nx*ny),i,b,ib
+  integer :: ni,nx,ny,nn,indx(nx*ny),i,b,ib,full(ni),prprogress
   real :: ivals(ni),z(nx,ny),x1(nx*ny),x2(nx*ny),tot,np
   
   nn = nx*ny
@@ -1185,13 +1185,23 @@ subroutine identify_2d_ranges(ni,ivals,nx,ny,z)
   
   np = sum(z)
   tot = 0.
+  full = 0
   do b=1,nn !Loop over bins in 1D array
      ib = indx(b)
      x2(ib) = 0.
      if(x1(ib).eq.0.) cycle
      tot = tot + x1(ib)
      do i=ni,1,-1 !Loop over intervals
-        if(tot.le.np*ivals(i)) x2(ib) = real(ni-i+1)  !e.g. x2(b) = ni if within 90%, ni-1 if within 95%, etc, and 1 if within 100%
+        if(tot.le.np*ivals(i)) then
+           x2(ib) = real(ni-i+1)  !e.g. x2(b) = ni if within 68%, ni-1 if within 95%, etc, and 1 if within 99.7%
+        else
+           if(prprogress.ge.3.and.full(i).eq.0) then !Report the number of points in the lastly selected bin
+              if(i.eq.1) write(6,'(A,$)')'Last bin:'
+              !write(6,'(F6.3,I5,$)')ivals(i),nint(x1(ib))
+              write(6,'(I5,$)')nint(x1(ib))
+              full(i) = 1
+           end if
+        end if
         !write(*,'(2I4, F6.2, 3F20.5)')b,i, ivals(i), np,tot,np*ivals(i)
      end do
   end do
