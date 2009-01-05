@@ -11,7 +11,7 @@ program analysemcmc
   implicit none
   integer :: i,ic,p,os,iargc,exitcode,tempintarray(99),getos
   real :: pltsz
-  double precision :: timestamp,timestamps(9)
+  real*8 :: timestamp,timestamps(9)
   
   timestamps(1) = timestamp(os)
   write(*,*)

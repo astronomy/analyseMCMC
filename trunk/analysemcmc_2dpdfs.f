@@ -929,7 +929,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
   implicit none
   integer, parameter :: ns=9110, nsn=80
   integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,cf,spld,n,prslbl,rv
-  double precision :: ra(ns),dec(ns),d2r,r2d,r2h,pi,tpi,dx1,dx2,dy,ra1,dec1,rev,par
+  real*8 :: ra(ns),dec(ns),d2r,r2d,r2h,pi,tpi,dx1,dx2,dy,ra1,dec1,rev,par
   real :: pma,pmd,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
   real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,bx1,bx2,by1,by2,x,y,mlim,rashift
   character :: cn(100)*3,con(100)*20,name*10,vsopdir*99,sn(ns)*10,snam(nsn)*10,sni*10,getsname*10,mult,var*9

@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    38: sluys, 05/01/2009
+     - analysemcmc: added computation of Bayes factor of signal vs. noise
+    
     36: sluys, 22/12/2008
      - analysemcmc: 
        - sped up 2D binning ~10x. npdf2d=-1 now makes *all* 2D plots 

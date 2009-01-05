@@ -22,7 +22,7 @@ end module analysemcmc_settings
 module constants
   implicit none
   save
-  double precision :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
+  real*8 :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
   character :: upline*4
 end module constants
 !***************************************************************************************************
@@ -38,8 +38,8 @@ module general_data
   integer :: par1,par2
   real, allocatable :: dat(:,:,:),alldat(:,:,:),pldat(:,:,:)
   real :: startval(nchs,npar1,3)
-  real :: ranges(nchs,nival1,npar1,nr1),stats(nchs,npar1,nstat1)
-  double precision :: rhat(npar1)
+  real :: ranges(nchs,nival1,npar1,nr1),stats(nchs,npar1,nstat1),bayesfactor(nchs)
+  real*8 :: rhat(npar1)
   
   character :: varnames(npar1)*8,infile*99,infiles(nchs)*99,outputname*99,outputdir*99
   character :: pgunits(npar1)*99,pgvarns(npar1)*99,pgvarnss(npar1)*99,pgorigvarns(npar1)*99
@@ -57,7 +57,7 @@ module mcmcrun_data
   integer :: niter(nchs),totiter,totlines,totpts,nburn0(nchs),seed(nchs),ndet(nchs),totthin(nchs)
   integer :: samplerate(nchs,ndets),samplesize(nchs,ndets),FTsize(nchs,ndets),detnr(nchs,ndets),offsetrun
   real :: snr(nchs,ndets),flow(nchs,ndets),fhigh(nchs,ndets),t_before(nchs,ndets),t_after(nchs,ndets),deltaFT(nchs,ndets)
-  double precision :: FTstart(nchs,ndets),t0,loglmax,loglmaxs(nchs)
+  real*8 :: FTstart(nchs,ndets),t0,loglmax,loglmaxs(nchs)
   character :: detnames(nchs,ndets)*14
 end module mcmcrun_data
 !***************************************************************************************************
@@ -97,7 +97,7 @@ module chain_data
   real :: is(nchs,narr1),isburn(nchs)
   real :: sig(npar1,nchs,narr1),acc(npar1,nchs,narr1),jumps(nchs,npar1,narr1)
   real :: corrs(npar1,npar1),acorrs(nchs,0:npar1,0:narr1)
-  double precision :: nullh
+  real*8 :: nullh
 end module chain_data
 !***************************************************************************************************
 

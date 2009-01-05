@@ -11,14 +11,15 @@ subroutine statistics(exitcode)
   integer :: index(npar1,nchs*narr1),index1(nchs*narr1)
   integer :: nn,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nrhat
   real :: rev2pi,x0,x1,x2,y1,y2,dx
-  real :: range,minrange,maxgap,ival,wrapival,centre
+  real :: range1,minrange,maxgap,ival,wrapival,centre
   real :: medians(npar1),mean(npar1),var1(npar1),var2(npar1)
-  double precision :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),totrhat,totrelvar
+  real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),totrhat,totrelvar
+  real*16 :: var,total
   character :: ch
   
   !K-S test:
   !integer :: nn1,nlogl1,nlogl2,ksn1,ksn2
-  !double precision :: ksdat1(narr1),ksdat2(narr1),ksd,ksprob
+  !real*8 :: ksdat1(narr1),ksdat2(narr1),ksd,ksprob
   
   exitcode = 0
   
@@ -46,7 +47,7 @@ subroutine statistics(exitcode)
      wrapival = 0.999 !Always use a very large range (?)
      index = 0
      if(prprogress.ge.2.and.mergechains.eq.0) write(*,'(A,I2.2,A,$)')' Ch',ic,' '
-     if(prprogress.ge.2.and.ic.eq.i.and.wrapdata.ge.1) write(*,'(A,$)')' Wrap data. '
+     if(prprogress.ge.2.and.ic.eq.1.and.wrapdata.ge.1) write(*,'(A,$)')'  Wrap data. '
      do p=par1,par2
         if(wrapdata.eq.0 .or. (p.ne.8.and.p.ne.10.and.p.ne.12.and.p.ne.13)) then
            call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))
@@ -66,14 +67,14 @@ subroutine statistics(exitcode)
         do i=1,n(ic)
            x1 = alldat(ic,p,index(p,i))
            x2 = alldat(ic,p,index(p,mod(i+nint(n(ic)*wrapival)-1,n(ic))+1))
-           range = mod(x2 - x1 + real(20*pi),real(tpi))
-           if(range.lt.minrange) then
-              minrange = range
+           range1 = mod(x2 - x1 + real(20*pi),real(tpi))
+           if(range1.lt.minrange) then
+              minrange = range1
               y1 = x1
               y2 = x2
-              !write(*,'(2I6,7F10.5)')i,mod(nint(i+n(ic)*wrapival),n(ic)),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
+              !write(*,'(2I6,7F10.5)')i,mod(nint(i+n(ic)*wrapival),n(ic)),x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
            end if
-           !write(*,'(2I6,7F10.5)')i,mod(nint(i+n(ic)*wrapival),n(ic)),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
+           !write(*,'(2I6,7F10.5)')i,mod(nint(i+n(ic)*wrapival),n(ic)),x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
         end do !i
         centre = (y1+y2)/2.
         if(y1.gt.y2) then
@@ -230,14 +231,14 @@ subroutine statistics(exitcode)
            do i=1,floor(n(ic)*(1.-ival))
               x1 = alldat(ic,p,index(p,i))
               x2 = alldat(ic,p,index(p,i+floor(n(ic)*ival)))
-              range = abs(x2 - x1)
-              !range = x2 - x1
-              if(range.lt.minrange) then
-                 minrange = range
+              range1 = abs(x2 - x1)
+              !range1 = x2 - x1
+              if(range1.lt.minrange) then
+                 minrange = range1
                  y1 = x1
                  y2 = x2
               end if
-              !write(*,'(I6,7F10.5)')i,x1,x2,range,minrange,y1,y2,(y1+y2)/2.
+              !write(*,'(I6,7F10.5)')i,x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
            end do
            centre = (y1+y2)/2.
            !write(*,'(A8,4x,4F10.5,I4)')varnames(p),y1,y2,minrange,centre,wrap(ic,p)
@@ -254,6 +255,30 @@ subroutine statistics(exitcode)
      end do !c
      !if(prprogress.ge.2) write(*,'(A34,F8.4)')'.  Standard probability interval: ',ivals(ival0)
      !if(prprogress.ge.2) write(*,'(A,F8.4,$)')', default ival:',ivals(ival0)
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     !Compute Bayes factor
+     !if(prprogress.ge.1.and.ic.eq.1) write(*,'(A,$)')'  Bayes factor,'
+     p=1  !Likelihood/Posterior
+     total = 0.d0
+     do i=1,n(ic)
+        var = alldat(ic,p,i) !Use quadruple precision
+        total = total + exp(-var)
+     end do
+     bayesfactor(ic) = real(log10(dble(n(ic)) / total))
+     
+          
+     
+     
+     
+     
      
      
      
@@ -352,6 +377,9 @@ subroutine statistics(exitcode)
      !**********************************************************************************************
      !******   PRINT STATISTICS   ******************************************************************
      !**********************************************************************************************
+     
+     
+     if(prprogress+prstat+prival+prconv.gt.0.and.ic.eq.1) write(*,'(/,A,F6.2)')'  Bayes factor:    log10(B_SN) =',bayesfactor(ic)
      
      !Print statistics to screen
      o=6

@@ -15,7 +15,7 @@ subroutine animation(exitcode)
   real :: x(nchs,nchs*narr1),x1,x2,xmin,xmax,xmin1,xmax1,dx,y1,y2,ymin,ymax,dy,sch
   real :: coefs(100),coefs1(100)
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ybin2(:)    !These depend on nbin1d, allocate after reading input file
-  double precision :: ts1,ts2,timestamp
+  real*8 :: ts1,ts2,timestamp
   character :: framename*99,tms*8,str*99,command*99
   
   exitcode = 0

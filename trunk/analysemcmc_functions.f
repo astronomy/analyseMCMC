@@ -25,7 +25,7 @@ subroutine read_settingsfile
   implicit none
   integer :: i,u,io,io1
   character :: bla,filename*99
-  double precision :: dblvar
+  real*8 :: dblvar
   filename = 'analysemcmc.dat'
   
   u = 15
@@ -365,7 +365,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
   implicit none
   integer :: i,i1,io,ic,j,exitcode,readerror
   character :: bla*10,detname*14
-  double precision :: t
+  real*8 :: t
 
   exitcode = 0
   readerror = 0
@@ -472,7 +472,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   implicit none
   integer :: i,ic,j,exitcode,narr
   real :: m1,m2,avgtotthin
-  double precision :: lon2ra
+  real*8 :: lon2ra
   
   exitcode = 0
   totiter = 0
@@ -761,8 +761,8 @@ function lon2ra(lon, GPSsec)
   ! from GPS time (in seconds).                              
   ! (see K.R.Lang(1999), p.80sqq.)                           
   implicit none
-  double precision :: lon2ra,lon,gmst,seconds,days,centuries,secCurrentDay
-  double precision :: gps0,leapseconds,GPSsec,tpi
+  real*8 :: lon2ra,lon,gmst,seconds,days,centuries,secCurrentDay
+  real*8 :: gps0,leapseconds,GPSsec,tpi
   tpi = 8*datan(1.d0)
 
   gps0 = 630720013.d0 !GPS time at 1/1/2000 at midnight
@@ -788,7 +788,7 @@ end function lon2ra
 !************************************************************************************************************************************
 subroutine dindexx(n,arr,indx)
   integer :: n,indx(n),m,nstack
-  double precision :: arr(n),a
+  real*8 :: arr(n),a
   parameter (m=7,nstack=50)
   integer :: i,indxt,ir,itemp,j,jstack,k,l,istack(nstack)
   do j=1,n
@@ -1097,7 +1097,7 @@ end subroutine ludcmp
 
 !************************************************************************
 function rev(x)        !Returns angle in radians between 0 and 2pi
-  double precision :: x,rev,pi
+  real*8 :: x,rev,pi
   pi = 4*datan(1.d0)
   rev = x-floor(x/(2*pi))*2*pi
   return
@@ -1132,7 +1132,7 @@ end function rev2pi
 !************************************************************************
 function drevpi(x)        !Returns angle in radians between 0 and pi
   use constants
-  double precision :: x,drevpi!,pi
+  real*8 :: x,drevpi!,pi
   !pi = 4*datan(1.d0)
   drevpi = x-floor(x/pi)*pi
   return
@@ -1143,8 +1143,8 @@ end function drevpi
 !************************************************************************
 subroutine kstwo(data1,n1,data2,n2,d,prob)  !Needs probks(), sort()
   integer :: n1,n2,j1,j2
-  double precision :: d,prob,data1(n1),data2(n2)
-  double precision :: d1,d2,dt,en1,en2,en,fn1,fn2,probks
+  real*8 :: d,prob,data1(n1),data2(n2)
+  real*8 :: d1,d2,dt,en1,en2,en,fn1,fn2,probks
   call sort(n1,data1)
   call sort(n2,data2)
   en1=n1
@@ -1178,10 +1178,10 @@ end subroutine kstwo
 
 !************************************************************************
 function probks(alam)
-  double precision :: probks,alam,eps1,eps2
+  real*8 :: probks,alam,eps1,eps2
   parameter (eps1=1.d-3, eps2=1.d-8)
   integer :: j
-  double precision :: a2,fac,term,termbf
+  real*8 :: a2,fac,term,termbf
   a2=-2.d0*alam**2
   fac=2.d0
   probks=0.d0
@@ -1201,10 +1201,10 @@ end function probks
 !************************************************************************
 subroutine sort(n,arr)
   integer :: n,m,nstack
-  double precision :: arr(n)
+  real*8 :: arr(n)
   parameter (m=7,nstack=50)
   integer :: i,ir,j,jstack,k,l,istack(nstack)
-  double precision :: a,temp
+  real*8 :: a,temp
   jstack=0
   l=1
   ir=n
@@ -1278,7 +1278,7 @@ end subroutine sort
 !************************************************************************
 function tms(a1)   !Print angle as mm:ss.s string, input in hours
   implicit none
-  double precision :: a1,a,s
+  real*8 :: a1,a,s
   integer :: m
   character :: tms*8,mm*2,ss*4
   
@@ -1317,7 +1317,7 @@ end function getos
 !************************************************************************
 function timestamp(os)  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
   implicit none
-  double precision :: timestamp
+  real*8 :: timestamp
   integer :: os,i,system
   character :: fname*99
   
@@ -1359,7 +1359,7 @@ end subroutine pgscidark
 subroutine lbr2vec(l,b,r,vec)
   !Transforms longitude l, latitude b and radius r into a vector with length r.  Use r=1 for a unit vector
   implicit none
-  double precision :: l,b,r,sinb,cosb,vec(3)
+  real*8 :: l,b,r,sinb,cosb,vec(3)
   sinb = dsin(b)
   cosb = dsqrt(1.d0-sinb*sinb)
   vec(1) = dcos(l) * cosb;  !`Greenwich'
@@ -1374,7 +1374,7 @@ end subroutine lbr2vec
 !************************************************************************
 function veclen(vec) !Compute the length of a 3D cartesian vector
   implicit none
-  double precision :: veclen,vec(3)
+  real*8 :: veclen,vec(3)
   veclen = dsqrt(vec(1)*vec(1) + vec(2)*vec(2) + vec(3)*vec(3))
 end function veclen
 !************************************************************************
@@ -1382,7 +1382,7 @@ end function veclen
 !************************************************************************
 subroutine normvec(vec) !Normalise a 3D cartesian vector
   implicit none
-  double precision :: veclen,vec(3)
+  real*8 :: veclen,vec(3)
   vec = vec/veclen(vec)
 end subroutine normvec
 !************************************************************************
@@ -1390,9 +1390,9 @@ end subroutine normvec
 
 
 !************************************************************************
-subroutine mc_eta_2_m1_m2(mc,eta,m1,m2)  !Convert chirp mass and eta to m1 and m2 - double precision
+subroutine mc_eta_2_m1_m2(mc,eta,m1,m2)  !Convert chirp mass and eta to m1 and m2 - real*8
   implicit none
-  double precision :: mc,eta,m1,m2, dvar,dvar1,dvar2
+  real*8 :: mc,eta,m1,m2, dvar,dvar1,dvar2
   dvar = dsqrt(0.25d0-eta)
   dvar1 = (0.5d0-dvar)/(0.5d0+dvar)
   dvar2 = dvar1**0.6d0
@@ -1404,7 +1404,7 @@ end subroutine mc_eta_2_m1_m2
 !************************************************************************
 subroutine mc_eta_2_m1_m2r(mcr,etar,m1r,m2r)  !Convert chirp mass and eta to m1 and m2 - single precision
   implicit none
-  double precision :: mc,eta,m1,m2
+  real*8 :: mc,eta,m1,m2
   real :: mcr,etar,m1r,m2r
   mc = dble(mcr)
   eta = dble(etar)
@@ -1418,7 +1418,7 @@ end subroutine mc_eta_2_m1_m2r
 subroutine ang2vec(l,b,vec)  !Convert longitude, latitude (rad) to a 3D normal vector
   !l in [0,2pi[; b in [-pi,pi]
   implicit none
-  double precision :: l,b,vec(3),cosb
+  real*8 :: l,b,vec(3),cosb
   cosb = dcos(b)
   vec(1) = dcos(l)*cosb
   vec(2) = dsin(l)*cosb
@@ -1430,7 +1430,7 @@ end subroutine  ang2vec
 subroutine vec2ang(vec,l,b)  !Convert a 3D normal vector to longitude, latitude (rad)
   !l in [0,2pi[; b in [-pi,pi]
   implicit none
-  double precision :: l,b,vec(3),vec1(3)
+  real*8 :: l,b,vec(3),vec1(3)
   vec1 = vec
   call normvec(vec1) !Make sure vec1 is normalised
   l = datan2(vec1(2),vec1(1))
@@ -1441,7 +1441,7 @@ end subroutine  vec2ang
 !************************************************************************
 function dotproduct(vec1,vec2) !Compute the dot product of two 3D cartesian vectors
   implicit none
-  double precision :: dotproduct,vec1(3),vec2(3)
+  real*8 :: dotproduct,vec1(3),vec2(3)
   dotproduct = vec1(1)*vec2(1) + vec1(2)*vec2(2) + vec1(3)*vec2(3)
 end function dotproduct
 !************************************************************************
@@ -1449,7 +1449,7 @@ end function dotproduct
 !************************************************************************
 subroutine crossproduct(vec1,vec2,crpr) !Compute the cross (outer) product of two cartesian vectors
   implicit none
-  double precision :: vec1(3),vec2(3),crpr(3)!,veclen
+  real*8 :: vec1(3),vec2(3),crpr(3)!,veclen
   crpr(1) = vec1(2)*vec2(3) - vec1(3)*vec2(2)
   crpr(2) = vec1(3)*vec2(1) - vec1(1)*vec2(3)
   crpr(3) = vec1(1)*vec2(2) - vec1(2)*vec2(1)
@@ -1461,8 +1461,8 @@ end subroutine crossproduct
 !************************************************************************
 function polangle(p,o)  !Compute the polarisation angle of a source with position normal vector p and orientation normal vector o, see Apostolatos et al. 1994, Eq.5
   implicit none
-  double precision :: polangle,p(3),o(3)
-  double precision :: z(3),denom,ocz(3),numer,dotproduct!,datan2
+  real*8 :: polangle,p(3),o(3)
+  real*8 :: z(3),denom,ocz(3),numer,dotproduct!,datan2
   
   z = (/0.d0,0.d0,1.d0/) !Vertical normal vector
   denom = dotproduct(o,z) - dotproduct(o,p)*dotproduct(z,p) !Denominator
@@ -1477,8 +1477,8 @@ end function polangle
 !************************************************************************
 function posangle(p,o)  !Compute the position angle of a source with position normal vector p and orientation normal vector o
   implicit none
-  double precision :: posangle,p(3),o(3)
-  double precision :: x1(3),o1(3),z(3),z1(3),dotproduct
+  real*8 :: posangle,p(3),o(3)
+  real*8 :: x1(3),o1(3),z(3),z1(3),dotproduct
   
   !write(*,'(3ES13.3)')p
   !write(*,'(3ES13.3)')o
@@ -1507,8 +1507,8 @@ subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) !Compute the inclination and
   use constants
   implicit none
   !pl,ol in [0,2pi[;  pb,ob in [-pi,pi]
-  double precision :: pl,pb,ol,ob
-  double precision :: p(3),o(3),i,dotproduct,psi,polangle!,drevpi
+  real*8 :: pl,pb,ol,ob
+  real*8 :: p(3),o(3),i,dotproduct,psi,polangle!,drevpi
   
   call ang2vec(pl,pb,p)       !Position normal vector
   call ang2vec(ol,ob,o)       !Orientation normal vector
@@ -1524,7 +1524,7 @@ end subroutine compute_incli_polang
 !************************************************************************
 subroutine compute_incli_polangr(plr,pbr,olr,obr, ir,psir) !Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob) - single precision I/O
   implicit none
-  double precision :: pl,pb,ol,ob,i,psi
+  real*8 :: pl,pb,ol,ob,i,psi
   real :: plr,pbr,olr,obr,ir,psir
   
   pl = dble(plr)
@@ -1542,8 +1542,8 @@ subroutine compute_incli_posang(pl,pb,ol,ob, i,psi) !Compute the inclination and
   use constants
   implicit none
   !pl,ol in [0,2pi[;  pb,ob in [-pi,pi]
-  double precision :: pl,pb,ol,ob
-  double precision :: p(3),o(3),i,dotproduct,psi,posangle!,drevpi
+  real*8 :: pl,pb,ol,ob
+  real*8 :: p(3),o(3),i,dotproduct,psi,posangle!,drevpi
   
   call ang2vec(pl,pb,p)       !Position normal vector
   call ang2vec(ol,ob,o)       !Orientation normal vector
@@ -1561,7 +1561,7 @@ end subroutine compute_incli_posang
 subroutine detectorvector(d1,d2,jd)  !Determine the sky position at which the vector that connects two detectors points
   implicit none
   integer :: d1,d2
-  double precision :: jd,detcoords(3,2),vec1(3),vec2(3),dvec(3),l,b
+  real*8 :: jd,detcoords(3,2),vec1(3),vec2(3),dvec(3),l,b
   jd = 0 !get rid of warnings
   detcoords(1,:) = (/-119.41,46.45/)  !H1; l,b
   detcoords(2,:) = (/-90.77,30.56/)   !L1
