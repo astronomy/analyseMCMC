@@ -14,6 +14,8 @@ subroutine setconstants
   h2r = pi/12.d0
   c3rd = 1.d0/3.d0
   
+  detabbrs = (/'H1','L1','V ','H2'/)
+  
   upline = char(27)//'[2A'  !Printing this makes the cursor move up one line (actually two lines, since a hard return is included)
 end subroutine setconstants
 !***************************************************************************************************

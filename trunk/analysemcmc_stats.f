@@ -6,9 +6,10 @@ subroutine statistics(exitcode)
   use general_data
   use stats_data
   use chain_data
+  use mcmcrun_data
   implicit none
-  integer :: c,i,ic,i0,j,j1,o,p,p1,p2,nr,nstat,exitcode
-  integer :: index(npar1,nchs*narr1),index1(nchs*narr1)
+  integer :: c,i,ic,i0,j,j1,o,p,p1,p2,nr,nstat,exitcode,io
+  integer :: index(npar1,nchs*narr1),index1(nchs*narr1),parr(npar1)
   integer :: nn,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nrhat
   real :: rev2pi,x0,x1,x2,y1,y2,dx
   real :: range1,minrange,maxgap,ival,wrapival,centre
@@ -377,12 +378,14 @@ subroutine statistics(exitcode)
      !**********************************************************************************************
      !******   PRINT STATISTICS   ******************************************************************
      !**********************************************************************************************
+
+     o=6 !Print to this unit - 6=screen
      
      
-     if(prprogress+prstat+prival+prconv.gt.0.and.ic.eq.1) write(*,'(/,A,F6.2)')'  Bayes factor:    log10(B_SN) =',bayesfactor(ic)
+     if(prprogress+prstat+prival+prconv.gt.0.and.ic.eq.1) write(o,'(/,A,F6.2)')'  Bayes factor:    log10(B_SN) =',bayesfactor(ic)
+     
      
      !Print statistics to screen
-     o=6
      if(prstat.gt.0) then
         write(o,'(/,A)')'  Main statistics:'
         do c=1,nival
@@ -493,6 +496,164 @@ subroutine statistics(exitcode)
         end do
         write(o,*)''
      end if
+     
+     
+     
+     
+     
+     
+     !Print output for CBC Wiki:
+     if(ic.eq.1) then
+        o = 10
+        open(unit=o,form='formatted',status='replace',action='write',position='rewind',file='wiki.txt',iostat=io)
+        if(io.ne.0) then
+           write(*,'(A)')'  Error opening wiki.txt, aborting...'
+           stop
+        end if
+        
+        !Bayes factor:
+        write(o,'(/,A)')'Bayes factor:'
+        if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC                             || !'
+        if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC                         || !'
+        do i=1,4
+           if(i.le.ndet(ic)) then
+              write(o,'(A2,$)')detabbrs(detnr(ic,i))
+           else
+              write(o,'(A2,$)')'  '
+           end if
+        end do
+        write(o,'(A17,$)')'              || '
+        write(o,'(F10.1,A,$)')bayesfactor(ic)*log(10.d0),'                  || '
+        write(o,'(F10.1,A,$)')bayesfactor(ic),'                   || '
+        write(o,'(A)')'[http://www.astro.northwestern.edu/~sluys/CBC/ link]       ||'
+        
+        
+        !Medians:
+        write(o,'(/,A)')'Medians:'
+        if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
+        if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
+        do i=1,4
+           if(i.le.ndet(ic)) then
+              write(o,'(A2,$)')detabbrs(detnr(ic,i))
+           else
+              write(o,'(A2,$)')'  '
+           end if
+        end do
+        write(o,'(A10,$)')'       ||'
+        parr(1:9) = (/2,3,4,6,5,8,9,11,12/)
+        do p=1,9
+           p1 = parr(p)
+           write(o,'(F9.4,A5,$)')stats(ic,p1,1),'   ||'
+        end do
+        write(o,'(A)')' [http://www.astro.northwestern.edu/~sluys/CBC/ link]                                 ||'
+        
+        
+        !Means:
+        write(o,'(/,A)')'Means:'
+        if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
+        if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
+        do i=1,4
+           if(i.le.ndet(ic)) then
+              write(o,'(A2,$)')detabbrs(detnr(ic,i))
+           else
+              write(o,'(A2,$)')'  '
+           end if
+        end do
+        write(o,'(A10,$)')'       ||'
+        parr(1:9) = (/2,3,4,6,5,8,9,11,12/)
+        do p=1,9
+           p1 = parr(p)
+           write(o,'(F9.4,A5,$)')stats(ic,p1,2),'   ||'
+        end do
+        write(o,'(A)')' [http://www.astro.northwestern.edu/~sluys/CBC/ link]                                 ||'
+        
+        
+        !Lmax:
+        write(o,'(/,A)')'Lmax:'
+        if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
+        if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
+        do i=1,4
+           if(i.le.ndet(ic)) then
+              write(o,'(A2,$)')detabbrs(detnr(ic,i))
+           else
+              write(o,'(A2,$)')'  '
+           end if
+        end do
+        write(o,'(A10,$)')'       ||'
+        parr(1:9) = (/2,3,4,6,5,8,9,11,12/)
+        do p=1,9
+           p1 = parr(p)
+           write(o,'(F9.4,A5,$)')startval(ic,p1,3),'   ||'
+        end do
+        write(o,'(A)')' [http://www.astro.northwestern.edu/~sluys/CBC/ link]                                 ||'
+        
+        
+        !Stdev:
+        write(o,'(/,A)')'Stdev:'
+        if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
+        if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
+        do i=1,4
+           if(i.le.ndet(ic)) then
+              write(o,'(A2,$)')detabbrs(detnr(ic,i))
+           else
+              write(o,'(A2,$)')'  '
+           end if
+        end do
+        write(o,'(A10,$)')'       ||'
+        parr(1:9) = (/2,3,4,6,5,8,9,11,12/)
+        do p=1,9
+           p1 = parr(p)
+           write(o,'(F9.4,A5,$)')stdev1(p1),'   ||'
+        end do
+        write(o,'(A)')' [http://www.astro.northwestern.edu/~sluys/CBC/ link]                                 ||'
+
+
+        !2-sigma range:
+        write(o,'(/,A)')'2-sigma range:'
+        c = 0
+        do i=1,nival
+           if(abs(ivals(i)-0.9545).lt.0.0001) c = i
+        end do
+        if(c.eq.0) then
+           write(0,'(A)')'  Error: 2-sigma range not found, needed for Wiki output!'
+           stop
+        end if
+        if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
+        if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
+        do i=1,4
+           if(i.le.ndet(ic)) then
+              write(o,'(A2,$)')detabbrs(detnr(ic,i))
+           else
+              write(o,'(A2,$)')'  '
+           end if
+        end do
+        write(o,'(A10,$)')'       ||'
+        parr(1:9) = (/2,3,4,6,5,8,9,11,12/)
+        do p=1,9
+           p1 = parr(p)
+           write(o,'(F9.4,A2,F9.4,A5,$)')ranges(ic,c,p1,1),' -',ranges(ic,c,p1,2),'   ||'
+        end do
+        write(o,'(A)')' [http://www.astro.northwestern.edu/~sluys/CBC/ link]                                 ||'
+
+
+        
+
+
+
+
+        
+     end if
+     close(o)
+     
+
+
+
+
+
+
+
+     
+     
      
      
   end do !ic

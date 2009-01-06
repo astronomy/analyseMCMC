@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    39: sluys, 05/01/2009
+     - analysemcmc:  added CBC wiki output (to wiki.txt, no switch yet)
+     
     38: sluys, 05/01/2009
      - analysemcmc: added computation of Bayes factor of signal vs. noise
     

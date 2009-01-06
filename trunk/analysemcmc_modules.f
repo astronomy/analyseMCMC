@@ -23,7 +23,7 @@ module constants
   implicit none
   save
   real*8 :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
-  character :: upline*4
+  character :: upline*4,detabbrs(4)*2
 end module constants
 !***************************************************************************************************
 
