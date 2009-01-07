@@ -38,7 +38,7 @@ module general_data
   integer :: par1,par2
   real, allocatable :: dat(:,:,:),alldat(:,:,:),pldat(:,:,:)
   real :: startval(nchs,npar1,3)
-  real :: ranges(nchs,nival1,npar1,nr1),stats(nchs,npar1,nstat1),bayesfactor(nchs)
+  real :: ranges(nchs,nival1,npar1,nr1),stats(nchs,npar1,nstat1),log10bayesfactor(nchs),logebayesfactor(nchs)
   real*8 :: rhat(npar1)
   
   character :: varnames(npar1)*8,infile*99,infiles(nchs)*99,outputname*99,outputdir*99

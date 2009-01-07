@@ -2,6 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    40: sluys, 06/01/2009
+     - analysemcmc:  
+       - allow manipulation of 0.25<eta<0.50
+       - minor changes to wiki output, Bayes factor computation
+     
     39: sluys, 05/01/2009
      - analysemcmc:  added CBC wiki output (to wiki.txt, no switch yet)
      

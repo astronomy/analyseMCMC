@@ -1392,14 +1392,19 @@ end subroutine normvec
 
 
 !************************************************************************
-subroutine mc_eta_2_m1_m2(mc,eta,m1,m2)  !Convert chirp mass and eta to m1 and m2 - real*8
+subroutine mc_eta_2_m1_m2(mc,eta,m1,m2)  !Convert chirp mass and eta to m1 and m2 - double precision
   implicit none
-  real*8 :: mc,eta,m1,m2, dvar,dvar1,dvar2
-  dvar = dsqrt(0.25d0-eta)
-  dvar1 = (0.5d0-dvar)/(0.5d0+dvar)
-  dvar2 = dvar1**0.6d0
-  m1 = mc * ((1.d0+dvar1)**0.2d0 / dvar2)
-  m2 = mc * ((1.d0+1.d0/dvar1)**0.2d0 * dvar2)
+  real*8 :: mc,eta,m1,m2, dvar,mtot
+  mtot = mc*eta**(-0.6d0)
+  if(eta.le.0.25d0) then
+     dvar = dsqrt(1.d0-4*eta)
+     m1 = mtot/2.d0 * (1.0 + dvar);
+     m2 = mtot/2.d0 * (1.0 - dvar);
+  else                                 !Allow 0.25<eta<0.50
+     dvar = dsqrt(4*eta-1.d0)
+     m1 = mtot/2.d0 * (1.0 - dvar);
+     m2 = mtot/2.d0 * (1.0 + dvar);
+  end if
 end subroutine mc_eta_2_m1_m2
 !************************************************************************
 

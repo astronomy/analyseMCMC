@@ -12,7 +12,7 @@ subroutine statistics(exitcode)
   integer :: index(npar1,nchs*narr1),index1(nchs*narr1),parr(npar1)
   integer :: nn,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nrhat
   real :: rev2pi,x0,x1,x2,y1,y2,dx
-  real :: range1,minrange,maxgap,ival,wrapival,centre
+  real :: range1,minrange,maxgap,ival,wrapival,centre,maxlogl,minlogl
   real :: medians(npar1),mean(npar1),var1(npar1),var2(npar1)
   real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),totrhat,totrelvar
   real*16 :: var,total
@@ -268,12 +268,20 @@ subroutine statistics(exitcode)
      !Compute Bayes factor
      !if(prprogress.ge.1.and.ic.eq.1) write(*,'(A,$)')'  Bayes factor,'
      p=1  !Likelihood/Posterior
-     total = 0.d0
+     total = 0
+     maxlogl = -1.e30
+     minlogl =  1.e30
      do i=1,n(ic)
-        var = alldat(ic,p,i) !Use quadruple precision
+        var = alldat(ic,p,i)          !Use quadruple precision
         total = total + exp(-var)
+        !write(*,'(2ES15.5)')var,exp(-var)
+        maxlogl = max(alldat(ic,p,i),maxlogl)
+        minlogl = min(alldat(ic,p,i),minlogl)
      end do
-     bayesfactor(ic) = real(log10(dble(n(ic)) / total))
+     var = dble(n(ic))/total
+     log10bayesfactor(ic) = real(log10(var))
+     logebayesfactor(ic) = real(log(var))
+     !write(*,'(2F10.3,I9)')maxlogl,minlogl,n(ic)
      
           
      
@@ -382,7 +390,7 @@ subroutine statistics(exitcode)
      o=6 !Print to this unit - 6=screen
      
      
-     if(prprogress+prstat+prival+prconv.gt.0.and.ic.eq.1) write(o,'(/,A,F6.2)')'  Bayes factor:    log10(B_SN) =',bayesfactor(ic)
+     if(prprogress+prstat+prival+prconv.gt.0.and.ic.eq.1) write(o,'(/,A,2(A,F6.2))')'  Bayes factor:    ','log_e(B_SN) =',logebayesfactor(ic),',  log_10(B_SN) =',log10bayesfactor(ic)
      
      
      !Print statistics to screen
@@ -523,8 +531,8 @@ subroutine statistics(exitcode)
            end if
         end do
         write(o,'(A17,$)')'              || '
-        write(o,'(F10.1,A,$)')bayesfactor(ic)*log(10.d0),'                  || '
-        write(o,'(F10.1,A,$)')bayesfactor(ic),'                   || '
+        write(o,'(F10.1,A,$)')logebayesfactor(ic),'                  || '
+        write(o,'(F10.1,A,$)')log10bayesfactor(ic),'                   || '
         write(o,'(A)')'[http://www.astro.northwestern.edu/~sluys/CBC/ link]       ||'
         
         
@@ -580,8 +588,8 @@ subroutine statistics(exitcode)
            end if
         end do
         write(o,'(A10,$)')'       ||'
-        parr(1:9) = (/2,3,4,6,5,8,9,11,12/)
-        do p=1,9
+        parr(1:10) = (/1,2,3,4,6,5,8,9,11,12/) !Include logL!
+        do p=1,10
            p1 = parr(p)
            write(o,'(F9.4,A5,$)')startval(ic,p1,3),'   ||'
         end do
