@@ -30,7 +30,7 @@ subroutine statistics(exitcode)
   fixedpar = 0
   do ic=1,nchains
      do p=par1,par2
-        if( abs(minval(alldat(ic,p,5:n(ic))) - maxval(alldat(ic,p,5:n(ic))) ) .lt. 1.d-30) fixedpar(p) = 1  !Doesn't matter in which chain this happens
+        if( abs(minval(alldat(ic,p,5:n(ic))) - maxval(alldat(ic,p,5:n(ic))) ) .lt. 1.d-6) fixedpar(p) = 1  !Doesn't matter in which chain this happens
      end do
   end do
   nfixedpar = sum(fixedpar)

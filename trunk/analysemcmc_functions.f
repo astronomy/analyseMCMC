@@ -639,13 +639,27 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   
   
   !*** Change some MCMC parameters:
-  if(prprogress.ge.2.and.update.eq.0) write(*,'(A)')'  Changing some variables...   '
+  if(prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')'  Changing some variables...   '
   !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
   do ic=1,nchains0
+     if(maxval(dat(3,ic,1:ntot(ic))).le.0.5d0) then
+        !Calculate the individual masses from Mch and eta:
+        if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(*,'(A)')"  I'm assuming the MCMC was done with Mc and eta."
+        do i=1,ntot(ic)
+           call mc_eta_2_m1_m2r(dat(2,ic,i),dat(3,ic,i), dat(14,ic,i),dat(15,ic,i))
+        end do
+     else
+        !Calculate Mch and eta from the individual masses:
+        if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(*,'(A)')"  I'm assuming the MCMC was done with M1 and M2."
+        dat(14,ic,1:ntot(ic)) = dat(2,ic,1:ntot(ic))  !M1
+        dat(15,ic,1:ntot(ic)) = dat(3,ic,1:ntot(ic))  !M2
+        do i=1,ntot(ic)
+           call m1_m2_2_mc_etar(dat(14,ic,i),dat(15,ic,i), dat(2,ic,i),dat(3,ic,i))
+        end do
+     end if
+     
+     !Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
      do i=1,ntot(ic)
-        !Calculate the masses from Mch and eta:
-        call mc_eta_2_m1_m2r(dat(2,ic,i),dat(3,ic,i), dat(14,ic,i),dat(15,ic,i))
-        !Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
         call compute_incli_polangr(dat(8,ic,i), asin(dat(9,ic,i)), real(lon2ra(dble(dat(12,ic,i)), dble(dat(4,ic,i)) + t0)), asin(dat(11,ic,i)),   dat(11,ic,i),dat(12,ic,i))  !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad)
      end do
   end do
@@ -1420,6 +1434,32 @@ subroutine mc_eta_2_m1_m2r(mcr,etar,m1r,m2r)  !Convert chirp mass and eta to m1 
   m2r = real(m2)
 end subroutine mc_eta_2_m1_m2r
 !************************************************************************
+
+
+!************************************************************************
+subroutine m1_m2_2_mc_eta(m1,m2,mc,eta)
+  implicit none
+  real*8 :: m1,m2,mc,eta,mtot
+  mtot = m1+m2
+  eta = m1*m2/(mtot*mtot)
+  mc = mtot*eta**0.6d0
+end subroutine m1_m2_2_mc_eta
+!************************************************************************
+
+
+!************************************************************************
+subroutine m1_m2_2_mc_etar(m1r,m2r,mcr,etar)
+  implicit none
+  real*8 :: m1,m2,mc,eta
+  real :: m1r,m2r,mcr,etar
+  m1 = dble(m1r)
+  m2 = dble(m2r)
+  call m1_m2_2_mc_eta(m1,m2,mc,eta)
+  mcr = real(mc)
+  etar = real(eta)
+end subroutine m1_m2_2_mc_etar
+!************************************************************************
+
 
 !************************************************************************
 subroutine ang2vec(l,b,vec)  !Convert longitude, latitude (rad) to a 3D normal vector

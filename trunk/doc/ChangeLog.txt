@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    41: sluys, 08/01/2009
+     - analysemcmc: if max(var2)<=0.5 assume M1,M2 are used, rather than Mc,eta
+          
     40: sluys, 06/01/2009
      - analysemcmc:  
        - allow manipulation of 0.25<eta<0.50
