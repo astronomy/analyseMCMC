@@ -11,19 +11,18 @@ subroutine statistics(exitcode)
   integer :: c,i,ic,i0,j,j1,o,p,p1,p2,nr,nstat,exitcode,io
   integer :: index(npar1,nchs*narr1),index1(nchs*narr1),parr(npar1)
   integer :: nn,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nrhat
-  real :: rev2pi,x0,x1,x2,y1,y2,dx
+  real :: revpipi,rev2pi,x0,x1,x2,y1,y2,dx,x!,facarr(npar1)
   real :: range1,minrange,maxgap,ival,wrapival,centre,maxlogl,minlogl
   real :: medians(npar1),mean(npar1),var1(npar1),var2(npar1)
   real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),totrhat,totrelvar
   real*16 :: var,total
-  character :: ch
+  character :: ch,url*99,gps*19,xs10*10,xs20*20
   
   !K-S test:
   !integer :: nn1,nlogl1,nlogl2,ksn1,ksn2
   !real*8 :: ksdat1(narr1),ksdat2(narr1),ksd,ksprob
   
   exitcode = 0
-  
   
   
   !Check which parameters were fixed during the MCMC run
@@ -402,7 +401,6 @@ subroutine statistics(exitcode)
            write(o,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)')'param.','model','median','mean','Lmax','stdev1','stdev2','abvar1','abvar2',  &
                 'rng_c','rng1','rng2','drng','d/drng','delta','ok?','result (',ivals(c)*100,'%)'
            do p=par1,par2
-              !if(stdev1(p).lt.1.d-20) cycle !Parameter was probably not fitted
               if(fixedpar(p).eq.1) cycle !Parameter was not fitted
               write(o,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4,$)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absvar1(p),  &
                    absvar2(p),ranges(ic,c,p,3),ranges(ic,c,p,1),ranges(ic,c,p,2),ranges(ic,c,p,4),  &
@@ -518,11 +516,51 @@ subroutine statistics(exitcode)
            write(*,'(A)')'  Error opening wiki.txt, aborting...'
            stop
         end if
+        write(gps,'(I9)')nint(t0)+floor(startval(ic,4,1))
+        write(url,'(A)')'http://www.astro.northwestern.edu/~sluys/CBC/gps'//trim(gps)//'/'
+        write(o,'(A)')'= GPS'//trim(gps)//' - description ='
+        write(o,'(/,A)')'Back to [:JointS5/InterestingEventsForBayesianFollowUp:Interesting events for Bayesian follow-up]'
+        
+        
+        
+        !True values:
+        write(o,'(///,A)')'== True values =='
+        write(o,'(A)')"|| '''Detectors'''  || '''M1'''    || '''M2'''    || '''Mc'''    || '''&eta;''' || '''time'''      || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
+        write(o,'(A)')"||                  ||  (Mo)       || (Mo)        || (Mo)        ||             ||  (s)            ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
+        
+        write(o,'(A4,$)')'|| !'
+        do i=1,4
+           if(i.le.ndet(ic)) then
+              write(o,'(A2,$)')detabbrs(detnr(ic,i))
+           else
+              write(o,'(A2,$)')'  '
+           end if
+        end do
+        write(o,'(A6,$)')'    '
+        parr(1:12) = (/14,15,2,3,4,6,7,5,8,9,11,12/)
+        do p=1,12
+           p1 = parr(p)
+           x = stats(ic,p1,1)
+           if(p1.eq.8) x = rev2pi(x*rh2r)
+           if(p1.eq.12.or.p1.eq.13) x = rev2pi(x*rd2r)
+           if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
+           if(p1.eq.4) then
+              write(o,'(A5,F14.4,$)')'  || ',x+t0
+           else
+              write(o,'(A5,F10.4,$)')'  || ',x
+           end if
+        end do
+        write(o,'(A)')'  || [ injection info]  ||'
+        
+        
+        
         
         !Bayes factor:
-        write(o,'(/,A)')'Bayes factor:'
-        if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC                             || !'
-        if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC                         || !'
+        write(o,'(///,A)')'== Bayes Factors =='
+        write(o,'(A)')"|| '''Model'''                                      || '''Detectors'''        || '''log_e Bayes Factor'''    || '''log_10 Bayes Factor'''    || '''Details'''                                                           ||"
+
+        if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN simple precession vs. Gaussian noise       || !'
+        if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN non-spinning vs. Gaussian noise            || !'
         do i=1,4
            if(i.le.ndet(ic)) then
               write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -533,11 +571,15 @@ subroutine statistics(exitcode)
         write(o,'(A17,$)')'              || '
         write(o,'(F10.1,A,$)')logebayesfactor(ic),'                  || '
         write(o,'(F10.1,A,$)')log10bayesfactor(ic),'                   || '
-        write(o,'(A)')'[http://www.astro.northwestern.edu/~sluys/CBC/ link]       ||'
+        write(o,'(A)')'['//trim(url)//' link]       ||'
+        
+        
         
         
         !Medians:
-        write(o,'(/,A)')'Medians:'
+        write(o,'(///,A)')'== Medians =='
+        write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  || '''Mc'''    || '''&eta;''' || '''time'''  || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
+        write(o,'(A)')"||                               ||                  || (Mo)        ||             ||  (s)        ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
         if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
         if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
         do i=1,4
@@ -548,16 +590,26 @@ subroutine statistics(exitcode)
            end if
         end do
         write(o,'(A10,$)')'       ||'
-        parr(1:9) = (/2,3,4,6,5,8,9,11,12/)
-        do p=1,9
+        parr(1:10) = (/2,3,4,6,7,5,8,9,11,12/)
+        do p=1,10
            p1 = parr(p)
-           write(o,'(F9.4,A5,$)')stats(ic,p1,1),'   ||'
+           x = stats(ic,p1,1)
+           if(p1.eq.8) x = rev2pi(x*rh2r)
+           if(p1.eq.12.or.p1.eq.13) x = rev2pi(x*rd2r)
+           if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
+           write(xs10,'(F10.4)')x
+           if(fixedpar(6).eq.1 .and. (p1.eq.6.or.p1.eq.7.or.p1.eq.13)) xs10 = ' - '  !If non-spinning
+           write(o,'(A10,A5,$)')xs10,'   ||'
         end do
-        write(o,'(A)')' [http://www.astro.northwestern.edu/~sluys/CBC/ link]                                 ||'
+        write(o,'(A)')' ['//trim(url)//' link]                                 ||'
+        
+        
         
         
         !Means:
-        write(o,'(/,A)')'Means:'
+        write(o,'(///,A)')'== Means =='
+        write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  || '''Mc'''    || '''&eta;''' || '''time'''  || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
+        write(o,'(A)')"||                               ||                  || (Mo)        ||             ||  (s)        ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
         if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
         if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
         do i=1,4
@@ -568,16 +620,26 @@ subroutine statistics(exitcode)
            end if
         end do
         write(o,'(A10,$)')'       ||'
-        parr(1:9) = (/2,3,4,6,5,8,9,11,12/)
-        do p=1,9
+        parr(1:10) = (/2,3,4,6,7,5,8,9,11,12/)
+        do p=1,10
            p1 = parr(p)
-           write(o,'(F9.4,A5,$)')stats(ic,p1,2),'   ||'
+           x = stats(ic,p1,2)
+           if(p1.eq.8) x = rev2pi(x*rh2r)
+           if(p1.eq.12.or.p1.eq.13) x = rev2pi(x*rd2r)
+           if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
+           write(xs10,'(F10.4)')x
+           if(fixedpar(6).eq.1 .and. (p1.eq.6.or.p1.eq.7.or.p1.eq.13)) xs10 = ' - '  !If non-spinning
+           write(o,'(A10,A5,$)')xs10,'   ||'
         end do
-        write(o,'(A)')' [http://www.astro.northwestern.edu/~sluys/CBC/ link]                                 ||'
+        write(o,'(A)')' ['//trim(url)//' link]                                 ||'
+        
+        
         
         
         !Lmax:
-        write(o,'(/,A)')'Lmax:'
+        write(o,'(///,A)')'== Maximum-likelihood points =='
+        write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  ||'''log(L)''' || '''Mc'''    || '''&eta;''' || '''time'''  || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
+        write(o,'(A)')"||                               ||                  ||             || (Mo)        ||             ||  (s)        ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
         if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
         if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
         do i=1,4
@@ -588,16 +650,26 @@ subroutine statistics(exitcode)
            end if
         end do
         write(o,'(A10,$)')'       ||'
-        parr(1:10) = (/1,2,3,4,6,5,8,9,11,12/) !Include logL!
-        do p=1,10
+        parr(1:11) = (/1,2,3,4,6,7,5,8,9,11,12/) !Include logL!
+        do p=1,11
            p1 = parr(p)
-           write(o,'(F9.4,A5,$)')startval(ic,p1,3),'   ||'
+           x = startval(ic,p1,3)
+           if(p1.eq.8) x = rev2pi(x*rh2r)
+           if(p1.eq.12.or.p1.eq.13) x = rev2pi(x*rd2r)
+           if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
+           write(xs10,'(F10.4)')x
+           if(fixedpar(6).eq.1 .and. (p1.eq.6.or.p1.eq.7.or.p1.eq.13)) xs10 = ' - '  !If non-spinning
+           write(o,'(A10,A5,$)')xs10,'   ||'
         end do
-        write(o,'(A)')' [http://www.astro.northwestern.edu/~sluys/CBC/ link]                                 ||'
+        write(o,'(A)')' ['//trim(url)//' link]                                 ||'
+        
+        
         
         
         !Stdev:
-        write(o,'(/,A)')'Stdev:'
+        write(o,'(///,A)')'== Standard deviations =='
+        write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  || '''Mc'''    || '''&eta;''' || '''time'''  || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
+        write(o,'(A)')"||                               ||                  || (Mo)        ||             ||  (s)        ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
         if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
         if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
         do i=1,4
@@ -608,16 +680,26 @@ subroutine statistics(exitcode)
            end if
         end do
         write(o,'(A10,$)')'       ||'
-        parr(1:9) = (/2,3,4,6,5,8,9,11,12/)
-        do p=1,9
+        parr(1:10) = (/2,3,4,6,7,5,8,9,11,12/)
+        do p=1,10
            p1 = parr(p)
-           write(o,'(F9.4,A5,$)')stdev1(p1),'   ||'
+           x = stdev2(p1)
+           !if(p1.eq.8) x = x*rh2r  !Stdevs for angles are still in radians - Yes, should change though
+           !if(p1.eq.12.or.p1.eq.13) x = x*rd2r
+           !if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
+           if(p1.eq.5) x = stats(ic,p1,2)*x  !Distance: stdev is still log; if y = log(x), then sigma_y = log(x) sigma_x
+           write(xs10,'(F10.4)')x
+           if(fixedpar(6).eq.1 .and. (p1.eq.6.or.p1.eq.7.or.p1.eq.13)) xs10 = ' - '  !If non-spinning
+           write(o,'(A10,A5,$)')xs10,'   ||'
         end do
-        write(o,'(A)')' [http://www.astro.northwestern.edu/~sluys/CBC/ link]                                 ||'
-
-
+        write(o,'(A)')' ['//trim(url)//' link]                                 ||'
+        
+        
+        
         !2-sigma range:
-        write(o,'(/,A)')'2-sigma range:'
+        write(o,'(///,A)')'== 2-sigma probability ranges =='
+        write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  || '''Mc'''              || '''&eta;'''           || '''time'''            || '''spin'''            || '''&theta;'''         || '''Distance'''        || '''R.A.'''            || '''Dec.'''            || '''incl.'''           || '''pol.'''            || '''details'''                                                                                     ||"
+        write(o,'(A)')"||                               ||                  || (Mo)                  ||                       ||  (s)                  ||                       || (rad)                 || (Mpc)                 || (rad)                 || (rad)                 || (rad)                 || (rad)                 ||                                                                                                   ||"
         c = 0
         do i=1,nival
            if(abs(ivals(i)-0.9545).lt.0.0001) c = i
@@ -636,18 +718,64 @@ subroutine statistics(exitcode)
            end if
         end do
         write(o,'(A10,$)')'       ||'
-        parr(1:9) = (/2,3,4,6,5,8,9,11,12/)
-        do p=1,9
+        parr(1:10) = (/2,3,4,6,7,5,8,9,11,12/)
+        do p=1,10
            p1 = parr(p)
-           write(o,'(F9.4,A2,F9.4,A5,$)')ranges(ic,c,p1,1),' -',ranges(ic,c,p1,2),'   ||'
+           x1 = ranges(ic,c,p1,1)
+           x2 = ranges(ic,c,p1,2)
+           if(p1.eq.8) then
+              x1 = x1*rh2r
+              x2 = x2*rh2r
+           end if
+           if(p1.eq.12.or.p1.eq.13) then
+              x1 = x1*rd2r
+              x2 = x2*rd2r
+           end if
+           if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) then
+              x1 = x1*rd2r
+              x2 = x2*rd2r
+           end if
+           write(xs20,'(F9.4,A2,F9.4)')x1,' -',x2
+           if(fixedpar(6).eq.1 .and. (p1.eq.6.or.p1.eq.7.or.p1.eq.13)) xs20 = ' - '  !If non-spinning
+           write(o,'(A20,A5,$)')xs20,'   ||'
+           
         end do
-        write(o,'(A)')' [http://www.astro.northwestern.edu/~sluys/CBC/ link]                                 ||'
+        write(o,'(A)')' ['//trim(url)//' link]                                 ||'
 
 
         
-
-
-
+        !True values:
+        write(o,'(///,A)')'== True values =='
+        write(o,'(A)')"|| '''Detectors'''  || '''M1'''    || '''M2'''    || '''Mc'''    || '''&eta;''' || '''time'''      || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
+        write(o,'(A)')"||                  ||  (Mo)       || (Mo)        || (Mo)        ||             ||  (s)            ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
+        
+        write(o,'(A4,$)')'|| !'
+        do i=1,4
+           if(i.le.ndet(ic)) then
+              write(o,'(A2,$)')detabbrs(detnr(ic,i))
+           else
+              write(o,'(A2,$)')'  '
+           end if
+        end do
+        write(o,'(A6,$)')'    '
+        parr(1:12) = (/14,15,2,3,4,6,7,5,8,9,11,12/)
+        do p=1,12
+           p1 = parr(p)
+           x = stats(ic,p1,1)
+           if(p1.eq.8) x = rev2pi(x*rh2r)
+           if(p1.eq.12.or.p1.eq.13) x = rev2pi(x*rd2r)
+           if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
+           if(p1.eq.4) then
+              write(o,'(A5,F14.4,$)')'  || ',x+t0
+           else
+              write(o,'(A5,F10.4,$)')'  || ',x
+           end if
+        end do
+        write(o,'(A)')'  || [ injection info]  ||'
+        
+        
+        write(o,'(///,A)')'----'
+        write(o,'(A)')'Back to [:JointS5/InterestingEventsForBayesianFollowUp:Interesting events for Bayesian follow-up]'
 
         
      end if

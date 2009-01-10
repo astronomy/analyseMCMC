@@ -14,6 +14,16 @@ subroutine setconstants
   h2r = pi/12.d0
   c3rd = 1.d0/3.d0
   
+  rpi = 4*atan(1.)
+  rtpi = 2*rpi
+  rpi2 = 0.5*rpi
+  rr2d = 180./rpi
+  rd2r = rpi/180.
+  rr2h = 12./rpi
+  rh2r = rpi/12.
+  rc3rd = 1./3.
+  
+  
   detabbrs = (/'H1','L1','V ','H2'/)
   
   upline = char(27)//'[2A'  !Printing this makes the cursor move up one line (actually two lines, since a hard return is included)
@@ -1112,19 +1122,34 @@ end subroutine ludcmp
 
 
 !************************************************************************
-function rev(x)        !Returns angle in radians between 0 and 2pi
-  real*8 :: x,rev,pi
-  pi = 4*datan(1.d0)
-  rev = x-floor(x/(2*pi))*2*pi
-  return
-end function rev
+function drev2pi(x)        !Returns angle in radians between 0 and 2pi (double precision)
+  use constants
+  real*8 :: x,drev2pi
+  drev2pi = x-floor(x/(2*pi))*2*pi
+end function drev2pi
+!************************************************************************
+
+!************************************************************************
+!function rev(x)        !Returns angle in radians between 0 and 2pi
+!  use constants
+!  real :: x,rev
+!  rev = x-floor(x/rpi2)*rpi2
+!end function rev
+!************************************************************************
+
+!************************************************************************
+function revpipi(x)      !Returns angle in radians between -pi and pi
+  use constants
+  real :: x,revpipi
+  revpipi = x-floor(x/rpi2)*rpi2
+  if(revpipi.gt.rpi) revpipi = revpipi - rpi2
+end function revpipi
 !************************************************************************
 
 !************************************************************************
 function rev360(x)        !Returns angle in degrees between 0 and 360
   real :: x,rev360
   rev360 = x-floor(x/(360.))*360.
-  return
 end function rev360
 !************************************************************************
 
@@ -1132,7 +1157,6 @@ end function rev360
 function rev24(x)        !Returns angle in hours between 0 and 24
   real :: x,rev24
   rev24 = x-floor(x/(24.))*24.
-  return
 end function rev24
 !************************************************************************
 
@@ -1141,7 +1165,6 @@ function rev2pi(x)        !Returns angle in radians between 0 and 2pi
   real :: x,rev2pi,pi
   pi = 4*atan(1.)
   rev2pi = x-floor(x/(2.0*pi))*2.0*pi
-  return
 end function rev2pi
 !************************************************************************
 
@@ -1149,9 +1172,7 @@ end function rev2pi
 function drevpi(x)        !Returns angle in radians between 0 and pi
   use constants
   real*8 :: x,drevpi!,pi
-  !pi = 4*datan(1.d0)
   drevpi = x-floor(x/pi)*pi
-  return
 end function drevpi
 !************************************************************************
 
@@ -1553,17 +1574,17 @@ end function posangle
 subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) !Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
   use constants
   implicit none
-  !pl,ol in [0,2pi[;  pb,ob in [-pi,pi]
+  !pl,ol in [0,2pi[;  pb,ob in ([-pi/2,pi/2]) now [0,pi], conf John & Christian
   real*8 :: pl,pb,ol,ob
-  real*8 :: p(3),o(3),i,dotproduct,psi,polangle!,drevpi
+  real*8 :: p(3),o(3),i,dotproduct,psi,polangle,drevpi
   
   call ang2vec(pl,pb,p)       !Position normal vector
   call ang2vec(ol,ob,o)       !Orientation normal vector
   !i = pi2 - dacos(dotproduct(p,o))  !Compute inclination angle: <0: points towards us, >0 points away from us
   i = dacos(dotproduct(p,o))  !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky
   !i = dotproduct(p,o)         !Compute cos(inclination angle): 1: points exactly away from us, -1 points exactly towards us, 0: in the plane of the sky
-  psi = polangle(p,o)         !Compute polarisation angle
-  !psi = drevpi(polangle(p,o))  !Compute polarisation angle
+  !psi = polangle(p,o)         !Compute polarisation angle [-pi/2,pi/2]
+  psi = drevpi(polangle(p,o))  !Compute polarisation angle [0,pi]
   
 end subroutine compute_incli_polang
 !************************************************************************
