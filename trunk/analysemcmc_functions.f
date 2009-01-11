@@ -201,7 +201,7 @@ subroutine write_settingsfile
   write(u,11)prstat, 'prstat',   'Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals'
   write(u,11)prcorr, 'prcorr',   'Print correlations: 0-no, 1-yes'
   write(u,11)prival, 'prival',   'Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both'
-  write(u,11)prconv, 'prconv',   'Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-medians, stdevs, etc. too.'
+  write(u,11)prconv, 'prconv',   'Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain'
   write(u,11)savestats, 'savestats',   'Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS'
   write(u,11)savepdf, 'savepdf',   'Save the binned data for 1d and/or 2d pdfs (depending on plpdf1d and plpdf2d).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying'
   

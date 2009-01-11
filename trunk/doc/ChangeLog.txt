@@ -2,6 +2,13 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    43: sluys, 10/01/2009
+     - analysemcmc:
+       - allow 20 chains of 10^5 points each rather than 10 of 2e5 by default
+       - include stdev when changing parameters (de-log, de-cos, r2d, etc)
+       - print stdev at statistics + probability output
+       - print strong and weak correlations in upper and lower triangle of matrix
+            
     42: sluys, 09/01/2009
      - analysemcmc: 
        - more-automated Wiki output

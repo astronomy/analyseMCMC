@@ -29,6 +29,8 @@ program analysemcmc
      write(*,'(A,/)')'  Syntax: analysemcmc <file1> [file2] ...'
      stop
   end if
+  if(nchains0.gt.nchs) write(*,'(A,I3,A)')'  *** WARNING:  Too many input files (chains), please increase nchs in analysemcmc_functions.f. Only',nchs,' files can be read.'
+  nchains0 = min(nchains0,nchs)
   
   
   !Some of the stuff below will have to go to the input file
@@ -204,9 +206,7 @@ program analysemcmc
   
   !if(prprogress+prruninfo+prinitial.ge.1) write(*,*)
   npar = 13
-  if(nchains0.gt.nchs) write(*,'(A,I3,A)')'*** WARNING:  Too many input files (chains), please increase nchs in analysemcmc_functions.f. Only',nchs,' files can be read.'
-  if(prchaininfo.ge.1) write(*,'(A,I3,A)')'  Reading',nchains0,' chains '
-  nchains0 = min(nchains0,nchs)
+  if(prchaininfo.ge.1) write(*,'(A,I3,A)')'  Analysing',nchains0,' chains '
   nchains = nchains0
   
   
@@ -265,7 +265,6 @@ program analysemcmc
      end do
      !if(prprogress.ge.2.and.update.eq.0) write(*,'(A)')'  Done.'
   end if !if(changevar.eq.1)
-  
   
   
   

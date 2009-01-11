@@ -24,7 +24,7 @@
          1              prstat     Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals
          0              prcorr     Print correlations: 0-no, 1-yes
          0              prival     Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both
-         1              prconv     Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-medians, stdevs, etc. too.
+         1              prconv     Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain
          0           savestats     Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
          0             savepdf     Save the binned data for 1d and/or 2d pdfs (depending on plpdf1d and plpdf2d).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
 
@@ -80,9 +80,9 @@
         15              nplvar     Number of plot variables for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savepdf=1. Put the variables in the line below:
   1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 
     0    0              panels     Number of for 1D plots in x,y direction:  0: autodetermine
-       100              nbin1d     Number of bins for 1D PDFs:  0: autodetermine
-       100             nbin2dx     Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)
-        75             nbin2dy     Number of bins in y-direction for 2D PDFs and 2D probability ranges:  0: use nbin2dx, -1: use nbin2dx*(scr/bmp/ps)rat
+         0              nbin1d     Number of bins for 1D PDFs:  0: autodetermine
+         0             nbin2dx     Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)
+         0             nbin2dy     Number of bins in y-direction for 2D PDFs and 2D probability ranges:  0: use nbin2dx, -1: use nbin2dx*(scr/bmp/ps)rat
          2              npdf2d     Number of 2D-PDF plots to make:  -1: all plots (91 for 12+2 parameters),  >0: read parameters from the lines below
     8    9          pdf2dpairs     Pairs of parameters to plot a 2D PDF for
    12   11          pdf2dpairs     Pairs of parameters to plot a 2D PDF for

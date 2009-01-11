@@ -13,7 +13,7 @@ subroutine statistics(exitcode)
   integer :: nn,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nrhat
   real :: revpipi,rev2pi,x0,x1,x2,y1,y2,dx,x!,facarr(npar1)
   real :: range1,minrange,maxgap,ival,wrapival,centre,maxlogl,minlogl
-  real :: medians(npar1),mean(npar1),var1(npar1),var2(npar1)
+  real :: medians(npar1),mean(npar1),var1(npar1),var2(npar1),corr,corr1,corr2
   real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),totrhat,totrelvar
   real*16 :: var,total
   character :: ch,url*99,gps*19,xs10*10,xs20*20
@@ -173,8 +173,8 @@ subroutine statistics(exitcode)
         !write(*,'(A)')' Calculating correlations...   '
         if(prprogress.ge.1) write(*,'(A,$)')' corrs, '
         do p1=par1,par2
-           !do p2par1,par2
-           do p2=p1,par2
+           do p2=par1,par2
+           !do p2=p1,par2
               corrs(p1,p2) = 0.
               if(fixedpar(p1)+fixedpar(p2).eq.0) then
                  do i=1,n(ic)
@@ -291,24 +291,35 @@ subroutine statistics(exitcode)
      
      
      
+     
+     
+     !**********************************************************************************************
+     !******   CHANGE VARIABLES   ******************************************************************
+     !**********************************************************************************************
+
+     
+     
+     
      !Change variables
      !Columns in alldat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:longi, 7:sinlati:, 8:phase, 9:spin,   10:kappa,     11:sinthJ0, 12:phiJ0, 13:alpha
      if(changevar.eq.1) then
-        !if(prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')' Changing some variables...   '
         if(prprogress.ge.1.and.ic.eq.i.and.update.eq.0) write(*,'(A,$)')'.  Change vars. '
         do p=par1,par2
            if(p.eq.5) then !Distance
+              stdev1(p) = stdev1(p)*exp(stats(ic,p,1))  !Median  For exponential function y = exp(x), sig_y = exp(x) sig_x
+              stdev2(p) = stdev2(p)*exp(stats(ic,p,2))  !Mean
               alldat(ic,p,1:n(ic)) = exp(alldat(ic,p,1:n(ic)))     !logD -> Distance
               if(ic.eq.1) startval(1:nchains0,p,1:3) = exp(startval(1:nchains0,p,1:3))
               stats(ic,p,1:nstat) = exp(stats(ic,p,1:nstat))
               ranges(ic,1:nival,p,1:nr) = exp(ranges(ic,1:nival,p,1:nr))
-              !print*,ic,p
            end if
            if(p.eq.7) then !Kappa -> theta_SL
-              alldat(ic,p,1:n(ic)) = acos(alldat(ic,p,1:n(ic)))*r2d
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = acos(startval(1:nchains0,p,1:3))*r2d
-              stats(ic,p,1:nstat) = acos(stats(ic,p,1:nstat))*r2d
-              ranges(ic,1:nival,p,1:nr) = acos(ranges(ic,1:nival,p,1:nr))*r2d
+              stdev1(p) = abs(-1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
+              stdev2(p) = abs(-1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
+              alldat(ic,p,1:n(ic)) = acos(alldat(ic,p,1:n(ic)))*rr2d
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = acos(startval(1:nchains0,p,1:3))*rr2d
+              stats(ic,p,1:nstat) = acos(stats(ic,p,1:nstat))*rr2d
+              ranges(ic,1:nival,p,1:nr) = acos(ranges(ic,1:nival,p,1:nr))*rr2d
               do c=1,nival
                  y1 = ranges(ic,c,p,2)
                  ranges(ic,c,p,2) = ranges(ic,c,p,1)  !acos is monotonously decreasing
@@ -316,24 +327,30 @@ subroutine statistics(exitcode)
               end do
            end if
            if(p.eq.8) then !RA
-              alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*r2h
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*r2h
-              stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*r2h
-              ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*r2h
+              stdev1(p) = stdev1(p)*rr2h
+              stdev2(p) = stdev2(p)*rr2h
+              alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*rr2h
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*rr2h
+              stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2h
+              ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*rr2h
            end if
            !if(p.eq.9.or.p.eq.11) then  !Declination or theta_Jo
-           if(p.eq.9) then  !Declination
-              alldat(ic,p,1:n(ic)) = asin(alldat(ic,p,1:n(ic)))*r2d
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = asin(startval(1:nchains0,p,1:3))*r2d
-              stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*r2d
-              ranges(ic,1:nival,p,1:nr) = asin(ranges(ic,1:nival,p,1:nr))*r2d
+           if(p.eq.9) then  !Declination                                                               
+              stdev1(p) = abs(1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
+              stdev2(p) = abs(1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
+              alldat(ic,p,1:n(ic)) = asin(alldat(ic,p,1:n(ic)))*rr2d
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = asin(startval(1:nchains0,p,1:3))*rr2d
+              stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*rr2d
+              ranges(ic,1:nival,p,1:nr) = asin(ranges(ic,1:nival,p,1:nr))*rr2d
            end if
            !if(p.eq.10.or.p.eq.12.or.p.eq.13) then  !hi_c, phi_Jo, alpha_c
            if(p.ge.10.and.p.le.13) then  !Phi_c, incl, pol.ang, alpha_c
-              alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*r2d
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*r2d
-              stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*r2d
-              ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*r2d
+              stdev1(p) = stdev1(p)*rr2d
+              stdev2(p) = stdev2(p)*rr2d
+              alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*rr2d
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*rr2d
+              stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2d
+              ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*rr2d
            end if
            ranges(ic,1:nival,p,3) = 0.5*(ranges(ic,1:nival,p,1) + ranges(ic,1:nival,p,2))
            ranges(ic,1:nival,p,4) = ranges(ic,1:nival,p,2) - ranges(ic,1:nival,p,1)
@@ -356,7 +373,13 @@ subroutine statistics(exitcode)
      end if !if(changevar.eq.1)
      
      
-     !Find 100% range
+     
+     
+     
+     
+     
+     
+     !Find 100% probability range
      do c = 1,nival
         if(abs(ivals(c)-1.).lt.1.e-4) then !Then treat it as a 100% interval to prevent numerical problems
            if(prprogress.ge.1) write(*,'(A,F9.4,A)')'  Treating probability interval',ivals(c)*100,'% as 100%'
@@ -382,6 +405,18 @@ subroutine statistics(exitcode)
      
      
      
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
      !**********************************************************************************************
      !******   PRINT STATISTICS   ******************************************************************
      !**********************************************************************************************
@@ -389,7 +424,10 @@ subroutine statistics(exitcode)
      o=6 !Print to this unit - 6=screen
      
      
-     if(prprogress+prstat+prival+prconv.gt.0.and.ic.eq.1) write(o,'(/,A,2(A,F6.2))')'  Bayes factor:    ','log_e(B_SN) =',logebayesfactor(ic),',  log_10(B_SN) =',log10bayesfactor(ic)
+     if(prprogress+prstat+prival+prconv.gt.0.and.ic.eq.1) then
+        write(o,'(/,A,2(A,F6.2),$)')'  Bayes factor:   ','log_e(B_SN) =',logebayesfactor(ic),',  log_10(B_SN) =',log10bayesfactor(ic)
+        write(o,'(8x,A,2(A,F6.2))')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),',  log_10(Lmax) =',startval(ic,1,3)/log(10.)
+     end if
      
      
      !Print statistics to screen
@@ -417,31 +455,6 @@ subroutine statistics(exitcode)
      end if
      
      
-     !Print correlations:
-     if(prcorr.gt.0) then
-        write(o,'(/,A)')'  Correlations:'
-        write(o,'(A8,$)')''
-        do p=par1,par2
-           if(stdev1(p).gt.1.d-20) write(o,'(A7,$)')trim(varnames(p))
-        end do
-        write(o,*)''
-        do p1=par1,par2
-           if(stdev1(p1).lt.1.d-20) cycle
-           write(o,'(A8,$)')trim(varnames(p1))
-           do p2=par1,par2
-              if(stdev1(p2).lt.1.d-20) cycle
-              if(abs(corrs(p1,p2)).gt.0.5) then 
-              !if(abs(corrs(p1,p2)).gt.-0.5) then 
-                 write(o,'(F7.2,$)')corrs(p1,p2)
-              else
-                 write(o,'(A7,$)')''
-              end if
-           end do
-           write(o,'(A)')'   '//trim(varnames(p1))
-        end do
-     end if
-     
-     
      !Print intervals as: centre, delta, in range:
      if(prival.eq.1.or.prival.eq.3) then
         write(o,'(/,A)')'  Probability intervals:'
@@ -458,7 +471,8 @@ subroutine statistics(exitcode)
         end do
         write(o,*)''
         do p=par1,par2
-           if(stdev1(p).lt.1.d-20) cycle
+           !if(stdev1(p).lt.1.d-20) cycle
+           if(fixedpar(p).eq.1) cycle
            write(o,'(A10,2x,2F9.4,$)')varnames(p),startval(ic,p,1),stats(ic,p,1)
            do c=1,nival
               if(mergechains.eq.0) then
@@ -478,31 +492,99 @@ subroutine statistics(exitcode)
      end if
      
      
-     !Print intervals as x +- dx:
      if(prival.ge.2) then
         write(o,'(/,A)')'  Statistics and probability intervals:'
-        write(o,'(A54,$)')'Interval:'
+        
+        !Print intervals as x +- dx:
+        write(o,'(A65,$)')'Interval:'
         do c=1,nival
            write(o,'(F16.3,A1,A9,$)')ivals(c)*100,'%',''
         end do
         write(o,*)''
         
-        write(o,'(A11,1x,3A11,$)')'Parameter','median','mean','Lmax'
+        write(o,'(A11,1x,4A11,$)')'Parameter','median','mean','Lmax','stdev'
         do c=1,nival
            write(o,'(5x,A9,4x,A8,$)')'x','dx'
         end do
         write(o,*)''
         do p=max(par1,2),par2  !Leave out logL
-           if(stdev1(p).lt.1.d-20) cycle
-           write(o,'(A10,2x,3F11.4,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3)
+           !if(stdev1(p).lt.1.d-20) cycle
+           if(fixedpar(p).eq.1) cycle
+           write(o,'(A10,2x,4F11.4,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            do c=1,nival
               write(o,'(5x,F9.4,A4,F8.4$)')ranges(ic,c,p,3),' +- ',0.5d0*ranges(ic,c,p,4)
            end do
            write(o,*)''
         end do
         write(o,*)''
+        
+        !Print intervals as low-high:
+        write(o,'(A65,$)')'Interval:'
+        do c=1,nival
+           write(o,'(F16.3,A1,A9,$)')ivals(c)*100,'%',''
+        end do
+        write(o,*)''
+        
+        write(o,'(A11,1x,4A11,$)')'Parameter','median','mean','Lmax','stdev'
+        do c=1,nival
+           write(o,'(6x,A9,3x,A8,$)')'min','max'
+        end do
+        write(o,*)''
+        do p=max(par1,2),par2  !Leave out logL
+           !if(stdev1(p).lt.1.d-20) cycle
+           if(fixedpar(p).eq.1) cycle
+           write(o,'(A10,2x,4F11.4,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
+           do c=1,nival
+              write(o,'(6x,F9.4,A3,F8.4$)')ranges(ic,c,p,1),' - ',ranges(ic,c,p,2)
+           end do
+           write(o,*)''
+        end do
+        write(o,*)''
      end if
      
+     
+     
+     
+     
+     
+     
+     
+     !Print correlations:
+     if(prcorr.gt.0) then
+        corr1 = 0.1
+        corr2 = 0.5
+        write(o,'(/,A,$)')'  Correlations  '
+        write(o,'(A,3(F4.2,A))')'  (weak [',corr1,'<abs(cor)<',corr2,']: in lower triangle,  strong [abs(cor)>',corr2,']: in upper triangle):'
+        write(o,'(A8,$)')''
+        do p=par1,par2
+           !if(stdev1(p).gt.1.d-20) write(o,'(A7,$)')trim(varnames(p))
+           if(fixedpar(p).eq.1) write(o,'(A7,$)')trim(varnames(p))
+        end do
+        write(o,*)''
+        do p1=par1,par2
+           !if(stdev1(p1).lt.1.d-20) cycle
+           if(fixedpar(p1).eq.1) cycle
+           write(o,'(A8,$)')trim(varnames(p1))
+           do p2=par1,par2
+              corr = corrs(p1,p2)
+              !if(stdev1(p2).lt.1.d-20) cycle
+              if(fixedpar(p2).eq.1) cycle
+              if( (abs(corr).ge.corr2.and.p2.gt.p1) ) then  !Print in the upper triangle
+                 write(o,'(F7.2,$)')corr
+              else if( (abs(corr).ge.corr1.and.abs(corr).lt.corr2.and.p1.gt.p2) ) then   !Print in the lower triangle
+                 write(o,'(F7.2,$)')corr
+              else if(p1.eq.p2) then !Print on the diagonal
+                 !write(o,'(F7.2,$)')corr !=1
+                 !write(o,'(A7,$)')'\-----\'
+                 !write(o,'(A7,$)')'\______' !'
+                 write(o,'(A7,$)')' ######' !'
+              else
+                 write(o,'(A7,$)')''
+              end if
+           end do
+           write(o,'(A)')'   '//trim(varnames(p1))
+        end do
+     end if
      
      
      
@@ -655,7 +737,7 @@ subroutine statistics(exitcode)
            p1 = parr(p)
            x = startval(ic,p1,3)
            if(p1.eq.8) x = rev2pi(x*rh2r)
-           if(p1.eq.12.or.p1.eq.13) x = rev2pi(x*rd2r)
+           if(p1.eq.10.or.p1.eq.12.or.p1.eq.13) x = rev2pi(x*rd2r)
            if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
            write(xs10,'(F10.4)')x
            if(fixedpar(6).eq.1 .and. (p1.eq.6.or.p1.eq.7.or.p1.eq.13)) xs10 = ' - '  !If non-spinning
@@ -684,10 +766,9 @@ subroutine statistics(exitcode)
         do p=1,10
            p1 = parr(p)
            x = stdev2(p1)
-           !if(p1.eq.8) x = x*rh2r  !Stdevs for angles are still in radians - Yes, should change though
-           !if(p1.eq.12.or.p1.eq.13) x = x*rd2r
-           !if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
-           if(p1.eq.5) x = stats(ic,p1,2)*x  !Distance: stdev is still log; if y = log(x), then sigma_y = log(x) sigma_x
+           if(p1.eq.8) x = x*rh2r
+           if(p1.eq.10.or.p1.eq.12.or.p1.eq.13) x = x*rd2r
+           if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
            write(xs10,'(F10.4)')x
            if(fixedpar(6).eq.1 .and. (p1.eq.6.or.p1.eq.7.or.p1.eq.13)) xs10 = ' - '  !If non-spinning
            write(o,'(A10,A5,$)')xs10,'   ||'
@@ -854,7 +935,7 @@ subroutine statistics(exitcode)
         end do
         write(*,'(A11)')'total'
         
-        if(prconv.ge.2) then
+        if(prconv.ge.3) then
            write(*,'(A)')'  Means:'
            do ic=1,nchains0
               write(*,'(I16,A2,$)')ic,': '
@@ -873,8 +954,9 @@ subroutine statistics(exitcode)
            
            write(*,*)''
            write(*,'(A)')'  Variances:'
-        end if !if(prconv.ge.2)
+        end if !if(prconv.ge.3)
      end if !if(prconv.ge.1)
+     
      do ic=1,nchains0
         !write(*,'(I16,A2,20F11.6)')ic,': ',chvar1(ic,par1:min(par2,13))
         !if(chvar1(ic,2).lt.0.5*chvar(2).and.chvar1(ic,3).lt.0.5*chvar(3).and.chvar1(ic,2).lt.0.5*chvar(2).and.chvar1(ic,2).lt.0.5*chvar(2)) then
@@ -895,7 +977,7 @@ subroutine statistics(exitcode)
         nhighvar = highvar(2)+highvar(3)+highvar(6)+highvar(7)  !Sum of 2 masses and 2 spin parameters
         !totrelvar = totrelvar**(1.d0/dble(abs(min(par2,13)-par1+1))) !Take geometric mean of (the variance of each chain, relative to the total variance)
         totrelvar = totrelvar**(1.d0/dble(ntotrelvar)) !Take geometric mean of (the variance of each chain, relative to the total variance)
-        if(prconv.ge.2) then
+        if(prconv.ge.3) then
            ch = ' '
            if(nlowvar.eq.4) ch = '*'
            if(nhighvar.eq.4) ch = '#'
@@ -912,17 +994,18 @@ subroutine statistics(exitcode)
               write(*,'(F10.5,A1,$)')chvar1(ic,p),ch
            end do
            write(*,*)''
-        end if !if(prconv.ge.2)
+        end if !if(prconv.ge.3)
      end do
-     if(prconv.ge.2) then
+     if(prconv.ge.3) then
         write(*,'(A18,$)')'  Total:          '
         do p=par1,min(par2,npar0)
            if(fixedpar(p).eq.1) cycle
            write(*,'(F11.5,$)')chvar(p)
         end do
         write(*,*)''
-        
         write(*,*)''
+     end if !if(prconv.ge.3)
+     if(prconv.ge.2) then
         write(*,'(A)')'  Variances:'
         write(*,'(A18,$)')'   Within chains: '
         do p=par1,min(par2,npar0)

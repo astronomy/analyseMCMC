@@ -5,7 +5,7 @@
 module analysemcmc_settings
   implicit none
   save
-  integer, parameter :: nchs=10,npar1=15,nival1=9
+  integer, parameter :: nchs=20,npar1=15,nival1=9
   integer :: plvars(npar1),nplvar,nbin1d,nbin2dx,nbin2dy,npdf2d,pdf2dpairs(250,2),panels(2)
   integer :: thin,nburn(nchs),file,colour,quality,reverseread,update,mergechains,wrapdata,changevar,maxchlen
   integer :: prprogress,prruninfo,prchaininfo,prinitial,prstat,prcorr,prival,prconv,savestats,savepdf       
@@ -33,7 +33,7 @@ module general_data
   use analysemcmc_settings
   implicit none
   save
-  integer, parameter :: narr1=2.01e5+2,npar0=13,nr1=5,nstat1=10,ndets=3
+  integer, parameter :: narr1=1.01e5+2,npar0=13,nr1=5,nstat1=10,ndets=3
   integer :: n(nchs),ntot(nchs),npar,iloglmax,icloglmax,c0,nchains,nchains0
   integer :: fixedpar(npar1),nfixedpar,contrchains,contrchain(nchs)
   integer :: par1,par2
