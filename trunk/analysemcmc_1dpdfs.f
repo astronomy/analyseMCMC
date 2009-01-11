@@ -128,8 +128,8 @@ subroutine pdfs1d(exitcode)
         call pgpage
         if(j.eq.1) call pginitl(colour,file,whitebg)
      end if
-
-     !Set x-ranges, bin the data and get y-ranges
+     
+     !Set x-ranges for binning, bin the data and get y-ranges
      xmin = 1.e30
      xmax = -1.e30
      do ic=1,nchains
@@ -139,25 +139,25 @@ subroutine pdfs1d(exitcode)
      end do
      dx = xmax - xmin
      !dx = max(xmax - xmin,1.e-30)
-
+     
      do ic=1,nchains
         if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
         x(ic,1:n(ic)) = alldat(ic,p,1:n(ic))
         xmin1 = minval(alldat(ic,p,1:n(ic)))
         xmax1 = maxval(alldat(ic,p,1:n(ic)))
-
+        
         call bindata1d(n(ic),x(ic,1:n(ic)),1,nbin1d,xmin1,xmax1,xbin1,ybin1)
-
+        
         !Weigh with likelihood.  I should probably do something like this at the start, to get updated ranges etc.
         !y(ic,1:n(ic)) = alldat(ic,1,1:n(ic))
         !call bindata1da(n(ic),x(ic,1:n(ic)),y(ic,1:n(ic)),1,nbin1d,xmin1,xmax1,xbin1,ybin1) !Measure the amount of likelihood in each bin
-
+        
         !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:d_l, 6:spin, 7:theta_SL, 8: RA, 9:dec,10:phase, 11:thetaJ0, 12:phiJ0, 13:alpha, 14:M1, 15:M2
         if(p.eq.5.or.p.eq.7.or.p.eq.9.or.p.eq.11) then  !Do something about chains 'sticking to the wall'
            if(ybin1(1).gt.ybin1(2)) ybin1(1)=0.
            if(ybin1(nbin1d).gt.ybin1(nbin1d-1)) ybin1(nbin1d)=0.
         end if
-
+        
         !Normalise 1D PDF
         if(normpdf1d.gt.0) then
            if(normpdf1d.eq.1) then !Normalise the SURFACE, not the height (because of different bin size).  This is the default
@@ -173,7 +173,7 @@ subroutine pdfs1d(exitcode)
               if(ic*j.eq.1)write(*,'(//,A,/)')'  *** WARNING: using non-default normalisation for PDFs ***'
            end if
         end if
-
+        
         !Smoothen 1D PDF
         ybin2 = ybin1
         if(smooth.gt.1) then
@@ -199,7 +199,7 @@ subroutine pdfs1d(exitcode)
         end if !if(smooth.gt.1)
         xbin(ic,1:nbin1d+1) = xbin1(1:nbin1d+1)
         ybin(ic,1:nbin1d+1) = ybin1(1:nbin1d+1)
-
+        
         !Save binned data
         if(savepdf.eq.1) then
            !if(savepdf.eq.1.and.fixedpar(p).eq.0) then
@@ -214,8 +214,20 @@ subroutine pdfs1d(exitcode)
            end do
         end if
      end do !ic
-
+     
      if(plot.eq.1) then
+        !Ranges for plot panel
+        
+        !Use widest probability range (hopefully ~3-sigma) - doesn't always work well...
+        !xmin =  1.e30
+        !xmax = -1.e30
+        !do ic=1,nchains
+        !   xmin = min(xmin,ranges(ic,nival,p,1))
+        !   xmax = max(xmax,ranges(ic,nival,p,2))
+        !   !write(*,'(3I4,6F10.3)')ic,p,nival,xmin,xmax,ranges(ic,nival,p,1),ranges(ic,nival,p,2)
+        !end do
+        !dx = xmax - xmin
+        
         xmin = xmin - 0.1*dx
         xmax = xmax + 0.1*dx
         ymin = 0.
@@ -243,8 +255,8 @@ subroutine pdfs1d(exitcode)
         end if
         !print*,xmin,xmax,ymin,ymax
         if(ymax.lt.1.e-19) ymax = 1.
-
-
+        
+        
         if(file.eq.0.and.scrrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.ge.2.and.psrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
@@ -257,7 +269,7 @@ subroutine pdfs1d(exitcode)
            xbin = 0.
            ybin = 0.
         end if
-
+        
         !Plot 1D PDF
         call pgsci(1)
         if(file.ge.2) call pgslw(lw)
@@ -276,7 +288,7 @@ subroutine pdfs1d(exitcode)
               if(fillpdf.eq.1) call pgsci(1)
               if(nchains.eq.1) call pgsci(2)
               call pgline(nbin1d+1,xbin1(1:nbin1d+1),ybin1(1:nbin1d+1)) !:nbin1d) ?
-
+              
               !Fix the loose ends
               call pgline(2,(/xbin1(1),xbin1(1)/),(/0.,ybin1(1)/))
               call pgline(2,(/xbin1(nbin1d+1),xbin1(nbin1d+1)/),(/ybin1(nbin1d+1),0./))
@@ -286,20 +298,20 @@ subroutine pdfs1d(exitcode)
               if(changevar.eq.1.and.p.eq.8) plshift = 24.  !RA in hours
               if(nchains.eq.1) call pgsci(15)
               call pgpoly(nbin1d+3,(/xbin1(1),xbin1(1:nbin1d),xbin1(1)+plshift,xbin1(1)+plshift/),(/0.,ybin1(1:nbin1d),ybin1(1),0./))
-
+              
               !Plot pdf contour
               !call pgsci(1)
               !if(fillpdf.ne.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               if(fillpdf.eq.1) call pgsci(1)
               if(nchains.eq.1) call pgsci(2)
               call pgline(nbin1d,xbin1(1:nbin1d),ybin1(1:nbin1d))
-
+              
               !Plot dotted lines outside the pdf for wrapped periodic variables
               call pgsls(4)
               !if(file.ge.2) call pgslw(2)
               call pgline(nbin1d+1,(/xbin1(1:nbin1d)-plshift,xbin1(1)/),(/ybin1(1:nbin1d),ybin1(1)/))
               call pgline(nbin1d,xbin1+plshift,ybin1)
-
+              
               !Fix the loose end
               call pgsls(1)
               if(file.ge.2) call pgslw(lw)
@@ -323,8 +335,8 @@ subroutine pdfs1d(exitcode)
            end do
            call pgsls(4)
         end if
-
-
+        
+        
         !Plot max likelihood
         if(pllmax.ge.1) then
            ply = pldat(icloglmax,p,iloglmax)
@@ -334,11 +346,11 @@ subroutine pdfs1d(exitcode)
            call pgsls(5)
            call pgline(2,(/ply,ply/),(/-1.e20,1.e20/))
         end if
-
-
+        
+        
         !Plot median and model value
         call pgsch(sch)
-
+        
         do ic=1,nchains
            if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
            !Draw white lines

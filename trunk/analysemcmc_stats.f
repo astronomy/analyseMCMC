@@ -9,9 +9,9 @@ subroutine statistics(exitcode)
   use mcmcrun_data
   implicit none
   integer :: c,i,ic,i0,j,j1,o,p,p1,p2,nr,nstat,exitcode,io
-  integer :: index(npar1,nchs*narr1),index1(nchs*narr1),parr(npar1)
+  integer :: indexx(npar1,nchs*narr1),index1(nchs*narr1),parr(npar1)
   integer :: nn,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nrhat
-  real :: revpipi,rev2pi,x0,x1,x2,y1,y2,dx,x!,facarr(npar1)
+  real :: rev2pi,x0,x1,x2,y1,y2,dx,x!,facarr(npar1)
   real :: range1,minrange,maxgap,ival,wrapival,centre,maxlogl,minlogl
   real :: medians(npar1),mean(npar1),var1(npar1),var2(npar1),corr,corr1,corr2
   real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),totrhat,totrelvar
@@ -45,13 +45,13 @@ subroutine statistics(exitcode)
      if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
      !wrapival = ivals(nival) !Use the largest range
      wrapival = 0.999 !Always use a very large range (?)
-     index = 0
+     indexx = 0
      if(prprogress.ge.2.and.mergechains.eq.0) write(*,'(A,I2.2,A,$)')' Ch',ic,' '
      if(prprogress.ge.2.and.ic.eq.1.and.wrapdata.ge.1) write(*,'(A,$)')'  Wrap data. '
      do p=par1,par2
         if(wrapdata.eq.0 .or. (p.ne.8.and.p.ne.10.and.p.ne.12.and.p.ne.13)) then
            call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))
-           index(p,1:n(ic)) = index1(1:n(ic))
+           indexx(p,1:n(ic)) = index1(1:n(ic))
            cycle
         end if
         
@@ -61,12 +61,12 @@ subroutine statistics(exitcode)
            alldat(ic,p,i) = rev2pi(alldat(ic,p,i))
         end do
         call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))
-        index(p,1:n(ic)) = index1(1:n(ic))
+        indexx(p,1:n(ic)) = index1(1:n(ic))
         
         minrange = 1.e30
         do i=1,n(ic)
-           x1 = alldat(ic,p,index(p,i))
-           x2 = alldat(ic,p,index(p,mod(i+nint(n(ic)*wrapival)-1,n(ic))+1))
+           x1 = alldat(ic,p,indexx(p,i))
+           x2 = alldat(ic,p,indexx(p,mod(i+nint(n(ic)*wrapival)-1,n(ic))+1))
            range1 = mod(x2 - x1 + real(20*pi),real(tpi))
            if(range1.lt.minrange) then
               minrange = range1
@@ -91,16 +91,16 @@ subroutine statistics(exitcode)
            maxgap = -1.e30
            !write(*,'(2I3,I8)')ic,p,n(ic)
            do i=1,n(ic)-1
-              x1 = alldat(ic,p,index(p,i))
-              x2 = alldat(ic,p,index(p,i+1))
+              x1 = alldat(ic,p,indexx(p,i))
+              x2 = alldat(ic,p,indexx(p,i+1))
               !write(*,'(2I3,2I8,4F10.5)')ic,p,i,i0,x1,x2,x2-x2,maxgap
               if(x2-x1.gt.maxgap) then
                  maxgap = x2-x1
                  i0 = i
               end if
            end do !i
-           x1 = alldat(ic,p,index(p,i0))
-           x2 = alldat(ic,p,index(p,i0+1))
+           x1 = alldat(ic,p,indexx(p,i0))
+           x2 = alldat(ic,p,indexx(p,i0+1))
            !if(maxgap.gt.2*tpi/sqrt(real(n(ic)))) then
            if(maxgap.gt.0.1) then 
               x0 = (x1+x2)/2.
@@ -121,9 +121,9 @@ subroutine statistics(exitcode)
         y2 = mod(y2+shift(ic,p),tpi)-shift(ic,p)
         centre = mod(centre+shift(ic,p),tpi)-shift(ic,p)
         minrange = y2-y1
-        !call rindexx(n(ic),alldat(ic,p,1:n(ic)),index(p,1:n(ic)))  !Re-sort
+        !call rindexx(n(ic),alldat(ic,p,1:n(ic)),indexx(p,1:n(ic)))  !Re-sort
         call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))  !Re-sort
-        index(p,1:n(ic)) = index1(1:n(ic))
+        indexx(p,1:n(ic)) = index1(1:n(ic))
         !if(p.eq.8) write(*,'(I3,A8,4x,6F10.5,I4)')ic,varnames(p),y1,y2,minrange,centre,minval(alldat(ic,p,1:n(ic))),maxval(alldat(ic,p,1:n(ic))),wrap(ic,p)
         if(abs(abs(minval(alldat(ic,p,1:n(ic)))-maxval(alldat(ic,p,1:n(ic))))-2*pi).lt.1.e-3) wrap(ic,p)=1 !If centre is around pi, still needs to be flagged 'wrap' to plot PDF
      end do !p
@@ -135,8 +135,8 @@ subroutine statistics(exitcode)
      if(prprogress.ge.1.and.ic.eq.1) write(*,'(A,$)')'  Calc: stats, '
      do p=par1,par2
         !Determine the median
-        if(mod(n(ic),2).eq.0) medians(p) = 0.5*(alldat(ic,p,index(p,n(ic)/2)) + alldat(ic,p,index(p,n(ic)/2+1)))
-        if(mod(n(ic),2).eq.1) medians(p) = alldat(ic,p,index(p,(n(ic)+1)/2))
+        if(mod(n(ic),2).eq.0) medians(p) = 0.5*(alldat(ic,p,indexx(p,n(ic)/2)) + alldat(ic,p,indexx(p,n(ic)/2+1)))
+        if(mod(n(ic),2).eq.1) medians(p) = alldat(ic,p,indexx(p,(n(ic)+1)/2))
         
         !Mean:
         mean(p) = sum(alldat(ic,p,1:n(ic)))/real(n(ic))
@@ -226,11 +226,13 @@ subroutine statistics(exitcode)
         
         if(prprogress.ge.1.and.ic.eq.1) write(*,'(F6.3,$)')ival
         do p=par1,par2
+        !do p=2,2
+           !print*,p,minval(alldat(ic,p,1:n(ic))),maxval(alldat(ic,p,1:n(ic)))
            minrange = 1.e30
            !write(*,'(A8,4x,4F10.5,I4)')varnames(p),y1,y2,minrange,centre,wrap(ic,p)
            do i=1,floor(n(ic)*(1.-ival))
-              x1 = alldat(ic,p,index(p,i))
-              x2 = alldat(ic,p,index(p,i+floor(n(ic)*ival)))
+              x1 = alldat(ic,p,indexx(p,i))
+              x2 = alldat(ic,p,indexx(p,i+floor(n(ic)*ival)))
               range1 = abs(x2 - x1)
               !range1 = x2 - x1
               if(range1.lt.minrange) then
@@ -242,12 +244,12 @@ subroutine statistics(exitcode)
            end do
            centre = (y1+y2)/2.
            !write(*,'(A8,4x,4F10.5,I4)')varnames(p),y1,y2,minrange,centre,wrap(ic,p)
-
+           
            !Save ranges:
-           nr = 4
+           nr = 4                  !Only ranges(:,:,:,1:nr) get converted
            ranges(ic,c,p,1) = y1
            ranges(ic,c,p,2) = y2
-           ranges(ic,c,p,3) = (y1+y2)/2.
+           ranges(ic,c,p,3) = centre
            ranges(ic,c,p,4) = y2-y1
            ranges(ic,c,p,5) = ranges(ic,c,p,4)
            if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
@@ -558,7 +560,7 @@ subroutine statistics(exitcode)
         write(o,'(A8,$)')''
         do p=par1,par2
            !if(stdev1(p).gt.1.d-20) write(o,'(A7,$)')trim(varnames(p))
-           if(fixedpar(p).eq.1) write(o,'(A7,$)')trim(varnames(p))
+           if(fixedpar(p).eq.0) write(o,'(A7,$)')trim(varnames(p))
         end do
         write(o,*)''
         do p1=par1,par2
