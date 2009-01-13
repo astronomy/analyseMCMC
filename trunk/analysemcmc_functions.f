@@ -466,9 +466,9 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
      !if(prprogress.ge.2.and.update.ne.1) write(*,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',nburn(ic),'.'
   end do !do ic = 1,nchains0
   
-  do i=1,npar0
-     write(*,'(I5,2F20.3)')i,minval(dat(i,1,1:n(1))),maxval(dat(i,1,1:n(1)))
-  end do
+  !do i=1,npar0
+  !   write(*,'(I5,2F20.3)')i,minval(dat(i,1,1:n(1))),maxval(dat(i,1,1:n(1)))
+  !end do
   
 end subroutine read_mcmcfiles
 !************************************************************************************************************************************

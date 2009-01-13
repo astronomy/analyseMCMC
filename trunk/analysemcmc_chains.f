@@ -777,14 +777,14 @@ subroutine chains(exitcode)
         i = system('rm -f parlogl.ppm')
      end if
   end if !if(plparl.eq.1)
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
   !***********************************************************************************************************************************            
   !Plot jump sizes
   if(pljump.ge.1) then
@@ -900,7 +900,7 @@ subroutine chains(exitcode)
         !call pgmtxt('T',1.,0.5,0.5,'Jumps: '//trim(pgorigvarns(p)))
         call pgmtxt('T',-1.2,0.05,0.0,trim(pgorigvarns(p)))
      end do
-
+     
      if(quality.eq.0) then
         call pgsubp(1,1)
         call pgsvp(0.,1.,0.,1.)
@@ -910,7 +910,7 @@ subroutine chains(exitcode)
         call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  !Print title
         call pgsch(sch)
      end if
-
+     
      if(combinechainplots.eq.1) call pgpage
      if(combinechainplots.eq.0) then
         call pgend

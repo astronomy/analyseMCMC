@@ -13,7 +13,8 @@ program analysemcmc
   real :: pltsz
   real*8 :: timestamp,timestamps(9)
   
-  version = 2 !1: 12-par MCMC,  2: 15-par  -  not implemented yet
+  version = 2   !1: 12-par MCMC,  2: 15-par  -  far from fully implemented yet !!!
+  
   timestamps(1) = timestamp(os)
   write(*,*)
   
@@ -22,6 +23,7 @@ program analysemcmc
   call setconstants           !Define mathematical constants
   call set_plotsettings()     !Set plot settings to 'default' values
   call read_settingsfile()    !Read the plot settings (overwrite the defaults)
+  if(version.eq.2) changevar = 0  !Force this for the moment for 15 par
   call write_settingsfile()   !Write the input file back to disc
   
   
@@ -52,7 +54,7 @@ program analysemcmc
   if(file.eq.1) pltrat = bmprat
   if(file.ge.2) pltsz = pssz
   if(file.ge.2) pltrat = psrat
-
+  
   
   !Use full unsharp-mask strength for plots with many panels and dots, weaker for those with fewer panels and.or no dots
   write(unsharplogl,'(I4)')max(nint(real(unsharp)/2.),1)  !Only one panel with dots
@@ -201,9 +203,13 @@ program analysemcmc
   
   if(version.eq.2) then !15par, 2 spins
      varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','sini','phase','psi','spin1','th1','phi1','spin2','th2','phi2'/)
-     pgvarns(1:16) = varnames(1:16)
-     pgvarnss(1:16) = varnames(1:16)
-     pgorigvarns(1:16) = varnames(1:16)
+     pgvarns(1:16)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\d0\u (s)            ', &
+                        'log d\dL\u (Mpc)      ','R.A. (rad)            ','sin dec.              ','sin \(2135)           ', &
+                        '\(2147)\dc\u (rad)    ', '\(2149)              ','a\dspin1\u            ','\(2134)\d1\u (rad)    ', &
+                        '\(2147)\d1\u (rad)    ','a\dspin2\u (rad)      ','\(2134)\d2\u (rad)    ','\(2147)\d2\u (rad)    '/)
+     pgvarnss(1:16)  = (/'log L    ','M\dc\u ','\(2133)','t\dc\u','log d\dL\u','R.A.','sin dec.','sin \(2135)','\(2147)\dc\u', '\(2149)', &
+          'a\dspin1\u','\(2134)\d1\u','\(2147)\d1\u','a\dspin2\u','\(2134)\d2\u','\(2147)\d2\u'/)
+     pgorigvarns(1:16) = pgvarns(1:16)
      pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','rad','','','rad','rad','','rad','rad','','rad','rad'/)
   end if
   
@@ -255,7 +261,7 @@ program analysemcmc
   
   
   !Change the original chain data
-  if(changevar.eq.1) then
+  if(changevar.gt.0) then
      do ic=1,nchains0
         !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:dl, 6:spin,  7:theta_SL, 8: RA,   9:dec, 10:phase, 11:thJ0, 12:phiJ0, 13:alpha
         !if(prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')'Changing some variables...   '
@@ -286,7 +292,7 @@ program analysemcmc
   
   if(prprogress.ge.2) write(*,*)''
   if(plot.eq.1.and.prprogress.ge.1.and.update.eq.0) write(*,'(/,A,$)')'  Plotting: '
-
+  
   
   !***********************************************************************************************************************************      
   !Plot (1d) chains: logL, parameter chains, jumps, etc.
@@ -294,10 +300,10 @@ program analysemcmc
      call chains(exitcode)
      if(exitcode.ne.0) goto 9999
   end if
-
-
-
-
+  
+  
+  
+  
   
   
   

@@ -131,16 +131,18 @@ subroutine pdfs1d(exitcode)
      
      !Set x-ranges for plotting, bin the data and get y-ranges
      !Use widest probability range (hopefully ~3-sigma) - doesn't always work well...
-     xmin = 1.e30
-     xmax = -1.e30
-     do ic=1,nchains
-        xmin = min(xmin,ranges(ic,nival,p,1))
-        xmax = max(xmax,ranges(ic,nival,p,2))
-        !write(*,'(3I4,6F10.3)')ic,p,nival,xmin,xmax,ranges(ic,nival,p,1),ranges(ic,nival,p,2)
-     end do
+     if(version.eq.1) then
+        xmin = 1.e30
+        xmax = -1.e30
+        do ic=1,nchains
+           xmin = min(xmin,ranges(ic,nival,p,1))
+           xmax = max(xmax,ranges(ic,nival,p,2))
+           !write(*,'(3I4,6F10.3)')ic,p,nival,xmin,xmax,ranges(ic,nival,p,1),ranges(ic,nival,p,2)
+        end do
+     end if
      !print*,xmin,huge(xmin)
      !if(xmin.le.-huge(xmin).or.xmin.ge.huge(xmin).or.xmax.le.-huge(xmax).or.xmax.ge.huge(xmax)) then !NaN
-     if(xmin.ne.xmin.or.xmin.ne.xmax) then
+     if(version.eq.2.or.xmin.ne.xmin.or.xmin.ne.xmax) then
         xmin = 1.e30
         xmax = -1.e30
         do ic=1,nchains
