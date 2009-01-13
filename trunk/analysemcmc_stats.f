@@ -11,11 +11,12 @@ subroutine statistics(exitcode)
   integer :: c,i,ic,i0,j,j1,o,p,p1,p2,nr,nstat,exitcode,io
   integer :: indexx(npar1,nchs*narr1),index1(nchs*narr1),parr(npar1)
   integer :: nn,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nrhat
-  real :: rev2pi,x0,x1,x2,y1,y2,dx,x!,facarr(npar1)
-  real :: range1,minrange,maxgap,ival,wrapival,centre,maxlogl,minlogl
+  real :: rev2pi,x0,x1,x2,y1,y2,dx,x,rrevpi
+  real :: range1,minrange,maxgap,ival,wrapival,centre,maxlogl,minlogl,shival,shival2
   real :: medians(npar1),mean(npar1),var1(npar1),var2(npar1),corr,corr1,corr2
   real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),totrhat,totrelvar
-  real*16 :: var,total
+  real*8 :: var,total
+  !real*16 :: var,total  !gfortran doesn't support this
   character :: ch,url*99,gps*19,xs10*10,xs20*20
   
   !K-S test:
@@ -56,9 +57,13 @@ subroutine statistics(exitcode)
         end if
         
         !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
-        !Make sure data are between 0 and 2pi to start with:
+        !Make sure data are between 0 and 2pi or between 0 and pi to start with:
         do i=1,n(ic)
-           alldat(ic,p,i) = rev2pi(alldat(ic,p,i))
+           if(p.eq.12) then
+              alldat(ic,p,i) = rrevpi(alldat(ic,p,i)) !Pol.angle
+           else
+              alldat(ic,p,i) = rev2pi(alldat(ic,p,i)) 
+           end if
         end do
         call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))
         indexx(p,1:n(ic)) = index1(1:n(ic))
@@ -67,7 +72,11 @@ subroutine statistics(exitcode)
         do i=1,n(ic)
            x1 = alldat(ic,p,indexx(p,i))
            x2 = alldat(ic,p,indexx(p,mod(i+nint(n(ic)*wrapival)-1,n(ic))+1))
-           range1 = mod(x2 - x1 + real(20*pi),real(tpi))
+           if(p.eq.12) then
+              range1 = mod(x2 - x1 + real(10*pi),rpi)
+           else
+              range1 = mod(x2 - x1 + real(20*pi),rtpi)
+           end if
            if(range1.lt.minrange) then
               minrange = range1
               y1 = x1
@@ -77,11 +86,30 @@ subroutine statistics(exitcode)
            !write(*,'(2I6,7F10.5)')i,mod(nint(i+n(ic)*wrapival),n(ic)),x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
         end do !i
         centre = (y1+y2)/2.
+        
+        !Define shift interval:
+        if(p.eq.12) then
+           shival = rpi   !Shift interval
+           shival2 = rpi2 !Shift interval/2
+        else
+           shival = rtpi   !Shift interval
+           shival2 = rpi   !Shift interval/2
+        end if
+        
         if(y1.gt.y2) then
-           wrap(ic,p) = 1
-           centre = mod(centre + pi, tpi) !Then distribution peaks close to 0/2pi, shift centre by pi
+           if(p.eq.12) then
+              wrap(ic,p) = 2  !Wrap over pi
+              !centre = mod(centre + rpi2, rpi) !Then distribution peaks close to 0/pi, shift centre by pi/2
+           else
+              wrap(ic,p) = 1  !Wrap over 2pi
+              !centre = mod(centre + rpi, rtpi) !Then distribution peaks close to 0/2pi, shift centre by pi
+           end if
+           centre = mod(centre + shival2, shival) !Then distribution peaks close to 0/shival, shift centre by shival/2
         end if
         !if(p.eq.8) write(*,'(3I6,8F10.5)')ic,p,wrap(ic,p), wrapival,y1*r2h,y2*r2h,minrange*r2h,centre*r2h
+        !if(p.eq.12) write(*,'(3I6,8F10.5)')ic,p,wrap(ic,p), wrapival,y1,y2,minrange,centre
+        
+        
         
         !See whether there's a gap in the data.  WHY is this necessary, should it work like this???
         if(wrap(ic,p).eq.0 .and. 1.eq.2) then
@@ -111,21 +139,36 @@ subroutine statistics(exitcode)
         end if
         !if(p.eq.8) write(*,'(3I6,9F10.5)')ic,p,wrap(ic,p),y1,y2,x1/pi*12,x2/pi*12,x0/pi*12
         
+        
+        
         !Now, wrap around anticentre
         shift(ic,p) = 0.
-        if(wrap(ic,p).eq.1) shift(ic,p) = tpi - mod(centre + pi, tpi)
-        if(p.eq.8.and.ic.eq.1) rashift = shift(ic,p)  !Save RA shift to plot sky map
-        alldat(ic,p,1:n(ic)) = mod(alldat(ic,p,1:n(ic))+shift(ic,p),tpi)-shift(ic,p)
-        pldat(ic,p,1:ntot(ic)) = mod(pldat(ic,p,1:ntot(ic))+shift(ic,p),tpi)-shift(ic,p) !Original data
-        y1 = mod(y1+shift(ic,p),tpi)-shift(ic,p)
-        y2 = mod(y2+shift(ic,p),tpi)-shift(ic,p)
-        centre = mod(centre+shift(ic,p),tpi)-shift(ic,p)
+        
+        !For the special case of 2pi:
+        !if(wrap(ic,p).eq.1) shift(ic,p) = rtpi - mod(centre + rpi, rtpi)
+        !if(p.eq.8.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
+        !alldat(ic,p,1:n(ic))   = mod(alldat(ic,p,1:n(ic))   + shift(ic,p), rtpi) - shift(ic,p)
+        !pldat(ic,p,1:ntot(ic)) = mod(pldat(ic,p,1:ntot(ic)) + shift(ic,p), rtpi) - shift(ic,p) !Original data
+        !y1 = mod(y1 + shift(ic,p), rtpi) - shift(ic,p)
+        !y2 = mod(y2 + shift(ic,p), rtpi) - shift(ic,p)
+        !centre = mod(centre + shift(ic,p), rtpi) - shift(ic,p)
+        
+        !For the general case of shival (= 2pi or pi)
+        if(wrap(ic,p).gt.0) shift(ic,p) = shival - mod(centre + shival2, shival)
+        if(p.eq.8.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
+        alldat(ic,p,1:n(ic))   = mod(alldat(ic,p,1:n(ic))   + shift(ic,p), shival) - shift(ic,p)
+        pldat(ic,p,1:ntot(ic)) = mod(pldat(ic,p,1:ntot(ic)) + shift(ic,p), shival) - shift(ic,p)   !Original data
+        y1 = mod(y1 + shift(ic,p), shival) - shift(ic,p)
+        y2 = mod(y2 + shift(ic,p), shival) - shift(ic,p)
+        centre = mod(centre + shift(ic,p), shival) - shift(ic,p)
+        
         minrange = y2-y1
         !call rindexx(n(ic),alldat(ic,p,1:n(ic)),indexx(p,1:n(ic)))  !Re-sort
         call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))  !Re-sort
         indexx(p,1:n(ic)) = index1(1:n(ic))
         !if(p.eq.8) write(*,'(I3,A8,4x,6F10.5,I4)')ic,varnames(p),y1,y2,minrange,centre,minval(alldat(ic,p,1:n(ic))),maxval(alldat(ic,p,1:n(ic))),wrap(ic,p)
-        if(abs(abs(minval(alldat(ic,p,1:n(ic)))-maxval(alldat(ic,p,1:n(ic))))-2*pi).lt.1.e-3) wrap(ic,p)=1 !If centre is around pi, still needs to be flagged 'wrap' to plot PDF
+        
+        if(abs( abs( minval(alldat(ic,p,1:n(ic))) - maxval(alldat(ic,p,1:n(ic))) ) - shival) .lt. 1.e-3)  wrap(ic,p) = 1   !If centre is around shival2, still needs to be flagged 'wrap' to plot PDF
      end do !p
      
      
@@ -225,6 +268,7 @@ subroutine statistics(exitcode)
         if(c.ne.c0 .and. prival.eq.0 .and. prstat.lt.2 .and. savestats.eq.0) cycle
         
         if(prprogress.ge.1.and.ic.eq.1) write(*,'(F6.3,$)')ival
+        !print*,par1,par2
         do p=par1,par2
         !do p=2,2
            !print*,p,minval(alldat(ic,p,1:n(ic))),maxval(alldat(ic,p,1:n(ic)))

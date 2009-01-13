@@ -428,7 +428,17 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
         read(10,*,iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
         if(io.lt.0) exit !EOF
         if(io.gt.0) then !Read error
-           if(readerror.eq.1) goto 198 !Read error in previous line as well
+           if(readerror.eq.1) then !Read error in previous line as well
+              write(*,'(A,I7,$)')'  Read error in file '//trim(infile)//', line',i
+              i = i-1
+              if(i.lt.25) then
+                 write(*,'(A,/)')'  Aborting program...'
+                 stop
+              else
+                 write(*,*)
+                 exit
+              end if
+           end if
            readerror = 1
            i = i-1
            cycle
@@ -438,7 +448,8 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
         if(ic.eq.1.and.i.eq.1) t0 = dble(floor(t/10.d0)*10)
         if(thin.gt.1.and.i.gt.2) then !'Thin' the output by reading every thin-th line
            do j=1,thin-1
-              read(10,*,end=199,err=198)bla
+              read(10,*,iostat=io)bla
+              if(io.lt.0) exit !EOF
            end do
         end if
         dat(4,ic,i) = real(t - t0)
@@ -449,19 +460,15 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
      
      if(i.ge.narr1-2) write(*,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
      goto 199
-198  write(*,'(A,I7,$)')'  Read error in file '//trim(infile)//', line',i
-     i = i-1
-     if(i.lt.25) then
-        write(*,'(A,/)')'  Aborting program...'
-        stop
-     end if
-     write(*,*)
 199  close(10)
      ntot(ic) = i-1
      n(ic) = ntot(ic) !n can be changed in rearranging chains, ntot won't be changed
      !if(prprogress.ge.2.and.update.ne.1) write(*,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',nburn(ic),'.'
   end do !do ic = 1,nchains0
   
+  !do i=1,npar0
+  !   write(*,'(I5,2F20.3)')i,minval(dat(i,1,1:n(1))),maxval(dat(i,1,1:n(1)))
+  !end do
   
 end subroutine read_mcmcfiles
 !************************************************************************************************************************************
@@ -1154,6 +1161,13 @@ end function rev360
 !************************************************************************
 
 !************************************************************************
+function rev180(x)        !Returns angle in degrees between 0 and 180
+  real :: x,rev180
+  rev180 = x-floor(x/(180.))*180.
+end function rev180
+!************************************************************************
+
+!************************************************************************
 function rev24(x)        !Returns angle in hours between 0 and 24
   real :: x,rev24
   rev24 = x-floor(x/(24.))*24.
@@ -1169,11 +1183,19 @@ end function rev2pi
 !************************************************************************
 
 !************************************************************************
-function drevpi(x)        !Returns angle in radians between 0 and pi
+function drevpi(x)        !Returns angle in radians between 0 and pi - double
   use constants
-  real*8 :: x,drevpi!,pi
+  real*8 :: x,drevpi
   drevpi = x-floor(x/pi)*pi
 end function drevpi
+!************************************************************************
+
+!************************************************************************
+function rrevpi(x)        !Returns angle in radians between 0 and pi - real
+  use constants
+  real :: x,rrevpi
+  rrevpi = x-floor(x/rpi)*rpi
+end function rrevpi
 !************************************************************************
 
 

@@ -10,7 +10,7 @@ subroutine pdfs1d(exitcode)
   implicit none
   
   integer :: i,i0,i1,j,p,ic,io,pgopen,lw,exitcode,system
-  real :: rev24,rev360
+  real :: rev24,rev360,rev180
   real :: x(nchs,nchs*narr1),xmin,xmax,xmin1,xmax1,xpeak,dx,ymin,ymax,sch
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ybin2(:),ysum(:),yconv(:),ycum(:)  !These depend on nbin1d, allocate after reading input file
   real :: coefs(100),coefs1(100),plshift,plx,ply,x0,norm
@@ -129,14 +129,26 @@ subroutine pdfs1d(exitcode)
         if(j.eq.1) call pginitl(colour,file,whitebg)
      end if
      
-     !Set x-ranges for binning, bin the data and get y-ranges
+     !Set x-ranges for plotting, bin the data and get y-ranges
+     !Use widest probability range (hopefully ~3-sigma) - doesn't always work well...
      xmin = 1.e30
      xmax = -1.e30
      do ic=1,nchains
-        if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
-        xmin = min(xmin,minval(alldat(ic,p,1:n(ic))))
-        xmax = max(xmax,maxval(alldat(ic,p,1:n(ic))))
+        xmin = min(xmin,ranges(ic,nival,p,1))
+        xmax = max(xmax,ranges(ic,nival,p,2))
+        !write(*,'(3I4,6F10.3)')ic,p,nival,xmin,xmax,ranges(ic,nival,p,1),ranges(ic,nival,p,2)
      end do
+     !print*,xmin,huge(xmin)
+     !if(xmin.le.-huge(xmin).or.xmin.ge.huge(xmin).or.xmax.le.-huge(xmax).or.xmax.ge.huge(xmax)) then !NaN
+     if(xmin.ne.xmin.or.xmin.ne.xmax) then
+        xmin = 1.e30
+        xmax = -1.e30
+        do ic=1,nchains
+           if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
+           xmin = min(xmin,minval(alldat(ic,p,1:n(ic))))
+           xmax = max(xmax,maxval(alldat(ic,p,1:n(ic))))
+        end do
+     end if
      dx = xmax - xmin
      !dx = max(xmax - xmin,1.e-30)
      
@@ -145,6 +157,10 @@ subroutine pdfs1d(exitcode)
         x(ic,1:n(ic)) = alldat(ic,p,1:n(ic))
         xmin1 = minval(alldat(ic,p,1:n(ic)))
         xmax1 = maxval(alldat(ic,p,1:n(ic)))
+        if(wrap(ic,p).eq.0) then !Use the plotting ranges
+           !xmin1 = xmin - 0.1*dx
+           !xmax1 = xmax + 0.1*dx
+        end if
         
         call bindata1d(n(ic),x(ic,1:n(ic)),1,nbin1d,xmin1,xmax1,xbin1,ybin1)
         
@@ -217,17 +233,6 @@ subroutine pdfs1d(exitcode)
      
      if(plot.eq.1) then
         !Ranges for plot panel
-        
-        !Use widest probability range (hopefully ~3-sigma) - doesn't always work well...
-        !xmin =  1.e30
-        !xmax = -1.e30
-        !do ic=1,nchains
-        !   xmin = min(xmin,ranges(ic,nival,p,1))
-        !   xmax = max(xmax,ranges(ic,nival,p,2))
-        !   !write(*,'(3I4,6F10.3)')ic,p,nival,xmin,xmax,ranges(ic,nival,p,1),ranges(ic,nival,p,2)
-        !end do
-        !dx = xmax - xmin
-        
         xmin = xmin - 0.1*dx
         xmax = xmax + 0.1*dx
         ymin = 0.
@@ -253,7 +258,6 @@ subroutine pdfs1d(exitcode)
               xmax = 1.
            end if
         end if
-        !print*,xmin,xmax,ymin,ymax
         if(ymax.lt.1.e-19) ymax = 1.
         
         
@@ -271,6 +275,7 @@ subroutine pdfs1d(exitcode)
         end if
         
         !Plot 1D PDF
+        !if(fixedpar(p).eq.0) then
         call pgsci(1)
         if(file.ge.2) call pgslw(lw)
         do ic=1,nchains
@@ -296,6 +301,7 @@ subroutine pdfs1d(exitcode)
               plshift = real(2*pi)
               if(changevar.eq.1) plshift = 360.
               if(changevar.eq.1.and.p.eq.8) plshift = 24.  !RA in hours
+              if(changevar.eq.1.and.p.eq.12) plshift = 180.  !Pol.angle
               if(nchains.eq.1) call pgsci(15)
               call pgpoly(nbin1d+3,(/xbin1(1),xbin1(1:nbin1d),xbin1(1)+plshift,xbin1(1)+plshift/),(/0.,ybin1(1:nbin1d),ybin1(1),0./))
               
@@ -318,6 +324,8 @@ subroutine pdfs1d(exitcode)
               call pgline(2,(/xbin1(nbin1d),xbin1(1)+plshift/),(/ybin1(nbin1d),ybin1(1)/))
            end if
         end do !ic
+        
+        
         !Plot lines again over surface of overlapping distributions
         if(nchains.gt.1.and.fillpdf.eq.1) then
            call pgsls(4)
@@ -341,7 +349,8 @@ subroutine pdfs1d(exitcode)
         if(pllmax.ge.1) then
            ply = pldat(icloglmax,p,iloglmax)
            if(p.eq.8) ply = rev24(ply)
-           if(p.eq.10.or.p.eq.12.or.p.eq.13) ply = rev360(ply)
+           if(p.eq.10.or.p.eq.13) ply = rev360(ply)
+           if(p.eq.12) ply = rev180(ply)
            call pgsci(1)
            call pgsls(5)
            call pgline(2,(/ply,ply/),(/-1.e20,1.e20/))
@@ -391,15 +400,20 @@ subroutine pdfs1d(exitcode)
                  call pgsls(2); call pgsci(1)
                  plx = startval(ic,p,1)
                  if(p.eq.8) plx = rev24(plx)
-                 if(p.eq.10.or.p.eq.12.or.p.eq.13) plx = rev360(plx)
+                 if(p.eq.10.or.p.eq.13) ply = rev360(ply)
+                 if(p.eq.12) ply = rev180(ply)
                  call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !True value
                  if(p.eq.8) then
                     call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !True value
                     call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !True value
                  end if
-                 if(p.eq.10.or.p.eq.12.or.p.eq.13) then
+                 if(p.eq.10.or.p.eq.13) then
                     call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !True value
                     call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !True value
+                 end if
+                 if(p.eq.12) then
+                    call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !True value
+                    call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !True value
                  end if
               end if
            end if
@@ -546,8 +560,11 @@ subroutine pdfs1d(exitcode)
               call pgsci(1)
            end if
         end if
-
-
+        !else  !If parameter was fixed, plot variable name in empty panel
+        !   call pgsch(sch*1.2)
+        !   call pgptxt(xmin+0.05*dx,ymax*0.9,0.,0.,trim(pgvarnss(p)))
+        !end if !if(fixedpar(p).eq.0)
+        
         call pgsci(1)
         call pgsch(sch)
         !call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)

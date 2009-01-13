@@ -8,7 +8,7 @@ subroutine chains(exitcode)
   use chain_data
   implicit none
   integer :: i,j,n0,pgopen,imin,ci,lw,symbol,io,ic,p,system,exitcode
-  real :: rev360,rev24
+  real :: rev360,rev24,rev180
   real :: dx,dy,xmin,xmax,ymin,ymax,sch,plx,ply
   character :: string*99
   
@@ -167,14 +167,23 @@ subroutine chains(exitcode)
         !if(i.ne.0) write(*,'(A)')'  Error removing file',i
      end if
   end if !if(pllogl.eq.1) then
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   !***********************************************************************************************************************************      
   !Plot chains for each parameter
   if(plchain.eq.1) then
@@ -286,10 +295,16 @@ subroutine chains(exitcode)
               ymax = 24.
            end if
         end if
-        if(p.eq.10.or.p.eq.12.or.p.eq.13) then
+        if(p.eq.10.or.p.eq.13) then
            if(ymin.lt.0..or.ymax.gt.360.) then
               ymin = 0.
               ymax = 360.
+           end if
+        end if
+        if(p.eq.12) then
+           if(ymin.lt.0..or.ymax.gt.180.) then
+              ymin = 0.
+              ymax = 180.
            end if
         end if
         dx = abs(xmax-xmin)*0.01
@@ -346,14 +361,16 @@ subroutine chains(exitcode)
               do i=ic,nburn(ic),chainpli !Start at ic to reduce overplotting
                  ply = pldat(ic,p,i)
                  if(p.eq.8) ply = rev24(ply)
-                 if(p.eq.10.or.p.eq.12.or.p.eq.13) ply = rev360(ply)
+                 if(p.eq.10.or.p.eq.13) ply = rev360(ply)
+                 if(p.eq.12) ply = rev180(ply)
                  call pgpoint(1,is(ic,i),ply,symbol)
               end do
               call pgsci(ci)
               do i=nburn(ic)+ic,ntot(ic),chainpli !Start at ic to reduce overplotting
                  ply = pldat(ic,p,i)
                  if(p.eq.8) ply = rev24(ply)
-                 if(p.eq.10.or.p.eq.12.or.p.eq.13) ply = rev360(ply)
+                 if(p.eq.10.or.p.eq.13) ply = rev360(ply)
+                 if(p.eq.12) ply = rev180(ply)
                  call pgpoint(1,is(ic,i),ply,symbol)
               end do
 
@@ -367,7 +384,8 @@ subroutine chains(exitcode)
         if(pllmax.ge.1) then
            ply = pldat(icloglmax,p,iloglmax)
            if(p.eq.8) ply = rev24(ply)
-           if(p.eq.10.or.p.eq.12.or.p.eq.13) ply = rev360(ply)
+           if(p.eq.10.or.p.eq.13) ply = rev360(ply)
+           if(p.eq.12) ply = rev180(ply)
            call pgsci(1)
            call pgpoint(1,is(icloglmax,iloglmax),ply,12)
            call pgsls(5)
@@ -393,16 +411,20 @@ subroutine chains(exitcode)
                  plx = startval(ic,p,1) !True value
                  plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
                  if(p.eq.8) plx = rev24(plx)
-                 if(p.eq.10.or.p.eq.12.or.p.eq.13) plx = rev360(plx)
+                 if(p.eq.10.or.p.eq.13) plx = rev360(plx)
+                 if(p.eq.12) plx = rev180(plx)
                  call pgline(2,(/-1.e20,1.e20/),(/plx,plx/))
                  if(p.eq.8) then
                     call pgline(2,(/-1.e20,1.e20/),(/plx-24.,plx-24./))
                     call pgline(2,(/-1.e20,1.e20/),(/plx+24.,plx+24./))
                  end if
-                 if(p.eq.10.or.p.eq.12.or.p.eq.13) then
+                 if(p.eq.10.or.p.eq.13) then
                     call pgline(2,(/-1.e20,1.e20/),(/plx-360.,plx-360./))
                     call pgline(2,(/-1.e20,1.e20/),(/plx+360.,plx+360./))
-                    !print*,p,plx,plx-360.,plx+360.
+                 end if
+                 if(p.eq.12) then
+                    call pgline(2,(/-1.e20,1.e20/),(/plx-180.,plx-180./))
+                    call pgline(2,(/-1.e20,1.e20/),(/plx+180.,plx+180./))
                  end if
               end if
            end if
@@ -414,15 +436,20 @@ subroutine chains(exitcode)
               if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               plx = startval(ic,p,2) !Initial value
               if(p.eq.8) plx = rev24(plx)
-              if(p.eq.10.or.p.eq.12.or.p.eq.13) plx = rev360(plx)
+              if(p.eq.10.or.p.eq.13) plx = rev360(plx)
+              if(p.eq.12) plx = rev180(plx)
               call pgline(2,(/-1.e20,1.e20/),(/plx,plx/))
               if(p.eq.8) then
                  call pgline(2,(/-1.e20,1.e20/),(/plx-24.,plx-24./))
                  call pgline(2,(/-1.e20,1.e20/),(/plx+24.,plx+24./))
               end if
-              if(p.eq.10.or.p.eq.12.or.p.eq.13) then
+              if(p.eq.10.or.p.eq.13) then
                  call pgline(2,(/-1.e20,1.e20/),(/plx-360.,plx-360./))
                  call pgline(2,(/-1.e20,1.e20/),(/plx+360.,plx+360./))
+              end if
+              if(p.eq.12) then
+                 call pgline(2,(/-1.e20,1.e20/),(/plx-180.,plx-180./))
+                 call pgline(2,(/-1.e20,1.e20/),(/plx+180.,plx+180./))
               end if
            end if
         end do !ic=1,nchains0
@@ -462,14 +489,29 @@ subroutine chains(exitcode)
         i = system('rm -f chains.ppm')
      end if
   end if !if(plchain.eq.1)
-
-
-
-
-
-
-
-
+  !***********************************************************************************************************************************      
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   !***********************************************************************************************************************************      
   !Plot L vs parameter value
   if(plparl.eq.1) then
