@@ -13,7 +13,7 @@ program analysemcmc
   real :: pltsz
   real*8 :: timestamp,timestamps(9)
   
-  version = 2   !1: 12-par MCMC,  2: 15-par  -  far from fully implemented yet !!!
+  version = 1   !1: 12-par MCMC,  2: 15-par  -  far from fully implemented yet !!!
   
   timestamps(1) = timestamp(os)
   write(*,*)
