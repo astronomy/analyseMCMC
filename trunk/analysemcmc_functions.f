@@ -466,9 +466,9 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
      !if(prprogress.ge.2.and.update.ne.1) write(*,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',nburn(ic),'.'
   end do !do ic = 1,nchains0
   
-  !do i=1,npar0
-  !   write(*,'(I5,2F20.3)')i,minval(dat(i,1,1:n(1))),maxval(dat(i,1,1:n(1)))
-  !end do
+  do i=1,npar0
+     write(*,'(I5,2F20.3)')i,minval(dat(i,1,1:n(1))),maxval(dat(i,1,1:n(1)))
+  end do
   
 end subroutine read_mcmcfiles
 !************************************************************************************************************************************
@@ -656,35 +656,39 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   
   
   !*** Change some MCMC parameters:
-  if(prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')'  Changing some variables...   '
-  !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
-  do ic=1,nchains0
-     if(maxval(dat(3,ic,1:ntot(ic))).le.0.5d0) then
-        !Calculate the individual masses from Mch and eta:
-        if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(*,'(A)')"  I'm assuming the MCMC was done with Mc and eta."
+  if(changevar.gt.0) then
+     if(prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')'  Changing some variables...   '
+     !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
+     do ic=1,nchains0
+        if(maxval(dat(3,ic,1:ntot(ic))).le.0.5d0) then
+           !Calculate the individual masses from Mch and eta:
+           if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(*,'(A)')"  I'm assuming the MCMC was done with Mc and eta."
+           do i=1,ntot(ic)
+              call mc_eta_2_m1_m2r(dat(2,ic,i),dat(3,ic,i), dat(14,ic,i),dat(15,ic,i))
+           end do
+        else
+           !Calculate Mch and eta from the individual masses:
+           if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(*,'(A)')"  I'm assuming the MCMC was done with M1 and M2."
+           dat(14,ic,1:ntot(ic)) = dat(2,ic,1:ntot(ic))  !M1
+           dat(15,ic,1:ntot(ic)) = dat(3,ic,1:ntot(ic))  !M2
+           do i=1,ntot(ic)
+              call m1_m2_2_mc_etar(dat(14,ic,i),dat(15,ic,i), dat(2,ic,i),dat(3,ic,i))
+           end do
+        end if
+        
+        !Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
         do i=1,ntot(ic)
-           call mc_eta_2_m1_m2r(dat(2,ic,i),dat(3,ic,i), dat(14,ic,i),dat(15,ic,i))
+           call compute_incli_polangr(dat(8,ic,i), asin(dat(9,ic,i)), real(lon2ra(dble(dat(12,ic,i)), dble(dat(4,ic,i)) + t0)), asin(dat(11,ic,i)),   dat(11,ic,i),dat(12,ic,i))  !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad)
         end do
-     else
-        !Calculate Mch and eta from the individual masses:
-        if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(*,'(A)')"  I'm assuming the MCMC was done with M1 and M2."
-        dat(14,ic,1:ntot(ic)) = dat(2,ic,1:ntot(ic))  !M1
-        dat(15,ic,1:ntot(ic)) = dat(3,ic,1:ntot(ic))  !M2
-        do i=1,ntot(ic)
-           call m1_m2_2_mc_etar(dat(14,ic,i),dat(15,ic,i), dat(2,ic,i),dat(3,ic,i))
-        end do
-     end if
-     
-     !Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
-     do i=1,ntot(ic)
-        call compute_incli_polangr(dat(8,ic,i), asin(dat(9,ic,i)), real(lon2ra(dble(dat(12,ic,i)), dble(dat(4,ic,i)) + t0)), asin(dat(11,ic,i)),   dat(11,ic,i),dat(12,ic,i))  !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad)
      end do
-  end do
+  end if
   npar = 15
   if(par2.eq.0) par2 = npar
-  
+  if(version.eq.2) then
+     npar=16
+     if(par2.eq.0) par2 = npar
+  end if
   acc = acc*0.25  !Transfom back to the actual acceptance rate
-  
   
   
   
@@ -734,18 +738,19 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
         end do
      end if
   end do
-  !write(outputname,'(A,F4.2,A1,I3.3)')trim(outputname)//'_',startval(ic,6,1),'_',nint(acos(startval(ic,7,1))*r2d)
-  !Spin magnitudes
-  do ic=1,nchains0
-     if(ic.eq.1) write(outputname,'(A,F4.2)')trim(outputname)//'_',startval(ic,6,1)
-     if(ic.gt.1.and.startval(ic,6,1).ne.startval(1,6,1)) write(outputname,'(A,F4.2)')trim(outputname)//'-',startval(ic,6,1)
-  end do
-  !Theta_SLs
-  do ic=1,nchains0
-     if(ic.eq.1) write(outputname,'(A,I3.3)')trim(outputname)//'_',nint(acos(startval(ic,7,1))*r2d)
-     if(ic.gt.1.and.startval(ic,7,1).ne.startval(1,7,1)) write(outputname,'(A,I3.3)')trim(outputname)//'-',nint(acos(startval(ic,7,1))*r2d)
-  end do
-  !print*,outputname
+  if(version.eq.1) then
+     !Spin magnitudes
+     do ic=1,nchains0
+        if(ic.eq.1) write(outputname,'(A,F4.2)')trim(outputname)//'_',startval(ic,6,1)
+        if(ic.gt.1.and.startval(ic,6,1).ne.startval(1,6,1)) write(outputname,'(A,F4.2)')trim(outputname)//'-',startval(ic,6,1)
+     end do
+     !Theta_SLs
+     do ic=1,nchains0
+        if(ic.eq.1) write(outputname,'(A,I3.3)')trim(outputname)//'_',nint(acos(startval(ic,7,1))*r2d)
+        if(ic.gt.1.and.startval(ic,7,1).ne.startval(1,7,1)) write(outputname,'(A,I3.3)')trim(outputname)//'-',nint(acos(startval(ic,7,1))*r2d)
+     end do
+  end if
+  !print*,trim(outputname)
   
   
   

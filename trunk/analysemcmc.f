@@ -13,6 +13,7 @@ program analysemcmc
   real :: pltsz
   real*8 :: timestamp,timestamps(9)
   
+  version = 2 !1: 12-par MCMC,  2: 15-par  -  not implemented yet
   timestamps(1) = timestamp(os)
   write(*,*)
   
@@ -196,10 +197,15 @@ program analysemcmc
        'logd\dL\u (Mpc)       ','a\dspin\u             ','\(2136)               ','R.A. (rad)            ', &
        'sin dec.              ','\(2147)\dc\u (rad)    ','sin \(2134)\dJ0\u     ','\(2147)\dJ0\u (rad)   ', &
        '\(2127)\dc\u (rad)    ','M\d1\u (M\d\(2281)\u) ','M\d2\u (M\d\(2281)\u) '/)
-  !pgorigvarns(1:15)  = (/'log L    ','M\dc\u ','\(2133)','t\dc\u','log d\dL\u','a\dspin\u','\(2136)','R.A.','sin dec.','\(2147)\dc\u', &
-  !     'sin \(2134)\dJ0\u','\(2147)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u'/)
   pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','rad','rad','','rad','','rad','rad','M\d\(2281)\u','M\d\(2281)\u'/)
   
+  if(version.eq.2) then !15par, 2 spins
+     varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','sini','phase','psi','spin1','th1','phi1','spin2','th2','phi2'/)
+     pgvarns(1:16) = varnames(1:16)
+     pgvarnss(1:16) = varnames(1:16)
+     pgorigvarns(1:16) = varnames(1:16)
+     pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','rad','','','rad','rad','','rad','rad','','rad','rad'/)
+  end if
   
   
   

@@ -288,25 +288,28 @@ subroutine chains(exitcode)
            ymin = min(ymin,minval(pldat(ic,p,imin:ntot(ic))))
            ymax = max(ymax,maxval(pldat(ic,p,imin:ntot(ic))))
         end do
-
-        if(p.eq.8) then
-           if(ymin.lt.0..or.ymax.gt.24.) then
-              ymin = 0.
-              ymax = 24.
+        
+        if(changevar.gt.0) then
+           if(p.eq.8) then
+              if(ymin.lt.0..or.ymax.gt.24.) then
+                 ymin = 0.
+                 ymax = 24.
+              end if
+           end if
+           if(p.eq.10.or.p.eq.13) then
+              if(ymin.lt.0..or.ymax.gt.360.) then
+                 ymin = 0.
+                 ymax = 360.
+              end if
+           end if
+           if(p.eq.12) then
+              if(ymin.lt.0..or.ymax.gt.180.) then
+                 ymin = 0.
+                 ymax = 180.
+              end if
            end if
         end if
-        if(p.eq.10.or.p.eq.13) then
-           if(ymin.lt.0..or.ymax.gt.360.) then
-              ymin = 0.
-              ymax = 360.
-           end if
-        end if
-        if(p.eq.12) then
-           if(ymin.lt.0..or.ymax.gt.180.) then
-              ymin = 0.
-              ymax = 180.
-           end if
-        end if
+        
         dx = abs(xmax-xmin)*0.01
         dy = abs(ymax-ymin)*0.05
         if(dx.eq.0) then
@@ -345,32 +348,27 @@ subroutine chains(exitcode)
            if(chainsymbol.eq.0) then !Plot lines rather than symbols
               call pgline(ntot(ic),is(ic,1:ntot(ic)),pldat(ic,p,1:ntot(ic)))
            else
-              !do i=ic,ntot(ic),chainpli !Start at ic to reduce overplotting
-              !   ply = pldat(ic,p,i)
-              !   if(p.eq.8) ply = rev24(ply)
-              !   if(p.eq.10.or.p.eq.12.or.p.eq.13) ply = rev360(ply)
-              !   !call pgpoint(1,is(ic,i),ply,1) !Plot small dots
-              !   call pgpoint(1,is(ic,i),ply,symbol) !Plot symbols
-              !end do
-
-
               !Give pre- and post-burnin different colour
               ci = defcolour
               if(nchains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
               call pgscidark(ci,file,whitebg)
               do i=ic,nburn(ic),chainpli !Start at ic to reduce overplotting
                  ply = pldat(ic,p,i)
-                 if(p.eq.8) ply = rev24(ply)
-                 if(p.eq.10.or.p.eq.13) ply = rev360(ply)
-                 if(p.eq.12) ply = rev180(ply)
+                 if(changevar.gt.0) then
+                    if(p.eq.8) ply = rev24(ply)
+                    if(p.eq.10.or.p.eq.13) ply = rev360(ply)
+                    if(p.eq.12) ply = rev180(ply)
+                 end if
                  call pgpoint(1,is(ic,i),ply,symbol)
               end do
               call pgsci(ci)
               do i=nburn(ic)+ic,ntot(ic),chainpli !Start at ic to reduce overplotting
                  ply = pldat(ic,p,i)
-                 if(p.eq.8) ply = rev24(ply)
-                 if(p.eq.10.or.p.eq.13) ply = rev360(ply)
-                 if(p.eq.12) ply = rev180(ply)
+                 if(changevar.gt.0) then
+                    if(p.eq.8) ply = rev24(ply)
+                    if(p.eq.10.or.p.eq.13) ply = rev360(ply)
+                    if(p.eq.12) ply = rev180(ply)
+                 end if
                  call pgpoint(1,is(ic,i),ply,symbol)
               end do
 
@@ -383,9 +381,11 @@ subroutine chains(exitcode)
         !Plot max likelihood
         if(pllmax.ge.1) then
            ply = pldat(icloglmax,p,iloglmax)
-           if(p.eq.8) ply = rev24(ply)
-           if(p.eq.10.or.p.eq.13) ply = rev360(ply)
-           if(p.eq.12) ply = rev180(ply)
+           if(changevar.gt.0) then
+              if(p.eq.8) ply = rev24(ply)
+              if(p.eq.10.or.p.eq.13) ply = rev360(ply)
+              if(p.eq.12) ply = rev180(ply)
+           end if
            call pgsci(1)
            call pgpoint(1,is(icloglmax,iloglmax),ply,12)
            call pgsls(5)
@@ -410,10 +410,42 @@ subroutine chains(exitcode)
                  !if(ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  plx = startval(ic,p,1) !True value
                  plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
+                 if(changevar.gt.0) then
+                    if(p.eq.8) plx = rev24(plx)
+                    if(p.eq.10.or.p.eq.13) plx = rev360(plx)
+                    if(p.eq.12) plx = rev180(plx)
+                 end if
+                 call pgline(2,(/-1.e20,1.e20/),(/plx,plx/))
+                 if(changevar.gt.0) then
+                    if(p.eq.8) then
+                       call pgline(2,(/-1.e20,1.e20/),(/plx-24.,plx-24./))
+                       call pgline(2,(/-1.e20,1.e20/),(/plx+24.,plx+24./))
+                    end if
+                    if(p.eq.10.or.p.eq.13) then
+                       call pgline(2,(/-1.e20,1.e20/),(/plx-360.,plx-360./))
+                       call pgline(2,(/-1.e20,1.e20/),(/plx+360.,plx+360./))
+                    end if
+                    if(p.eq.12) then
+                       call pgline(2,(/-1.e20,1.e20/),(/plx-180.,plx-180./))
+                       call pgline(2,(/-1.e20,1.e20/),(/plx+180.,plx+180./))
+                    end if
+                 end if
+              end if
+           end if
+
+
+           !Plot starting values in chains
+           if(plstart.eq.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/startval(ic,p,1)) .gt. 1.e-10) then
+              call pgsls(4)
+              if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+              plx = startval(ic,p,2) !Initial value
+              if(changevar.gt.0) then
                  if(p.eq.8) plx = rev24(plx)
                  if(p.eq.10.or.p.eq.13) plx = rev360(plx)
                  if(p.eq.12) plx = rev180(plx)
-                 call pgline(2,(/-1.e20,1.e20/),(/plx,plx/))
+              end if
+              call pgline(2,(/-1.e20,1.e20/),(/plx,plx/))
+              if(changevar.gt.0) then
                  if(p.eq.8) then
                     call pgline(2,(/-1.e20,1.e20/),(/plx-24.,plx-24./))
                     call pgline(2,(/-1.e20,1.e20/),(/plx+24.,plx+24./))
@@ -426,30 +458,6 @@ subroutine chains(exitcode)
                     call pgline(2,(/-1.e20,1.e20/),(/plx-180.,plx-180./))
                     call pgline(2,(/-1.e20,1.e20/),(/plx+180.,plx+180./))
                  end if
-              end if
-           end if
-
-
-           !Plot starting values in chains
-           if(plstart.eq.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/startval(ic,p,1)) .gt. 1.e-10) then
-              call pgsls(4)
-              if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-              plx = startval(ic,p,2) !Initial value
-              if(p.eq.8) plx = rev24(plx)
-              if(p.eq.10.or.p.eq.13) plx = rev360(plx)
-              if(p.eq.12) plx = rev180(plx)
-              call pgline(2,(/-1.e20,1.e20/),(/plx,plx/))
-              if(p.eq.8) then
-                 call pgline(2,(/-1.e20,1.e20/),(/plx-24.,plx-24./))
-                 call pgline(2,(/-1.e20,1.e20/),(/plx+24.,plx+24./))
-              end if
-              if(p.eq.10.or.p.eq.13) then
-                 call pgline(2,(/-1.e20,1.e20/),(/plx-360.,plx-360./))
-                 call pgline(2,(/-1.e20,1.e20/),(/plx+360.,plx+360./))
-              end if
-              if(p.eq.12) then
-                 call pgline(2,(/-1.e20,1.e20/),(/plx-180.,plx-180./))
-                 call pgline(2,(/-1.e20,1.e20/),(/plx+180.,plx+180./))
               end if
            end if
         end do !ic=1,nchains0
@@ -607,27 +615,29 @@ subroutine chains(exitcode)
            ymin = min(ymin,minval(pldat(ic,1,nburn(ic):ntot(ic))))
            ymax = max(ymax,maxval(pldat(ic,1,nburn(ic):ntot(ic))))
         end do
-
-        if(p.eq.8) then
-           !ymin = max(ymin,0.)
-           !ymax = min(ymax,24.)
-           !ymin = max(rev24(ymin),0.)
-           !ymax = min(rev24(ymax),24.)
-           if(ymin.lt.0..or.ymax.gt.24.) then
-              ymin = 0.
-              ymax = 24.
+        
+        if(changevar.gt.0) then
+           if(p.eq.8) then
+              !ymin = max(ymin,0.)
+              !ymax = min(ymax,24.)
+              !ymin = max(rev24(ymin),0.)
+              !ymax = min(rev24(ymax),24.)
+              if(ymin.lt.0..or.ymax.gt.24.) then
+                 ymin = 0.
+                 ymax = 24.
+              end if
            end if
-        end if
-        if(p.eq.10.or.p.eq.12.or.p.eq.13) then
-           !ymin = max(ymin,0.)
-           !ymax = min(ymax,360.)
-           !write(*,'(I5,2F10.5,$)')p,ymin,ymax
-           !ymin = max(rev360(ymin),0.)
-           !ymax = min(rev360(ymax),360.)
-           !write(*,'(2F10.5)')ymin,ymax
-           if(ymin.lt.0..or.ymax.gt.360.) then
-              ymin = 0.
-              ymax = 360.
+           if(p.eq.10.or.p.eq.12.or.p.eq.13) then
+              !ymin = max(ymin,0.)
+              !ymax = min(ymax,360.)
+              !write(*,'(I5,2F10.5,$)')p,ymin,ymax
+              !ymin = max(rev360(ymin),0.)
+              !ymax = min(rev360(ymax),360.)
+              !write(*,'(2F10.5)')ymin,ymax
+              if(ymin.lt.0..or.ymax.gt.360.) then
+                 ymin = 0.
+                 ymax = 360.
+              end if
            end if
         end if
         dx = abs(xmax-xmin)*0.1
@@ -679,9 +689,11 @@ subroutine chains(exitcode)
            do i=nburn(ic),ntot(ic),chainpli
               plx = pldat(ic,p,i)
               ply = pldat(ic,1,i)
-              if(p.eq.8) plx = rev24(plx)
-              if(p.eq.10.or.p.eq.12.or.p.eq.13) plx = rev360(plx)
-              !call pgpoint(1,is(ic,i),plx,1) !Plot small dots
+              if(changevar.gt.0) then
+                 if(p.eq.8) plx = rev24(plx)
+                 if(p.eq.10.or.p.eq.12.or.p.eq.13) plx = rev360(plx)
+                 !call pgpoint(1,is(ic,i),plx,1) !Plot small dots
+              end if
               call pgpoint(1,plx,exp(ply-ymin),symbol) !Plot symbols
               !print*,i,plx,ply,exp(ply-ymin)
            end do
@@ -692,8 +704,10 @@ subroutine chains(exitcode)
         !Plot max likelihood
         if(pllmax.ge.1) then
            plx = pldat(icloglmax,p,iloglmax)
-           if(p.eq.8) plx = rev24(plx)
-           if(p.eq.10.or.p.eq.12.or.p.eq.13) plx = rev360(plx)
+           if(changevar.gt.0) then
+              if(p.eq.8) plx = rev24(plx)
+              if(p.eq.10.or.p.eq.12.or.p.eq.13) plx = rev360(plx)
+           end if
            ply = exp(pldat(icloglmax,1,iloglmax)-ymin)
            call pgsci(1)
            call pgpoint(1,plx,ply,12)
@@ -713,16 +727,20 @@ subroutine chains(exitcode)
                  !if(ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  plx = startval(ic,p,1) !True value
                  plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
-                 if(p.eq.8) plx = rev24(plx)
-                 if(p.eq.10.or.p.eq.12.or.p.eq.13) plx = rev360(plx)
-                 call pgline(2,(/plx,plx/),(/-1.e20,1.e20/))
-                 if(p.eq.8) then
-                    call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/))
-                    call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/))
+                 if(changevar.gt.0) then
+                    if(p.eq.8) plx = rev24(plx)
+                    if(p.eq.10.or.p.eq.12.or.p.eq.13) plx = rev360(plx)
                  end if
-                 if(p.eq.10.or.p.eq.12.or.p.eq.13) then
-                    call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/))
-                    call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/))
+                 call pgline(2,(/plx,plx/),(/-1.e20,1.e20/))
+                 if(changevar.gt.0) then
+                    if(p.eq.8) then
+                       call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/))
+                       call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/))
+                    end if
+                    if(p.eq.10.or.p.eq.12.or.p.eq.13) then
+                       call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/))
+                       call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/))
+                    end if
                  end if
               end if
            end if
