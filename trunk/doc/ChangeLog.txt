@@ -2,7 +2,15 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
-    43: sluys, 10/01/2009
+    49: sluys, 14/01/2009
+     - analysemcmc:
+       - improved smoothing of 1D PDFs
+       - pltrue=2 plots true values only for masses and spins
+    
+    48: sluys, 12/01/2009
+     - analysemcmc: basic support for 15-par input files
+     
+    44: sluys, 10/01/2009
      - analysemcmc:
        - allow 20 chains of 10^5 points each rather than 10 of 2e5 by default
        - include stdev when changing parameters (de-log, de-cos, r2d, etc)

@@ -34,7 +34,8 @@ module general_data
   use analysemcmc_settings
   implicit none
   save
-  integer, parameter :: narr1=1.01e5+2,npar0=16,nr1=5,nstat1=10,ndets=3  !npar0: logL+MCMCpar; 1+12 or 1+15
+  !integer, parameter :: narr1=1.01e5+2,npar0=13,nr1=5,nstat1=10,ndets=3  !npar0: logL+MCMCpar; for 12-par
+  integer, parameter :: narr1=1.01e5+2,npar0=16,nr1=5,nstat1=10,ndets=3  !npar0: logL+MCMCpar; for 15-par
   integer :: n(nchs),ntot(nchs),npar,iloglmax,icloglmax,c0,nchains,nchains0
   integer :: fixedpar(npar1),nfixedpar,contrchains,contrchain(nchs)
   integer :: par1,par2

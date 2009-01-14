@@ -578,6 +578,7 @@ subroutine pdfs2d(exitcode)
                  end if
                  if(i.eq.3) then
                     call pgsch(sch*0.9) !Needed to fit the square-degree sign in
+                    if(quality.eq.3) call pgsch(sch*0.6) !Poster
                     if(a.lt.1.) then
                        write(string,'(F5.1,A2,F5.2,A9)')ivals(c)*100,'%:',a,'deg\u2\d'
                     else if(a.lt.10.) then

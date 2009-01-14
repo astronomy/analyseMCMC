@@ -2,7 +2,7 @@
 
 program plotsignal
   implicit none
-  integer, parameter :: n1=1000000,nf=2
+  integer, parameter :: n1=1000000,nf=3
   integer :: n(nf),i,j,io,pgopen,file,f,prname,prtitle,system,thin
   real*8 :: t0,t1(nf,n1)
   real :: t(nf,n1),h(nf,n1),dx,dy,xmin,xmax,ymin,ymax
@@ -13,16 +13,16 @@ program plotsignal
   real*8 :: m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
   character :: m1s*20,m2s*20,dls*20,spins*20
   
-  file = 0 !0-screen, 1-file: eps, 2-file: pdf, 3-file: png
+  file = 1 !0-screen, 1-file: eps, 2-file: pdf, 3-file: png
   thin = 1 !Thin the number of points by this factor at read
-  prname = 1 !Print detector name in frame: 0-no, 1-yes
+  prname = 0 !Print detector name in frame: 0-no, 1-yes
   prtitle = 0 !Print plot title: 0-no, 1-yes
 
-  colours = 2
+  colours = 3
   !colours = (/1,1/)
-  colours = (/4,2/)
+  !colours = (/4,2/)
   !colours = (/4,3,2/)
-  !colours = (/2,4,6/)
+  colours = (/2,4,6/)
   !colours = (/4,2,4,2/)
   
   !fnames = (/'signals/Hanford-signal.dat','signals/Livingston-signal.dat','signals/Pisa-signal.dat'/)
@@ -55,9 +55,10 @@ program plotsignal
   !fnames = (/'signals/Hanford_a0.0_th55.dat','signals/Hanford_a0.1_th55.dat','signals/Hanford_a0.5_th55.dat'/)
   !fnames = (/'signals/Hanford_a0.5_th20.dat','signals/Hanford_a0.5_th55.dat'/)
   !detnames = (/'\(0634)=20\(2218)','\(0634)=55\(2218)'/)
-  fnames = (/'~/work/GW/programs/MCMC/mcmc_code/trunk/Hanford-data.dat','~/work/GW/programs/MCMC/backup/spinning.backup/Hanford-data.dat'/)
-  detnames = (/'new','old'/)
-  !detnames = (/'old 0.1','true 0.1','0.5','1.0'/)
+  !fnames = (/'~/work/GW/programs/MCMC/mcmc_code/trunk/Hanford-data.dat','~/work/GW/programs/MCMC/backup/spinning.backup/Hanford-data.dat'/)
+  !detnames = (/'new','old'/)
+  fnames = (/'/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/0.00_020-signal.dat','/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/0.10_020-signal.dat','/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/0.50_020-signal.dat'/)
+  detnames = (/'','',''/)
   !detnames = ''
   !detnames = (/'Ref','Dec','RA'/)
   !detnames = (/'a\dspin\u = 0.0','a\dspin\u = 0.1','a\dspin\u = 0.5'/)
@@ -70,8 +71,8 @@ program plotsignal
      fname = fnames(f)
      open(unit=10,form='formatted',status='old',file=trim(fname),iostat=io)
      if(io.ne.0) then
-        print*,'File not found: '//trim(fname)//'. Quitting the programme.'  
-        goto 9999
+        write(6,'(A,/)')'File not found: '//trim(fname)//'. Quitting the programme.'  
+        stop
      end if
      rewind(10)
 
@@ -158,16 +159,16 @@ program plotsignal
      if(file.eq.2) io = pgopen('detectorsignal.eps/cps')
      if(file.eq.3) io = pgopen('detectorsignal.ppm/ppm')
      if(io.le.0) then
-        print*,'Cannot open PGPlot device.  Quitting the programme ',io
-	goto 9999
+        write(0,'(A,I6,/)')'Cannot open PGPlot device.  Quitting the programme ',io
+	stop
      end if
      call pgscf(2)
-     call pgpap(10.,min(max(0.25*real(nf),0.3),0.8))
+     !call pgpap(10.,min(max(0.25*real(nf),0.3),0.8))
      !call pgpap(10.,0.75)
-     !call pgpap(10.,0.35)
+     call pgpap(10.,0.30)  !Poster plot with 3 waveforms
      sch = max(3./real(nf),1.5)
      sch = 3./real(nf)
-     !sch = 3.
+     sch = 3.  !Poster plot with 3 waveforms
      call pgsch(sch)
      call pgscr(3,0.,0.6,0.)
      if(file.eq.1) call pgslw(2)
@@ -189,19 +190,7 @@ program plotsignal
         ymax = maxval(abs(h))
         ymin = -ymax
 
-        !xmin = 1013.85
-        !xmin = 1013.
-        !xmin = 1003.
-        !xmin = 1006.65
-        !xmin = 1007.5
-        !xmax = 1012.4
-        !xmax = 1013.
-        !xmin = 1012.
-        !xmax = 1012.35
-        !xmin = 1007.
-        !xmax = 1008.
-        !xmin = 1090.
-        
+        xmin  = 999.
      end do
      
      dx = abs(xmax-xmin)*0.01
@@ -254,10 +243,10 @@ program plotsignal
 
               if(frx.eq.1) then
                  !call pgmtxt('L',2.,0.5,0.5,'h (10\u-22\d)')
-                 call pgmtxt('L',2.,0.5,0.5,'h/10\u-22\d')
-                 call pgbox('',0.0,0,'BCNTSV',0.0,0)
+                 !call pgmtxt('L',2.,0.5,0.5,'h/10\u-22\d')
+                 !call pgbox('',0.0,0,'BCNTSV',0.0,0)
                  !call pgbox('',0.0,0,'BCNTS',0.0,0)
-                 !call pgbox('',0.0,0,'BC',0.0,0)
+                 call pgbox('',0.0,0,'BC',0.0,0)
               else
                  call pgbox('',0.0,0,'BC',0.0,0)
               end if
@@ -267,7 +256,7 @@ program plotsignal
               if(fry.eq.1.and.prtitle.eq.1) call pgmtxt('T',1.,0.5,0.5,trim(title))
               if(fry.eq.nfry) then
                  !call pgmtxt('B',2.2,0.5,0.5,'GPStime - '//t0s//' (s)')
-                 call pgmtxt('B',2.5,0.5,0.5,'time (s)')
+                 !call pgmtxt('B',2.5,0.5,0.5,'time (s)')
                  call pgbox('BCNTS',0.0,0,'',0.0,0)
               else
                  call pgbox('BCTS',0.0,0,'',0.0,0)

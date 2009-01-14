@@ -17,8 +17,8 @@ subroutine pdfs1d(exitcode)
   character :: string*99,str*99,str1*99,str2*99
   
   exitcode=0
-  if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')'  Saving 1D pdfs,'
-  if(prprogress.ge.1.and.plot.eq.1.and.update.eq.0) write(*,'(A,$)')' 1D pdfs, '
+  if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')'  Saving 1D pdfs'
+  if(prprogress.ge.1.and.plot.eq.1.and.update.eq.0) write(*,'(A,$)')' 1D pdfs'
   
   !Autodetermine number of bins:
   if(nbin1d.le.0) then
@@ -131,7 +131,7 @@ subroutine pdfs1d(exitcode)
      
      !Set x-ranges for plotting, bin the data and get y-ranges
      !Use widest probability range (hopefully ~3-sigma) - doesn't always work well...
-     if(version.eq.1) then
+     if(1.eq.2.and.version.eq.1) then  !This can only be used if ranges are computed - isn't this always the case?
         xmin = 1.e30
         xmax = -1.e30
         do ic=1,nchains
@@ -142,7 +142,7 @@ subroutine pdfs1d(exitcode)
      end if
      !print*,xmin,huge(xmin)
      !if(xmin.le.-huge(xmin).or.xmin.ge.huge(xmin).or.xmax.le.-huge(xmax).or.xmax.ge.huge(xmax)) then !NaN
-     if(version.eq.2.or.xmin.ne.xmin.or.xmin.ne.xmax) then
+     !if(version.eq.2.or.xmin.ne.xmin.or.xmax.ne.xmax) then
         xmin = 1.e30
         xmax = -1.e30
         do ic=1,nchains
@@ -150,7 +150,7 @@ subroutine pdfs1d(exitcode)
            xmin = min(xmin,minval(alldat(ic,p,1:n(ic))))
            xmax = max(xmax,maxval(alldat(ic,p,1:n(ic))))
         end do
-     end if
+     !end if
      dx = xmax - xmin
      !dx = max(xmax - xmin,1.e-30)
      
@@ -194,29 +194,10 @@ subroutine pdfs1d(exitcode)
         
         !Smoothen 1D PDF
         ybin2 = ybin1
-        if(smooth.gt.1) then
-           !i0 = nbin1d/10
-           !print*,nbin1d/10,nint(min(max(real(nbin1d)/real(smooth),1.0),real(nbin1d)/2.))
-           !i0 = nint(min(max(real(nbin1d)/real(smooth),1.0),real(nbin1d)/2.))
-           i0 = min(max(smooth,1),floor(real(nbin1d)/2.))
-           do i=1+i0,nbin1d+1-i0
-              coefs1(1:2*i0+1) = ybin1(i-i0:i+i0)
-              call savgol(coefs1(1:2*i0+1),2*i0+1,i0,i0,0,4)
-              do i1=1,i0+1
-                 coefs(i0-i1+2) = coefs1(i1)
-              end do
-              do i1 = i0+2,2*i0+1
-                 coefs(3*i0+3-i1) = coefs1(i1)
-              end do
-              ybin2(i) = 0.
-              do i1=1,2*i0+1
-                 ybin2(i) = ybin2(i) + coefs(i1) * ybin1(i+i1-i0-1)
-              end do
-           end do
-           ybin1 = ybin2
-        end if !if(smooth.gt.1)
+        if(smooth.gt.1) call smoothpdf1d(ybin1,nbin1d+1,smooth)
         xbin(ic,1:nbin1d+1) = xbin1(1:nbin1d+1)
         ybin(ic,1:nbin1d+1) = ybin1(1:nbin1d+1)
+        
         
         !Save binned data
         if(savepdf.eq.1) then
@@ -368,7 +349,8 @@ subroutine pdfs1d(exitcode)
            if(nchains.gt.1) then
               call pgslw(lw)
               call pgsls(1); call pgsci(0)
-              if(pltrue.ge.1) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !True value
+              if(pltrue.eq.1) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !True value
+              if(pltrue.eq.2.and.version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.6.or.p.eq.7.or.p.eq.14.or.p.eq.15)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !True value - mass and spin only
               !if(plstart.ge.1) call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))                   !Starting value
               if(p.ne.1) then !Not if plotting log(L)
                  if(plmedian.eq.1.or.plmedian.eq.3) call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))                          !Median
@@ -397,7 +379,8 @@ subroutine pdfs1d(exitcode)
            end if
 
            !Plot true value in PDF
-           if(pltrue.eq.1) then !Plot true values
+           !if(pltrue.ge.1) then !Plot true values
+           if(pltrue.eq.1.or.(pltrue.eq.2.and.version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.6.or.p.eq.7.or.p.eq.14.or.p.eq.15))) then
               if(mergechains.ne.1.or.ic.le.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  call pgsls(2); call pgsci(1)
                  plx = startval(ic,p,1)
@@ -450,14 +433,14 @@ subroutine pdfs1d(exitcode)
               end if
            else  !if nplvar>=5
               if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
-                 if(pltrue.eq.1) then
+                 if(pltrue.ge.1) then
                     write(str,'(A4,F7.3)')'mdl:',startval(ic,p,1)
                  else
                     write(str,'(A4,F8.3)')'med:',stats(ic,p,1)
                  end if
                  if(prival.ge.1) write(str,'(A,F6.2,A1)')trim(str)//' \(2030):',ranges(ic,c0,p,5)*100,'%'
               else
-                 if(pltrue.eq.1) then
+                 if(pltrue.ge.1) then
                     write(str,'(A4,F7.3)')'mdl:',startval(ic,p,1)
                  else
                     write(str,'(A4,F8.3)')'med:',stats(ic,p,1)
@@ -492,7 +475,7 @@ subroutine pdfs1d(exitcode)
               else
                  write(str,'(A)')trim(str)//trim(pgunits(p))
               end if
-           else if(pltrue.eq.1) then  !If not plotting ranges, but do plot true values
+           else if(pltrue.ge.1) then  !If not plotting ranges, but do plot true values
               x0 = startval(ic,p,1)
               !print*,p,x0,nint(x0)
               if(x0.lt.0.01) write(str,'(F7.4)')x0
@@ -764,3 +747,66 @@ end subroutine horzhist
 !************************************************************************************************************************************
 
 
+!************************************************************************************************************************************
+subroutine smoothpdf1d(ybin,nbin,smooth)
+  implicit none
+  integer :: nbin,smooth,i,i0,i1,i00
+  real :: ybin(nbin),ybin1(nbin),coefs(100),coefs1(100)
+  
+  ybin1 = ybin
+  i0 = min(max(smooth,1),floor(real(nbin-1)/2.))
+  
+  !Do all points, except the first and last i0
+  do i=1+i0,nbin-i0
+     coefs1(1:2*i0+1) = ybin(i-i0:i+i0)
+     call savgol(coefs1(1:2*i0+1),2*i0+1,i0,i0,0,4)
+     do i1=1,i0+1
+        coefs(i0-i1+2) = coefs1(i1)
+     end do
+     do i1 = i0+2,2*i0+1
+        coefs(3*i0+3-i1) = coefs1(i1)
+     end do
+     ybin1(i) = 0.
+     do i1=1,2*i0+1
+        ybin1(i) = ybin1(i) + coefs(i1) * ybin(i+i1-i0-1)
+     end do
+  end do
+  
+  i00 = i0-1
+  !Do the first and last i0=i00 points
+  if(i00.ge.2) then
+  !if(i00.ge.2.and.1.eq.2) then
+     do i0 = i00,2,-1
+        i=1+i0  !Point at beginning
+        coefs1(1:2*i0+1) = ybin(i-i0:i+i0)
+        call savgol(coefs1(1:2*i0+1),2*i0+1,i0,i0,0,4)
+        do i1=1,i0+1
+           coefs(i0-i1+2) = coefs1(i1)
+        end do
+        do i1 = i0+2,2*i0+1
+           coefs(3*i0+3-i1) = coefs1(i1)
+        end do
+        ybin1(i) = 0.
+        do i1=1,2*i0+1
+           ybin1(i) = ybin1(i) + coefs(i1) * ybin(i+i1-i0-1)
+        end do
+        
+        i=nbin-i0  !Point at end
+        coefs1(1:2*i0+1) = ybin(i-i0:i+i0)
+        call savgol(coefs1(1:2*i0+1),2*i0+1,i0,i0,0,4)
+        do i1=1,i0+1
+           coefs(i0-i1+2) = coefs1(i1)
+        end do
+        do i1 = i0+2,2*i0+1
+           coefs(3*i0+3-i1) = coefs1(i1)
+        end do
+        ybin1(i) = 0.
+        do i1=1,2*i0+1
+           ybin1(i) = ybin1(i) + coefs(i1) * ybin(i+i1-i0-1)
+        end do
+     end do
+  end if
+  
+  ybin = ybin1
+end subroutine smoothpdf1d
+!************************************************************************************************************************************
