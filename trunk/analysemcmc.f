@@ -13,7 +13,7 @@ program analysemcmc
   real :: pltsz
   real*8 :: timestamp,timestamps(9)
   
-  version = 1   !1: 12-par MCMC,  2: 15-par  -  far from fully implemented yet !!!
+  version = 2   !1: 12-par MCMC,  2: 15-par  -  far from fully implemented yet !!!
   
   timestamps(1) = timestamp(os)
   write(*,*)
@@ -40,6 +40,7 @@ program analysemcmc
   
   par1 = 1          !First parameter to treat (stats, plot): 0-all
   par2 = 15         !Last parameter to treat (0: use npar)
+  if(version.eq.2) par2 = 16
   
   maxdots = 25000  !~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much and eps/pdf files from becoming huge.  Use this to autoset chainpli
   
@@ -202,13 +203,13 @@ program analysemcmc
   pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','rad','rad','','rad','','rad','rad','M\d\(2281)\u','M\d\(2281)\u'/)
   
   if(version.eq.2) then !15par, 2 spins
-     varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','sini','phase','psi','spin1','th1','phi1','spin2','th2','phi2'/)
+     varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
      pgvarns(1:16)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\d0\u (s)            ', &
-                        'log d\dL\u (Mpc)      ','R.A. (rad)            ','sin dec.              ','sin \(2135)           ', &
-                        '\(2147)\dc\u (rad)    ', '\(2149)              ','a\dspin1\u            ','\(2134)\d1\u (rad)    ', &
-                        '\(2147)\d1\u (rad)    ','a\dspin2\u (rad)      ','\(2134)\d2\u (rad)    ','\(2147)\d2\u (rad)    '/)
-     pgvarnss(1:16)  = (/'log L    ','M\dc\u ','\(2133)','t\dc\u','log d\dL\u','R.A.','sin dec.','sin \(2135)','\(2147)\dc\u', '\(2149)', &
-          'a\dspin1\u','\(2134)\d1\u','\(2147)\d1\u','a\dspin2\u','\(2134)\d2\u','\(2147)\d2\u'/)
+                        'log d\dL\u (Mpc)      ','R.A. (rad)            ','sin dec.              ','cos \(2135)           ', &
+                        '\(2147)\dc\u (rad)    ', '\(2149)              ','a\dspin1\u            ','\(2147)\d1\u (rad)    ', &
+                        '\(2134)\d1\u (rad)    ','a\dspin2\u (rad)      ','\(2147)\d2\u (rad)    ','\(2134)\d2\u (rad)    '/)
+     pgvarnss(1:16)  = (/'log L    ','M\dc\u ','\(2133)','t\dc\u','log d\dL\u','R.A.','sin dec.','cos \(2135)','\(2147)\dc\u', '\(2149)', &
+          'a\dspin1\u','\(2147)\d1\u','\(2134)\d1\u','a\dspin2\u','\(2147)\d2\u','\(2134)\d2\u'/)
      pgorigvarns(1:16) = pgvarns(1:16)
      pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','rad','','','rad','rad','','rad','rad','','rad','rad'/)
   end if

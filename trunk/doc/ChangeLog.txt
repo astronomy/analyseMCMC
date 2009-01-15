@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    50: sluys, 14/01/2009
+     - analysemcmc: wrapping for current 15-parameter files (version=2)
+     
     49: sluys, 14/01/2009
      - analysemcmc:
        - improved smoothing of 1D PDFs

@@ -8,7 +8,7 @@ subroutine statistics(exitcode)
   use chain_data
   use mcmcrun_data
   implicit none
-  integer :: c,i,ic,i0,j,j1,o,p,p1,p2,nr,nstat,exitcode,io
+  integer :: c,i,ic,i0,j,j1,o,p,p1,p2,nr,nstat,exitcode,io,wraptype
   integer :: indexx(npar1,nchs*narr1),index1(nchs*narr1),parr(npar1)
   integer :: nn,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nrhat
   real :: rev2pi,x0,x1,x2,y1,y2,dx,x,rrevpi
@@ -50,20 +50,24 @@ subroutine statistics(exitcode)
      if(prprogress.ge.2.and.mergechains.eq.0) write(*,'(A,I2.2,A,$)')' Ch',ic,' '
      if(prprogress.ge.2.and.ic.eq.1.and.wrapdata.ge.1) write(*,'(A,$)')'  Wrap data. '
      do p=par1,par2
-        if(wrapdata.eq.0 .or. (p.ne.8.and.p.ne.10.and.p.ne.12.and.p.ne.13)) then
+        if(wrapdata.eq.0 .or. &
+             (version.eq.1.and.p.ne.8.and.p.ne.10.and.p.ne.12.and.p.ne.13) .or. &
+             (version.eq.2.and.p.ne.6.and.p.ne.9.and.p.ne.10.and.p.ne.12.and.p.ne.15) ) then
            call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
-           cycle
+           cycle !No wrapping
         end if
         
+        wraptype = 1  !0-2pi (e.g. phases)
+        if(version.eq.1.and.p.eq.12 .or. version.eq.2.and.p.eq.10) wraptype = 2  !0-pi (polarisation angle)
+           
+           
+           
         !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
         !Make sure data are between 0 and 2pi or between 0 and pi to start with:
         do i=1,n(ic)
-           if(p.eq.12) then
-              alldat(ic,p,i) = rrevpi(alldat(ic,p,i)) !Pol.angle
-           else
-              alldat(ic,p,i) = rev2pi(alldat(ic,p,i)) 
-           end if
+           if(wraptype.eq.1) alldat(ic,p,i) = rev2pi(alldat(ic,p,i)) 
+           if(wraptype.eq.2) alldat(ic,p,i) = rrevpi(alldat(ic,p,i)) !Pol.angle
         end do
         call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))
         indexx(p,1:n(ic)) = index1(1:n(ic))
@@ -72,11 +76,8 @@ subroutine statistics(exitcode)
         do i=1,n(ic)
            x1 = alldat(ic,p,indexx(p,i))
            x2 = alldat(ic,p,indexx(p,mod(i+nint(n(ic)*wrapival)-1,n(ic))+1))
-           if(p.eq.12) then
-              range1 = mod(x2 - x1 + real(10*pi),rpi)
-           else
-              range1 = mod(x2 - x1 + real(20*pi),rtpi)
-           end if
+           if(wraptype.eq.1) range1 = mod(x2 - x1 + real(20*pi),rtpi)
+           if(wraptype.eq.2) range1 = mod(x2 - x1 + real(10*pi),rpi)
            if(range1.lt.minrange) then
               minrange = range1
               y1 = x1
@@ -88,22 +89,15 @@ subroutine statistics(exitcode)
         centre = (y1+y2)/2.
         
         !Define shift interval:
-        if(p.eq.12) then
+        shival = rtpi   !Shift interval
+        shival2 = rpi   !Shift interval/2
+        if(wraptype.eq.2) then
            shival = rpi   !Shift interval
            shival2 = rpi2 !Shift interval/2
-        else
-           shival = rtpi   !Shift interval
-           shival2 = rpi   !Shift interval/2
         end if
         
         if(y1.gt.y2) then
-           if(p.eq.12) then
-              wrap(ic,p) = 2  !Wrap over pi
-              !centre = mod(centre + rpi2, rpi) !Then distribution peaks close to 0/pi, shift centre by pi/2
-           else
-              wrap(ic,p) = 1  !Wrap over 2pi
-              !centre = mod(centre + rpi, rtpi) !Then distribution peaks close to 0/2pi, shift centre by pi
-           end if
+           wrap(ic,p) = wraptype
            centre = mod(centre + shival2, shival) !Then distribution peaks close to 0/shival, shift centre by shival/2
         end if
         !if(p.eq.8) write(*,'(3I6,8F10.5)')ic,p,wrap(ic,p), wrapival,y1*r2h,y2*r2h,minrange*r2h,centre*r2h
@@ -155,7 +149,8 @@ subroutine statistics(exitcode)
         
         !For the general case of shival (= 2pi or pi)
         if(wrap(ic,p).gt.0) shift(ic,p) = shival - mod(centre + shival2, shival)
-        if(p.eq.8.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
+        if(version.eq.1.and.p.eq.8.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
+        if(version.eq.2.and.p.eq.6.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
         alldat(ic,p,1:n(ic))   = mod(alldat(ic,p,1:n(ic))   + shift(ic,p), shival) - shift(ic,p)
         pldat(ic,p,1:ntot(ic)) = mod(pldat(ic,p,1:ntot(ic)) + shift(ic,p), shival) - shift(ic,p)   !Original data
         y1 = mod(y1 + shift(ic,p), shival) - shift(ic,p)
@@ -296,7 +291,8 @@ subroutine statistics(exitcode)
            ranges(ic,c,p,3) = centre
            ranges(ic,c,p,4) = y2-y1
            ranges(ic,c,p,5) = ranges(ic,c,p,4)
-           if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
+           if(version.eq.1.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
+           if(version.eq.2.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
         end do !p
      end do !c
      !if(prprogress.ge.2) write(*,'(A34,F8.4)')'.  Standard probability interval: ',ivals(ival0)
@@ -348,7 +344,7 @@ subroutine statistics(exitcode)
      
      !Change variables
      !Columns in alldat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:longi, 7:sinlati:, 8:phase, 9:spin,   10:kappa,     11:sinthJ0, 12:phiJ0, 13:alpha
-     if(changevar.eq.1) then
+     if(changevar.eq.1.and.version.eq.1) then
         if(prprogress.ge.1.and.ic.eq.i.and.update.eq.0) write(*,'(A,$)')'.  Change vars. '
         do p=par1,par2
            if(p.eq.5) then !Distance

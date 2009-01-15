@@ -9,11 +9,11 @@ subroutine pdfs1d(exitcode)
   use plot_data
   implicit none
   
-  integer :: i,i0,i1,j,p,ic,io,pgopen,lw,exitcode,system
+  integer :: i,j,p,ic,io,pgopen,lw,exitcode,system
   real :: rev24,rev360,rev180
   real :: x(nchs,nchs*narr1),xmin,xmax,xmin1,xmax1,xpeak,dx,ymin,ymax,sch
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ybin2(:),ysum(:),yconv(:),ycum(:)  !These depend on nbin1d, allocate after reading input file
-  real :: coefs(100),coefs1(100),plshift,plx,ply,x0,norm
+  real :: plshift,plx,ply,x0,norm
   character :: string*99,str*99,str1*99,str2*99
   
   exitcode=0
