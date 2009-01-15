@@ -338,7 +338,7 @@ subroutine statistics(exitcode)
      !**********************************************************************************************
      !******   CHANGE VARIABLES   ******************************************************************
      !**********************************************************************************************
-
+     
      
      
      
@@ -397,7 +397,7 @@ subroutine statistics(exitcode)
            ranges(ic,1:nival,p,3) = 0.5*(ranges(ic,1:nival,p,1) + ranges(ic,1:nival,p,2))
            ranges(ic,1:nival,p,4) = ranges(ic,1:nival,p,2) - ranges(ic,1:nival,p,1)
            ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)
-           if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,5)/ranges(ic,1:nival,p,3)
+           if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)/ranges(ic,1:nival,p,3)
         end do !p
         
         !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:dl, 6:spin,  7:theta_SL, 8: RA,   9:dec, 10:phase, 11:incl, 12:pol.ang., 13:alpha
@@ -415,7 +415,76 @@ subroutine statistics(exitcode)
              '\(2135)\dJ0\u (\(2218))','\(2149)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
         !Units only
         pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
-     end if !if(changevar.eq.1)
+     end if !if(changevar.eq.1.and.version.eq.1)
+     
+     
+     !Change variables
+     !Columns in alldat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:RA, 7:sindec:, 8:cosi, 9:phase, 10:psi,   11:spin1, 12:phi1, 13:theta1,   14:spin2, 15:phi2, 16:theta2
+     if(changevar.eq.1.and.version.eq.2) then
+        if(prprogress.ge.1.and.ic.eq.i.and.update.eq.0) write(*,'(A,$)')'.  Change vars. '
+        do p=par1,par2
+           if(p.eq.5) then !exp: Distance
+              stdev1(p) = stdev1(p)*exp(stats(ic,p,1))  !Median  For exponential function y = exp(x), sig_y = exp(x) sig_x
+              stdev2(p) = stdev2(p)*exp(stats(ic,p,2))  !Mean
+              alldat(ic,p,1:n(ic)) = exp(alldat(ic,p,1:n(ic)))     !logD -> Distance
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = exp(startval(1:nchains0,p,1:3))
+              stats(ic,p,1:nstat) = exp(stats(ic,p,1:nstat))
+              ranges(ic,1:nival,p,1:nr) = exp(ranges(ic,1:nival,p,1:nr))
+           end if
+           !if(p.eq.8.or.p.eq.13.or.p.eq.16) then !arccos: cosi,costheta1,costheta2
+           if(p.eq.8) then !arccos: cosi
+              stdev1(p) = abs(-1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
+              stdev2(p) = abs(-1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
+              alldat(ic,p,1:n(ic)) = acos(alldat(ic,p,1:n(ic)))*rr2d
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = acos(startval(1:nchains0,p,1:3))*rr2d
+              stats(ic,p,1:nstat) = acos(stats(ic,p,1:nstat))*rr2d
+              ranges(ic,1:nival,p,1:nr) = acos(ranges(ic,1:nival,p,1:nr))*rr2d
+              do c=1,nival
+                 y1 = ranges(ic,c,p,2)
+                 ranges(ic,c,p,2) = ranges(ic,c,p,1)  !acos is monotonously decreasing
+                 ranges(ic,c,p,1) = y1
+              end do
+           end if
+           if(p.eq.6) then !rad2hr: RA
+              stdev1(p) = stdev1(p)*rr2h
+              stdev2(p) = stdev2(p)*rr2h
+              alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*rr2h
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*rr2h
+              stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2h
+              ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*rr2h
+           end if
+           if(p.eq.9) then  !arcsine: Declination                                                               
+              stdev1(p) = abs(1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
+              stdev2(p) = abs(1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
+              alldat(ic,p,1:n(ic)) = asin(alldat(ic,p,1:n(ic)))*rr2d
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = asin(startval(1:nchains0,p,1:3))*rr2d
+              stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*rr2d
+              ranges(ic,1:nival,p,1:nr) = asin(ranges(ic,1:nival,p,1:nr))*rr2d
+           end if
+           if(p.eq.9.or.p.eq.10.or.p.eq.12.or.p.eq.16) then  !rad2deg: phi_c, psi, phi1, phi2
+              stdev1(p) = stdev1(p)*rr2d
+              stdev2(p) = stdev2(p)*rr2d
+              alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*rr2d
+              if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*rr2d
+              stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2d
+              ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*rr2d
+           end if
+           ranges(ic,1:nival,p,3) = 0.5*(ranges(ic,1:nival,p,1) + ranges(ic,1:nival,p,2))
+           ranges(ic,1:nival,p,4) = ranges(ic,1:nival,p,2) - ranges(ic,1:nival,p,1)
+           ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)
+           if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
+        end do !p
+        
+        !Columns: 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:RA, 7:sindec:, 8:cosi, 9:phase, 10:psi,   11:spin1, 12:phi1, 13:theta1,   14:spin2, 15:phi2, 16:theta2
+        varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
+        pgvarns(1:16)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\d0\u (s)            ', &
+             'd\dL\u (Mpc)          ','R.A. (h)              ','Dec. (\(2218))        ','\(2135) (\(2218))     ', &
+             '\(2147)\dc\u (\(2218))','\(2149) (\(2218))     ','a\dspin1\u            ','\(2147)\d1\u (\(2218))', &
+             '\(2134)\d1\u (\(2218))','a\dspin2\u            ','\(2147)\d2\u (\(2218))','\(2134)\d2\u (\(2218))'/)
+        pgvarnss(1:16)  = (/'log L    ','M\dc\u ','\(2133)','t\dc\u','d\dL\u','R.A.','dec.','\(2135)','\(2147)\dc\u', '\(2149)', &
+             'a\dspin1\u','\(2147)\d1\u','\(2134)\d1\u','a\dspin2\u','\(2147)\d2\u','\(2134)\d2\u'/)
+        pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','(\(2218))','(\(2218))','(\(2218))','(\(2218))','(\(2218))','','(\(2218))','(\(2218))','','(\(2218))','(\(2218))'/)
+     end if !if(changevar.eq.1.and.version.eq.2)
      
      
      

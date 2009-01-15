@@ -206,7 +206,7 @@ program analysemcmc
      varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
      pgvarns(1:16)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\d0\u (s)            ', &
                         'log d\dL\u (Mpc)      ','R.A. (rad)            ','sin dec.              ','cos \(2135)           ', &
-                        '\(2147)\dc\u (rad)    ', '\(2149)              ','a\dspin1\u            ','\(2147)\d1\u (rad)    ', &
+                        '\(2147)\dc\u (rad)    ', '\(2149) (rad)        ','a\dspin1\u            ','\(2147)\d1\u (rad)    ', &
                         '\(2134)\d1\u (rad)    ','a\dspin2\u (rad)      ','\(2147)\d2\u (rad)    ','\(2134)\d2\u (rad)    '/)
      pgvarnss(1:16)  = (/'log L    ','M\dc\u ','\(2133)','t\dc\u','log d\dL\u','R.A.','sin dec.','cos \(2135)','\(2147)\dc\u', '\(2149)', &
           'a\dspin1\u','\(2147)\d1\u','\(2134)\d1\u','a\dspin2\u','\(2147)\d2\u','\(2134)\d2\u'/)
