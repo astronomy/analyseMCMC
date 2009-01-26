@@ -70,17 +70,18 @@ subroutine pdfs2d(exitcode)
      if(file.eq.0) then
         lw = 1
         lw2 = 1
-        sch = 1.5
+        sch = 1.5*fontsize2d
      end if
      if(file.ge.1) then
         if(file.ge.2) io = pgopen('pdf2d.eps'//trim(psclr))
         lw = 3
         lw2 = 2 !Font lw
-        sch = 1.5
+        if(quality.eq.91) lw2 = 3 !NINJA
+        sch = 1.5*fontsize2d
         if(quality.eq.3) then !Poster
            lw = 4
            lw2 = 3 !Font lw
-           sch = 2.
+           sch = 2.*fontsize2d
         end if
         if(pssz.lt.5) sch = sch * sqrt(5.0/pssz)
      end if
@@ -90,7 +91,7 @@ subroutine pdfs2d(exitcode)
         return
      end if
      if(file.ge.2) call pgpap(pssz,psrat)
-     if(file.ge.2) call pgscf(2)
+     if(file.ge.2) call pgscf(fonttype)
      if(file.gt.1) call pginitl(colour,file,whitebg)
   end if !if(plot.eq.1)
   
@@ -269,15 +270,12 @@ subroutine pdfs2d(exitcode)
            end if
 
            call pgsch(sch)
-           !call pgsvp(0.12,0.95,0.12,0.95)
-           call pgsvp(0.08*sch,0.95,0.08*sch,0.95)
+           !call pgsvp(0.08*sch,0.95,0.08*sch,0.95)
+           call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.033*sch)  !Since sch is typically ~1.5*fontsize2d: 0.95 -> 1-0.05*fontsize ~ 1-0.03*sch
            call pgswin(xmin,xmax,ymin,ymax)
            if(plotsky.eq.1.and.file.ge.2) then !Need dark background
-              !call pgsvp(0.,1.,0.,1.)
-              !call pgswin(0.,1.,0.,1.)
               call pgsci(1)
               call pgrect(xmin,xmax,ymin,ymax)
-              !call pgsci(0)
            end if
 
            !Plot the actual 2D PDF (grey scales or colour)
@@ -557,8 +555,8 @@ subroutine pdfs2d(exitcode)
            end if
            call pgmtxt('B',2.2,0.5,0.5,trim(pgvarns(p1)))
            call pgmtxt('L',1.7,0.5,0.5,trim(pgvarns(p2)))
-
-
+           
+           
            !Print 2D probability ranges in plot title
            if(prival.ge.1.and.normpdf2d.eq.4.and. ((p1.eq.8.and.p2.eq.9) .or. (p1.eq.12.and.p2.eq.11))) then  !For sky position and orientation only
               string = ' '
@@ -591,6 +589,14 @@ subroutine pdfs2d(exitcode)
                        write(string,'(F5.1,A2,I5,A9)')ivals(c)*100,'%:',nint(a),'deg\u2\d'
                     else
                        write(string,'(F5.1,A2,I6,A9)')ivals(c)*100,'%:',nint(a),'deg\u2\d'
+                    end if
+                 end if
+                 if(quality.eq.91) then !NINJA
+                    call pgsch(sch)
+                    if(fonttype.eq.2) then
+                       write(string,'(I2,A7,A10)')c,'\(2144)',''
+                    else
+                       write(string,'(I2,A7,A10)')c,'\(0644)',''
                     end if
                  end if
                  a = (real(c-1)/real(nival-1) - 0.5)*0.7 + 0.5
@@ -927,18 +933,19 @@ end subroutine bindata2da
 
 !************************************************************************************************************************************
 subroutine plotthesky(bx1,bx2,by1,by2,rashift)
+  use plot_data
   implicit none
   integer, parameter :: ns=9110, nsn=80
-  integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,cf,spld,n,prslbl,rv
+  integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,spld,n,prslbl,rv
   real*8 :: ra(ns),dec(ns),d2r,r2d,r2h,pi,tpi,dx1,dx2,dy,ra1,dec1,drev2pi,par
   real :: pma,pmd,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
   real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,bx1,bx2,by1,by2,x,y,mlim,rashift
   character :: cn(100)*3,con(100)*20,name*10,vsopdir*99,sn(ns)*10,snam(nsn)*10,sni*10,getsname*10,mult,var*9
   
   mlim = 6.
-  cf = 2
+  fonttype = 2
   schmag = 0.07
-  schlbl = 1.
+  schlbl = fontsize1d
   schfac = 1.
   schcon = 1.
   plstar = 1  !0-no, 1-yes no label, 2-symbol, 3-name, 4-name or symbol, 5-name and symbol
@@ -1035,7 +1042,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
   if(plcst.gt.0) then
      !schcon = min(max(40./sz1,0.7),3.)
      call pgsch(schfac*schcon*schlbl)
-     call pgscf(cf)
+     call pgscf(fonttype)
      call pgsci(4)
      call pgslw(2)
      do i=1,nc
@@ -1055,7 +1062,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
         if(plcst.eq.3) call pgptext(constx(i),consty(i),0.,0.5,con(i))
      end do
      call pgsch(schfac)
-     call pgscf(cf)
+     call pgscf(fonttype)
   end if !if(plcst.gt.0) then
   
   !Plot stars: BSC
@@ -1115,6 +1122,7 @@ end subroutine plotthesky
 
 !************************************************************************
 function getsname(name)               !Get star name from bsc info
+  use analysemcmc_settings
   implicit none
   character :: getsname*10,name*10,num*3,grk*3,gn*1
   num = name(1:3)
@@ -1124,30 +1132,57 @@ function getsname(name)               !Get star name from bsc info
   
   getsname = '          '
   if(grk.ne.'   ') then  !Greek letter
-     if(grk.eq.'Alp') getsname = '\(2127)\u'//gn
-     if(grk.eq.'Bet') getsname = '\(2128)\u'//gn
-     if(grk.eq.'Gam') getsname = '\(2129)\u'//gn
-     if(grk.eq.'Del') getsname = '\(2130)\u'//gn
-     if(grk.eq.'Eps') getsname = '\(2131)\u'//gn
-     if(grk.eq.'Zet') getsname = '\(2132)\u'//gn
-     if(grk.eq.'Eta') getsname = '\(2133)\u'//gn
-     if(grk.eq.'The') getsname = '\(2134)\u'//gn
-     if(grk.eq.'Iot') getsname = '\(2135)\u'//gn
-     if(grk.eq.'Kap') getsname = '\(2136)\u'//gn
-     if(grk.eq.'Lam') getsname = '\(2137)\u'//gn
-     if(grk.eq.'Mu ') getsname = '\(2138)\u'//gn
-     if(grk.eq.'Nu ') getsname = '\(2139)\u'//gn
-     if(grk.eq.'Xi ') getsname = '\(2140)\u'//gn
-     if(grk.eq.'Omi') getsname = '\(2141)\u'//gn
-     if(grk.eq.'Pi ') getsname = '\(2142)\u'//gn
-     if(grk.eq.'Rho') getsname = '\(2143)\u'//gn
-     if(grk.eq.'Sig') getsname = '\(2144)\u'//gn
-     if(grk.eq.'Tau') getsname = '\(2145)\u'//gn
-     if(grk.eq.'Ups') getsname = '\(2146)\u'//gn
-     if(grk.eq.'Phi') getsname = '\(2147)\u'//gn
-     if(grk.eq.'Chi') getsname = '\(2148)\u'//gn
-     if(grk.eq.'Psi') getsname = '\(2149)\u'//gn
-     if(grk.eq.'Ome') getsname = '\(2150)\u'//gn
+     if(fonttype.eq.2) then
+        if(grk.eq.'Alp') getsname = '\(2127)\u'//gn
+        if(grk.eq.'Bet') getsname = '\(2128)\u'//gn
+        if(grk.eq.'Gam') getsname = '\(2129)\u'//gn
+        if(grk.eq.'Del') getsname = '\(2130)\u'//gn
+        if(grk.eq.'Eps') getsname = '\(2131)\u'//gn
+        if(grk.eq.'Zet') getsname = '\(2132)\u'//gn
+        if(grk.eq.'Eta') getsname = '\(2133)\u'//gn
+        if(grk.eq.'The') getsname = '\(2134)\u'//gn
+        if(grk.eq.'Iot') getsname = '\(2135)\u'//gn
+        if(grk.eq.'Kap') getsname = '\(2136)\u'//gn
+        if(grk.eq.'Lam') getsname = '\(2137)\u'//gn
+        if(grk.eq.'Mu ') getsname = '\(2138)\u'//gn
+        if(grk.eq.'Nu ') getsname = '\(2139)\u'//gn
+        if(grk.eq.'Xi ') getsname = '\(2140)\u'//gn
+        if(grk.eq.'Omi') getsname = '\(2141)\u'//gn
+        if(grk.eq.'Pi ') getsname = '\(2142)\u'//gn
+        if(grk.eq.'Rho') getsname = '\(2143)\u'//gn
+        if(grk.eq.'Sig') getsname = '\(2144)\u'//gn
+        if(grk.eq.'Tau') getsname = '\(2145)\u'//gn
+        if(grk.eq.'Ups') getsname = '\(2146)\u'//gn
+        if(grk.eq.'Phi') getsname = '\(2147)\u'//gn
+        if(grk.eq.'Chi') getsname = '\(2148)\u'//gn
+        if(grk.eq.'Psi') getsname = '\(2149)\u'//gn
+        if(grk.eq.'Ome') getsname = '\(2150)\u'//gn
+     else
+        if(grk.eq.'Alp') getsname = '\(0627)\u'//gn
+        if(grk.eq.'Bet') getsname = '\(0628)\u'//gn
+        if(grk.eq.'Gam') getsname = '\(0629)\u'//gn
+        if(grk.eq.'Del') getsname = '\(0630)\u'//gn
+        if(grk.eq.'Eps') getsname = '\(0631)\u'//gn
+        if(grk.eq.'Zet') getsname = '\(0632)\u'//gn
+        if(grk.eq.'Eta') getsname = '\(0633)\u'//gn
+        if(grk.eq.'The') getsname = '\(0634)\u'//gn
+        if(grk.eq.'Iot') getsname = '\(0635)\u'//gn
+        if(grk.eq.'Kap') getsname = '\(0636)\u'//gn
+        if(grk.eq.'Lam') getsname = '\(0637)\u'//gn
+        if(grk.eq.'Mu ') getsname = '\(0638)\u'//gn
+        if(grk.eq.'Nu ') getsname = '\(0639)\u'//gn
+        if(grk.eq.'Xi ') getsname = '\(0640)\u'//gn
+        if(grk.eq.'Omi') getsname = '\(0641)\u'//gn
+        if(grk.eq.'Pi ') getsname = '\(0642)\u'//gn
+        if(grk.eq.'Rho') getsname = '\(0643)\u'//gn
+        if(grk.eq.'Sig') getsname = '\(0644)\u'//gn
+        if(grk.eq.'Tau') getsname = '\(0645)\u'//gn
+        if(grk.eq.'Ups') getsname = '\(0646)\u'//gn
+        if(grk.eq.'Phi') getsname = '\(0647)\u'//gn
+        if(grk.eq.'Chi') getsname = '\(0648)\u'//gn
+        if(grk.eq.'Psi') getsname = '\(0649)\u'//gn
+        if(grk.eq.'Ome') getsname = '\(0650)\u'//gn
+     end if
   else  !Then number
      if(num(1:1).eq.' ') num = num(2:3)//' '
      if(num(1:1).eq.' ') num = num(2:3)//' '

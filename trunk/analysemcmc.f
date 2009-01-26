@@ -13,7 +13,7 @@ program analysemcmc
   real :: pltsz
   real*8 :: timestamp,timestamps(9)
   
-  version = 2   !1: 12-par MCMC,  2: 15-par  -  far from fully implemented yet !!!
+  version = 1   !1: 12-par MCMC,  2: 15-par  -  far from fully implemented yet !!!
   
   timestamps(1) = timestamp(os)
   write(*,*)
@@ -26,6 +26,14 @@ program analysemcmc
   if(version.eq.2) changevar = 0  !Force this for the moment for 15 par
   call write_settingsfile()   !Write the input file back to disc
   
+  fontsize1d = 1.             !Set plot scale for 1D plots, needs to be implemented fully
+  fontsize2d = 1.             !Set plot scale for 2D plots, needs to be implemented fully. Typically, take ~1.2*fontsize1d
+  if(quality.eq.91) then !NINJA
+     fontsize1d = 1.3
+     fontsize2d = 1.55
+  end if
+  orientation = 1             !Use portrait (1) or landscape (2) for eps/pdf
+  fonttype = 1                !Font type used for eps/pdf: 1-simple, 2-roman, 3-italic 4-script
   
   nchains0 = iargc()
   if(nchains0.lt.1) then
@@ -107,9 +115,13 @@ program analysemcmc
      if(nplvar.eq.20) panels = (/5,4/)
   end if
   
-  
+  !eps/pdf: colour and orientation
   psclr = '/cps'
   if(colour.eq.0) psclr = '/ps'
+  if(orientation.eq.1) then
+     psclr = '/vcps'
+     if(colour.eq.0) psclr = '/vps'
+  end if
   
   ncolours = 5; colours(1:ncolours)=(/4,2,3,6,5/) !Paper
   ncolours = 10; colours(1:ncolours)=(/2,3,4,5,6,7,8,9,10,11/)
@@ -189,31 +201,57 @@ program analysemcmc
   
   
   !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
-  varnames(1:15) = (/'logL','Mc','eta','tc','log_dl','spin','kappa','RA','sin_dec','phase','sin_thJo','phJo','alpha','M1','M2'/)
-  pgvarns(1:15)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ', &
-       'logd\dL\u (Mpc)       ','a\dspin\u             ','\(2136)               ','R.A. (rad)            ', &
-       'sin dec.              ','\(2147)\dc\u (rad)    ','sin \(2134)\dJ0\u     ','\(2147)\dJ0\u (rad)   ', &
-       '\(2127)\dc\u (rad)    ','M\d1\u (M\d\(2281)\u) ','M\d2\u (M\d\(2281)\u) '/)
-  pgvarnss(1:15)  = (/'log L    ','M\dc\u ','\(2133)','t\dc\u','log d\dL\u','a\dspin\u','\(2136)','R.A.','sin dec.','\(2147)\dc\u', &
-       'sin \(2134)\dJ0\u','\(2147)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u'/)
-  pgorigvarns(1:15)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ', &
-       'logd\dL\u (Mpc)       ','a\dspin\u             ','\(2136)               ','R.A. (rad)            ', &
-       'sin dec.              ','\(2147)\dc\u (rad)    ','sin \(2134)\dJ0\u     ','\(2147)\dJ0\u (rad)   ', &
-       '\(2127)\dc\u (rad)    ','M\d1\u (M\d\(2281)\u) ','M\d2\u (M\d\(2281)\u) '/)
-  pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','rad','rad','','rad','','rad','rad','M\d\(2281)\u','M\d\(2281)\u'/)
-  
-  if(version.eq.2) then !15par, 2 spins
-     varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
-     pgvarns(1:16)  = (/'log Likelihood        ','M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\d0\u (s)            ', &
-                        'log d\dL\u (Mpc)      ','R.A. (rad)            ','sin dec.              ','cos \(2135)           ', &
-                        '\(2147)\dc\u (rad)    ', '\(2149) (rad)        ','a\dspin1\u            ','\(2147)\d1\u (rad)    ', &
-                        '\(2134)\d1\u (rad)    ','a\dspin2\u (rad)      ','\(2147)\d2\u (rad)    ','\(2134)\d2\u (rad)    '/)
-     pgvarnss(1:16)  = (/'log L    ','M\dc\u ','\(2133)','t\dc\u','log d\dL\u','R.A.','sin dec.','cos \(2135)','\(2147)\dc\u', '\(2149)', &
-          'a\dspin1\u','\(2147)\d1\u','\(2134)\d1\u','a\dspin2\u','\(2147)\d2\u','\(2134)\d2\u'/)
-     pgorigvarns(1:16) = pgvarns(1:16)
-     pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','rad','','','rad','rad','','rad','rad','','rad','rad'/)
+  if(fonttype.eq.2) then  !Use 'roman-like' Greek font
+     varnames(1:15) = (/'logL','Mc','eta','tc','log_dl','spin','kappa','RA','sin_dec','phase','sin_thJo','phJo','alpha','M1','M2'/)
+     pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ', &
+          'logd\dL\u (Mpc)       ','a\dspin\u             ','\(2136)               ','R.A. (rad)            ', &
+          'sin dec.              ','\(2147)\dc\u (rad)    ','sin \(2134)\dJ0\u     ','\(2147)\dJ0\u (rad)   ', &
+          '\(2127)\dc\u (rad)    ','M\d1\u (M\d\(2281)\u) ','M\d2\u (M\d\(2281)\u) '/)
+     pgvarnss(1:15)  = (/'log L    ','\(2563) ','\(2133)','t\dc\u','log d\dL\u','a\dspin\u','\(2136)','R.A.','sin dec.','\(2147)\dc\u', &
+          'sin \(2134)\dJ0\u','\(2147)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u'/)
+     pgorigvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ', &
+          'logd\dL\u (Mpc)       ','a\dspin\u             ','\(2136)               ','R.A. (rad)            ', &
+          'sin dec.              ','\(2147)\dc\u (rad)    ','sin \(2134)\dJ0\u     ','\(2147)\dJ0\u (rad)   ', &
+          '\(2127)\dc\u (rad)    ','M\d1\u (M\d\(2281)\u) ','M\d2\u (M\d\(2281)\u) '/)
+     pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','rad','rad','','rad','','rad','rad','M\d\(2281)\u','M\d\(2281)\u'/)
+     
+     if(version.eq.2) then !15par, 2 spins
+        varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
+        pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\d0\u (s)            ', &
+             'log d\dL\u (Mpc)      ','R.A. (rad)            ','sin dec.              ','cos \(2135)           ', &
+             '\(2147)\dc\u (rad)    ', '\(2149) (rad)        ','a\dspin1\u            ','\(2147)\d1\u (rad)    ', &
+             '\(2134)\d1\u (rad)    ','a\dspin2\u (rad)      ','\(2147)\d2\u (rad)    ','\(2134)\d2\u (rad)    '/)
+        pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(2133)','t\dc\u','log d\dL\u','R.A.','sin dec.','cos \(2135)','\(2147)\dc\u', '\(2149)', &
+             'a\dspin1\u','\(2147)\d1\u','\(2134)\d1\u','a\dspin2\u','\(2147)\d2\u','\(2134)\d2\u'/)
+        pgorigvarns(1:16) = pgvarns(1:16)
+        pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','rad','','','rad','rad','','rad','rad','','rad','rad'/)
+     end if
+  else  !Same, but replace '\(21' with \(06' for arial-like Greek font
+     varnames(1:15) = (/'logL','Mc','eta','tc','log_dl','spin','kappa','RA','sin_dec','phase','sin_thJo','phJo','alpha','M1','M2'/)
+     pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\dc\u (s)            ', &
+          'logd\dL\u (Mpc)       ','a\dspin\u             ','\(0636)               ','R.A. (rad)            ', &
+          'sin dec.              ','\(0647)\dc\u (rad)    ','sin \(0634)\dJ0\u     ','\(0647)\dJ0\u (rad)   ', &
+          '\(0627)\dc\u (rad)    ','M\d1\u (M\d\(2281)\u) ','M\d2\u (M\d\(2281)\u) '/)
+     pgvarnss(1:15)  = (/'log L    ','\(2563) ','\(0633)','t\dc\u','log d\dL\u','a\dspin\u','\(0636)','R.A.','sin dec.','\(0647)\dc\u', &
+          'sin \(0634)\dJ0\u','\(0647)\dJ0\u','\(0627)\dc\u','M\d1\u','M\d2\u'/)
+     pgorigvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\dc\u (s)            ', &
+          'logd\dL\u (Mpc)       ','a\dspin\u             ','\(0636)               ','R.A. (rad)            ', &
+          'sin dec.              ','\(0647)\dc\u (rad)    ','sin \(0634)\dJ0\u     ','\(0647)\dJ0\u (rad)   ', &
+          '\(0627)\dc\u (rad)    ','M\d1\u (M\d\(2281)\u) ','M\d2\u (M\d\(2281)\u) '/)
+     pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','rad','rad','','rad','','rad','rad','M\d\(2281)\u','M\d\(2281)\u'/)
+     
+     if(version.eq.2) then !15par, 2 spins
+        varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
+        pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\d0\u (s)            ', &
+             'log d\dL\u (Mpc)      ','R.A. (rad)            ','sin dec.              ','cos \(0635)           ', &
+             '\(0647)\dc\u (rad)    ', '\(0649) (rad)        ','a\dspin1\u            ','\(0647)\d1\u (rad)    ', &
+             '\(0634)\d1\u (rad)    ','a\dspin2\u (rad)      ','\(0647)\d2\u (rad)    ','\(0634)\d2\u (rad)    '/)
+        pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(0633)','t\dc\u','log d\dL\u','R.A.','sin dec.','cos \(0635)','\(0647)\dc\u', '\(0649)', &
+             'a\dspin1\u','\(0647)\d1\u','\(0634)\d1\u','a\dspin2\u','\(0647)\d2\u','\(0634)\d2\u'/)
+        pgorigvarns(1:16) = pgvarns(1:16)
+        pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','rad','','','rad','rad','','rad','rad','','rad','rad'/)
+     end if
   end if
-  
   
   
   

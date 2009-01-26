@@ -43,7 +43,7 @@ subroutine pdfs1d(exitcode)
   if(plot.eq.1) then
      if(file.eq.0) then
         io = pgopen('14/xs')
-        sch = 1.5
+        sch = 1.5*fontsize1d
         lw = 1
      end if
      if(file.ge.1) then
@@ -52,8 +52,8 @@ subroutine pdfs1d(exitcode)
         lw = 3
         if(nplvar.ge.10) lw = 2
         if(quality.lt.2) lw = max(lw-1,1)  !Draft/Paper
-        sch = 1.2!2.5
-        if(nchains.eq.1.and.nplvar.gt.9) sch = 1.2
+        sch = 1.2*fontsize1d !2.5
+        if(nchains.eq.1.and.nplvar.gt.9) sch = 1.2*fontsize1d
         if(quality.eq.0) then !Draft
            sch = sch*1.75
            lw = 2
@@ -100,8 +100,9 @@ subroutine pdfs1d(exitcode)
      if(file.eq.0) call pgpap(scrsz,scrrat)
      if(file.eq.1) call pgpap(bmpsz,bmprat)
      if(file.ge.2) call pgpap(pssz,psrat)
-     if(file.ge.2.and.quality.eq.3.and.nplvar.eq.12) call pgpap(10.6,0.925)
-     if(file.ge.2) call pgscf(2)
+     !if(file.ge.2.and.quality.eq.3.and.nplvar.eq.12) call pgpap(10.6,0.925)
+     if(file.ge.2.and.quality.eq.3.and.nplvar.eq.12) call pgpap(10.6,0.85)
+     if(file.ge.2) call pgscf(fonttype)
      !call pgscr(3,0.,0.5,0.)
      !call pginitl(colour,file,whitebg)
      call pgslw(lw)
@@ -448,7 +449,7 @@ subroutine pdfs1d(exitcode)
                  if(prival.ge.1) write(str,'(A,F7.3)')trim(str)//' \(2030):',ranges(ic,c0,p,5)
               end if
               call pgsch(sch*1.2)
-              call pgptxt(xmin+0.05*dx,ymax*0.9,0.,0.,trim(pgvarnss(p)))
+              call pgptxt(xmin+0.05*dx,ymax*(1.0-0.1*fontsize1d),0.,0.,trim(pgvarnss(p)))
            end if
         end if
 
@@ -486,25 +487,18 @@ subroutine pdfs1d(exitcode)
               if(x0.ge.99.9) write(str,'(F6.1)')x0
               write(str,'(A)')'true: '//trim(str)//trim(pgunits(p))
            end if
-
+           
+           
+           !Print variable name in top of panel:
            call pgsch(sch*1.2)
-           !call pgptxt(xmin+0.05*dx,ymax*0.9,0.,0.,trim(pgvarnss(p)))
            if(abs(xmin-xpeak).lt.abs(xmax-xpeak)) then !peak is at left, put varname at right
-              call pgptxt(xmax-0.05*dx,ymax*0.9,0.,1.,trim(pgvarnss(p)))
+              call pgptxt(xmax-0.05*dx,ymax*(1.-0.1*fontsize1d),0.,1.,trim(pgvarnss(p)))
            else
-              call pgptxt(xmin+0.05*dx,ymax*0.9,0.,0.,trim(pgvarnss(p)))
+              call pgptxt(xmin+0.05*dx,ymax*(1.-0.1*fontsize1d),0.,0.,trim(pgvarnss(p)))
            end if
         end if
-
-
-        !if(nchains.gt.1) write(str,'(A,F7.3,A)')trim(pgvarns(p))//'  mdl: ',startval(ic,p,1),''
-        !if(nchains.gt.1) write(str,'(A4,F7.3,A)')'mdl:',startval(ic,p,1),''
-        !if(nchains.eq.2) write(str,'(A,3(A6,F7.3))')trim(pgvarns(p)),' mdl:',startval(ic,p,1),
-        !                       ' med1:',stats(1,p,1),' med2:',stats(2,p,1)
-        !if(nchains.eq.2.and.abs((startval(1,p,1)-startval(2,p,1))/startval(1,p,1)).gt.1.e-10)  &
-        !                        !         write(str,'(A,A5,F7.3,A2,F7.3)')trim(pgvarns(p)),'mdl:',startval(1,p,1),', ',startval(2,p,1)  
-        !     write(str,'(A4,F6.2,A2,F6.2)')'mdl:',startval(1,p,1),', ',startval(2,p,1)
-
+        
+        
         !Write the deltas of the two pdfs
         if(nchains.eq.2.) then
            write(str,'(A8)')'\(2030)'
@@ -516,15 +510,6 @@ subroutine pdfs1d(exitcode)
               write(str2,'(A8,F7.3)')'\(2030):',ranges(2,c0,p,5)
            end if
         end if
-
-        !if(p.eq.1) then
-        !   str1 = ''
-        !   str2 = ''
-        !   !write(str,'(A)')trim(pgvarns(p))
-        !   str = ''
-        !end if
-
-        !call pgsch(sch*0.9)
         call pgsch(sch*1.1)
         if(prvalues.eq.1.and.p.ne.1) then  !If not plotting log(L)
            if(nchains.eq.2) then
@@ -534,12 +519,8 @@ subroutine pdfs1d(exitcode)
               call pgmtxt('T',0.5,0.75,0.5,trim(str2))
            else
               if(quality.eq.2.or.quality.eq.3) call pgsci(2)
-              !call pgmtxt('T',0.2,0.5,0.5,trim(str))
               !call pgptxt(ranges(ic,c0,p,3),ymax,0.,0.5,trim(str)) !Align with centre of 90%-probability range
               call pgptxt((xmin+xmax)/2.,ymax,0.,0.5,trim(str)) !Centre
-              !print*,trim(str)
-              !call pgarro(ranges(ic,c0,p,3),0.95*ymax,ranges(ic,c0,p,1),0.95*ymax)
-              !call pgarro(ranges(ic,c0,p,3),0.95*ymax,ranges(ic,c0,p,2),0.95*ymax)
               call pgsci(2)
               if(plrange.eq.1.or.plrange.eq.3) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,2)/),(/0.99*ymax,0.99*ymax/))  !Plot line at top over 90%-probability width
               call pgsci(1)
@@ -552,10 +533,7 @@ subroutine pdfs1d(exitcode)
         
         call pgsci(1)
         call pgsch(sch)
-        !call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-        !call pgbox('BNTS',0.0,0,'BNTS',0.0,0)
         call pgbox('BNTS',0.0,0,'',0.0,0)
-        !print*,sch,lw,trim(str)
      end if !if(plot.eq.1) 
   end do !p
   
@@ -575,13 +553,6 @@ subroutine pdfs1d(exitcode)
         call pgsch(sch)
      end if
      
-     
-     !Make sure gv auto-reloads on change
-     !      if(file.ge.2) then
-     !        call pgpage
-     !        call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-     !      end if
-
      call pgend
      
      if(file.ge.2) then

@@ -7,14 +7,15 @@ module analysemcmc_settings
   save
   integer, parameter :: nchs=20,npar1=18,nival1=9  !Npar1: logL+MCMCpar+secundary vars, e.g. 1+12+2(M1M2) = 15. For 15-par: 18?  
   integer :: plvars(npar1),nplvar,nbin1d,nbin2dx,nbin2dy,npdf2d,pdf2dpairs(250,2),panels(2)
-  integer :: thin,nburn(nchs),file,colour,quality,reverseread,update,mergechains,wrapdata,changevar,maxchlen
+  integer :: thin,nburn(nchs),reverseread,update,mergechains,wrapdata,changevar,maxchlen
+  integer :: file,colour,orientation,quality,fonttype
   integer :: prprogress,prruninfo,prchaininfo,prinitial,prstat,prcorr,prival,prconv,savestats,savepdf       
   integer :: plot,combinechainplots,pllogl,plchain,plparl,pljump,rdsigacc,plsigacc,plpdf1d,plpdf2d,placorr,plotsky,plmovie       
   integer :: chainsymbol,chainpli,pltrue,plstart,plmedian,plrange,plburn,pllmax,prvalues,smooth,fillpdf,normpdf1d,normpdf2d
   integer :: scloglpl,scchainspl,bmpxsz,bmpysz
   integer :: nmovframes,moviescheme,whitebg,unsharp,nival,ival0
   real :: nburnfrac,autoburnin,ivals(nival1)
-  real :: scrsz,scrrat,pssz,psrat,scfac
+  real :: scrsz,scrrat,pssz,psrat,scfac,fontsize1d,fontsize2d
 end module analysemcmc_settings
 !***************************************************************************************************
 
@@ -84,8 +85,7 @@ module plot_data
   implicit none
   save
   integer :: ncolours,colours(10),defcolour,nsymbols,symbols(10),maxdots
-  real :: pltrat
-  real :: bmpsz,bmprat
+  real :: pltrat,bmpsz,bmprat
   character :: bmpxpix*99,unsharplogl*99,unsharpchain*99,unsharppdf1d*99,unsharppdf2d*99
   character :: psclr*9,colournames(15)*20
 end module plot_data

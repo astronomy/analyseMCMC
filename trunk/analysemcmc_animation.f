@@ -348,7 +348,11 @@ subroutine animation(exitcode)
         call pgsci(1)
         call pgsls(1)
         !call pgmtxt('T',1.,0.5,0.5,'Sigma')
-        call pgmtxt('T',-1.5,0.05,0.0,'\(2144)')
+        if(fonttype.eq.2) then
+           call pgmtxt('T',-1.5,0.05,0.0,'\(2144)')
+        else
+           call pgmtxt('T',-1.5,0.05,0.0,'\(0644)')
+        end if
 
      end if
 
