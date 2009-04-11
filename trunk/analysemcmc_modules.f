@@ -13,7 +13,7 @@ module analysemcmc_settings
   integer :: plot,combinechainplots,pllogl,plchain,plparl,pljump,rdsigacc,plsigacc,plpdf1d,plpdf2d,placorr,plotsky,plmovie       
   integer :: chainsymbol,chainpli,pltrue,plstart,plmedian,plrange,plburn,pllmax,prvalues,smooth,fillpdf,normpdf1d,normpdf2d
   integer :: scloglpl,scchainspl,bmpxsz,bmpysz
-  integer :: nmovframes,moviescheme,whitebg,unsharp,nival,ival0
+  integer :: nmovframes,moviescheme,whitebg,unsharp,nival,ival0,wikioutput
   real :: nburnfrac,autoburnin,ivals(nival1)
   real :: scrsz,scrrat,pssz,psrat,scfac,fontsize1d,fontsize2d
 end module analysemcmc_settings

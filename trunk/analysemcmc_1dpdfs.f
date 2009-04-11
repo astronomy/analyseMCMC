@@ -13,7 +13,7 @@ subroutine pdfs1d(exitcode)
   real :: rev24,rev360,rev180
   real :: x(nchs,nchs*narr1),xmin,xmax,xmin1,xmax1,xpeak,dx,ymin,ymax,sch
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ybin2(:),ysum(:),yconv(:),ycum(:)  !These depend on nbin1d, allocate after reading input file
-  real :: plshift,plx,ply,x0,norm
+  real :: plshift,plx,ply,x0,norm,bindx
   character :: string*99,str*99,str1*99,str2*99
   
   exitcode=0
@@ -167,7 +167,7 @@ subroutine pdfs1d(exitcode)
         
         call bindata1d(n(ic),x(ic,1:n(ic)),1,nbin1d,xmin1,xmax1,xbin1,ybin1)
         
-        !Weigh with likelihood.  I should probably do something like this at the start, to get updated ranges etc.
+        !Weight with likelihood.  I should probably do something like this at the start, to get updated ranges etc.
         !y(ic,1:n(ic)) = alldat(ic,1,1:n(ic))
         !call bindata1da(n(ic),x(ic,1:n(ic)),y(ic,1:n(ic)),1,nbin1d,xmin1,xmax1,xbin1,ybin1) !Measure the amount of likelihood in each bin
         
@@ -270,42 +270,66 @@ subroutine pdfs1d(exitcode)
            ybin1(1:nbin1d+1) = ybin(ic,1:nbin1d+1)
            if(wrap(ic,p).eq.0) then
               if(nchains.eq.1) call pgsci(15)
-              call pgpoly(nbin1d+2,(/xbin1(1),xbin1(1:nbin1d+1)/),(/0.,ybin1(1:nbin1d+1)/))
+              if(plpdf1d.eq.1) then
+                 call pgpoly(nbin1d+2,(/xbin1(1),xbin1(1:nbin1d+1)/)+bindx/2.,(/0.,ybin1(1:nbin1d+1)/))
+              else
+                 call verthist(nbin1d+2,(/xbin1(1),xbin1(1:nbin1d+1)/),(/0.,ybin1(1:nbin1d+1)/),2)
+              end if
               !Plot pdf contour
               !if(nchains.eq.1) call pgsci(1)
               !call pgsci(1)
               if(fillpdf.eq.1) call pgsci(1)
               if(nchains.eq.1) call pgsci(2)
-              call pgline(nbin1d+1,xbin1(1:nbin1d+1),ybin1(1:nbin1d+1)) !:nbin1d) ?
+              if(plpdf1d.eq.1) then
+                 call pgline(nbin1d+1,xbin1(1:nbin1d+1)+bindx/2.,ybin1(1:nbin1d+1)) !:nbin1d) ?
+              else
+                 call verthist(nbin1d+2,(/xbin1(1),xbin1(1:nbin1d+1)/),(/0.,ybin1(1:nbin1d+1)/),1)
+              end if
               
               !Fix the loose ends
-              call pgline(2,(/xbin1(1),xbin1(1)/),(/0.,ybin1(1)/))
-              call pgline(2,(/xbin1(nbin1d+1),xbin1(nbin1d+1)/),(/ybin1(nbin1d+1),0./))
+              call pgline(2,(/xbin1(1)-bindx,xbin1(1)/)+bindx/2.,(/0.,ybin1(1)/))
+              call pgline(2,(/xbin1(nbin1d+1),xbin1(nbin1d+1)/)+bindx/2.,(/ybin1(nbin1d+1),0./))
            else !If parameter is wrapped
               plshift = real(2*pi)
               if(changevar.eq.1) plshift = 360.
               if(changevar.eq.1.and.p.eq.8) plshift = 24.  !RA in hours
               if(changevar.eq.1.and.p.eq.12) plshift = 180.  !Pol.angle
               if(nchains.eq.1) call pgsci(15)
-              call pgpoly(nbin1d+3,(/xbin1(1),xbin1(1:nbin1d),xbin1(1)+plshift,xbin1(1)+plshift/),(/0.,ybin1(1:nbin1d),ybin1(1),0./))
-              
+              if(plpdf1d.eq.1) then
+                 call pgpoly(nbin1d+3,(/xbin1(1),xbin1(1:nbin1d),xbin1(1)+plshift,xbin1(1)+plshift/),(/0.,ybin1(1:nbin1d),ybin1(1),0./))
+              else
+                 call verthist(nbin1d+3,(/xbin1(1),xbin1(1:nbin1d),xbin1(1)+plshift,xbin1(1)+plshift/),(/0.,ybin1(1:nbin1d),ybin1(1),0./),2)
+              end if
               !Plot pdf contour
               !call pgsci(1)
               !if(fillpdf.ne.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               if(fillpdf.eq.1) call pgsci(1)
               if(nchains.eq.1) call pgsci(2)
-              call pgline(nbin1d,xbin1(1:nbin1d),ybin1(1:nbin1d))
+              if(plpdf1d.eq.1) then
+                 call pgline(nbin1d,xbin1(1:nbin1d)+bindx/2.,ybin1(1:nbin1d))
+              else
+                 call verthist(nbin1d,xbin1(1:nbin1d)+bindx/2.,ybin1(1:nbin1d),0)
+              end if
               
               !Plot dotted lines outside the pdf for wrapped periodic variables
               call pgsls(4)
               !if(file.ge.2) call pgslw(2)
-              call pgline(nbin1d+1,(/xbin1(1:nbin1d)-plshift,xbin1(1)/),(/ybin1(1:nbin1d),ybin1(1)/))
-              call pgline(nbin1d,xbin1+plshift,ybin1)
+              if(plpdf1d.eq.1) then
+                 call pgline(nbin1d+1,(/xbin1(1:nbin1d)-plshift,xbin1(1)/)+bindx/2.,(/ybin1(1:nbin1d),ybin1(1)/))
+                 call pgline(nbin1d,xbin1+plshift+bindx/2.,ybin1)
+              else
+                 call verthist(nbin1d+1,(/xbin1(1:nbin1d)-plshift,xbin1(1)/)+bindx/2.,(/ybin1(1:nbin1d),ybin1(1)/),0)
+                 call verthist(nbin1d,xbin1+plshift+bindx/2.,ybin1,0)
+              end if
               
               !Fix the loose end
               call pgsls(1)
               if(file.ge.2) call pgslw(lw)
-              call pgline(2,(/xbin1(nbin1d),xbin1(1)+plshift/),(/ybin1(nbin1d),ybin1(1)/))
+              if(plpdf1d.eq.1) then
+                 call pgline(2,(/xbin1(nbin1d),xbin1(1)+plshift/)+bindx/2.,(/ybin1(nbin1d),ybin1(1)/))
+              else
+                 call verthist(2,(/xbin1(nbin1d),xbin1(1)+plshift/)+bindx/2.,(/ybin1(nbin1d),ybin1(1)/),0)
+              end if
            end if
         end do !ic
         
@@ -320,9 +344,17 @@ subroutine pdfs1d(exitcode)
               xbin1(1:nbin1d+1) = xbin(ic,1:nbin1d+1)
               ybin1(1:nbin1d+1) = ybin(ic,1:nbin1d+1)
               if(wrap(ic,p).eq.0) then
-                 call pgline(nbin1d+1,xbin1(1:nbin1d+1),ybin1(1:nbin1d+1))
+                 if(plpdf1d.eq.1) then
+                    call pgline(nbin1d+1,xbin1(1:nbin1d+1)+bindx/2.,ybin1(1:nbin1d+1))
+                 else
+                    call verthist(nbin1d+1,xbin1(1:nbin1d+1)+bindx/2.,ybin1(1:nbin1d+1),0)
+                 end if
               else
-                 call pgline(nbin1d,xbin1(1:nbin1d),ybin1(1:nbin1d))
+                 if(plpdf1d.eq.1) then
+                    call pgline(nbin1d,xbin1(1:nbin1d)+bindx/2.,ybin1(1:nbin1d))
+                 else
+                    call verthist(nbin1d,xbin1(1:nbin1d)+bindx/2.,ybin1(1:nbin1d),0)
+                 end if
               end if
            end do
            call pgsls(4)
@@ -592,24 +624,27 @@ subroutine bindata1d(n,x,norm,nbin,xmin1,xmax1,xbin,ybin)  !Count the number of 
   ! nbin - input: number of bins
   ! xmin, xmax - in/output: set xmin=xmax to auto-determine
   ! xbin, ybin - output: binned data (x, y).  The x values are the left side of the bin!
-
+  
   implicit none
   integer :: i,k,n,nbin,norm
   real :: x(n),xbin(nbin+1),ybin(nbin+1),xmin,xmax,dx,xmin1,xmax1
-
+  
   xmin = xmin1
   xmax = xmax1
-
-  if(abs(xmin-xmax)/(xmax+1.e-30).lt.1.e-20) then !Autodetermine
+  
+  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then  !Autodetermine
      xmin = minval(x(1:n))
      xmax = maxval(x(1:n))
+     xmin1 = xmin                                    !And return new values
+     xmax1 = xmax
   end if
   dx = abs(xmax - xmin)/real(nbin)
-
+  
   do k=1,nbin+1
-     !xbin(k) = xmin + (real(k)-0.5)*dx  !x is the centre< of the bin
+     !xbin(k) = xmin + (real(k)-0.5)*dx  !x is the centre of the bin
      xbin(k) = xmin + (k-1)*dx          !x is the left of the bin
   end do
+  
   !ybintot=0.
   ybin = 0.
   do i=1,n
@@ -625,12 +660,7 @@ subroutine bindata1d(n,x,norm,nbin,xmin1,xmax1,xbin,ybin)  !Count the number of 
   end do
   !if(norm.eq.1) ybin = ybin/(ybintot+1.e-30)
   if(norm.eq.1) ybin = ybin/(sum(ybin)+1.e-30)
-
-  if(abs(xmin1-xmax1)/(xmax1+1.e-30).lt.1.e-20) then
-     xmin1 = xmin
-     xmax1 = xmax
-  end if
-
+  
 end subroutine bindata1d
 !************************************************************************************************************************************
 
@@ -686,24 +716,48 @@ end subroutine bindata1da
 
 
 !************************************************************************************************************************************
-subroutine verthist(n,x,y)  !Plot a 1D horizontal histogram.  x is the left of the bin!
+subroutine verthist(n,x,y,style)  !Plot a 1D vertical histogram.  x is the left of the bin!
   implicit none
-  integer :: j,n
-  real :: x(n+1),y(n+1)
-
+  integer :: j,n,style
+  real :: x(n+1),y(n+1),dx,c
+  
+  !Make columns overlap a little
+  dx = x(2)-x(1)
+  c = 0.001*dx
+  
   x(n+1) = x(n) + (x(n)-x(n-1))
   y(n+1) = 0.
-  call pgline(2,(/x(1),x(1)/),(/0.,y(1)/))
-  do j=1,n
-     call pgline(2,x(j:j+1),(/y(j),y(j)/))
-     call pgline(2,(/x(j+1),x(j+1)/),y(j:j+1))
-  end do
-
+  
+  !Don't close line at left and right (don't drop to 0)
+  if(style.eq.0) then
+     do j=1,n-1
+        call pgline(2,x(j:j+1),(/y(j),y(j)/))
+        call pgline(2,(/x(j+1),x(j+1)/),y(j:j+1))
+     end do
+     call pgline(2,x(n:n+1),(/y(n),y(n)/))
+  end if
+  
+  !Close line at left and right (drop to 0)
+  if(style.eq.1) then
+     call pgline(2,(/x(1),x(1)/),(/0.,y(1)/))
+     do j=1,n
+        call pgline(2,x(j:j+1),(/y(j),y(j)/))
+        call pgline(2,(/x(j+1),x(j+1)/),y(j:j+1))
+     end do
+  end if
+  
+  !Fill the histogram
+  if(style.eq.2) then
+     do j=1,n
+        call pgpoly(4,(/x(j)-c,x(j)-c,x(j+1)+c,x(j+1)+c/),(/0.,y(j),y(j),0./))
+     end do
+  end if
+  
 end subroutine verthist
 !************************************************************************************************************************************
 
 !************************************************************************************************************************************
-subroutine horzhist(n,x,y)  !Plot a 1D vertical histogram
+subroutine horzhist(n,x,y)  !Plot a 1D horizontal histogram
   implicit none
   integer :: j,n
   real :: x(n),y(n)

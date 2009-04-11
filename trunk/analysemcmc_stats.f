@@ -17,7 +17,7 @@ subroutine statistics(exitcode)
   real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),totrhat,totrelvar
   real*8 :: var,total
   !real*16 :: var,total  !gfortran doesn't support this
-  character :: ch,url*99,gps*19,xs10*10,xs20*20
+  character :: ch,url*99,gps*19,xs10*10,xs20*20,ans
   
   !K-S test:
   !integer :: nn1,nlogl1,nlogl2,ksn1,ksn2
@@ -751,7 +751,7 @@ subroutine statistics(exitcode)
      
      
      !Print output for CBC Wiki:
-     if(ic.eq.1) then
+     if(ic.eq.1.and.wikioutput.eq.1) then
         o = 10
         open(unit=o,form='formatted',status='replace',action='write',position='rewind',file='wiki.txt',iostat=io)
         if(io.ne.0) then
@@ -947,7 +947,14 @@ subroutine statistics(exitcode)
         end do
         if(c.eq.0) then
            write(0,'(A)')'  Error: 2-sigma range not found, needed for Wiki output!'
-           stop
+           write(6,'(A,$)')'  Do you want to continue?  (y/n)  '
+           read(5,*)ans
+           if(ans.eq.'y'.or.ans.eq.'Y') then
+              c = 1
+              write(6,'(A,F6.2,A)')'  Continuing with ',ivals(c)*100,"% probability interval, don't use wiki.txt!!!"
+           else
+              stop
+           end if
         end if
         if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
         if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'

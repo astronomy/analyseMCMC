@@ -2,6 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    53: sluys, 11/04/2009
+     - plpdf1d=2: plot true histogram rather than curve
+     - fixed placement of bins for plpdf1d=1
+     - removed plotspins source files (backup in ./backup_plotspins)
+         
     52: sluys, 26/01/2009
      - introduced variables (hardcoded for now): 
        - fontsize1/2d: scale fonts, but also margins, label positions, etc.

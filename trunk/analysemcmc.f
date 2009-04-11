@@ -14,6 +14,7 @@ program analysemcmc
   real*8 :: timestamp,timestamps(9)
   
   version = 1   !1: 12-par MCMC,  2: 15-par  -  far from fully implemented yet !!!
+  wikioutput = 1  !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
   
   timestamps(1) = timestamp(os)
   write(*,*)
@@ -33,6 +34,7 @@ program analysemcmc
      fontsize2d = 1.55
   end if
   orientation = 1             !Use portrait (1) or landscape (2) for eps/pdf
+  if(quality.eq.0) orientation = 2  !Easier to print eps
   fonttype = 1                !Font type used for eps/pdf: 1-simple, 2-roman, 3-italic 4-script
   
   nchains0 = iargc()
@@ -354,10 +356,10 @@ program analysemcmc
   
   !***********************************************************************************************************************************      
   !Plot pdfs (1d)
-  if(plpdf1d.eq.1) then
+  if(plpdf1d.ge.1) then
      call pdfs1d(exitcode)
      if(exitcode.ne.0) goto 9999
-  end if !if(plpdf1d.eq.1)
+  end if !if(plpdf1d.ge.1)
   
   
   

@@ -811,8 +811,8 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Comp
            by = max(min(by,nybin),1)
            z(bx,by) = z(bx,by) + 1.
         else
-           if(bx.lt.0.or.bx.gt.nxbin+1) write(*,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for X data point',i,' (',x(i),').  I found bin',bx,', but it should lie between 1 and',nxbin,'.'
-           if(by.lt.0.or.by.gt.nybin+1) write(*,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for Y data point',i,' (',y(i),').  I found bin',by,', but it should lie between 1 and',nybin,'.'
+           if(bx.lt.0.or.bx.gt.nxbin+1) write(0,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for X data point',i,' (',x(i),').  I found bin',bx,', but it should lie between 1 and',nxbin,'.'
+           if(by.lt.0.or.by.gt.nybin+1) write(0,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for Y data point',i,' (',y(i),').  I found bin',by,', but it should lie between 1 and',nybin,'.'
         end if
      else
         z(bx,by) = z(bx,by) + 1.

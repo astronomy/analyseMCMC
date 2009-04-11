@@ -215,7 +215,7 @@ subroutine write_settingsfile
   write(u,11)pljump, 'pljump',   'Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log'
   write(u,11)rdsigacc, 'rdsigacc',   'Read sigma and acceptance rate: 0-no, 1-yes   (0-Dont read these data, save 40% read-in time).  0 can give problems with large scale, or high-temperature chains'
   write(u,11)plsigacc, 'plsigacc',   'Plot sigma and acceptance rate: 0-no, 1-yes (lin sig), 2-yes (log sig)  (If >0, this sets rdsigacc to 1)'
-  write(u,11)plpdf1d, 'plpdf1d',   'Plot 1d posterior distributions: 0-no, 1-yes. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.'
+  write(u,11)plpdf1d, 'plpdf1d',   'Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.'
   write(u,11)plpdf2d, 'plpdf2d',   'Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).'
   write(u,11)placorr, 'placorr',   'Plot autocorrelations: 0-no, >0-yes: plot placorr steps'
   write(u,11)plotsky, 'plotsky',   'Plot 2d pdf with stars, implies plpdf2d=1'
@@ -320,7 +320,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   pljump = 1        !Plot actual jump sizes
   rdsigacc = 1      !Read sigma and acceptance rate: 0-no, 1-yes   (0-Don't read these data, save 40% read-in time).  0 can give problems with large scale, or high-temperature chains
   plsigacc = 0      !Plot sigma and acceptance rate: 0-no, 1-yes   (Sets rdsigacc to 1)
-  plpdf1d = 1       !Plot 1d posterior distributions: 0-no, 1-yes. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.
+  plpdf1d = 1       !Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.
   plpdf2d = 2       !Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).
   placorr = 0e4     !Plot autocorrelations: 0-no, >0-yes: plot placorr steps
   plotsky = 0       !Plot 2d pdf with stars, implies plpdf2d=1
