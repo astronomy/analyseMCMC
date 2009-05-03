@@ -23,8 +23,8 @@ subroutine chains(exitcode)
   !***********************************************************************************************************************************      
   !Plot likelihood chain
   if(pllogl.eq.1) then
-     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting chain likelihood...'
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' chain likelihood, '
+     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting chain likelihood...'
+     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' chain likelihood, '
      if(file.eq.0) then
         io = pgopen('12/xs')
         call pgsch(1.5)
@@ -35,7 +35,7 @@ subroutine chains(exitcode)
         call pgsch(1.2)
      end if
      if(io.le.0) then
-        write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
+        write(0,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
         return
      end if
@@ -157,16 +157,16 @@ subroutine chains(exitcode)
         if(file.ge.2) then
            if(file.eq.3) then
               i = system('eps2pdf logL.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__logL.pdf   >& /dev/null')
-              if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
            end if
            i = system('mv -f logL.eps '//trim(outputdir)//'/'//trim(outputname)//'__logL.eps')
         end if
      end if
      if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharplogl)//' logL.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__logL.png')
-        if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+        if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f logL.ppm')
-        !if(i.ne.0) write(*,'(A)')'  Error removing file',i
+        !if(i.ne.0) write(0,'(A)')'  Error removing file',i
      end if
   end if !if(pllogl.eq.1) then
   
@@ -189,8 +189,8 @@ subroutine chains(exitcode)
   !***********************************************************************************************************************************      
   !Plot chains for each parameter
   if(plchain.eq.1) then
-     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting parameter chains...'
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' parameter chains, '
+     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting parameter chains...'
+     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' parameter chains, '
      if(file.eq.0) then
         io = pgopen('13/xs')
         sch = 1.5
@@ -247,7 +247,7 @@ subroutine chains(exitcode)
         end if
      end if
      if(io.le.0) then
-        write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
+        write(0,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
         return
      end if
@@ -339,7 +339,7 @@ subroutine chains(exitcode)
         call pgsch(1.)
         if(chainsymbol.ne.1) call pgsch(0.7)
         call pgslw(1)
-        !write(*,'(15I4)'),nsymbols,symbols(1:nsymbols)
+        !write(6,'(15I4)'),nsymbols,symbols(1:nsymbols)
         do ic=1,nchains0
            !call pgsci(mod(ic*2,10))
            !symbol = ic+1
@@ -488,14 +488,14 @@ subroutine chains(exitcode)
         if(file.ge.2) then
            if(file.eq.3) then
               i = system('eps2pdf chains.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__chains.pdf   >& /dev/null')
-              if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
            end if
            i = system('mv -f chains.eps '//trim(outputdir)//'/'//trim(outputname)//'__chains.eps')
         end if
      end if
      if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' chains.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__chains.png')
-        if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+        if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f chains.ppm')
      end if
   end if !if(plchain.eq.1)
@@ -525,8 +525,8 @@ subroutine chains(exitcode)
   !***********************************************************************************************************************************      
   !Plot L vs parameter value
   if(plparl.eq.1) then
-     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting parameter-L plot...'
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' parameter-L, '
+     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting parameter-L plot...'
+     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' parameter-L, '
      if(file.eq.0) then
         io = pgopen('22/xs')
         sch = 1.5
@@ -579,7 +579,7 @@ subroutine chains(exitcode)
         end if
      end if
      if(io.le.0) then
-        write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
+        write(0,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
         return
      end if
@@ -632,10 +632,10 @@ subroutine chains(exitcode)
            if(p.eq.10.or.p.eq.12.or.p.eq.13) then
               !ymin = max(ymin,0.)
               !ymax = min(ymax,360.)
-              !write(*,'(I5,2F10.5,$)')p,ymin,ymax
+              !write(6,'(I5,2F10.5,$)')p,ymin,ymax
               !ymin = max(rev360(ymin),0.)
               !ymax = min(rev360(ymax),360.)
-              !write(*,'(2F10.5)')ymin,ymax
+              !write(6,'(2F10.5)')ymin,ymax
               if(ymin.lt.0..or.ymax.gt.360.) then
                  ymin = 0.
                  ymax = 360.
@@ -680,7 +680,7 @@ subroutine chains(exitcode)
         call pgsch(1.)
         if(chainsymbol.ne.1) call pgsch(0.7)
         call pgslw(1)
-        !write(*,'(15I4)'),nsymbols,symbols(1:nsymbols)
+        !write(6,'(15I4)'),nsymbols,symbols(1:nsymbols)
         do ic=1,nchains0
            !call pgsci(mod(ic*2,10))
            !symbol = ic+1
@@ -768,14 +768,14 @@ subroutine chains(exitcode)
         if(file.ge.2) then
            if(file.eq.3) then
               i = system('eps2pdf parlogl.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.pdf   >& /dev/null')
-              if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
            end if
            i = system('mv -f parlogl.eps '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.eps')
         end if
      end if
      if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' parlogl.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.png')
-        if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+        if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f parlogl.ppm')
      end if
   end if !if(plparl.eq.1)
@@ -790,8 +790,8 @@ subroutine chains(exitcode)
   !***********************************************************************************************************************************            
   !Plot jump sizes
   if(pljump.ge.1) then
-     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting jump sizes...'
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' jump sizes, '
+     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting jump sizes...'
+     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' jump sizes, '
      if(file.eq.0) then
         io = pgopen('18/xs')
         sch=1.5
@@ -802,7 +802,7 @@ subroutine chains(exitcode)
         sch=1.2
      end if
      if(io.le.0) then
-        write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
+        write(0,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
         return
      end if
@@ -919,14 +919,14 @@ subroutine chains(exitcode)
         if(file.ge.2) then
            if(file.eq.3) then
               i = system('eps2pdf jumps.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__jumps.pdf   >& /dev/null')
-              if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
            end if
            i = system('mv -f jumps.eps '//trim(outputdir)//'/'//trim(outputname)//'__jumps.eps')
         end if
      end if
      if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' jumps.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__jumps.png')
-        if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+        if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f jumps.ppm')
      end if
   end if !if(pljump.ge.1)
@@ -942,8 +942,8 @@ subroutine chains(exitcode)
   !***********************************************************************************************************************************            
   !Plot sigma values ('jump proposal width')
   if(plsigacc.ge.1) then
-     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting sigma...'
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' sigma, '
+     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting sigma...'
+     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' sigma, '
      if(file.eq.0) then
         io = pgopen('16/xs')
         call pgsch(1.5)
@@ -954,7 +954,7 @@ subroutine chains(exitcode)
         call pgsch(1.2)
      end if
      if(io.le.0) then
-        write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
+        write(0,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
         return
      end if
@@ -1063,14 +1063,14 @@ subroutine chains(exitcode)
         if(file.ge.2) then
            if(file.eq.3) then
               i = system('eps2pdf sigs.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__sigs.pdf   >& /dev/null')
-              if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
            end if
            i = system('mv -f sigs.eps '//trim(outputdir)//'/'//trim(outputname)//'__sigs.eps')
         end if
      end if
      if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' sigs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__sigs.png')
-        if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+        if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f sigs.ppm')
      end if
   end if !if(plsigacc.ge.1)
@@ -1086,8 +1086,8 @@ subroutine chains(exitcode)
   !***********************************************************************************************************************************      
   !Plot acceptance rates
   if(plsigacc.ge.1) then
-     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting acceptance rates...'
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' acceptance rates, '
+     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting acceptance rates...'
+     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' acceptance rates, '
      if(file.eq.0) then
         io = pgopen('17/xs')
         call pgsch(1.5)
@@ -1098,7 +1098,7 @@ subroutine chains(exitcode)
         call pgsch(1.2)
      end if
      if(io.le.0) then
-        write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
+        write(0,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
         return
      end if
@@ -1191,14 +1191,14 @@ subroutine chains(exitcode)
         if(file.ge.2) then
            if(file.eq.3) then
               i = system('eps2pdf accs.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__accs.pdf   >& /dev/null')
-              if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
            end if
            i = system('mv -f accs.eps '//trim(outputdir)//'/'//trim(outputname)//'__accs.eps')
         end if
      end if
      if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' accs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__accs.png')
-        if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+        if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f accs.ppm')
      end if
   end if !if(plsigacc.ge.1)
@@ -1224,8 +1224,8 @@ subroutine chains(exitcode)
   !***********************************************************************************************************************************      
   !Plot autocorrelations for each parameter
   if(placorr.gt.0) then
-     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting autocorrelations...'
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,$)')' autocorrelations, '
+     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting autocorrelations...'
+     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' autocorrelations, '
      if(file.eq.0) then
         io = pgopen('19/xs')
         call pgsch(1.5)
@@ -1236,7 +1236,7 @@ subroutine chains(exitcode)
         call pgsch(1.2)
      end if
      if(io.le.0) then
-        write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
+        write(0,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
         return
      end if
@@ -1266,7 +1266,7 @@ subroutine chains(exitcode)
            ymax = max(ymax,maxval(acorrs(ic,p,0:100)))
         end do
         dy = abs(ymax-ymin)*0.05
-        !write(*,'(I3,5F10.2)')p,xmin,xmax,ymin,ymax,acorrs(1,0,100)
+        !write(6,'(I3,5F10.2)')p,xmin,xmax,ymin,ymax,acorrs(1,0,100)
 
         call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
         call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
@@ -1303,14 +1303,14 @@ subroutine chains(exitcode)
         if(file.ge.2) then
            if(file.eq.3) then
               i = system('eps2pdf acorrs.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.pdf   >& /dev/null')
-              if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
            end if
            i = system('mv -f acorrs.eps '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.eps')
         end if
      end if
      if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' acorrs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.png')
-        if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+        if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f acorrs.ppm')
      end if
   end if !if(placorrs.gt.0)

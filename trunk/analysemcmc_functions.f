@@ -43,7 +43,7 @@ subroutine read_settingsfile
   u = 15
   open(unit=u,form='formatted',status='old',action='read',file=trim(filename),iostat=io)
   if(io.ne.0) then
-     write(*,'(A)')'  Error opening input file '//trim(filename)//', aborting...'
+     write(0,'(A)')'  Error opening input file '//trim(filename)//', aborting...'
      stop
   end if
   
@@ -152,7 +152,7 @@ subroutine read_settingsfile
   close(u)
   
   if(io.ne.0) then
-     write(*,'(/,A,I2,A,I3,A,/)')'  Error reading input file '//trim(filename)//', aborting...'
+     write(0,'(/,A,I2,A,I3,A,/)')'  Error reading input file '//trim(filename)//', aborting...'
      stop
   end if
   
@@ -394,13 +394,13 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
      
      open(unit=10,form='formatted',status='old',file=trim(infile),iostat=io)
      if(io.ne.0) then
-        write(*,'(A)')'File not found: '//trim(infile)//', aborting.'
+        write(0,'(A)')'   Error:  File not found: '//trim(infile)//', aborting.'
         exitcode = 1
         return
      end if
      rewind(10)
      
-     !if(prprogress.ge.2) write(*,'(A,I3,A,I3,A20,$)')'    File',ic,':  '//trim(infile)//'    Using colour',colours(mod(ic-1,ncolours)+1),': '//colournames(colours(mod(ic-1,ncolours)+1))
+     !if(prprogress.ge.2) write(6,'(A,I3,A,I3,A20,$)')'    File',ic,':  '//trim(infile)//'    Using colour',colours(mod(ic-1,ncolours)+1),': '//colournames(colours(mod(ic-1,ncolours)+1))
      
      !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
      !Read the headers
@@ -418,7 +418,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
         if(detname(j-3:j).eq.'ston') detnr(ic,i) = 2
         if(detname(j-3:j).eq.'Pisa') detnr(ic,i) = 3
      end do
-     !if(prprogress.ge.1.and.update.eq.0) write(*,*)''
+     !if(prprogress.ge.1.and.update.eq.0) write(6,*)''
      read(10,*,end=199,err=199)bla
      
      i=1
@@ -429,13 +429,14 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
         if(io.lt.0) exit !EOF
         if(io.gt.0) then !Read error
            if(readerror.eq.1) then !Read error in previous line as well
-              write(*,'(A,I7,$)')'  Read error in file '//trim(infile)//', line',i
-              i = i-1
               if(i.lt.25) then
-                 write(*,'(A,/)')'  Aborting program...'
+                 write(0,'(A,I7,$)')'  Read error in file '//trim(infile)//', line',i
+                 write(0,'(A,/)')'  Aborting program...'
                  stop
               else
-                 write(*,*)
+                 write(6,'(A,I7,$)')'  Read error in file '//trim(infile)//', line',i
+                 write(6,*)
+                 i = i-1
                  exit
               end if
            end if
@@ -458,17 +459,17 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
         if(i1.ge.maxchlen) exit
      end do !i
      
-     if(i.ge.narr1-2) write(*,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
+     if(i.ge.narr1-2) write(0,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
      goto 199
 199  close(10)
      ntot(ic) = i-1
      n(ic) = ntot(ic) !n can be changed in rearranging chains, ntot won't be changed
-     !if(prprogress.ge.2.and.update.ne.1) write(*,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',nburn(ic),'.'
+     !if(prprogress.ge.2.and.update.ne.1) write(6,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',nburn(ic),'.'
   end do !do ic = 1,nchains0
   
   !varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
   !do i=1,npar0
-  !   write(*,'(A,I3,2F10.3)')varnames(i),i,minval(dat(i,1,3:n(1))),maxval(dat(i,1,3:n(1)))
+  !   write(6,'(A,I3,2F10.3)')varnames(i),i,minval(dat(i,1,3:n(1))),maxval(dat(i,1,3:n(1)))
   !end do
   
 end subroutine read_mcmcfiles
@@ -499,24 +500,24 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   do ic = 1,nchains0
      totiter = totiter + nint(is(ic,ntot(ic)))
   end do
-  !if(prprogress.ge.2.and.update.ne.1) write(*,'(A10,65x,2(A,I9),A1)')'Total:',' Lines:',sum(ntot(1:nchains0)),', iterations:',totiter
+  !if(prprogress.ge.2.and.update.ne.1) write(6,'(A10,65x,2(A,I9),A1)')'Total:',' Lines:',sum(ntot(1:nchains0)),', iterations:',totiter
   
   
   
   !Print run info (detectors, SNR, amount of data, FFT, etc)
   if(prruninfo.gt.0.and.update.eq.0) then
-     if(prruninfo.eq.1) write(*,'(/,A)')'  Run inormation for chain 1:'
-     if(prruninfo.eq.2) write(*,'(/,A)')'  Run inormation:'
+     if(prruninfo.eq.1) write(6,'(/,A)')'  Run inormation for chain 1:'
+     if(prruninfo.eq.2) write(6,'(/,A)')'  Run inormation:'
      do ic = 1,nchains0
         if((prruninfo.eq.1.and.ic.eq.1) .or. prruninfo.eq.2) then
-           write(*,'(4x,A7,A23,A13,A10,A12,A8,A22,A8)')'Chain','file name','colour','niter','nburn','seed','null likelihood','ndet'
-           write(*,'(4x,I7,A23,A13,I10,I12,I8,F22.10,I8)')ic,trim(infiles(ic)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
-           write(*,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
+           write(6,'(4x,A7,A23,A13,A10,A12,A8,A22,A8)')'Chain','file name','colour','niter','nburn','seed','null likelihood','ndet'
+           write(6,'(4x,I7,A23,A13,I10,I12,I8,F22.10,I8)')ic,trim(infiles(ic)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
+           write(6,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
            
            do i=1,ndet(ic)
-              write(*,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')trim(detnames(ic,i)),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+              write(6,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')trim(detnames(ic,i)),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
            end do
-           write(*,*)
+           write(6,*)
         end if
      end do !do ic = 1,nchains0
   end if  !prruninfo.gt.0
@@ -535,7 +536,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
         if(nburn(ic).ge.nint(is(ic,n(ic)))) then
            !print*,nburn(ic),nint(is(ic,n(ic)))
            if(nburn0(ic).ge.nint(is(ic,n(ic)))) then
-              write(*,'(A,I3)')'   *** WARNING ***  Nburn larger than Nchain, setting nburn to 10% for chain',ic
+              write(0,'(A,I3)')'   *** WARNING ***  Nburn larger than Nchain, setting nburn to 10% for chain',ic
               nburn(ic) = nint(is(ic,n(ic))*0.1)
            else
               nburn(ic) = nburn0(ic)
@@ -575,7 +576,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   if(prruninfo.ge.1) then
      ic = icloglmax
      i = iloglmax
-     write(*,'(A,I4,2(A,I9),A,F10.3,A)')'    Maximum likelihood point:   chain:',ic,' ('//trim(infiles(ic))//'),   line:',i*thin+7+ndet(ic), &
+     write(6,'(A,I4,2(A,I9),A,F10.3,A)')'    Maximum likelihood point:   chain:',ic,' ('//trim(infiles(ic))//'),   line:',i*thin+7+ndet(ic), &
           ',   iteration:',nint(is(ic,i)),',   max log(L):',loglmax,'.'
      
      !Test: get parameter values for L=Lmax
@@ -588,7 +589,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
         
         write(6,'(F9.4,F10.4,F21.6,F11.4,F10.4,F12.4,2F11.4,F12.4,3F11.4)')m1,m2,dat(4,ic,i)+t0,exp(dat(5,ic,i)),dat(6,ic,i),acos(dat(7,ic,i))*r2d,dat(8,ic,i)*r2h,asin(dat(9,ic,i))*r2d,dat(10,ic,i)*r2d,asin(dat(11,ic,i))*r2d,dat(12,ic,i)*r2d,dat(13,ic,i)*r2d
      end if
-     if(prruninfo.ge.1) write(*,*)
+     if(prruninfo.ge.1) write(6,*)
   end if
   
   
@@ -613,7 +614,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   !*** Print chain info to screen
   !Print info on number of iterations, burnin, thinning, etc.
   do ic=1,nchains0
-     if(prchaininfo.ge.2.and.update.ne.1) write(*,'(A9,I3,A2,A23,A12,A,ES7.1,A,ES7.1,A,ES7.1,A,ES7.1, A,F8.2, A,I3,A,I4,A,ES8.2,A1)') &
+     if(prchaininfo.ge.2.and.update.ne.1) write(6,'(A9,I3,A2,A23,A12,A,ES7.1,A,ES7.1,A,ES7.1,A,ES7.1, A,F8.2, A,I3,A,I4,A,ES8.2,A1)') &
           'Chain',ic,': ',trim(infiles(ic)),', '//colournames(colours(mod(ic-1,ncolours)+1))//'.', '  Lines/iter: ',real(n(ic)),'/',is(ic,n(ic)), &
           '.  Burn-in: ',real(nburn(ic)),'/',isburn(ic),'.  Lmax:',loglmaxs(ic),'.  Thin: file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),', tot:',totthin(ic),'.  Data pts: ',real(n(ic)-nburn(ic)),'.'
   end do
@@ -630,9 +631,9 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      end if
   end do
   totlines = sum(ntot(1:nchains0))
-  !if(prchaininfo.ge.1.and.update.ne.1) write(*,'(4x,A, A,ES10.4, A,ES10.4, A,ES10.4,  A2,F5.1, A,I3,A1,I2,A1)') 'In all chains:','  number of lines: ',real(totlines), &
+  !if(prchaininfo.ge.1.and.update.ne.1) write(6,'(4x,A, A,ES10.4, A,ES10.4, A,ES10.4,  A2,F5.1, A,I3,A1,I2,A1)') 'In all chains:','  number of lines: ',real(totlines), &
   !     ',  number of iterations: ',real(totiter),',  number of data points after burnin: ',real(totpts),' (',real(totpts)/real(totlines)*100,'%), contributing chains:',contrchains,'/',nchains0,'.'
-  if(prchaininfo.ge.1.and.update.ne.1) write(*,'(4x,A, A,ES10.4, A,ES10.4, A,I4, A,ES10.4,  A2,F5.1, A,I3,A1,I2,A1)') 'In all chains:','  # lines: ',real(totlines), &
+  if(prchaininfo.ge.1.and.update.ne.1) write(6,'(4x,A, A,ES10.4, A,ES10.4, A,I4, A,ES10.4,  A2,F5.1, A,I3,A1,I2,A1)') 'In all chains:','  # lines: ',real(totlines), &
        ',  # iterations: ',real(totiter),',  total thinning:',nint(avgtotthin),'x, # data points after burnin: ',real(totpts),' (',real(totpts)/real(totlines)*100,'%), contributing chains:',contrchains,'/',nchains0,'.'
   
   
@@ -644,32 +645,32 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      chainpli = max(1,nint(real(sum(ntot(1:nchains0)))/real(maxdots)))  !Use ntot and nchains0, since n is low if many points are in the burnin
      if(prchaininfo.ge.1.and.update.eq.0) then
         if(chainpli.gt.1) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
-           write(*,'(A,I4,A,I5,A,I5,A)')'    Plotting every',chainpli,'-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*chainpli),'x.'
+           write(6,'(A,I4,A,I5,A,I5,A)')'    Plotting every',chainpli,'-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*chainpli),'x.'
         else
-           write(*,'(A,I4,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.  Average total thinning remains',nint(avgtotthin),'x for these plots.'
+           write(6,'(A,I4,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.  Average total thinning remains',nint(avgtotthin),'x for these plots.'
         end if
      end if
-     write(*,*)
+     write(6,*)
   end if
-  !if(prruninfo.gt.0) write(*,*)
+  !if(prruninfo.gt.0) write(6,*)
   
   
   
   
   !*** Change some MCMC parameters:
   if(changevar.gt.0) then
-     if(prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')'  Changing some variables...   '
+     if(prprogress.ge.2.and.update.eq.0) write(6,'(A,$)')'  Changing some variables...   '
      !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
      do ic=1,nchains0
         if(maxval(dat(3,ic,1:ntot(ic))).le.0.5d0) then
            !Calculate the individual masses from Mch and eta:
-           if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(*,'(A)')"  I'm assuming the MCMC was done with Mc and eta."
+           if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(6,'(A)')"  I'm assuming the MCMC was done with Mc and eta."
            do i=1,ntot(ic)
               call mc_eta_2_m1_m2r(dat(2,ic,i),dat(3,ic,i), dat(14,ic,i),dat(15,ic,i))
            end do
         else
            !Calculate Mch and eta from the individual masses:
-           if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(*,'(A)')"  I'm assuming the MCMC was done with M1 and M2."
+           if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(6,'(A)')"  I'm assuming the MCMC was done with M1 and M2."
            dat(14,ic,1:ntot(ic)) = dat(2,ic,1:ntot(ic))  !M1
            dat(15,ic,1:ntot(ic)) = dat(3,ic,1:ntot(ic))  !M2
            do i=1,ntot(ic)
@@ -698,8 +699,8 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   jumps = 0.
   offsetrun = 0
   if(prinitial.ne.0) then
-     write(*,'(/,A)')'  True, starting and Lmax values for the chains:'
-     write(*,'(11x,A20,14A10)')varnames(1:15)
+     write(6,'(/,A)')'  True, starting and Lmax values for the chains:'
+     write(6,'(11x,A20,14A10)')varnames(1:15)
   end if
   do ic=1,nchains
      pldat(ic,1:npar,1:n(ic)) = real(dat(1:npar,ic,1:n(ic))) !Note the change of order of indices!!!  Pldat has the same structure as alldat.  Pldat contains all data that's in dat (also before the burnin), but in single precision.  Use it to plot log(L), jumps, chains, etc., but not for statistics (and PDF creation).
@@ -707,22 +708,22 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      startval(ic,1:npar,3)    = real(dat(1:npar,icloglmax,iloglmax)) !Lmax value
      jumps(ic,1:npar,2:n(ic)) = real(dat(1:npar,ic,2:n(ic)) -  dat(1:npar,ic,1:n(ic)-1))
      if(prinitial.ne.0) then 
-        if(ic.eq.1) write(*,'(5x,A11,F15.5,14F10.5,/)')'True:  ',startval(1,1:15,1)
+        if(ic.eq.1) write(6,'(5x,A11,F15.5,14F10.5,/)')'True:  ',startval(1,1:15,1)
         if(abs((sum(startval(ic,1:15,1))-sum(startval(ic,1:15,2)))/sum(startval(ic,1:15,1))).gt.1.e-10) then
            offsetrun = 1
-           write(*,'(I4,A1,A11,F15.5,14F10.5)')ic,':','  Start: ',startval(ic,1:15,2)
-           write(*,'(5x,A11,F15.5,14F10.5,/)')'Diff:  ',abs(startval(ic,1:15,1)-startval(ic,1:15,2))!/abs(startval(ic,1:15,1))
+           write(6,'(I4,A1,A11,F15.5,14F10.5)')ic,':','  Start: ',startval(ic,1:15,2)
+           write(6,'(5x,A11,F15.5,14F10.5,/)')'Diff:  ',abs(startval(ic,1:15,1)-startval(ic,1:15,2))!/abs(startval(ic,1:15,1))
         end if
      end if
   end do
   if(prinitial.ne.0) then
-     write(*,'(5x,A11,F15.5,14F10.5)')'Lmax:  ',startval(1,1:15,3)
-     write(*,'(5x,A11,F15.5,14F10.5,/)')'Diff:  ',abs(startval(1,1:15,1)-startval(1,1:15,3))
+     write(6,'(5x,A11,F15.5,14F10.5)')'Lmax:  ',startval(1,1:15,3)
+     write(6,'(5x,A11,F15.5,14F10.5,/)')'Diff:  ',abs(startval(1,1:15,1)-startval(1,1:15,3))
   end if
   
   
-  !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')'  Done.'
-  if(prprogress.ge.2.and.update.eq.0) write(*,'(A,I12)')'  t0:',nint(t0)
+  !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')'  Done.'
+  if(prprogress.ge.2.and.update.eq.0) write(6,'(A,I12)')'  t0:',nint(t0)
   
   
   
@@ -768,14 +769,14 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      end do
      nchains = 1
      n(1) = j-1
-     !if(prprogress.ge.1) write(*,'(A,I8,A,ES7.1,A)')'  Data points in combined chains: ',n(1),'  (',real(n(1)),')'
+     !if(prprogress.ge.1) write(6,'(A,I8,A,ES7.1,A)')'  Data points in combined chains: ',n(1),'  (',real(n(1)),')'
   else
      allocate(alldat(nchains,npar1,narr))
      do ic=1,nchains
         alldat(ic,1:npar,1:n(ic)-nburn(ic)) = real(dat(1:npar,ic,nburn(ic)+1:n(ic)))  !Note the change of order of indices!!!  Alldat has the same structure as pldat, but contains only info AFTER the burnin.
         n(ic) = n(ic)-nburn(ic) !n(ic)=0 if a chain is not contributing (in which case contrchain(ic)=0)!
      end do
-     !if(prprogress.ge.1) write(*,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
+     !if(prprogress.ge.1) write(6,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
   end if
   
   
@@ -807,7 +808,7 @@ function lon2ra(lon, GPSsec)
   gps0 = 630720013.d0 !GPS time at 1/1/2000 at midnight
   leapseconds = 32.d0 !At Jan 1st 2000
   if(GPSsec.gt.(gps0 + 189388800.d0)) leapseconds = leapseconds + 1.d0 !One more leapsecond after 1/1/2006
-  if(GPSsec.lt.630720013.d0) write(*,'(A)')'WARNING: GMSTs before 1.1.2000 are inaccurate!'
+  if(GPSsec.lt.630720013.d0) write(0,'(A)')'   WARNING: GMSTs before 1.1.2000 are inaccurate!'
   !Time since 1/1/2000 midnight
   seconds       = (GPSsec - gps0) + (leapseconds - 32.d0)
   days          = floor(seconds/86400.d0) - 0.5d0
@@ -892,7 +893,7 @@ subroutine dindexx(n,arr,indx)
      indx(j)=indxt
      jstack=jstack+2
      !if(jstack.gt.nstack)pause 'nstack too small in indexx'
-     if(jstack.gt.nstack) write(*,'(A)')' nstack too small in dindexx'
+     if(jstack.gt.nstack) write(0,'(A)')' nstack too small in dindexx'
      if(ir-i+1.ge.j-l) then
         istack(jstack)=ir
         istack(jstack-1)=i
@@ -974,7 +975,7 @@ subroutine rindexx(n,arr,indx)
      indx(j)=indxt
      jstack=jstack+2
      !if(jstack.gt.nstack)pause 'nstack too small in indexx'
-     if(jstack.gt.nstack) write(*,'(A)')' nstack too small in rindexx'
+     if(jstack.gt.nstack) write(0,'(A)')' nstack too small in rindexx'
      if(ir-i+1.ge.j-l) then
         istack(jstack)=ir
         istack(jstack-1)=i
@@ -999,7 +1000,7 @@ subroutine savgol(c,np,nl,nr,ld,m)
   integer :: imj,ipj,j,k,kk,mm,indx(mmax+1)
   real :: d,fac,sum,a(mmax+1,mmax+1),b(mmax+1)
   !if(np.lt.nl+nr+1.or.nl.lt.0.or.nr.lt.0.or.ld.gt.m.or.m.gt.mmax.or.nl+nr.lt.m) pause 'bad args in savgol'
-  if(np.lt.nl+nr+1.or.nl.lt.0.or.nr.lt.0.or.ld.gt.m.or.m.gt.mmax.or.nl+nr.lt.m) write(*,'(A)')' Bad args in savgol'
+  if(np.lt.nl+nr+1.or.nl.lt.0.or.nr.lt.0.or.ld.gt.m.or.m.gt.mmax.or.nl+nr.lt.m) write(0,'(A)')' Bad args in savgol'
   do ipj=0,2*m
      sum=0.
      if(ipj.eq.0)sum=1.
@@ -1085,7 +1086,7 @@ subroutine ludcmp(a,n,np,indx,d)
        if (abs(a(i,j)).gt.aamax) aamax=abs(a(i,j))
     end do
     !if (aamax.eq.0.) pause 'singular matrix in ludcmp'
-    if(aamax.eq.0.) write(*,'(A)')' Singular matrix in ludcmp'
+    if(aamax.eq.0.) write(0,'(A)')' Singular matrix in ludcmp'
     vv(i)=1./aamax
  end do
  do j=1,n
@@ -1327,7 +1328,7 @@ subroutine sort(n,arr)
      arr(j)=a
      jstack=jstack+2
      !if(jstack.gt.nstack)pause 'nstack too small in sort'
-     if(jstack.gt.nstack) write(*,'(A)')' nstack too small in dindexx'
+     if(jstack.gt.nstack) write(0,'(A)')' nstack too small in dindexx'
      if(ir-i+1.ge.j-l) then
         istack(jstack)=ir
         istack(jstack-1)=i
@@ -1551,7 +1552,7 @@ subroutine crossproduct(vec1,vec2,crpr) !Compute the cross (outer) product of tw
   crpr(1) = vec1(2)*vec2(3) - vec1(3)*vec2(2)
   crpr(2) = vec1(3)*vec2(1) - vec1(1)*vec2(3)
   crpr(3) = vec1(1)*vec2(2) - vec1(2)*vec2(1)
-  !write(*,'(3ES13.3)')veclen(vec1),veclen(vec2),veclen(crpr)
+  !write(6,'(3ES13.3)')veclen(vec1),veclen(vec2),veclen(crpr)
 end subroutine crossproduct
 !************************************************************************
 
@@ -1578,8 +1579,8 @@ function posangle(p,o)  !Compute the position angle of a source with position no
   real*8 :: posangle,p(3),o(3)
   real*8 :: x1(3),o1(3),z(3),z1(3),dotproduct
   
-  !write(*,'(3ES13.3)')p
-  !write(*,'(3ES13.3)')o
+  !write(6,'(3ES13.3)')p
+  !write(6,'(3ES13.3)')o
   
   call crossproduct(p,o,x1)
   call crossproduct(x1,p,o1) !o1: projection of o in the plane of the sky
@@ -1591,11 +1592,11 @@ function posangle(p,o)  !Compute the position angle of a source with position no
   call normvec(o1)
   call normvec(z1)
   posangle = dacos(dotproduct(o1,z1))
-  !write(*,'(3ES13.3)')p
-  !write(*,'(3ES13.3)')o
-  !write(*,'(3ES13.3)')o1
-  !write(*,'(3ES13.3)')z1
-  !write(*,'(3ES13.3)')dotproduct(o1,z1),dacos(dotproduct(o1,z1))
+  !write(6,'(3ES13.3)')p
+  !write(6,'(3ES13.3)')o
+  !write(6,'(3ES13.3)')o1
+  !write(6,'(3ES13.3)')z1
+  !write(6,'(3ES13.3)')dotproduct(o1,z1),dacos(dotproduct(o1,z1))
 end function posangle
 !************************************************************************
 

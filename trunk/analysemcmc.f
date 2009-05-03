@@ -17,7 +17,7 @@ program analysemcmc
   wikioutput = 1  !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
   
   timestamps(1) = timestamp(os)
-  write(*,*)
+  write(6,*)
   
   os = getos() !1-Linux, 2-MacOS
   
@@ -39,10 +39,10 @@ program analysemcmc
   
   nchains0 = iargc()
   if(nchains0.lt.1) then
-     write(*,'(A,/)')'  Syntax: analysemcmc <file1> [file2] ...'
+     write(0,'(A,/)')'  Syntax: analysemcmc <file1> [file2] ...'
      stop
   end if
-  if(nchains0.gt.nchs) write(*,'(A,I3,A)')'  *** WARNING:  Too many input files (chains), please increase nchs in analysemcmc_functions.f. Only',nchs,' files can be read.'
+  if(nchains0.gt.nchs) write(0,'(A,I3,A)')'  *** WARNING:  Too many input files (chains), please increase nchs in analysemcmc_functions.f. Only',nchs,' files can be read.'
   nchains0 = min(nchains0,nchs)
   
   
@@ -162,9 +162,6 @@ program analysemcmc
      do i=1,ncolours
         tempintarray(i) = colours(i)
      end do
-     !do i=1,ncolours
-     !   colours(i) = tempintarray(ncolours-i+1) !Reverse colours too
-     !end do
      do i=1,nchains0
         colours(i) = tempintarray(nchains0-i+1) !Reverse colours too, but use the same first nchains0 from the set
      end do
@@ -182,7 +179,7 @@ program analysemcmc
      plmovie = 0
   end if
   if(savepdf.eq.1) then
-     if(nplvar.ne.15) write(*,'(/,A)')'*** WARNING:  I changed nplvar to 15, since savepdf is selected ***'
+     if(nplvar.ne.15) write(0,'(/,A)')'*** WARNING:  I changed nplvar to 15, since savepdf is selected ***'
      nplvar = 15; plvars(1:nplvar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !All 12 + m1,m2
      wrapdata = 0
   end if
@@ -257,9 +254,9 @@ program analysemcmc
   
   
   
-  !if(prprogress+prruninfo+prinitial.ge.1) write(*,*)
+  !if(prprogress+prruninfo+prinitial.ge.1) write(6,*)
   npar = 13
-  if(prchaininfo.ge.1) write(*,'(A,I3,A)')'  Analysing',nchains0,' chains '
+  if(prchaininfo.ge.1) write(6,'(A,I3,A)')'  Analysing',nchains0,' chains '
   nchains = nchains0
   
   
@@ -305,7 +302,7 @@ program analysemcmc
   if(changevar.gt.0) then
      do ic=1,nchains0
         !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:dl, 6:spin,  7:theta_SL, 8: RA,   9:dec, 10:phase, 11:thJ0, 12:phiJ0, 13:alpha
-        !if(prprogress.ge.2.and.update.eq.0) write(*,'(A,$)')'Changing some variables...   '
+        !if(prprogress.ge.2.and.update.eq.0) write(6,'(A,$)')'Changing some variables...   '
         do p=par1,par2
            if(p.eq.5) pldat(ic,p,1:ntot(ic)) = exp(pldat(ic,p,1:ntot(ic)))
            !if(p.eq.9.or.p.eq.11) pldat(ic,p,1:ntot(ic)) = asin(pldat(ic,p,1:ntot(ic)))*r2d
@@ -316,7 +313,7 @@ program analysemcmc
            if(p.ge.10.and.p.le.13) pldat(ic,p,1:ntot(ic)) = pldat(ic,p,1:ntot(ic))*r2d
         end do !p
      end do
-     !if(prprogress.ge.2.and.update.eq.0) write(*,'(A)')'  Done.'
+     !if(prprogress.ge.2.and.update.eq.0) write(6,'(A)')'  Done.'
   end if !if(changevar.eq.1)
   
   
@@ -331,8 +328,8 @@ program analysemcmc
   
   timestamps(4) = timestamp(os)
   
-  if(prprogress.ge.2) write(*,*)''
-  if(plot.eq.1.and.prprogress.ge.1.and.update.eq.0) write(*,'(/,A,$)')'  Plotting: '
+  if(prprogress.ge.2) write(6,*)''
+  if(plot.eq.1.and.prprogress.ge.1.and.update.eq.0) write(6,'(/,A,$)')'  Plotting: '
   
   
   !***********************************************************************************************************************************      
@@ -375,7 +372,7 @@ program analysemcmc
   
   !***********************************************************************************************************************************      
   if(plpdf2d.ge.1.and.mergechains.eq.0) then
-     write(*,'(A,$)')', (skipping 2D PDFs since mergechains=0), '
+     write(6,'(A,$)')', (skipping 2D PDFs since mergechains=0), '
      plpdf2d = 0
   end if
   
@@ -385,9 +382,9 @@ program analysemcmc
   end if !if(plpdf2d.eq.1)
   
   if(npdf2d.lt.0) then !Then we just plotted all 2D PDFs
-     write(*,*)
+     write(6,*)
   else
-     if(prprogress.ge.1.and.update.eq.0) write(*,'(A,/)')'done.  '
+     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,/)')'done.  '
   end if
   
   
@@ -423,11 +420,11 @@ program analysemcmc
   timestamps(7) = timestamp(os)
   
   !Write statistics to file
-  if(savestats.ge.1.and.nchains.gt.1) write(*,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
+  if(savestats.ge.1.and.nchains.gt.1) write(0,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
   if(savestats.ge.1.and.nchains.eq.1) then
-     call printstats(exitcode)
+     call save_stats(exitcode)
      if(exitcode.ne.0) goto 9999
-     write(*,*)''
+     write(6,*)''
   end if !if(savestats.ge.1.and.nchains.eq.1) then
   
   
@@ -474,35 +471,35 @@ program analysemcmc
      goto 101
   end if
   
-  !write(*,'(A)')'  Waiting for you to finish me off...'
+  !write(6,'(A)')'  Waiting for you to finish me off...'
   !pause
   
 9999 continue
   deallocate(pldat,alldat)
-  !if(prprogress.ge.1) write(*,*)''
+  !if(prprogress.ge.1) write(6,*)''
   
   timestamps(9) = timestamp(os)
   
   if(prprogress.ge.1) then
-     write(*,'(A,$)')'  Run time: '
-     write(*,'(A,F5.1,A,$)')'   input:',min(dabs(timestamps(2)-timestamps(1)),999.9),'s,'
-     !write(*,'(A,F5.1,A,$)')'   info:',min(dabs(timestamps(3)-timestamps(2)),999.9),'s,'
-     !write(*,'(A,F5.1,A,$)')'   stats:',min(dabs(timestamps(4)-timestamps(3)),999.9),'s,'
-     write(*,'(A,F5.1,A,$)')'   stats:',min(dabs(timestamps(4)-timestamps(2)),999.9),'s,'
+     write(6,'(A,$)')'  Run time: '
+     write(6,'(A,F5.1,A,$)')'   input:',min(dabs(timestamps(2)-timestamps(1)),999.9),'s,'
+     !write(6,'(A,F5.1,A,$)')'   info:',min(dabs(timestamps(3)-timestamps(2)),999.9),'s,'
+     !write(6,'(A,F5.1,A,$)')'   stats:',min(dabs(timestamps(4)-timestamps(3)),999.9),'s,'
+     write(6,'(A,F5.1,A,$)')'   stats:',min(dabs(timestamps(4)-timestamps(2)),999.9),'s,'
      if(plot.eq.1.and.pllogl+plchain+pljump+plsigacc+placorr.gt.0) then
-        write(*,'(A,F5.1,A,$)')'   chains:',min(dabs(timestamps(5)-timestamps(4)),999.9),'s,'
+        write(6,'(A,F5.1,A,$)')'   chains:',min(dabs(timestamps(5)-timestamps(4)),999.9),'s,'
      end if
      if(plot.eq.1.or.savepdf.ge.1) then
-        if(plpdf1d.ge.1) write(*,'(A,F5.1,A,$)')'   1d pdfs:',min(dabs(timestamps(6)-timestamps(5)),999.9),'s,'
-        if(plpdf2d.ge.1) write(*,'(A,F6.1,A,$)')'   2d pdfs:',min(dabs(timestamps(7)-timestamps(6)),999.9),'s,'
+        if(plpdf1d.ge.1) write(6,'(A,F5.1,A,$)')'   1d pdfs:',min(dabs(timestamps(6)-timestamps(5)),999.9),'s,'
+        if(plpdf2d.ge.1) write(6,'(A,F6.1,A,$)')'   2d pdfs:',min(dabs(timestamps(7)-timestamps(6)),999.9),'s,'
      end if
-     !write(*,'(A,F6.1,A,$)')'   plots:',min(dabs(timestamps(7)-timestamps(4)),999.9),'s,'
-     !write(*,'(A,F5.1,A,$)')'   save stats:',min(dabs(timestamps(8)-timestamps(7)),999.9),'s,'
-     if(plmovie.eq.1) write(*,'(A,F5.1,A,$)')'   movie:',min(dabs(timestamps(9)-timestamps(8)),999.9),'s,'
-     write(*,'(A,F6.1,A)')'   total:',min(dabs(timestamps(9)-timestamps(1)),999.9),'s.'
+     !write(6,'(A,F6.1,A,$)')'   plots:',min(dabs(timestamps(7)-timestamps(4)),999.9),'s,'
+     !write(6,'(A,F5.1,A,$)')'   save stats:',min(dabs(timestamps(8)-timestamps(7)),999.9),'s,'
+     if(plmovie.eq.1) write(6,'(A,F5.1,A,$)')'   movie:',min(dabs(timestamps(9)-timestamps(8)),999.9),'s,'
+     write(6,'(A,F6.1,A)')'   total:',min(dabs(timestamps(9)-timestamps(1)),999.9),'s.'
   end if
   
-  write(*,*)''
+  write(6,*)''
 end program analysemcmc
 !************************************************************************************************************************************
 

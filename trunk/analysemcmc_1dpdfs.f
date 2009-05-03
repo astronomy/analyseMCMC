@@ -17,8 +17,8 @@ subroutine pdfs1d(exitcode)
   character :: string*99,str*99,str1*99,str2*99
   
   exitcode=0
-  if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1) write(*,'(A,$)')'  Saving 1D pdfs'
-  if(prprogress.ge.1.and.plot.eq.1.and.update.eq.0) write(*,'(A,$)')' 1D pdfs'
+  if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1) write(6,'(A,$)')'  Saving 1D pdfs'
+  if(prprogress.ge.1.and.plot.eq.1.and.update.eq.0) write(6,'(A,$)')' 1D pdfs'
   
   !Autodetermine number of bins:
   if(nbin1d.le.0) then
@@ -29,12 +29,12 @@ subroutine pdfs1d(exitcode)
      end if
      nbin1d = max(nbin1d,5)
      if(prprogress.ge.2.and.plot.eq.1.and.update.eq.0) then
-        if(nbin1d.lt.100) write(*,'(A2,I2,A8,$)')' (',nbin1d,' bins), '
-        if(nbin1d.ge.100) write(*,'(A2,I3,A8,$)')' (',nbin1d,' bins), '
+        if(nbin1d.lt.100) write(6,'(A2,I2,A8,$)')' (',nbin1d,' bins), '
+        if(nbin1d.ge.100) write(6,'(A2,I3,A8,$)')' (',nbin1d,' bins), '
      end if
   else
      nbin1d = max(nbin1d,5)
-     if(prprogress.ge.1.and.plot.eq.1.and.update.eq.0) write(*,'(A2,$)')', '
+     if(prprogress.ge.1.and.plot.eq.1.and.update.eq.0) write(6,'(A2,$)')', '
   end if
 
   !Allocate memory:
@@ -93,7 +93,7 @@ subroutine pdfs1d(exitcode)
         end if
      end if !if(file.ge.1)
      if(io.le.0) then
-        write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
+        write(0,'(A,I4)')'  ERROR:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
         return
      end if
@@ -138,7 +138,7 @@ subroutine pdfs1d(exitcode)
         do ic=1,nchains
            xmin = min(xmin,ranges(ic,nival,p,1))
            xmax = max(xmax,ranges(ic,nival,p,2))
-           !write(*,'(3I4,6F10.3)')ic,p,nival,xmin,xmax,ranges(ic,nival,p,1),ranges(ic,nival,p,2)
+           !write(6,'(3I4,6F10.3)')ic,p,nival,xmin,xmax,ranges(ic,nival,p,1),ranges(ic,nival,p,2)
         end do
      end if
      !print*,xmin,huge(xmin)
@@ -189,7 +189,7 @@ subroutine pdfs1d(exitcode)
            else !Normalise to the height of the PDF
               if(normpdf1d.eq.2) ybin1 = ybin1/maxval(ybin1)  !Normalise to the height of the PDF
               if(normpdf1d.eq.3) ybin1 = ybin1/(maxval(ybin1)**0.5)  !Normalise to the sqrt of the height of the PDF; Works nicely for comparing parallel-tempering chains
-              if(ic*j.eq.1)write(*,'(//,A,/)')'  *** WARNING: using non-default normalisation for PDFs ***'
+              if(ic*j.eq.1) write(0,'(//,A,/)')'  *** WARNING: using non-default normalisation for PDFs ***'
            end if
         end if
         
@@ -261,6 +261,7 @@ subroutine pdfs1d(exitcode)
         !Plot 1D PDF
         !if(fixedpar(p).eq.0) then
         call pgsci(1)
+        bindx = 0.
         if(file.ge.2) call pgslw(lw)
         do ic=1,nchains
            if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
@@ -418,7 +419,7 @@ subroutine pdfs1d(exitcode)
            if(pltrue.eq.1.or.pltrue.eq.3.or.((pltrue.eq.2.or.pltrue.eq.4).and.version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.4.or.p.eq.6.or.p.eq.14.or.p.eq.15))) then
               if(mergechains.ne.1.or.ic.le.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  call pgsls(2); call pgsci(1)
-                 if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line when Lmax line isn't plotted (should we do this always?)
+                 if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
                  plx = startval(ic,p,1)
                  if(p.eq.8) plx = rev24(plx)
                  if(p.eq.10.or.p.eq.13) ply = rev360(ply)
@@ -593,16 +594,16 @@ subroutine pdfs1d(exitcode)
      if(file.ge.2) then
         if(file.eq.3) then
            i = system('eps2pdf pdfs.eps -o '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.pdf >& /dev/null')
-           if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+           if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         end if
         i = system('mv -f pdfs.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.eps')
      else if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharppdf1d)//' pdfs.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.png')
-        if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+        if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f pdfs.ppm')
      end if
   end if !if(plot.eq.1)
-  !write(*,*)''   
+  !write(6,*)''   
   
   
   !Deallocate memory:

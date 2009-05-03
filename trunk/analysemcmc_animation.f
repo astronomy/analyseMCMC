@@ -23,7 +23,7 @@ subroutine animation(exitcode)
   !i = system('cpu_time_type=total_alltime')
   !call cpu_time(cputime)
   ts1 = timestamp()
-  write(*,*)
+  write(6,*)
   p = 2 !Mc
 
   !moviescheme = 1  !Left column: Chain, sigma and acceptance, right column: numbers and PDF
@@ -37,11 +37,11 @@ subroutine animation(exitcode)
   do iframe = 0,nmovframes
      nplt = nint(real(iframe)/real(nmovframes)*maxval(ntot(1:nchains)))-1  !This is the line number, not the iteration number
      !nplt = nint(real(iframe)/real(nmovframes)*maxval(is))-1
-     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')' Plotting movie frame...'
+     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting movie frame...'
      if(prprogress.ge.1.and.update.eq.0) then
         if(prprogress.ge.1) then
            write(6,*)upline !Move cursor up 1 line
-           write(*,'(A,I5,A1,I5,A,I7,A,$)')' Plotting movie frame',iframe,'/',nmovframes,'  (',nplt,' points)'
+           write(6,'(A,I5,A1,I5,A,I7,A,$)')' Plotting movie frame',iframe,'/',nmovframes,'  (',nplt,' points)'
         end if
         !Print remaining time
         !call cpu_time(cputime)
@@ -96,10 +96,10 @@ subroutine animation(exitcode)
               y1 = x1
               y2 = x2
            end if
-           !write(*,'(2I6,7F12.8)')i,i+floor((nplt-nburn(ic))*ival),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
+           !write(6,'(2I6,7F12.8)')i,i+floor((nplt-nburn(ic))*ival),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
         end do !i
         centre = (y1+y2)/2.
-        !write(*,'(A8,4x,4F10.5,I4)')varnames(p),y1,y2,minrange,centre,wrap(ic,p)
+        !write(6,'(A8,4x,4F10.5,I4)')varnames(p),y1,y2,minrange,centre,wrap(ic,p)
 
         !Save ranges:
         range1 = y1
@@ -117,7 +117,7 @@ subroutine animation(exitcode)
      if(file.eq.0) io = pgopen('17/xs')
      if(file.eq.1) io = pgopen(trim(framename)//'/ppm')
      if(io.le.0) then
-        write(*,'(A,I4)')'Cannot open PGPlot device.  Quitting the programme',io
+        write(0,'(A,I4)')'   ERROR:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
         return
      end if
@@ -139,7 +139,7 @@ subroutine animation(exitcode)
      !Plot chain for this parameter
 
 
-     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')'  - parameter chains'
+     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')'  - parameter chains'
      call pgslw(lw)
      if(moviescheme.eq.1) call pgsvp(0.05,0.35,0.65,0.95)
      if(moviescheme.eq.2) call pgsvp(0.05,0.95,0.05,0.25)
@@ -235,7 +235,7 @@ subroutine animation(exitcode)
      if(moviescheme.eq.3) then
 
         p = 1
-        !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')'  - logL'
+        !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')'  - logL'
         call pgslw(lw)
         if(moviescheme.eq.3) call pgsvp(0.20,0.95,0.05,0.20)
         ic = 1
@@ -308,7 +308,7 @@ subroutine animation(exitcode)
 
      !***********************************************************************************************************************************            
      !Plot sigma values ('jump size')
-     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')'  - sigma'
+     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')'  - sigma'
 
      if(moviescheme.eq.1) then
         call pgsvp(0.05,0.35,0.35,0.65)
@@ -359,7 +359,7 @@ subroutine animation(exitcode)
 
      !***********************************************************************************************************************************            
      !Plot acceptance rate
-     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')'  - acceptance rate'
+     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')'  - acceptance rate'
 
      if(moviescheme.eq.1) then
         call pgsvp(0.05,0.35,0.05,0.35)
@@ -423,7 +423,7 @@ subroutine animation(exitcode)
 
      !***********************************************************************************************************************************            
      !Plot 1D pdf
-     !if(prprogress.ge.1.and.update.eq.0) write(*,'(A)')'  - pdf'
+     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')'  - pdf'
 
      if(moviescheme.eq.1) call pgsvp(0.45,0.95,0.05,0.8)
      if(moviescheme.eq.2) call pgsvp(0.25,0.95,0.32,0.999)
@@ -728,7 +728,7 @@ subroutine animation(exitcode)
         call pgend
         write(command,'(A)')'convert -resize 1024x738 -depth 8 -unsharp '//trim(unsharppdf1d)//' '//trim(framename)//' '//trim(framename)
         i = system(trim(command))  !Rescale the output frame
-        if(i.ne.0) write(*,'(A,I6)')'  Error converting plot',i
+        if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
      end if
 
   end do  !do(iframe=0,nmovframes)
