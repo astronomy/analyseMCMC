@@ -43,6 +43,8 @@ subroutine chains(exitcode)
      if(file.eq.0) call pgsch(1.5)
      if(file.eq.1) call pgpap(bmpsz,bmprat)
      if(file.eq.1) call pgsch(1.5)
+     if(file.ge.2) call pgpap(pssz,psrat)
+     if(file.ge.2) call pgscf(fonttype)
      !call pgscr(3,0.,0.5,0.)
      call pginitl(colour,file,whitebg)
      !call pgsubp(1,2)
@@ -405,7 +407,7 @@ subroutine chains(exitcode)
 
 
            !Plot true values in chains
-           if(pltrue.eq.1) then
+           if(pltrue.ge.1) then
               if(mergechains.ne.1.or.ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  !if(ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  plx = startval(ic,p,1) !True value
@@ -435,7 +437,7 @@ subroutine chains(exitcode)
 
 
            !Plot starting values in chains
-           if(plstart.eq.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/startval(ic,p,1)) .gt. 1.e-10) then
+           if(plstart.ge.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/startval(ic,p,1)) .gt. 1.e-10) then
               call pgsls(4)
               if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               plx = startval(ic,p,2) !Initial value
@@ -722,7 +724,7 @@ subroutine chains(exitcode)
            call pgsci(1)
 
            !Plot true values
-           if(pltrue.eq.1) then
+           if(pltrue.ge.1) then
               if(mergechains.ne.1.or.ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  !if(ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  plx = startval(ic,p,1) !True value

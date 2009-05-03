@@ -446,15 +446,18 @@ subroutine pdfs2d(exitcode)
 
            if(plotsky.eq.1) call pgsci(0)
            call pgsls(2)
-
+           
            !Plot true value in 2D PDF
-           if(pltrue.ge.1.and.plotsky.eq.0) then
+           if((pltrue.eq.1.or.pltrue.eq.3).and.plotsky.eq.0 .or. &
+                !((pltrue.eq.2.or.pltrue.eq.4) .and. (p1.eq.2.and.p2.eq.3).or.(p1.eq.6.and.p2.eq.7).or.(p1.eq.14.and.p2.eq.15)) ) then
+                ((pltrue.eq.2.or.pltrue.eq.4) .and. (p1.eq.2.and.p2.eq.3).or.(p1.eq.14.and.p2.eq.15)) ) then
               !call pgline(2,(/startval(ic,p1,1),startval(ic,p1,1)/),(/-1.e20,1.e20/))
               !call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p2,1),startval(ic,p2,1)/))
 
               if(mergechains.ne.1.or.ic.le.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  !x
                  call pgsls(2); call pgsci(1)
+                 if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
                  plx = startval(ic,p1,1)
                  if(p1.eq.8) plx = rev24(plx)
                  if(p1.eq.10.or.p1.eq.12.or.p1.eq.13) plx = rev360(plx)
@@ -470,6 +473,7 @@ subroutine pdfs2d(exitcode)
 
                  !y
                  call pgsls(2); call pgsci(1)
+                 if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
                  ply = startval(ic,p2,1)
                  if(p2.eq.8) ply = rev24(ply)
                  if(p2.eq.10.or.p2.eq.12.or.p2.eq.13) ply = rev360(ply)
@@ -497,7 +501,7 @@ subroutine pdfs2d(exitcode)
            call pgsci(2)
 
            !Plot interval ranges in 2D PDF
-           if(plrange.eq.2.or.plrange.eq.3) then
+           if(plrange.eq.2.or.plrange.eq.3.or.plrange.eq.5.or.plrange.eq.6) then
               call pgsls(1)
               call pgsch(sch*0.6)
               call pgsah(1,45.,0.1)
@@ -518,7 +522,7 @@ subroutine pdfs2d(exitcode)
 
 
            !Plot medians in 2D PDF
-           if(plmedian.eq.2.or.plmedian.eq.3) then
+           if(plmedian.eq.2.or.plmedian.eq.3.or.plmedian.eq.5.or.plmedian.eq.6) then
               call pgline(2,(/stats(ic,p1,1),stats(ic,p1,1)/),(/-1.e20,1.e20/))
               call pgline(2,(/-1.e20,1.e20/),(/stats(ic,p2,1),stats(ic,p2,1)/))
               call pgpoint(1,stats(ic,p1,1),stats(ic,p2,1),18)
@@ -528,7 +532,7 @@ subroutine pdfs2d(exitcode)
            
            
            !Big star at true position in 2D PDF
-           if(plotsky.eq.1.and.pltrue.eq.1) then
+           if(plotsky.eq.1.and.(pltrue.eq.1.or.pltrue.eq.3)) then
               call pgsch(sch*2)
               call pgsci(9)
               call pgpoint(1,startval(ic,p1,1),startval(ic,p2,1),18)
@@ -575,7 +579,7 @@ subroutine pdfs2d(exitcode)
                     end if
                  end if
                  if(i.eq.3) then
-                    call pgsch(sch*0.9) !Needed to fit the square-degree sign in
+                    call pgsch(sch*0.85) !Needed to fit the square-degree sign in
                     if(quality.eq.3) call pgsch(sch*0.6) !Poster
                     if(a.lt.1.) then
                        write(string,'(F5.1,A2,F5.2,A9)')ivals(c)*100,'%:',a,'deg\u2\d'

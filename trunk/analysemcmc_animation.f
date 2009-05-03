@@ -160,11 +160,11 @@ subroutine animation(exitcode)
         !   ymin = min(ymin,minval(pldat(ic,p,1:ntot(ic))))
         !   ymax = max(ymax,maxval(pldat(ic,p,1:ntot(ic))))
         !end if
-        if(pltrue.eq.1) then
+        if(pltrue.ge.1) then
            ymin = minval((/startval(ic,p,1),ymin/))
            ymax = maxval((/startval(ic,p,1),ymax/))
         end if
-        if(plstart.eq.1) then
+        if(plstart.ge.1) then
            ymin = minval((/startval(ic,p,2),ymin/))
            ymax = maxval((/startval(ic,p,2),ymax/))
         end if
@@ -275,7 +275,7 @@ subroutine animation(exitcode)
 
         do ic=1,nchains0
            call pgsls(2)
-           if(pltrue.eq.1) then
+           if(pltrue.ge.1) then
               call pgsci(2)
               if(nchains0.gt.1) call pgsci(1)
               call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p,1),startval(ic,p,1)/))  !True value

@@ -227,10 +227,10 @@ subroutine write_settingsfile
   write(u,11)chainpli, 'chainpli',   'Plot every chainpli-th point in chains, logL, jump plots:  chainpli=0: autodetermine, chainpli>0: use this chainpli.  All states in between *are* used for statistics, pdf generation, etc.'
   write(u,11)scloglpl, 'scloglpl',   'Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account'
   write(u,11)scchainspl, 'scchainspl',   'Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account'
-  write(u,11)pltrue, 'pltrue',   'Plot true values in the chains and pdfs'
+  write(u,11)pltrue, 'pltrue',   'Plot true values in the chains and pdfs: 0: no,  1: yes (all pars),  2: yes (selected pars), 3-4: as 1-2 + print value in PDF panel'
   write(u,11)plstart, 'plstart',   'Plot starting values in the chains and pdfs'
-  write(u,11)plmedian, 'plmedian',   'Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both'
-  write(u,11)plrange, 'plrange',   'Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both'
+  write(u,11)plmedian, 'plmedian',   'Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel'
+  write(u,11)plrange, 'plrange',   'Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel'
   write(u,11)plburn, 'plburn',   'Plot the burnin in logL, the chains, etc.'
   write(u,11)pllmax, 'pllmax',   'Plot the position of the max logL, in the chains and pdfs'
   write(u,11)prvalues, 'prvalues',   'Print values (true, median, range) in pdfs'
@@ -826,28 +826,30 @@ end function lon2ra
 
 !************************************************************************************************************************************
 subroutine dindexx(n,arr,indx)
-  integer :: n,indx(n),m,nstack
+  implicit none
+  integer, parameter :: m=7,nstack=50
+  integer :: n,indx(n)
   real*8 :: arr(n),a
-  parameter (m=7,nstack=50)
   integer :: i,indxt,ir,itemp,j,jstack,k,l,istack(nstack)
+  
   do j=1,n
      indx(j)=j
   end do
   jstack=0
   l=1
   ir=n
-1 if(ir-l.lt.m)then
+1 if(ir-l.lt.m) then
      do j=l+1,ir
         indxt=indx(j)
         a=arr(indxt)
         do i=j-1,l,-1
-           if(arr(indx(i)).le.a)goto 2
+           if(arr(indx(i)).le.a) goto 2
            indx(i+1)=indx(i)
         end do
         i=l-1
 2       indx(i+1)=indxt
      end do
-     if(jstack.eq.0)return
+     if(jstack.eq.0) return
      ir=istack(jstack)
      l=istack(jstack-1)
      jstack=jstack-2
@@ -856,17 +858,17 @@ subroutine dindexx(n,arr,indx)
      itemp=indx(k)
      indx(k)=indx(l+1)
      indx(l+1)=itemp
-     if(arr(indx(l)).gt.arr(indx(ir)))then
+     if(arr(indx(l)).gt.arr(indx(ir))) then
         itemp=indx(l)
         indx(l)=indx(ir)
         indx(ir)=itemp
      end if
-     if(arr(indx(l+1)).gt.arr(indx(ir)))then
+     if(arr(indx(l+1)).gt.arr(indx(ir))) then
         itemp=indx(l+1)
         indx(l+1)=indx(ir)
         indx(ir)=itemp
      end if
-     if(arr(indx(l)).gt.arr(indx(l+1)))then
+     if(arr(indx(l)).gt.arr(indx(l+1))) then
         itemp=indx(l)
         indx(l)=indx(l+1)
         indx(l+1)=itemp
@@ -877,11 +879,11 @@ subroutine dindexx(n,arr,indx)
      a=arr(indxt)
 3    continue
      i=i+1
-     if(arr(indx(i)).lt.a)goto 3
+     if(arr(indx(i)).lt.a) goto 3
 4    continue
      j=j-1
-     if(arr(indx(j)).gt.a)goto 4
-     if(j.lt.i)goto 5
+     if(arr(indx(j)).gt.a) goto 4
+     if(j.lt.i) goto 5
      itemp=indx(i)
      indx(i)=indx(j)
      indx(j)=itemp
@@ -891,7 +893,7 @@ subroutine dindexx(n,arr,indx)
      jstack=jstack+2
      !if(jstack.gt.nstack)pause 'nstack too small in indexx'
      if(jstack.gt.nstack) write(*,'(A)')' nstack too small in dindexx'
-     if(ir-i+1.ge.j-l)then
+     if(ir-i+1.ge.j-l) then
         istack(jstack)=ir
         istack(jstack-1)=i
         ir=j-1
@@ -918,18 +920,18 @@ subroutine rindexx(n,arr,indx)
   jstack=0
   l=1
   ir=n
-1 if(ir-l.lt.m)then
+1 if(ir-l.lt.m) then
      do j=l+1,ir
         indxt=indx(j)
         a=arr(indxt)
         do i=j-1,l,-1
-           if(arr(indx(i)).le.a)goto 2
+           if(arr(indx(i)).le.a) goto 2
            indx(i+1)=indx(i)
         end do
         i=l-1
 2       indx(i+1)=indxt
      end do
-     if(jstack.eq.0)return
+     if(jstack.eq.0) return
      ir=istack(jstack)
      l=istack(jstack-1)
      jstack=jstack-2
@@ -938,17 +940,17 @@ subroutine rindexx(n,arr,indx)
      itemp=indx(k)
      indx(k)=indx(l+1)
      indx(l+1)=itemp
-     if(arr(indx(l)).gt.arr(indx(ir)))then
+     if(arr(indx(l)).gt.arr(indx(ir))) then
         itemp=indx(l)
         indx(l)=indx(ir)
         indx(ir)=itemp
      end if
-     if(arr(indx(l+1)).gt.arr(indx(ir)))then
+     if(arr(indx(l+1)).gt.arr(indx(ir))) then
         itemp=indx(l+1)
         indx(l+1)=indx(ir)
         indx(ir)=itemp
      end if
-     if(arr(indx(l)).gt.arr(indx(l+1)))then
+     if(arr(indx(l)).gt.arr(indx(l+1))) then
         itemp=indx(l)
         indx(l)=indx(l+1)
         indx(l+1)=itemp
@@ -959,11 +961,11 @@ subroutine rindexx(n,arr,indx)
      a=arr(indxt)
 3    continue
      i=i+1
-     if(arr(indx(i)).lt.a)goto 3
+     if(arr(indx(i)).lt.a) goto 3
 4    continue
      j=j-1
-     if(arr(indx(j)).gt.a)goto 4
-     if(j.lt.i)goto 5
+     if(arr(indx(j)).gt.a) goto 4
+     if(j.lt.i) goto 5
      itemp=indx(i)
      indx(i)=indx(j)
      indx(j)=itemp
@@ -973,7 +975,7 @@ subroutine rindexx(n,arr,indx)
      jstack=jstack+2
      !if(jstack.gt.nstack)pause 'nstack too small in indexx'
      if(jstack.gt.nstack) write(*,'(A)')' nstack too small in rindexx'
-     if(ir-i+1.ge.j-l)then
+     if(ir-i+1.ge.j-l) then
         istack(jstack)=ir
         istack(jstack-1)=i
         ir=j-1
@@ -1047,7 +1049,7 @@ subroutine lubksb(a,n,np,indx,b)
      ll=indx(i)
      sum=b(ll)
      b(ll)=b(i)
-     if (ii.ne.0)then
+     if (ii.ne.0) then
         do j=ii,i-1
            sum=sum-a(i,j)*b(j)
         end do
@@ -1107,7 +1109,7 @@ subroutine ludcmp(a,n,np,indx,d)
           aamax=dum
        end if
     end do
-    if (j.ne.imax)then
+    if (j.ne.imax) then
        do k=1,n
           dum=a(imax,k)
           a(imax,k)=a(j,k)
@@ -1118,7 +1120,7 @@ subroutine ludcmp(a,n,np,indx,d)
     end if
     indx(j)=imax
     if(a(j,j).eq.0.)a(j,j)=tiny
-    if(j.ne.n)then
+    if(j.ne.n) then
        dum=1./a(j,j)
        do i=j+1,n
           a(i,j)=a(i,j)*dum
@@ -1219,14 +1221,14 @@ subroutine kstwo(data1,n1,data2,n2,d,prob)  !Needs probks(), sort()
   fn1=0.d0
   fn2=0.d0
   d=0.d0
-1 if(j1.le.n1.and.j2.le.n2)then
+1 if(j1.le.n1.and.j2.le.n2) then
      d1=data1(j1)
      d2=data2(j2)
-     if(d1.le.d2)then
+     if(d1.le.d2) then
         fn1=j1/en1
         j1=j1+1
      end if
-     if(d2.le.d1)then
+     if(d2.le.d1) then
         fn2=j2/en2
         j2=j2+1
      end if
@@ -1254,7 +1256,7 @@ function probks(alam)
   do j=1,100
      term=fac*dexp(a2*j**2)
      probks=probks+term
-     if(dabs(term).le.eps1*termbf.or.dabs(term).le.eps2*probks)return
+     if(dabs(term).le.eps1*termbf.or.dabs(term).le.eps2*probks) return
      fac=-fac
      termbf=dabs(term)
   end do
@@ -1273,17 +1275,17 @@ subroutine sort(n,arr)
   jstack=0
   l=1
   ir=n
-1 if(ir-l.lt.m)then
+1 if(ir-l.lt.m) then
      do j=l+1,ir
         a=arr(j)
         do i=j-1,l,-1
-           if(arr(i).le.a)goto 2
+           if(arr(i).le.a) goto 2
            arr(i+1)=arr(i)
         end do
         i=l-1
 2       arr(i+1)=a
      end do
-     if(jstack.eq.0)return
+     if(jstack.eq.0) return
      ir=istack(jstack)
      l=istack(jstack-1)
      jstack=jstack-2
@@ -1292,17 +1294,17 @@ subroutine sort(n,arr)
      temp=arr(k)
      arr(k)=arr(l+1)
      arr(l+1)=temp
-     if(arr(l).gt.arr(ir))then
+     if(arr(l).gt.arr(ir)) then
         temp=arr(l)
         arr(l)=arr(ir)
         arr(ir)=temp
      end if
-     if(arr(l+1).gt.arr(ir))then
+     if(arr(l+1).gt.arr(ir)) then
         temp=arr(l+1)
         arr(l+1)=arr(ir)
         arr(ir)=temp
      end if
-     if(arr(l).gt.arr(l+1))then
+     if(arr(l).gt.arr(l+1)) then
         temp=arr(l)
         arr(l)=arr(l+1)
         arr(l+1)=temp
@@ -1312,11 +1314,11 @@ subroutine sort(n,arr)
      a=arr(l+1)
 3    continue
      i=i+1
-     if(arr(i).lt.a)goto 3
+     if(arr(i).lt.a) goto 3
 4    continue
      j=j-1
-     if(arr(j).gt.a)goto 4
-     if(j.lt.i)goto 5
+     if(arr(j).gt.a) goto 4
+     if(j.lt.i) goto 5
      temp=arr(i)
      arr(i)=arr(j)
      arr(j)=temp
@@ -1326,7 +1328,7 @@ subroutine sort(n,arr)
      jstack=jstack+2
      !if(jstack.gt.nstack)pause 'nstack too small in sort'
      if(jstack.gt.nstack) write(*,'(A)')' nstack too small in dindexx'
-     if(ir-i+1.ge.j-l)then
+     if(ir-i+1.ge.j-l) then
         istack(jstack)=ir
         istack(jstack-1)=i
         ir=j-1

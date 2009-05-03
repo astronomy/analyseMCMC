@@ -291,8 +291,10 @@ subroutine statistics(exitcode)
            ranges(ic,c,p,3) = centre
            ranges(ic,c,p,4) = y2-y1
            ranges(ic,c,p,5) = ranges(ic,c,p,4)
-           if(version.eq.1.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
-           if(version.eq.2.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
+           !if(version.eq.1.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
+           !if(version.eq.2.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
+           if(version.eq.1.and.p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  !Remove eta, a_spin
+           if(version.eq.2.and.p.eq.2.or.p.eq.5) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
         end do !p
      end do !c
      !if(prprogress.ge.2) write(*,'(A34,F8.4)')'.  Standard probability interval: ',ivals(ival0)
@@ -397,42 +399,43 @@ subroutine statistics(exitcode)
            ranges(ic,1:nival,p,3) = 0.5*(ranges(ic,1:nival,p,1) + ranges(ic,1:nival,p,2))
            ranges(ic,1:nival,p,4) = ranges(ic,1:nival,p,2) - ranges(ic,1:nival,p,1)
            ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)
-           if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)/ranges(ic,1:nival,p,3)
+           !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)/ranges(ic,1:nival,p,3)
+           if(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)/ranges(ic,1:nival,p,3)
         end do !p
         
         !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:dl, 6:spin,  7:theta_SL, 8: RA,   9:dec, 10:phase, 11:incl, 12:pol.ang., 13:alpha
         if(fonttype.eq.2) then  !Use 'roman-like' Greek font
            varnames(1:15) = (/'logL','Mc','eta','tc','dl','spin','th_SL','RA','Dec','phase','incl','p.ang','alpha','M1','M2'/)
            !pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',  &
-           !     'd\dL\u (Mpc)          ','a\dspin\u             ','\(2134)\dSL\u(\(2218))','R.A. (h)              ','Dec. (\(2218))        ', &
+           !     'd\dL\u (Mpc)          ','a\dspin\u             ','\(2185)\dSL\u(\(2218))','R.A. (h)              ','Dec. (\(2218))        ', &
            !     '\(2147)\dc\u (\(2218))','\(2135)\dJ0\u','\(2149)\dJ\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
            !!Include units
-           !pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2134)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
+           !pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2185)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
            !     '\(2135)\dJ0\u (\(2218))','\(2149)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
            !Replace RA and Dec with alpha, delta, d_L -> d
            pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',  &
-                'd      (Mpc)          ','a\dspin\u             ','\(2134)\dSL\u(\(2218))','\(2127) (h)','\(2130) (\(2218))        ', &
-                '\(2147)\dc\u (\(2218))','\(2135)\dJ0\u','\(2149)\dJ\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
+                'd\dL\u (Mpc)          ','a\dspin1\u            ','\(2185)\dspin1\u(\(2218))','\(2127) (h)','\(2130) (\(2218))        ', &
+                '\(2147)\dc\u (\(2218))','\(2135)\dJ0\u','\(2149)\dJ\u (\(2218))','\(2147)\dspin1\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
            !Include units
-           pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d (Mpc)','a\dspin\u','\(2134)\dSL\u (\(2218))','\(2127) (h)','\(2130) (\(2218))','\(2147)\dc\u (\(2218))',  &
-                '\(2135)\dJ0\u (\(2218))','\(2149)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
+           pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin1\u','\(2185)\dspin1\u (\(2218))','\(2127) (h)','\(2130) (\(2218))','\(2147)\dc\u (\(2218))',  &
+                '\(2135)\dJ0\u (\(2218))','\(2149)\dJ0\u (\(2218))','\(2147)\dspin1\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
            !Units only
            pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
         else  !Same, but replace '\(06' with \(06' for arial-like Greek font
            varnames(1:15) = (/'logL','Mc','eta','tc','dl','spin','th_SL','RA','Dec','phase','incl','p.ang','alpha','M1','M2'/)
            !pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\dc\u (s)            ',  &
-           !     'd\dL\u (Mpc)          ','a\dspin\u             ','\(0634)\dSL\u(\(2218))','R.A. (h)              ','Dec. (\(2218))        ', &
+           !     'd\dL\u (Mpc)          ','a\dspin\u             ','\(0685)\dSL\u(\(2218))','R.A. (h)              ','Dec. (\(2218))        ', &
            !     '\(0647)\dc\u (\(2218))','\(0635)\dJ0\u','\(0649)\dJ\u (\(2218))','\(0627)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
            !!Include units
-           !pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(0633)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(0634)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(0647)\dc\u (\(2218))',  &
+           !pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(0633)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(0685)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(0647)\dc\u (\(2218))',  &
            !     '\(0635)\dJ0\u (\(2218))','\(0649)\dJ0\u (\(2218))','\(0627)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
            !Replace RA and Dec with alpha, delta, d_L -> d
            pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\dc\u (s)            ',  &
-                'd      (Mpc)          ','a\dspin\u             ','\(0634)\dSL\u(\(2218))','\(0627) (h)','\(0630) (\(2218))        ', &
-                '\(0647)\dc\u (\(2218))','\(0635)\dJ0\u','\(0649)\dJ\u (\(2218))','\(0627)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
+                'd\dL\u (Mpc)          ','a\dspin1\u             ','\(0685)\dspin1\u(\(2218))','\(0627) (h)','\(0630) (\(2218))        ', &
+                '\(0647)\dc\u (\(2218))','\(0635)\dJ0\u','\(0649)\dJ\u (\(2218))','\(0647)\dspin1\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
            !Include units
-           pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(0633)','t\dc\u (s)','d (Mpc)','a\dspin\u','\(0634)\dSL\u (\(2218))','\(0627) (h)','\(0630) (\(2218))','\(0647)\dc\u (\(2218))',  &
-                '\(0635)\dJ0\u (\(2218))','\(0649)\dJ0\u (\(2218))','\(0627)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
+           pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(0633)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin1\u','\(0685)\dspin1\u (\(2218))','\(0627) (h)','\(0630) (\(2218))','\(0647)\dc\u (\(2218))',  &
+                '\(0635)\dJ0\u (\(2218))','\(0649)\dJ0\u (\(2218))','\(0647)\dspin1\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
            !Units only
            pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
         end if
@@ -502,32 +505,32 @@ subroutine statistics(exitcode)
            !pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\d0\u (s)            ', &
            !     'd\dL\u (Mpc)          ','R.A. (h)              ','Dec. (\(2218))        ','\(2135) (\(2218))     ', &
            !     '\(2147)\dc\u (\(2218))','\(2149) (\(2218))     ','a\dspin1\u            ','\(2147)\d1\u (\(2218))', &
-           !     '\(2134)\d1\u (\(2218))','a\dspin2\u            ','\(2147)\d2\u (\(2218))','\(2134)\d2\u (\(2218))'/)
+           !     '\(2185)\d1\u (\(2218))','a\dspin2\u            ','\(2147)\d2\u (\(2218))','\(2185)\d2\u (\(2218))'/)
            !pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(2133)','t\dc\u','d\dL\u','R.A.','dec.','\(2135)','\(2147)\dc\u', '\(2149)', &
-           !     'a\dspin1\u','\(2147)\d1\u','\(2134)\d1\u','a\dspin2\u','\(2147)\d2\u','\(2134)\d2\u'/)
+           !     'a\dspin1\u','\(2147)\d1\u','\(2185)\d1\u','a\dspin2\u','\(2147)\d2\u','\(2185)\d2\u'/)
            !Replace RA and Dec with alpha,delta
            pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\d0\u (s)            ', &
                 'd\dL\u (Mpc)          ','\(2127) (h)           ','\(2130) (\(2218))     ','\(2135) (\(2218))     ', &
                 '\(2147)\dc\u (\(2218))','\(2149) (\(2218))     ','a\dspin1\u            ','\(2147)\d1\u (\(2218))', &
-                '\(2134)\d1\u (\(2218))','a\dspin2\u            ','\(2147)\d2\u (\(2218))','\(2134)\d2\u (\(2218))'/)
+                '\(2185)\d1\u (\(2218))','a\dspin2\u            ','\(2147)\d2\u (\(2218))','\(2185)\d2\u (\(2218))'/)
            pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(2133)','t\dc\u','d\dL\u','\(2127)','\(2130)','\(2135)','\(2147)\dc\u', '\(2149)', &
-                'a\dspin1\u','\(2147)\d1\u','\(2134)\d1\u','a\dspin2\u','\(2147)\d2\u','\(2134)\d2\u'/)
+                'a\dspin1\u','\(2147)\d1\u','\(2185)\d1\u','a\dspin2\u','\(2147)\d2\u','\(2185)\d2\u'/)
            pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','(\(2218))','(\(2218))','(\(2218))','(\(2218))','(\(2218))','','(\(2218))','(\(2218))','','(\(2218))','(\(2218))'/)
         else  !Same, but replace '\(21' with \(06' for arial-like Greek font
            varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
            !pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\d0\u (s)            ', &
            !     'd\dL\u (Mpc)          ','R.A. (h)              ','Dec. (\(2218))        ','\(0635) (\(2218))     ', &
            !     '\(0647)\dc\u (\(2218))','\(0649) (\(2218))     ','a\dspin1\u            ','\(0647)\d1\u (\(2218))', &
-           !     '\(0634)\d1\u (\(2218))','a\dspin2\u            ','\(0647)\d2\u (\(2218))','\(0634)\d2\u (\(2218))'/)
+           !     '\(0685)\d1\u (\(2218))','a\dspin2\u            ','\(0647)\d2\u (\(2218))','\(0685)\d2\u (\(2218))'/)
            !pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(0633)','t\dc\u','d\dL\u','R.A.','dec.','\(0635)','\(0647)\dc\u', '\(0649)', &
-           !     'a\dspin1\u','\(0647)\d1\u','\(0634)\d1\u','a\dspin2\u','\(0647)\d2\u','\(0634)\d2\u'/)
+           !     'a\dspin1\u','\(0647)\d1\u','\(0685)\d1\u','a\dspin2\u','\(0647)\d2\u','\(0685)\d2\u'/)
            !Replace RA and Dec with alpha,delta
            pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\d0\u (s)            ', &
                 'd\dL\u (Mpc)          ','\(0627) (h)           ','\(0630) (\(2218))     ','\(0635) (\(2218))     ', &
                 '\(0647)\dc\u (\(2218))','\(0649) (\(2218))     ','a\dspin1\u            ','\(0647)\d1\u (\(2218))', &
-                '\(0634)\d1\u (\(2218))','a\dspin2\u            ','\(0647)\d2\u (\(2218))','\(0634)\d2\u (\(2218))'/)
+                '\(0685)\d1\u (\(2218))','a\dspin2\u            ','\(0647)\d2\u (\(2218))','\(0685)\d2\u (\(2218))'/)
            pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(0633)','t\dc\u','d\dL\u','\(0627)','\(0630)','\(0635)','\(0647)\dc\u', '\(0649)', &
-                'a\dspin1\u','\(0647)\d1\u','\(0634)\d1\u','a\dspin2\u','\(0647)\d2\u','\(0634)\d2\u'/)
+                'a\dspin1\u','\(0647)\d1\u','\(0685)\d1\u','a\dspin2\u','\(0647)\d2\u','\(0685)\d2\u'/)
            pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','(\(2218))','(\(2218))','(\(2218))','(\(2218))','(\(2218))','','(\(2218))','(\(2218))','','(\(2218))','(\(2218))'/)
         end if
      end if !if(changevar.eq.1.and.version.eq.2)
@@ -604,7 +607,7 @@ subroutine statistics(exitcode)
                    absvar2(p),ranges(ic,c,p,3),ranges(ic,c,p,1),ranges(ic,c,p,2),ranges(ic,c,p,4),  &
                    !abs(startval(ic,p,1)-stats(ic,p,1))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt median
                    2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt centre of range
-              if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
+              if(startval(ic,p,1).ge.ranges(ic,c,p,1).and.startval(ic,p,1).le.ranges(ic,c,p,2)) then
                  write(o,'(A4,$)')'y '
               else
                  write(o,'(A4,$)')'*N*'
@@ -656,51 +659,77 @@ subroutine statistics(exitcode)
         write(o,'(/,A)')'  Statistics and probability intervals:'
         
         !Print intervals as x +- dx:
-        write(o,'(A65,$)')'Interval:'
+        write(o,'(A61,$)')'Interval:'
         do c=1,nival
-           write(o,'(F16.3,A1,A9,$)')ivals(c)*100,'%',''
+           write(o,'(F14.3,A1,A9,$)')ivals(c)*100,'%',''
         end do
         write(o,*)''
         
-        write(o,'(A11,1x,4A11,$)')'Parameter','median','mean','Lmax','stdev'
+        write(o,'(A11,1x,4A10,$)')'Parameter','median','mean','Lmax','stdev'
         do c=1,nival
-           write(o,'(5x,A9,4x,A8,$)')'x','dx'
+           write(o,'(5x,A8,4x,A7,$)')'x','dx'
         end do
         write(o,*)''
         do p=max(par1,2),par2  !Leave out logL
-           !if(stdev1(p).lt.1.d-20) cycle
            if(fixedpar(p).eq.1) cycle
-           write(o,'(A10,2x,4F11.4,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
+           write(o,'(A10,2x,4F10.3,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            do c=1,nival
-              write(o,'(5x,F9.4,A4,F8.4$)')ranges(ic,c,p,3),' +- ',0.5d0*ranges(ic,c,p,4)
+              write(o,'(5x,F8.3,A4,F7.3$)')ranges(ic,c,p,3),' +- ',0.5d0*ranges(ic,c,p,4)
            end do
            write(o,*)''
         end do
         write(o,*)''
         
         !Print intervals as low-high:
-        write(o,'(A65,$)')'Interval:'
+        write(o,'(A61,$)')'Interval:'
         do c=1,nival
-           write(o,'(F16.3,A1,A9,$)')ivals(c)*100,'%',''
+           write(o,'(F14.3,A1,A9,$)')ivals(c)*100,'%',''
         end do
         write(o,*)''
         
-        write(o,'(A11,1x,4A11,$)')'Parameter','median','mean','Lmax','stdev'
+        write(o,'(A11,1x,4A10,$)')'Parameter','median','mean','Lmax','stdev'
         do c=1,nival
-           write(o,'(6x,A9,3x,A8,$)')'min','max'
+           write(o,'(6x,A8,3x,A7,$)')'min','max'
         end do
         write(o,*)''
         do p=max(par1,2),par2  !Leave out logL
-           !if(stdev1(p).lt.1.d-20) cycle
            if(fixedpar(p).eq.1) cycle
-           write(o,'(A10,2x,4F11.4,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
+           write(o,'(A10,2x,4F10.3,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            do c=1,nival
-              write(o,'(6x,F9.4,A3,F8.4$)')ranges(ic,c,p,1),' - ',ranges(ic,c,p,2)
+              write(o,'(6x,F8.3,A3,F7.3$)')ranges(ic,c,p,1),' - ',ranges(ic,c,p,2)
            end do
            write(o,*)''
         end do
         write(o,*)''
+        
+        
+        !Print intervals as x -dx1 +dx2:
+        write(o,'(A19,$)')'Interval:   '
+        do c=1,nival
+           write(o,'(F27.3,A1,A9,$)')ivals(c)*100,'%',''
+        end do
+        write(o,*)''
+        
+        !write(o,'(A11,1x,4A11,$)')'Parameter','median','mean','Lmax','stdev'
+        !do c=1,nival
+        !   write(o,'(5x,A9,4x,A8,$)')'x','dx'
+        !end do
+        !write(o,*)''
+        do p=max(par1,2),par2  !Leave out logL
+           if(fixedpar(p).eq.1) cycle
+           !write(o,'(A10,2x,4F11.4,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
+           write(o,'(A10,2x,$)')varnames(p)
+           do c=1,nival
+              write(o,'(5x,A1,F8.3,2(A,F7.3),A,$)')'$',stats(ic,p,1),'_{-',abs(stats(ic,p,1)-ranges(ic,c,p,1)),'}^{+',abs(stats(ic,p,1)-ranges(ic,c,p,2)),'}$'
+           end do
+           write(o,*)''
+        end do
+        write(o,*)''
+        
+        
      end if
+     
+     
      
      
      

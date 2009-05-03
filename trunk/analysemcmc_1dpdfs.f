@@ -382,12 +382,13 @@ subroutine pdfs1d(exitcode)
            if(nchains.gt.1) then
               call pgslw(lw)
               call pgsls(1); call pgsci(0)
-              if(pltrue.eq.1) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !True value
-              if(pltrue.eq.2.and.version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.6.or.p.eq.7.or.p.eq.14.or.p.eq.15)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !True value - mass and spin only
+              if(pltrue.eq.1.or.pltrue.eq.3) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !True value
+              !if((pltrue.eq.2.or.pltrue.eq.4).and.version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.4.or.p.eq.6.or.p.eq.7.or.p.eq.14.or.p.eq.15)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !True value - mass and spin only
+              if((pltrue.eq.2.or.pltrue.eq.4).and.version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.4.or.p.eq.6.or.p.eq.14.or.p.eq.15)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !True value - mass and spin only
               !if(plstart.ge.1) call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))                   !Starting value
               if(p.ne.1) then !Not if plotting log(L)
-                 if(plmedian.eq.1.or.plmedian.eq.3) call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))                          !Median
-                 if(plrange.eq.1.or.plrange.eq.3) then
+                 if(plmedian.eq.1.or.plmedian.eq.3.or.plmedian.eq.4.or.plmedian.eq.6) call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))                          !Median
+                 if(plrange.eq.1.or.plrange.eq.3.or.plrange.eq.4.or.plrange.eq.6) then
                     if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) !Left limit of 90% interval
                     if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/)) !Right limit of 90% interval
                     if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/-1.e20,1.e20/)) !Centre of 90% interval
@@ -398,24 +399,26 @@ subroutine pdfs1d(exitcode)
            call pgslw(lw+1)
            !Draw coloured lines over the white ones
            !Median
-           if((plmedian.eq.1.or.plmedian.eq.3) .and. p.ne.1) then
+           if((plmedian.eq.1.or.plmedian.eq.3.or.plmedian.eq.4.or.plmedian.eq.6) .and. p.ne.1) then
               call pgsls(2); call pgsci(2); if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))
            end if
 
            !Plot ranges in 1D PDF
-           if((plrange.eq.1.or.plrange.eq.3) .and. p.ne.1) then
+           if((plrange.eq.1.or.plrange.eq.3.or.plrange.eq.4.or.plrange.eq.6) .and. p.ne.1) then
               call pgsls(4); call pgsci(2); if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) !Left limit of 90% interval
               if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/)) !Right limit of 90% interval
               !if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/-1.e20,1.e20/)) !Centre of 90% interval
            end if
-
+           
            !Plot true value in PDF
            !if(pltrue.ge.1) then !Plot true values
-           if(pltrue.eq.1.or.(pltrue.eq.2.and.version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.6.or.p.eq.7.or.p.eq.14.or.p.eq.15))) then
+           !if(pltrue.eq.1.or.pltrue.eq.3.or.((pltrue.eq.2.or.pltrue.eq.4).and.version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.4.or.p.eq.6.or.p.eq.7.or.p.eq.14.or.p.eq.15))) then
+           if(pltrue.eq.1.or.pltrue.eq.3.or.((pltrue.eq.2.or.pltrue.eq.4).and.version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.4.or.p.eq.6.or.p.eq.14.or.p.eq.15))) then
               if(mergechains.ne.1.or.ic.le.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  call pgsls(2); call pgsci(1)
+                 if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line when Lmax line isn't plotted (should we do this always?)
                  plx = startval(ic,p,1)
                  if(p.eq.8) plx = rev24(plx)
                  if(p.eq.10.or.p.eq.13) ply = rev360(ply)
@@ -458,41 +461,40 @@ subroutine pdfs1d(exitcode)
            if(nplvar.le.5) then
               write(str,'(A,F7.3,A5,F7.3)')trim(pgvarns(p))//': mdl:',startval(ic,p,1),' med:',stats(ic,p,1)
               if(prival.ge.1) then
-                 if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
-                    write(str,'(A,F6.2,A1)')trim(str)//' \(2030):',ranges(ic,c0,p,5)*100,'%'
-                 else
-                    write(str,'(A,F7.3)')trim(str)//' \(2030):',ranges(ic,c0,p,5)
+                 if(plrange.eq.4.or.plrange.eq.5.or.plrange.eq.6) then
+                    !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
+                    if(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) then
+                       write(str,'(A,F6.2,A1)')trim(str)//' \(2030):',ranges(ic,c0,p,5)*100,'%'
+                    else
+                       write(str,'(A,F7.3)')trim(str)//' \(2030):',ranges(ic,c0,p,5)
+                    end if
                  end if
               end if
            else  !if nplvar>=5
-              if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
-                 if(pltrue.ge.1) then
-                    write(str,'(A4,F7.3)')'mdl:',startval(ic,p,1)
-                 else
-                    write(str,'(A4,F8.3)')'med:',stats(ic,p,1)
-                 end if
-                 if(prival.ge.1) write(str,'(A,F6.2,A1)')trim(str)//' \(2030):',ranges(ic,c0,p,5)*100,'%'
+              str = ' '
+              !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
+              if(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) then
+                 if(pltrue.eq.3.or.pltrue.eq.4) write(str,'(A,F7.3)')trim(str)//' mdl:',startval(ic,p,1)
+                 if(plmedian.eq.4.or.plmedian.eq.5.or.plmedian.eq.6) write(str,'(A,F8.3)')trim(str)//' med:',stats(ic,p,1)
+                 if(prival.ge.1.and.(plrange.eq.4.or.plrange.eq.5.or.plrange.eq.6)) write(str,'(A,F6.2,A1)')trim(str)//' \(2030):',ranges(ic,c0,p,5)*100,'%'
               else
-                 if(pltrue.ge.1) then
-                    write(str,'(A4,F7.3)')'mdl:',startval(ic,p,1)
-                 else
-                    write(str,'(A4,F8.3)')'med:',stats(ic,p,1)
-                 end if
-                 if(prival.ge.1) write(str,'(A,F7.3)')trim(str)//' \(2030):',ranges(ic,c0,p,5)
+                 if(pltrue.eq.3.or.pltrue.eq.4) write(str,'(A,F7.3)')trim(str)//' mdl:',startval(ic,p,1)
+                 if(plmedian.eq.4.or.plmedian.eq.5.or.plmedian.eq.6) write(str,'(A,F8.3)')trim(str)//' med:',stats(ic,p,1)
+                 if(prival.ge.1.and.(plrange.eq.4.or.plrange.eq.5.or.plrange.eq.6)) write(str,'(A,F7.3)')trim(str)//' \(2030):',ranges(ic,c0,p,5)
               end if
               call pgsch(sch*1.2)
               call pgptxt(xmin+0.05*dx,ymax*(1.0-0.1*fontsize1d),0.,0.,trim(pgvarnss(p)))
            end if
         end if
-
-
+        
+        
         if(quality.eq.2.or.quality.eq.3.or.quality.eq.4) then  !Talk/poster/thesis quality for 1D PDF
            !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
            !   write(str,'(A9,F6.2,A1)')' \(2030):',ranges(ic,c0,p,5)*100,'%'
            !else
            !   write(str,'(A9,F7.3)')' \(2030):',ranges(ic,c0,p,5)
            !end if
-           if(plrange.eq.1.or.plrange.eq.3) then
+           if(plrange.eq.1.or.plrange.eq.3.or.plrange.eq.4.or.plrange.eq.6) then
               x0 = ranges(ic,c0,p,5)
               if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) x0 = x0*100
               !print*,p,x0,nint(x0)
@@ -503,12 +505,13 @@ subroutine pdfs1d(exitcode)
               if(x0.ge.9.95.and.x0.lt.99.5) write(str,'(I2)')nint(x0)
               if(x0.ge.99.5) write(str,'(I3)')nint(x0)
               write(str,'(A)')'\(2030): '//trim(str)
-              if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
+              !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
+              if(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) then
                  write(str,'(A)')trim(str)//'%'
               else
                  write(str,'(A)')trim(str)//trim(pgunits(p))
               end if
-           else if(pltrue.ge.1) then  !If not plotting ranges, but do plot true values
+           else if(pltrue.eq.2.or.pltrue.eq.4) then  !If not plotting ranges, but do plot true values
               x0 = startval(ic,p,1)
               !print*,p,x0,nint(x0)
               if(x0.lt.0.01) write(str,'(F7.4)')x0
@@ -532,9 +535,9 @@ subroutine pdfs1d(exitcode)
         
         
         !Write the deltas of the two pdfs
-        if(nchains.eq.2.) then
+        if(nchains.eq.2..and.(plrange.eq.4.or.plrange.eq.5.or.plrange.eq.6)) then
            write(str,'(A8)')'\(2030)'
-           if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
+           if(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) then
               write(str1,'(A8,F6.2,A1)')'\(2030):',ranges(1,c0,p,5)*100.,'%'
               write(str2,'(A8,F6.2,A1)')'\(2030):',ranges(2,c0,p,5)*100.,'%'
            else
@@ -554,7 +557,7 @@ subroutine pdfs1d(exitcode)
               !call pgptxt(ranges(ic,c0,p,3),ymax,0.,0.5,trim(str)) !Align with centre of 90%-probability range
               call pgptxt((xmin+xmax)/2.,ymax,0.,0.5,trim(str)) !Centre
               call pgsci(2)
-              if(plrange.eq.1.or.plrange.eq.3) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,2)/),(/0.99*ymax,0.99*ymax/))  !Plot line at top over 90%-probability width
+              if(plrange.eq.1.or.plrange.eq.3.or.plrange.eq.4.or.plrange.eq.6) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,2)/),(/0.99*ymax,0.99*ymax/))  !Plot line at top over 90%-probability width
               call pgsci(1)
            end if
         end if

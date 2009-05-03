@@ -2,6 +2,14 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    54: sluys, 02/05/2009
+     - added options for pltrue, plmedian, plrange (see doc/analysemcmc.dat)
+     - in 1D probability ranges, print absolute range for \eta, a_spin rather
+       than percentage
+     - made 12-parameter notation compatible with 15-par notation (a_spin1, 
+       \theta_spin1, \phi_spin1)
+     - added printing of asymmetric probability intervals as:  median -dx1 +dx2
+     
     53: sluys, 11/04/2009
      - plpdf1d=2: plot true histogram rather than curve
      - fixed placement of bins for plpdf1d=1
