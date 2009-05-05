@@ -469,7 +469,7 @@ subroutine chains(exitcode)
         write(string,'(F6.3)')rhat(p)
         !call pgmtxt('T',1.,0.,0.,'Chain: '//trim(pgvarns(p)))
         call pgmtxt('T',-1.,0.,0.,' '//trim(pgvarnss(p)))
-        if(nchains0.gt.1.and.prconv.ge.1) call pgmtxt('T',1.,1.,1.,'Conv: '//trim(string))
+        if(nchains0.gt.1.and.prconv.ge.1) call pgmtxt('T',1.,1.,1.,'R-hat: '//trim(string))
      end do !do j=1,nplvar
 
      if(quality.eq.0) then

@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    56: sluys, 05/05/2009
+     - Added comments to computation of R-hat
+     
     55: sluys, 02/05/2009
      - consistently print output to stdout (6) or stderr (0)
      - moved output for CBC wiki and computation of convergence from main

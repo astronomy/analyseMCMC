@@ -131,16 +131,7 @@ subroutine statistics(exitcode)
         !Now, wrap around anticentre
         shift(ic,p) = 0.
         
-        !For the special case of 2pi:
-        !if(wrap(ic,p).eq.1) shift(ic,p) = rtpi - mod(centre + rpi, rtpi)
-        !if(p.eq.8.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
-        !alldat(ic,p,1:n(ic))   = mod(alldat(ic,p,1:n(ic))   + shift(ic,p), rtpi) - shift(ic,p)
-        !pldat(ic,p,1:ntot(ic)) = mod(pldat(ic,p,1:ntot(ic)) + shift(ic,p), rtpi) - shift(ic,p) !Original data
-        !y1 = mod(y1 + shift(ic,p), rtpi) - shift(ic,p)
-        !y2 = mod(y2 + shift(ic,p), rtpi) - shift(ic,p)
-        !centre = mod(centre + shift(ic,p), rtpi) - shift(ic,p)
-        
-        !For the general case of shival (= 2pi or pi)
+        !For the general case of shival (= pi or 2pi)
         if(wrap(ic,p).gt.0) shift(ic,p) = shival - mod(centre + shival2, shival)
         if(version.eq.1.and.p.eq.8.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
         if(version.eq.2.and.p.eq.6.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
@@ -179,8 +170,8 @@ subroutine statistics(exitcode)
            var2(p) = var2(p) + (alldat(ic,p,i) - mean(p))**2
            absvar1(p) = absvar1(p) + abs(alldat(ic,p,i) - medians(p))
            absvar2(p) = absvar2(p) + abs(alldat(ic,p,i) - mean(p))
-           stdev1(p) = stdev1(p) + (alldat(ic,p,i) - medians(p))*(alldat(ic,p,i) - medians(p))
-           stdev2(p) = stdev2(p) + (alldat(ic,p,i) - mean(p))*(alldat(ic,p,i) - mean(p))
+           stdev1(p) = stdev1(p) + (alldat(ic,p,i) - medians(p))**2
+           stdev2(p) = stdev2(p) + (alldat(ic,p,i) - mean(p))**2
         end do
         
         absvar1(p) = absvar1(p)/real(n(ic))
@@ -1244,6 +1235,11 @@ end subroutine save_cbc_wiki_data
 !***********************************************************************************************************************************
 subroutine compute_convergence()
   !Check convergence for multiple chains. This works only for fixed chain length, so take the min N
+  !This is probably taken from (at least equal to):
+  !  Brooks & Gelman, Journal of Computational and Graphical Statistics, Vol.7, Nr.4, p.434-455  (Eq.1.1)
+  !    where:  B/n := totvar  and  W := chvar
+  !Todo:  use only data selected after (auto)burnin
+  
   use constants
   use analysemcmc_settings
   use general_data
@@ -1266,9 +1262,9 @@ subroutine compute_convergence()
   do p=par1,par2
      do ic=1,nchains0
         do i=nn+1,2*nn
-           chmean(ic,p) = chmean(ic,p) + dat(p,ic,i) !Can't use pldat, because it may get wrapped above
-           totmean(p) = totmean(p) + dat(p,ic,i)
+           chmean(ic,p) = chmean(ic,p) + dat(p,ic,i) !Can't use pldat, because it may have got wrapped earlier
         end do
+        totmean(p) = totmean(p) + chmean(ic,p)
      end do
   end do
   chmean = chmean/dble(nn)
@@ -1280,7 +1276,7 @@ subroutine compute_convergence()
   do p=par1,par2
      do ic=1,nchains0
         do i=nn+1,2*nn
-           dx = (dat(p,ic,i) - chmean(ic,p))**2 !Can't use pldat, because it may get wrapped above
+           dx = (dat(p,ic,i) - chmean(ic,p))**2 !Can't use pldat, because it may have got wrapped earlier
            chvar(p) = chvar(p) + dx
            chvar1(ic,p) = chvar1(ic,p) + dx !Keep track of the variance per chain
         end do
@@ -1290,7 +1286,6 @@ subroutine compute_convergence()
      chvar(p) = chvar(p)/dble(nchains0*(nn-1))
      totvar(p) = totvar(p)/dble(nchains0-1)
      
-     !rhat(p) = ( dble(nn-1)/dble(nn) * chvar(p)  +  totvar(p) * (1.d0 + 1.d0/dble(nchains0)) ) / chvar(p)
      rhat(p) = min( dble(nn-1)/dble(nn)  +  totvar(p)/chvar(p) * (1.d0 + 1.d0/dble(nchains0)), 99.d0)
   end do
   
