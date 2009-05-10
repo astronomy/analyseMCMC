@@ -218,7 +218,7 @@ subroutine write_settingsfile
   write(u,11)plpdf1d, 'plpdf1d',   'Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.'
   write(u,11)plpdf2d, 'plpdf2d',   'Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).'
   write(u,11)placorr, 'placorr',   'Plot autocorrelations: 0-no, >0-yes: plot placorr steps'
-  write(u,11)plotsky, 'plotsky',   'Plot 2d pdf with stars, implies plpdf2d=1'
+  write(u,11)plotsky, 'plotsky',   'Plot 2d pdf with stars, implies plpdf2d>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
   write(u,11)plmovie, 'plmovie',   'Plot movie frames'
   
   
@@ -323,7 +323,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   plpdf1d = 1       !Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.
   plpdf2d = 2       !Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).
   placorr = 0e4     !Plot autocorrelations: 0-no, >0-yes: plot placorr steps
-  plotsky = 0       !Plot 2d pdf with stars, implies plpdf2d=1
+  plotsky = 0       !Plot 2d pdf with stars, implies plpdf2d>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
   plmovie = 0       !Plot movie frames
   
   chainsymbol = 1   !Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle
@@ -376,7 +376,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
   use chain_data
   implicit none
   integer :: i,i1,io,ic,j,exitcode,readerror
-  character :: bla*10,detname*14
+  character :: bla*1,detname*14
   real*8 :: t
 
   exitcode = 0
@@ -423,9 +423,9 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
      
      i=1
      do while(i.le.narr1)
-        !do while(i.le.100)
         !read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
         read(10,*,iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
+        
         if(io.lt.0) exit !EOF
         if(io.gt.0) then !Read error
            if(readerror.eq.1) then !Read error in previous line as well
@@ -445,6 +445,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
            cycle
         end if
         readerror = 0
+        
         is(ic,i) = real(i1)
         if(ic.eq.1.and.i.eq.1) t0 = dble(floor(t/10.d0)*10)
         if(thin.gt.1.and.i.gt.2) then !'Thin' the output by reading every thin-th line

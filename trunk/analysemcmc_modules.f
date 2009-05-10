@@ -49,7 +49,7 @@ module general_data
   character :: pgunits(npar1)*99,pgvarns(npar1)*99,pgvarnss(npar1)*99,pgorigvarns(npar1)*99
   
   integer :: wrap(nchs,npar1)
-  real :: rashift,shift(nchs,npar1)
+  real :: rashift,racentre,shift(nchs,npar1)
 end module general_data
 !***************************************************************************************************
 

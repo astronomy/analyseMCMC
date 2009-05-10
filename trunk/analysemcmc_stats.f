@@ -140,6 +140,8 @@ subroutine statistics(exitcode)
         y1 = mod(y1 + shift(ic,p), shival) - shift(ic,p)
         y2 = mod(y2 + shift(ic,p), shival) - shift(ic,p)
         centre = mod(centre + shift(ic,p), shival) - shift(ic,p)
+        if(version.eq.1.and.p.eq.8.and.ic.eq.1) racentre = centre                             !Save RA centre to plot sky map
+        if(version.eq.2.and.p.eq.6.and.ic.eq.1) racentre = centre                             !Save RA centre to plot sky map
         
         minrange = y2-y1
         !call rindexx(n(ic),alldat(ic,p,1:n(ic)),indexx(p,1:n(ic)))  !Re-sort

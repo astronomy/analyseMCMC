@@ -40,7 +40,7 @@
          1             plpdf1d     Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.
          2             plpdf2d     Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).
          0             placorr     Plot autocorrelations: 0-no, >0-yes: plot placorr steps
-         0             plotsky     Plot 2d pdf with stars, implies plpdf2d=1
+         0             plotsky     Plot 2d pdf with stars, implies plpdf2d>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars
          0             plmovie     Plot movie frames
 
  Detailed plot settings:
@@ -78,7 +78,7 @@
  Data settings:
  Plot variables:  1:logL, 2:Mc, 3:eta, 4:tc, 5:dL, 6:a, 7:th, 8:RA, 9:dec, 10:phi, 11:thJ, 12:phiJ, 13:alpha, 14:M1, 15:M2
         15              nplvar     Number of plot variables for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savepdf=1. Put the variables in the line below:
-  2  3  4  5  6  7 13 10  8  9 11 12 14 15  1
+  2  3  4  5  6  7 13 10  8  9 11 12 14 15  1 
     0    0              panels     Number of for 1D plots in x,y direction:  0: autodetermine
          0              nbin1d     Number of bins for 1D PDFs:  0: autodetermine
          0             nbin2dx     Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)

@@ -190,8 +190,8 @@ program analysemcmc
   if(file.ge.1) update = 0
   if(plmovie.eq.1) update = 0
   if(plotsky.ge.1) then
-     plpdf2d = 1
-     !wrapdata = 0
+     plpdf2d = max(1,plpdf2d)
+     !if(plotsky.ge.2) wrapdata = 0  !Full-sky map
   end if
   
   colournames(1:15) = (/'white','red','dark green','dark blue','cyan','magenta','yellow','orange','light green','brown','dark red','purple','red-purple','dark grey','light grey'/)
@@ -256,7 +256,7 @@ program analysemcmc
   
   !if(prprogress+prruninfo+prinitial.ge.1) write(6,*)
   npar = 13
-  if(prchaininfo.ge.1) write(6,'(A,I3,A)')'  Analysing',nchains0,' chains '
+  if(prchaininfo.ge.1) write(6,'(A,I3,A)')'  Analysing',nchains0,' chains from SPINspiral'
   nchains = nchains0
   
   
