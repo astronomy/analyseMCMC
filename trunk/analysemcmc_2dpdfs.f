@@ -15,7 +15,8 @@ subroutine pdfs2d(exitcode)
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(nchs*narr1),yy(nchs*narr1),zz(nchs*narr1)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
-  character :: string*99,str*99,tempfile*99
+  character :: string*99,str*99,tempfile*99,ivalstr*99
+  logical :: project_map,sky_position,binary_orientation
   
   exitcode = 0
   countplots = 0
@@ -94,11 +95,6 @@ subroutine pdfs2d(exitcode)
      if(file.gt.1) call pginitl(colour,file,whitebg)
   end if !if(plot.eq.1)
   
-  if(plotsky.ge.1) then
-     j1 = 8
-     j2 = 9
-  end if
-  
   if(savepdf.eq.1) then
      open(unit=30,action='write',form='formatted',status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__pdf2d.dat')
      write(30,'(5I6,T100,A)')j1,j2,1,nbin2dx,nbin2dy,'Plot variable 1,2, total number of chains, number of bins x,y'
@@ -107,6 +103,15 @@ subroutine pdfs2d(exitcode)
   npdf=0 !Count iterations to open windows with different numbers
   do p1=j1,j2
      do p2=j1,j2
+        
+        !Identify special combinations of parameters:
+        sky_position = .false.
+        binary_orientation = .false.
+        project_map = .false.
+        if(p1.eq.8.and.p2.eq.9) sky_position = .true.
+        if(p1.eq.12.and.p2.eq.11) binary_orientation = .true.
+        if(sky_position .and. plotsky.ge.1) project_map = .true.  !Make a special sky plot (i.e., plot stars or use projection) if plotsky>0 and RA,Dec are plotted
+        
         
         if(npdf2d.ge.0) then
            plotthis = 0  !Determine to plot or save this combination of j1/j2 or p1/p2
@@ -128,13 +133,21 @@ subroutine pdfs2d(exitcode)
               npdf=npdf+1
               write(str,'(I3,A3)')200+npdf,'/xs'
               io = pgopen(trim(str))
-              call pgpap(scrsz,scrrat)
+              if(project_map) then
+                 call pgpap(scrsz/0.5*scrrat,0.5)
+              else
+                 call pgpap(scrsz,scrrat)
+              end if
               call pginitl(colour,file,whitebg)
            end if
            if(file.eq.1) then
               write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.ppm'
               io = pgopen(trim(tempfile)//'/ppm')
-              call pgpap(bmpsz,bmprat)
+              if(project_map) then
+                 call pgpap(bmpsz/0.5*bmprat,0.5)
+              else
+                 call pgpap(bmpsz,bmprat)
+              end if
               call pginitl(colour,file,whitebg)
            end if
            if(file.lt.2.and.io.le.0) then
@@ -142,11 +155,11 @@ subroutine pdfs2d(exitcode)
               exitcode = 1
               return
            end if
-
+           
            !call pgscr(3,0.,0.5,0.)
            call pgsch(sch)
         end if
-
+        
         xmin = minval(alldat(ic,p1,1:n(ic)))
         xmax = maxval(alldat(ic,p1,1:n(ic)))
         ymin = minval(alldat(ic,p2,1:n(ic)))
@@ -159,37 +172,20 @@ subroutine pdfs2d(exitcode)
         xx(1:n(ic)) = alldat(ic,p1,1:n(ic)) !Parameter 1
         yy(1:n(ic)) = alldat(ic,p2,1:n(ic)) !Parameter 2
         zz(1:n(ic)) = alldat(ic,1,1:n(ic))   !Likelihood
-
-        if(plotsky.eq.0) then
+        
+        if(.not.project_map) then
            xmin = xmin - 0.05*dx
            xmax = xmax + 0.05*dx
            ymin = ymin - 0.05*dy
            ymax = ymax + 0.05*dy
         end if
-
-
-        !Plot a cute sky map in 2D PDF
-        if(plot.eq.1.and.plotsky.ge.1) then
-           !xmax = 18.2!14.
-           !xmin = 14.8!20.
-           !ymin = 20.!0.
-           !ymax = 50.!70.
-           
-           if(plotsky.ge.2) then
-              !xmin = 0.
-              !xmax = 24.
-              !xmin = (mod(xmin*h2r+rashift+pi,tpi)-rashift-pi)*r2h
-              !xmax = (mod(xmax*h2r+rashift+pi,tpi)-rashift-pi)*r2h
-              !print*,rashift*r2h,(xmin+xmax)/2.,racentre*r2h
-              
-              !racentre = (xmin+xmax)/2.
-              racentre = racentre*r2h
-              xmin = racentre - 12.
-              xmax = racentre + 12.
-              ymin = -90.
-              ymax = 90.
-           end if
-           
+        
+        
+        
+        
+        
+        !Prepare binning for a cute sky map in 2D PDF
+        if(plot.eq.1 .and. project_map) then
            rat = 0.5 !scrrat !0.75
            !call pgpap(11.,rat)
            !call pgpap(scrsz,scrrat) !This causes a 'pgpage' when pggray is called...
@@ -209,20 +205,23 @@ subroutine pdfs2d(exitcode)
               ymax = a + 0.5*dy
               if(prprogress.ge.1) write(6,'(A,F6.1,A3,F6.1,A,$)')'  Changing declination range to ',ymin,' - ',ymax,' deg.'
            end if
-        end if !if(plotsky.ge.1)
+        end if !if(plot.eq.1 .and. project_map)
         
-        !Force plotting and binning boundaries
-        if(wrapdata.eq.0.and.p1.eq.8.and.p2.eq.9) then
+        !Force plotting and binning boundaries  CHECK: lose this?
+        if(wrapdata.eq.0.and.sky_position) then
            xmin = 0.
            xmax = 24.
            ymin = -90.
            ymax = 90.
         end if
-
-
-        !'Normalise' 2D PDF
+        
+        
+        !Bin data and 'normalise' 2D PDF
         if(normpdf2d.le.2.or.normpdf2d.eq.4) then
+           
+           !Bin data:
            call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,nbin2dx,nbin2dy,xmin,xmax,ymin,ymax,z,tr)  !Compute bin number rather than find it, ~10x faster
+           
            if(normpdf2d.eq.1) z = max(0.,log10(z + 1.e-30))
            if(normpdf2d.eq.2) z = max(0.,sqrt(z + 1.e-30))
            if(normpdf2d.eq.4) then
@@ -231,7 +230,7 @@ subroutine pdfs2d(exitcode)
               trueranges2d(p1,p2) = truerange2d(z,nbin2dx+1,nbin2dy+1,startval(1,p1,1),startval(1,p2,1),tr)
               !write(6,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
               do i=1,nival
-                 if(prival.ge.1.and.prprogress.ge.2 .and. (p1.eq.8.and.p2.eq.9 .or. p1.eq.11.and.p2.eq.12)) then  !For sky position and orientation only
+                 if(prival.ge.1.and.prprogress.ge.2 .and. (sky_position .or. binary_orientation)) then  !For sky position and orientation only
                     if(i.eq.1) write(6,*)
                     write(6,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probarea(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
                  end if
@@ -246,8 +245,10 @@ subroutine pdfs2d(exitcode)
         end if
         
         
+        
+        
         !Swap RA boundaries for RA-Dec plot in 2D PDF
-        if(p1.eq.8.and.p2.eq.9) then
+        if(sky_position) then
            a = xmin
            xmin = xmax
            xmax = a
@@ -260,40 +261,52 @@ subroutine pdfs2d(exitcode)
         !Plot 2D PDF
         if(plot.eq.1) then
            
-           !Force plotting boundaries (not binning)
-           if(1.eq.2.and.p1.eq.8.and.p2.eq.9) then
+           !Set plot ranges for whole-sky map.  Does not affect binning
+           if(project_map .and. plotsky.ge.2) then
+              racentre = racentre*r2h
+              xmin = racentre + 12.  !Must be the larger of the two
+              xmax = racentre - 12.
+              ymin = -90.
+              ymax = 90.
+           end if
+           
+           !Force plotting boundaries (not binning boundaries)
+           if(1.eq.2.and.sky_position) then
               xmin = 24.
               xmax = 0.
               ymin = -90.
               ymax = 90.
-              
-              xmin = 14.83440
-              xmax = 10.35767
-              ymin = -32.63011
-              ymax = 31.75267
            end if
            
            call pgsch(sch)
-           !call pgsvp(0.08*sch,0.95,0.08*sch,0.95)
-           call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.033*sch)  !Since sch is typically ~1.5*fontsize2d: 0.95 -> 1-0.05*fontsize ~ 1-0.03*sch
+           if(project_map .and. plotsky.ge.2) then
+              call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.05*sch)  !Make room for title and +90deg label
+           else
+              call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.033*sch)  !Make room for title.  Since sch is typically ~1.5*fontsize2d: 0.95 -> 1-0.05*fontsize ~ 1-0.03*sch
+           end if
+           
            call pgswin(xmin,xmax,ymin,ymax)
-           if((plotsky.eq.1.or.plotsky.eq.3).and.file.ge.2) then !Need dark background
+           if(project_map .and. (plotsky.eq.1.or.plotsky.eq.3).and.file.ge.2) then !Need dark background
               call pgsci(1)
               call pgrect(xmin,xmax,ymin,ymax)
            end if
            
+           
            !Plot the actual 2D PDF (grey scales or colour)
            if(plpdf2d.eq.1.or.plpdf2d.eq.2) then
-              if(normpdf2d.lt.4) then
+              
+              !Set the colour schemes:
+              if(normpdf2d.lt.4) then  !Grey scales
                  call pgscir(0,1e9)
                  call pgqcir(clr,maxclr)  !Maxclr is device-dependent
                  do i=0,maxclr-30  !Colour indices typically run 0-255, but this is device-dependent. Reserve ~0-29 for other purposes -> (maxclr-30) for these grey scales
                     x = real((maxclr-30) - i)/real(maxclr-30)          !White background
                     call pgscr(30+i,x,x,x)
                  end do
-                 call pgscir(30,maxclr) !set color index range for pgimag
+                 call pgscir(30,maxclr) !set colour-index range for pgimag
               end if
-              if(normpdf2d.eq.4) then
+              
+              if(normpdf2d.eq.4) then  !Colour
                  if(colour.eq.0) then
                     call pgscr(30,1.,1.,1.) !BG colour
                     if(nival.eq.2) then
@@ -348,17 +361,22 @@ subroutine pdfs2d(exitcode)
                        call pgscr(35,1.,0.,0.) !Red
                     end if
                  end if
-                 call pgscir(30,30+nival) !set color index range for pgimag
+                 call pgscir(30,30+nival) !set colour-index range for pgimag
               end if  !if(normpdf2d.eq.4)
-              if(plotsky.le.1) then
-                 call pgimag(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,0.,1.,tr)
-              else
+              
+              
+              
+              !Plot the PDF
+              if(project_map .and. plotsky.ge.2) then
                  call pgimag_project(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,0.,1.,tr)
+              else
+                 call pgimag(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,0.,1.,tr)
               end if
            end if
            
+           
            !Plot stars in 2D PDF (over the grey scales, but underneath contours, lines, etc)
-           if(plotsky.eq.1.or.plotsky.eq.3) then
+           if(project_map .and. (plotsky.eq.1.or.plotsky.eq.3)) then
               call pgswin(xmin*15,xmax*15,ymin,ymax) !Map works in degrees
               call plotthesky(xmin*15,xmax*15,ymin,ymax,rashift)
               call pgswin(xmin,xmax,ymin,ymax)
@@ -368,12 +386,12 @@ subroutine pdfs2d(exitcode)
         
         
         !Plot contours in 2D PDF
-        if(plotsky.lt.2 .and. (plpdf2d.eq.1.or.plpdf2d.eq.3) .and. plot.eq.1) then
+        if(plot.eq.1 .and. (plpdf2d.eq.1.or.plpdf2d.eq.3) .and. (.not.project_map .or. plotsky.eq.1.or.plotsky.eq.3)) then
            if(normpdf2d.lt.4) then
               ncont = 11
               do i=1,ncont
                  cont(i) = 0.01 + 2*real(i-1)/real(ncont-1)
-                 if(plotsky.ge.1) cont(i) = 1.-cont(i)
+                 if(project_map .and. (plotsky.eq.1.or.plotsky.eq.3)) cont(i) = 1.-cont(i)
               end do
               ncont = min(4,ncont) !Only use the first 4
            end if
@@ -381,20 +399,19 @@ subroutine pdfs2d(exitcode)
               ncont = nival
               do i=1,ncont
                  cont(i) = max(1. - real(i-1)/real(ncont-1),0.001)
-                 !if(plotsky.ge.1) cont(i) = 1.-cont(i)
+                 !if(project_map) cont(i) = 1.-cont(i)
               end do
            end if
            
            call pgsls(1)
-           if(plotsky.eq.0 .and. normpdf2d.ne.4) then !First in bg colour
+           if((.not.project_map .or. plotsky.ne.1.or.plotsky.ne.3) .and. normpdf2d.ne.4) then !First in bg colour
               call pgslw(2*lw)
               call pgsci(0)
-              !call pgcont(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,cont,4,tr)
               call pgcont(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,cont(1:ncont),ncont,tr)
            end if
            call pgslw(lw)
            call pgsci(1)
-           if(plotsky.ge.1) call pgsci(7)
+           if(project_map .and. (plotsky.eq.1.or.plotsky.eq.3)) call pgsci(7)
            call pgcont(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,cont(1:ncont),ncont,tr)
         end if
         
@@ -421,7 +438,7 @@ subroutine pdfs2d(exitcode)
         
         
         !Plot true value, median, ranges, etc. in 2D PDF
-        if(plot.eq.1) then
+        if(plot.eq.1 .and. (.not.project_map.or.plotsky.eq.1)) then
            call pgsci(1)
            
            !Plot max likelihood in 2D PDF
@@ -440,7 +457,7 @@ subroutine pdfs2d(exitcode)
                  call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !Max logL
                  call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !Max logL
               end if
-
+              
               ply = pldat(icloglmax,p2,iloglmax)
               if(p2.eq.8) ply = rev24(ply)
               if(p2.eq.10.or.p2.eq.12.or.p2.eq.13) ply = rev360(ply)
@@ -453,16 +470,16 @@ subroutine pdfs2d(exitcode)
                  call pgline(2,(/-1.e20,1.e20/),(/ply-360.,ply-360./)) !Max logL
                  call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !Max logL
               end if
-
+              
               call pgpoint(1,plx,ply,12)
            end if
-
-
-           if(plotsky.ge.1) call pgsci(0)
+           
+           
+           if(project_map .and. (plotsky.eq.1.or.plotsky.eq.3)) call pgsci(0)
            call pgsls(2)
            
            !Plot true value in 2D PDF
-           if((pltrue.eq.1.or.pltrue.eq.3).and.plotsky.eq.0 .or. &
+           if((pltrue.eq.1.or.pltrue.eq.3).and.(.not.project_map) .or. &
                 !((pltrue.eq.2.or.pltrue.eq.4) .and. (p1.eq.2.and.p2.eq.3).or.(p1.eq.6.and.p2.eq.7).or.(p1.eq.14.and.p2.eq.15)) ) then
                 ((pltrue.eq.2.or.pltrue.eq.4) .and. (p1.eq.2.and.p2.eq.3).or.(p1.eq.14.and.p2.eq.15)) ) then
               !call pgline(2,(/startval(ic,p1,1),startval(ic,p1,1)/),(/-1.e20,1.e20/))
@@ -484,7 +501,7 @@ subroutine pdfs2d(exitcode)
                     call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !True value
                     call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !True value
                  end if
-
+                 
                  !y
                  call pgsls(2); call pgsci(1)
                  if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
@@ -546,7 +563,7 @@ subroutine pdfs2d(exitcode)
            
            
            !Big star at true position in 2D PDF
-           if(plotsky.ge.1.and.(pltrue.eq.1.or.pltrue.eq.3)) then
+           if(project_map .and. (plotsky.eq.1.or.plotsky.eq.3) .and. (pltrue.eq.1.or.pltrue.eq.3)) then
               call pgsch(sch*2)
               call pgsci(9)
               call pgpoint(1,startval(ic,p1,1),startval(ic,p2,1),18)
@@ -554,56 +571,70 @@ subroutine pdfs2d(exitcode)
               call pgsci(1)
            end if
            
-           
-           
-           
+        end if  !if(plot.eq.1 .and. (.not.project_map.or.plotsky.eq.1))
+        
+        
+        
+        !Print axes, axis labels and plot title
+        if(plot.eq.1) then
            
            !Plot coordinate axes and axis labels in 2D PDF
            call pgsls(1)
            call pgslw(lw2)
            call pgsci(1)
-           if(plotsky.eq.0) call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-           if(plotsky.eq.1) then
-              call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0) !Box, ticks, etc in white
-              call pgsci(1)
-              call pgbox('N',0.0,0,'N',0.0,0) !Number labels in black
-           end if
+           if(.not.project_map) call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
+           !if(plotsky.eq.1) then
+           !   call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0) !Box, ticks, etc in white
+           !   call pgsci(1)
+           !   call pgbox('N',0.0,0,'N',0.0,0) !Number labels in black
+           !end if
            call pgmtxt('B',2.2,0.5,0.5,trim(pgvarns(p1)))
            call pgmtxt('L',1.7,0.5,0.5,trim(pgvarns(p2)))
            
            
            !Print 2D probability ranges in plot title
-           if(prival.ge.1.and.normpdf2d.eq.4.and. ((p1.eq.8.and.p2.eq.9) .or. (p1.eq.12.and.p2.eq.11))) then  !For sky position and orientation only
+           if(prival.ge.1.and.normpdf2d.eq.4.and. (sky_position .or. binary_orientation)) then  !For sky position and orientation only
               string = ' '
               do c = 1,nival
+                 write(ivalstr,'(F5.1,A1)')ivals(c)*100,'%'
+                 if(fonttype.eq.2) then
+                    if(abs(ivals(c)-0.6827).lt.0.001) write(ivalstr,'(A)')'1\(2144)'
+                    if(abs(ivals(c)-0.9545).lt.0.001) write(ivalstr,'(A)')'2\(2144)'
+                    if(abs(ivals(c)-0.9973).lt.0.001) write(ivalstr,'(A)')'3\(2144)'
+                 else
+                    if(abs(ivals(c)-0.6827).lt.0.001) write(ivalstr,'(A)')'1\(0644)'
+                    if(abs(ivals(c)-0.9545).lt.0.001) write(ivalstr,'(A)')'2\(0644)'
+                    if(abs(ivals(c)-0.9973).lt.0.001) write(ivalstr,'(A)')'3\(0644)'
+                 end if
+                 
                  i = 3  !2-use degrees, 3-square degrees
                  a = probareas(p1,p2,c,i)
                  if(i.eq.2) then
                     if(a.lt.1.) then
-                       write(string,'(F5.1,A2,F5.2,A7)')ivals(c)*100,'%:',a,'\(2218)'
+                       write(string,'(A,F5.2,A7)')trim(ivalstr)//':',a,'\(2218)'
                     else if(a.lt.10.) then
-                       write(string,'(F5.1,A2,F4.1,A7)')ivals(c)*100,'%:',a,'\(2218)'
+                       write(string,'(A,F4.1,A7)')trim(ivalstr)//':',a,'\(2218)'
                     else if(a.lt.100.) then
-                       write(string,'(F5.1,A2,F5.1,A7)')ivals(c)*100,'%:',a,'\(2218)'
+                       write(string,'(A,F5.1,A7)')trim(ivalstr)//':',a,'\(2218)'
                     else
-                       write(string,'(F5.1,A2,I4,A7)')ivals(c)*100,'%:',nint(a),'\(2218)'
+                       write(string,'(A,I4,A7)')trim(ivalstr)//':',nint(a),'\(2218)'
                     end if
                  end if
                  if(i.eq.3) then
                     call pgsch(sch*0.85) !Needed to fit the square-degree sign in
                     if(quality.eq.3) call pgsch(sch*0.6) !Poster
                     if(a.lt.1.) then
-                       write(string,'(F5.1,A2,F5.2,A9)')ivals(c)*100,'%:',a,'deg\u2\d'
+                       write(string,'(A,F5.2,A9)')trim(ivalstr)//':',a,'deg\u2\d'
                     else if(a.lt.10.) then
-                       write(string,'(F5.1,A2,F4.1,A9)')ivals(c)*100,'%:',a,'deg\u2\d'
+                       write(string,'(A,F4.1,A9)')trim(ivalstr)//':',a,'deg\u2\d'
                     else if(a.lt.100.) then
-                       write(string,'(F5.1,A2,F5.1,A9)')ivals(c)*100,'%:',a,'deg\u2\d'
+                       write(string,'(A,F5.1,A9)')trim(ivalstr)//':',a,'deg\u2\d'
                     else if(a.lt.1000.) then
-                       write(string,'(F5.1,A2,I4,A9)')ivals(c)*100,'%:',nint(a),'deg\u2\d'
+                       write(string,'(A,I4,A9)')trim(ivalstr)//':',nint(a),'deg\u2\d'
                     else if(a.lt.10000.) then
-                       write(string,'(F5.1,A2,I5,A9)')ivals(c)*100,'%:',nint(a),'deg\u2\d'
+                       write(string,'(A,I5,A9)')trim(ivalstr)//':',nint(a),'deg\u2\d'
                     else
-                       write(string,'(F5.1,A2,I6,A9)')ivals(c)*100,'%:',nint(a),'deg\u2\d'
+                       write(string,'(A,I6,A9)')trim(ivalstr)//':',nint(a),'deg\u2\d'
                     end if
                  end if
                  if(quality.eq.91) then !NINJA
@@ -616,12 +647,19 @@ subroutine pdfs2d(exitcode)
                  end if
                  a = (real(c-1)/real(nival-1) - 0.5)*0.7 + 0.5
                  call pgsci(30+nival+1-c)
-                 call pgmtxt('T',0.5,a,0.5,trim(string))  !Print title
+                 if(project_map .and. plotsky.ge.2) then
+                    call pgmtxt('T',1.0,a,0.5,trim(string))  !Print title
+                 else
+                    call pgmtxt('T',0.5,a,0.5,trim(string))  !Print title
+                 end if
                  call pgsch(sch)
               end do
               call pgsci(1)
            end if
-           
+        end if  !if(plot.eq.1)
+        
+        
+        if(plot.eq.1) then
            countplots = countplots + 1  !The current plot is number countplots
            
            !Convert plot
@@ -1407,7 +1445,7 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr)  !Clone of pgimag,
      !Plot meridians:
      do i=-24,24,3  !In hours
         call pgsci(14)
-        if(i.eq.0) call pgsci(1) !Null-meridian in black
+        if(i.eq.0.or.abs(i).eq.24) call pgsci(1) !Null-meridian in black
         if(real(i).gt.-racentre-12.and.real(i).lt.-racentre+12) then
            !Plot line:
            x = -(racentre+real(i))
@@ -1452,7 +1490,11 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr)  !Clone of pgimag,
      call pgptext(racentre,92.,0.,0.5,'+90\(2218)')           !NP
      call pgptext(racentre,-95.,0.,0.5,'-90\(2218)')          !SP
      call pgline(2,(/racentre-12.,racentre+12./),(/0.,0./))   !Equator
-     call pgline(nell/2+1,-racentre*xell+racentre,yell*90.)   !Null-meridian
+     
+     !Plot null-meridian:
+     do i=-24,24,24
+        if(real(i).gt.-racentre-12.and.real(i).lt.-racentre+12) call pgline(nell/2+1,-(racentre+real(i))*xell+racentre,yell*90.)
+     end do
      
      call pgqlw(lw)     !Save current line width
      call pgslw(lw*2)

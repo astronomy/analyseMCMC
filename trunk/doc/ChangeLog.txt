@@ -2,6 +2,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    58: sluys, 11/05/2009
+     - More flexibility and consistency in 2D plotting: 
+       plot skymap only if plpdf2d>0, plotsky>0 and p=8,9
+     - Don't bin whole sky when plotting whole-sky map
+     - A few small pixes related to 2D maps
+    
     57: sluys, 10/05/2009
      - Added Mollweide projection for sky maps for plotsky=2, 
        using new routine pgimag_project()

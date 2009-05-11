@@ -189,10 +189,6 @@ program analysemcmc
   if(file.eq.1) combinechainplots = 0
   if(file.ge.1) update = 0
   if(plmovie.eq.1) update = 0
-  if(plotsky.ge.1) then
-     plpdf2d = max(1,plpdf2d)
-     !if(plotsky.ge.2) wrapdata = 0  !Full-sky map
-  end if
   
   colournames(1:15) = (/'white','red','dark green','dark blue','cyan','magenta','yellow','orange','light green','brown','dark red','purple','red-purple','dark grey','light grey'/)
   if(file.ge.2) colournames(1) = 'black'
