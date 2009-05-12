@@ -23,7 +23,7 @@ end module analysemcmc_settings
 module constants
   implicit none
   save
-  integer :: version
+  integer :: version,os
   real*8 :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
   real :: rpi,rtpi,rpi2,rr2d,rd2r,rr2h,rh2r,rc3rd
   character :: upline*4,detabbrs(4)*2

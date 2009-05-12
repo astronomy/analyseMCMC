@@ -219,7 +219,7 @@ subroutine write_settingsfile
   write(u,11)plpdf2d, 'plpdf2d',   'Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).'
   write(u,11)placorr, 'placorr',   'Plot autocorrelations: 0-no, >0-yes: plot placorr steps'
   write(u,11)plotsky, 'plotsky',   'Plot 2d pdf with stars, implies plpdf2d>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
-  write(u,11)plmovie, 'plmovie',   'Plot movie frames'
+  write(u,11)plmovie, 'plmovie',   'Create movie frames'
   
   
   write(u,'(/,A)')' Detailed plot settings:'
@@ -997,9 +997,10 @@ subroutine savgol(c,np,nl,nr,ld,m)
   integer :: ld,m,nl,np,nr,mmax
   real :: c(np)
   parameter (mmax=6)
-  !     USES lubksb,ludcmp
+  !Uses lubksb,ludcmp
   integer :: imj,ipj,j,k,kk,mm,indx(mmax+1)
   real :: d,fac,sum,a(mmax+1,mmax+1),b(mmax+1)
+  
   !if(np.lt.nl+nr+1.or.nl.lt.0.or.nr.lt.0.or.ld.gt.m.or.m.gt.mmax.or.nl+nr.lt.m) pause 'bad args in savgol'
   if(np.lt.nl+nr+1.or.nl.lt.0.or.nr.lt.0.or.ld.gt.m.or.m.gt.mmax.or.nl+nr.lt.m) write(0,'(A)')' Bad args in savgol'
   do ipj=0,2*m
@@ -1687,3 +1688,17 @@ subroutine swapint(i1,i2)                        !Swap two integers
   i2 = i
 end subroutine swapint
 !************************************************************************
+
+
+!***************************************************************************************************
+subroutine determine_nbin_1d(npoints,nbin)
+  implicit none
+  integer :: npoints,nbin
+  if(npoints.le.100) then
+     nbin = floor(2*sqrt(real(npoints)))
+  else
+     nbin = floor(10*log10(real(npoints)))
+  end if
+  nbin = max(nbin,5)
+end subroutine determine_nbin_1d
+!***************************************************************************************************

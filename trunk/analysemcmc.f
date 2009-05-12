@@ -9,7 +9,7 @@ program analysemcmc
   use plot_data
   use chain_data
   implicit none
-  integer :: i,ic,p,os,iargc,exitcode,tempintarray(99),getos
+  integer :: i,ic,p,iargc,exitcode,tempintarray(99),getos
   real :: pltsz
   real*8 :: timestamp,timestamps(9)
   
@@ -188,7 +188,7 @@ program analysemcmc
   if(plsigacc.ge.1.or.plmovie.ge.1) rdsigacc = 1
   if(file.eq.1) combinechainplots = 0
   if(file.ge.1) update = 0
-  if(plmovie.eq.1) update = 0
+  if(plmovie.ge.1) update = 0
   
   colournames(1:15) = (/'white','red','dark green','dark blue','cyan','magenta','yellow','orange','light green','brown','dark red','purple','red-purple','dark grey','light grey'/)
   if(file.ge.2) colournames(1) = 'black'
@@ -445,7 +445,7 @@ program analysemcmc
   
   timestamps(8) = timestamp(os)
   
-  if(plmovie.eq.1) then
+  if(plmovie.ge.1) then
      call animation(exitcode)
      if(exitcode.ne.0) goto 9999
   end if
@@ -491,7 +491,7 @@ program analysemcmc
      end if
      !write(6,'(A,F6.1,A,$)')'   plots:',min(dabs(timestamps(7)-timestamps(4)),999.9),'s,'
      !write(6,'(A,F5.1,A,$)')'   save stats:',min(dabs(timestamps(8)-timestamps(7)),999.9),'s,'
-     if(plmovie.eq.1) write(6,'(A,F5.1,A,$)')'   movie:',min(dabs(timestamps(9)-timestamps(8)),999.9),'s,'
+     if(plmovie.ge.1) write(6,'(A,F5.1,A,$)')'   movie:',min(dabs(timestamps(9)-timestamps(8)),999.9),'s,'
      write(6,'(A,F6.1,A)')'   total:',min(dabs(timestamps(9)-timestamps(1)),999.9),'s.'
   end if
   

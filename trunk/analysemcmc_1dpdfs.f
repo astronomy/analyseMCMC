@@ -12,7 +12,7 @@ subroutine pdfs1d(exitcode)
   integer :: i,j,p,ic,io,pgopen,lw,exitcode,system
   real :: rev24,rev360,rev180
   real :: x(nchs,nchs*narr1),xmin,xmax,xmin1,xmax1,xpeak,dx,ymin,ymax,sch
-  real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ybin2(:),ysum(:),yconv(:),ycum(:)  !These depend on nbin1d, allocate after reading input file
+  real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ysum(:),yconv(:),ycum(:)  !These depend on nbin1d, allocate after reading input file
   real :: plshift,plx,ply,x0,norm,bindx
   character :: string*99,str*99,str1*99,str2*99
   
@@ -22,12 +22,13 @@ subroutine pdfs1d(exitcode)
   
   !Autodetermine number of bins:
   if(nbin1d.le.0) then
-     if(totpts.le.100) then
-        nbin1d = floor(2*sqrt(real(totpts)))
-     else
-        nbin1d = floor(10*log10(real(totpts)))
-     end if
-     nbin1d = max(nbin1d,5)
+     !if(totpts.le.100) then
+     !   nbin1d = floor(2*sqrt(real(totpts)))
+     !else
+     !   nbin1d = floor(10*log10(real(totpts)))
+     !end if
+     !nbin1d = max(nbin1d,5)
+     call determine_nbin_1d(totpts,nbin1d)
      if(prprogress.ge.2.and.plot.eq.1.and.update.eq.0) then
         if(nbin1d.lt.100) write(6,'(A2,I2,A8,$)')' (',nbin1d,' bins), '
         if(nbin1d.ge.100) write(6,'(A2,I3,A8,$)')' (',nbin1d,' bins), '
@@ -38,7 +39,7 @@ subroutine pdfs1d(exitcode)
   end if
 
   !Allocate memory:
-  allocate(xbin(nchs,nbin1d+1),ybin(nchs,nbin1d+1),xbin1(nbin1d+1),ybin1(nbin1d+1),ybin2(nbin1d+1),ysum(nbin1d+1),yconv(nbin1d+1),ycum(nbin1d+1))
+  allocate(xbin(nchs,nbin1d+1),ybin(nchs,nbin1d+1),xbin1(nbin1d+1),ybin1(nbin1d+1),ysum(nbin1d+1),yconv(nbin1d+1),ycum(nbin1d+1))
 
   if(plot.eq.1) then
      if(file.eq.0) then
@@ -194,7 +195,6 @@ subroutine pdfs1d(exitcode)
         end if
         
         !Smoothen 1D PDF
-        ybin2 = ybin1
         if(smooth.gt.1) call smoothpdf1d(ybin1,nbin1d+1,smooth)
         xbin(ic,1:nbin1d+1) = xbin1(1:nbin1d+1)
         ybin(ic,1:nbin1d+1) = ybin1(1:nbin1d+1)
@@ -603,11 +603,10 @@ subroutine pdfs1d(exitcode)
         i = system('rm -f pdfs.ppm')
      end if
   end if !if(plot.eq.1)
-  !write(6,*)''   
   
   
   !Deallocate memory:
-  deallocate(xbin,ybin,xbin1,ybin1,ybin2,ysum,yconv,ycum)
+  deallocate(xbin,ybin,xbin1,ybin1,ysum,yconv,ycum)
   
   
 end subroutine pdfs1d
@@ -677,7 +676,7 @@ subroutine bindata1da(n,x,y,norm,nbin,xmin1,xmax1,xbin,ybin)  !Measure the amoun
   ! nbin - input: number of bins
   ! xmin, xmax - in/output: set xmin=xmax to auto-determine
   ! xbin, ybin - output: binned data (x, y).  The x values are the left side of the bin!
-
+  
   implicit none
   integer :: i,k,n,nbin,norm
   real :: x(n),y(n),xbin(nbin+1),ybin(nbin+1),xmin,xmax,dx,ybintot,xmin1,xmax1,ymin
@@ -687,13 +686,13 @@ subroutine bindata1da(n,x,y,norm,nbin,xmin1,xmax1,xbin,ybin)  !Measure the amoun
   ymin = minval(y)
   !print*,n,nbin,xmin1,xmax1
   !print*,minval(y),maxval(y)
-
+  
   if(abs(xmin-xmax)/(xmax+1.e-30).lt.1.e-20) then !Autodetermine
      xmin = minval(x(1:n))
      xmax = maxval(x(1:n))
   end if
   dx = abs(xmax - xmin)/real(nbin)
-
+  
   do k=1,nbin+1
      !        xbin(k) = xmin + (real(k)-0.5)*dx  !x is the centre< of the bin
      xbin(k) = xmin + (k-1)*dx          !x is the left of the bin

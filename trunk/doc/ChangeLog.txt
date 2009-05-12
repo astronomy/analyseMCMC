@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    59: sluys, 11/05/2009
+     - Fixed animation routine
+     - Wrote small routine for automatic determination of number of bins (1D)
+    
     58: sluys, 11/05/2009
      - More flexibility and consistency in 2D plotting: 
        plot skymap only if plpdf2d>0, plotsky>0 and p=8,9
