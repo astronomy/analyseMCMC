@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    61: sluys, 02/06/2009
+     - Make skymaps, calculate 2D areas with version=2
+     
     60: sluys, 02/06/2009
      - Implementing changevar=1 for version=2 (15-par MCMC)
      - Replaced RA with \alpha and dec with \delta everywhere (?)

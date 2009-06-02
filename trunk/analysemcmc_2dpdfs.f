@@ -108,8 +108,10 @@ subroutine pdfs2d(exitcode)
         sky_position = .false.
         binary_orientation = .false.
         project_map = .false.
-        if(p1.eq.8.and.p2.eq.9) sky_position = .true.
-        if(p1.eq.12.and.p2.eq.11) binary_orientation = .true.
+        if(version.eq.1.and.p1.eq.8.and.p2.eq.9) sky_position = .true.
+        if(version.eq.1.and.p1.eq.12.and.p2.eq.11) binary_orientation = .true.
+        if(version.eq.2.and.p1.eq.6.and.p2.eq.7) sky_position = .true.
+        if(version.eq.2.and.p1.eq.12.and.p2.eq.11) binary_orientation = .true.
         if(sky_position .and. plotsky.ge.1) project_map = .true.  !Make a special sky plot (i.e., plot stars or use projection) if plotsky>0 and RA,Dec are plotted
         
         
@@ -207,8 +209,8 @@ subroutine pdfs2d(exitcode)
            end if
         end if !if(plot.eq.1 .and. project_map)
         
-        !Force plotting and binning boundaries  CHECK: lose this?
-        if(wrapdata.eq.0.and.sky_position) then
+        !Force plotting and binning boundaries  CHECK: lose this? - yes: these are the binning ranges, not the plotting ranges; Don't necessarily want to bin the whole sky when plotting it.
+        if(1.eq.2.and.wrapdata.eq.0.and.sky_position) then
            xmin = 0.
            xmax = 24.
            ymin = -90.
@@ -226,7 +228,7 @@ subroutine pdfs2d(exitcode)
            if(normpdf2d.eq.2) z = max(0.,sqrt(z + 1.e-30))
            if(normpdf2d.eq.4) then
               call identify_2d_ranges(nival,ivals,nbin2dx+1,nbin2dy+1,z,prprogress) !Get 2D probability ranges; identify to which range each bin belongs
-              call calc_2d_areas(p1,p2,version,changevar,nival,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
+              call calc_2d_areas(p1,p2,changevar,nival,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
               trueranges2d(p1,p2) = truerange2d(z,nbin2dx+1,nbin2dy+1,startval(1,p1,1),startval(1,p2,1),tr)
               !write(6,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
               do i=1,nival
@@ -995,7 +997,9 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
   real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,bx1,bx2,by1,by2,x,y,mlim,rashift
   character :: cn(100)*3,con(100)*20,name*10,vsopdir*99,sn(ns)*10,snam(nsn)*10,sni*10,getsname*10,mult,var*9
   
-  mlim = 6.
+  mlim = 6.            !Magnitude limit for stars
+  sllim = 2.5          !Limit for labels
+  snlim = 1.4          !Limit for names
   fonttype = 2
   schmag = 0.07
   schlbl = fontsize1d
@@ -1302,43 +1306,46 @@ end subroutine identify_2d_ranges
 
 !************************************************************************
 !Compute 2D probability areas
-subroutine calc_2d_areas(p1,p2,version,changevar,ni,nx,ny,z,tr,area)
+subroutine calc_2d_areas(p1,p2,changevar,ni,nx,ny,z,tr,area)
+  use constants
   implicit none
-  integer :: p1,p2,version,changevar,ni,nx,ny,ix,iy,i,i1,iv
-  real :: z(nx,ny),tr(6),y,dx,dy,d2r,area(ni)
+  integer :: p1,p2,changevar,ni,nx,ny,ix,iy,i,i1,iv
+  real :: z(nx,ny),tr(6),y,dx,dy,area(ni)
   
-  d2r = atan(1.)/45.
   area = 0.
   
-  !print*,ni,nx,ny
   do ix = 1,nx
      do iy = 1,ny
         dx = tr(2)
         dy = tr(6)
         if(changevar.ge.1) then
-           if( (version.eq.1 .and. (p1.eq.8.and.p2.eq.9 .or. p1.eq.12.and.p2.eq.11)) .or. &
-                (version.eq.2 .and. (p1.eq.6.and.p2.eq.7 .or. p1.eq.10.and.p2.eq.8)) ) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
-              !x = tr(1) + tr(2)*ix + tr(3)*iy
-              !y = tr(4) + tr(5)*ix + tr(6)*iy
+           if(version.eq.1 .and. (p1.eq.8.and.p2.eq.9 .or. p1.eq.12.and.p2.eq.11)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
               y = tr(4) + tr(6)*iy
               if(p1.eq.8) then
-                 dx = dx*cos(y*d2r)
+                 dx = dx*cos(y*rd2r)
               else if(p1.eq.12) then
-                 dx = dx*abs(sin(y*d2r))  !Necessary for i-psi plot?
+                 dx = dx*abs(sin(y*rd2r))  !Necessary for i-psi plot?
               end if
-              !print*,p1,y,cos(y*d2r)
               if(p1.eq.8) dx = dx*15
+           end if
+           if(version.eq.2 .and. (p1.eq.6.and.p2.eq.7 .or. p1.eq.10.and.p2.eq.8)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
+              y = tr(4) + tr(6)*iy
+              if(p1.eq.6) then
+                 dx = dx*cos(y*rd2r)
+              else if(p1.eq.10) then
+                 dx = dx*abs(sin(y*rd2r))  !Necessary for i-psi plot?
+              end if
+              if(p1.eq.6) dx = dx*15
            end if
         end if
         iv = nint(z(ix,iy))
-        !if(iv.gt.0) area(iv) = area(iv) + dx*dy
         do i=1,ni
            if(iv.ge.i) then
               i1 = ni-i+1
               area(i1) = area(i1) + dx*dy
            end if
         end do
-        !if(iv.eq.3) write(6,'(7F10.2)')x,y,dx,dy,dx*dy,z(ix,iy),area(iv)
+        
      end do
   end do
 end subroutine calc_2d_areas
@@ -1527,12 +1534,12 @@ subroutine project_skymap(x,y,racentre,projection)  !Project a sky map, using pr
   if(projection.eq.1) then
      !Mollweide projection:
      !http://en.wikipedia.org/wiki/Mollweide_projection
-     !Newton-Rapson scheme to solve equation:  2*theta + sin(2*theta) = pi*sin(y*d2r)
+     !Newton-Rapson scheme to solve equation:  2*theta + sin(2*theta) = pi*sin(y*rd2r)
      !Convergence is relatively fast, somewhat slower near poles
      
      delta = 1.e-6        !Radians
-     siny  = sin(y*d2r)
-     th2 = y*d2r
+     siny  = sin(y*rd2r)
+     th2 = y*rd2r
      dth2 = 1.e30
      
      do while(abs(dth2).gt.delta)

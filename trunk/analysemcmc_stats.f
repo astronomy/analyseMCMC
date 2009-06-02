@@ -48,6 +48,7 @@ subroutine statistics(exitcode)
              (version.eq.2.and.p.ne.6.and.p.ne.9.and.p.ne.10.and.p.ne.13.and.p.ne.16) ) then
            call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
+           if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) racentre = rpi
            cycle !No wrapping
         end if
         
@@ -136,8 +137,11 @@ subroutine statistics(exitcode)
         y1 = mod(y1 + shift(ic,p), shival) - shift(ic,p)
         y2 = mod(y2 + shift(ic,p), shival) - shift(ic,p)
         centre = mod(centre + shift(ic,p), shival) - shift(ic,p)
-        if(version.eq.1.and.p.eq.8.and.ic.eq.1) racentre = centre                             !Save RA centre to plot sky map
-        if(version.eq.2.and.p.eq.6.and.ic.eq.1) racentre = centre                             !Save RA centre to plot sky map
+        
+        if(ic.eq.1) then
+           if(version.eq.1.and.p.eq.8) racentre = centre                             !Save RA centre to plot sky map
+           if(version.eq.2.and.p.eq.6) racentre = centre                             !Save RA centre to plot sky map
+        end if
         
         minrange = y2-y1
         !call rindexx(n(ic),alldat(ic,p,1:n(ic)),indexx(p,1:n(ic)))  !Re-sort
@@ -483,7 +487,7 @@ subroutine statistics(exitcode)
         
         !Columns: 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:RA, 7:sindec:, 8:cosi, 9:phase, 10:psi,   11:spin1, 12:phi1, 13:theta1,   14:spin2, 15:phi2, 16:theta2
         if(fonttype.eq.2) then  !Use 'roman-like' Greek font
-           varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','th1','phi1','spin2','th2','phi2'/)
+           varnames(1:16) = (/'logL','Mc','eta','t0','d_L','RA','Dec','incl','phase','psi','spin1','th1','phi1','spin2','th2','phi2'/)
            !pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\d0\u (s)            ', &
            !     'd\dL\u (Mpc)          ','\(2127) (h)           ','\(2130) (\(2218))     ','\(2135) (\(2218))     ', &
            !     '\(2147)\dc\u (\(2218))','\(2149) (\(2218))     ','a\dspin1\u            ','\(2185)\d1\u (\(2218))', &
@@ -499,7 +503,7 @@ subroutine statistics(exitcode)
                 'a\dspin1\u','\(2185)\d1\u','\(2147)\d1\u','a\dspin2\u','\(2185)\d2\u','\(2147)\d2\u'/)
            pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','(\(2218))','(\(2218))','(\(2218))','(\(2218))','(\(2218))','','(\(2218))','(\(2218))','','(\(2218))','(\(2218))'/)
         else  !Same, but replace '\(21' with \(06' for arial-like Greek font
-           varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
+           varnames(1:16) = (/'logL','Mc','eta','t0','d_L','RA','Dec','incl','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
            !pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\d0\u (s)            ', &
            !     'd\dL\u (Mpc)          ','\(0627) (h)           ','\(0630) (\(2218))     ','\(0635) (\(2218))     ', &
            !     '\(0647)\dc\u (\(2218))','\(0649) (\(2218))     ','a\dspin1\u            ','\(0685)\d1\u (\(2218))', &
