@@ -2,6 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    60: sluys, 02/06/2009
+     - Implementing changevar=1 for version=2 (15-par MCMC)
+     - Replaced RA with \alpha and dec with \delta everywhere (?)
+     - Seems to work for at least chains and 1D PDF plots
+     
     59: sluys, 11/05/2009
      - Fixed animation routine
      - Wrote small routine for automatic determination of number of bins (1D)

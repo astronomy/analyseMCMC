@@ -659,9 +659,10 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   
   
   !*** Change some MCMC parameters:
-  if(changevar.gt.0) then
+  if(version.eq.1.and.changevar.ge.1) then
      if(prprogress.ge.2.and.update.eq.0) write(6,'(A,$)')'  Changing some variables...   '
-     !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
+     !Columns in dat() (12 par): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
+     !Columns in dat() (15 par): 1:logL 2:mc, 3:eta, 4:t0, 5:logdl, 6:RA, 7:sindec, 8: cosi, 9:phase,10:psi, 11:spin1, 12:theta1, 13:phi1, 14:spin2, 15:theta2, 16:phi2
      do ic=1,nchains0
         if(maxval(dat(3,ic,1:ntot(ic))).le.0.5d0) then
            !Calculate the individual masses from Mch and eta:

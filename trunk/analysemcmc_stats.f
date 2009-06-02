@@ -45,7 +45,7 @@ subroutine statistics(exitcode)
      do p=par1,par2
         if(wrapdata.eq.0 .or. &
              (version.eq.1.and.p.ne.8.and.p.ne.10.and.p.ne.12.and.p.ne.13) .or. &
-             (version.eq.2.and.p.ne.6.and.p.ne.9.and.p.ne.10.and.p.ne.12.and.p.ne.15) ) then
+             (version.eq.2.and.p.ne.6.and.p.ne.9.and.p.ne.10.and.p.ne.13.and.p.ne.16) ) then
            call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
            cycle !No wrapping
@@ -93,9 +93,6 @@ subroutine statistics(exitcode)
            wrap(ic,p) = wraptype
            centre = mod(centre + shival2, shival) !Then distribution peaks close to 0/shival, shift centre by shival/2
         end if
-        !if(p.eq.8) write(6,'(3I6,8F10.5)')ic,p,wrap(ic,p), wrapival,y1*r2h,y2*r2h,minrange*r2h,centre*r2h
-        !if(p.eq.12) write(6,'(3I6,8F10.5)')ic,p,wrap(ic,p), wrapival,y1,y2,minrange,centre
-        
         
         
         !See whether there's a gap in the data.  WHY is this necessary, should it work like this???
@@ -124,7 +121,6 @@ subroutine statistics(exitcode)
               !if(y1.gt.y2.and.(x0.gt.y2.and.x0.lt.y1)) wrap(ic,p) = 1
            end if
         end if
-        !if(p.eq.8) write(6,'(3I6,9F10.5)')ic,p,wrap(ic,p),y1,y2,x1/pi*12,x2/pi*12,x0/pi*12
         
         
         
@@ -147,7 +143,6 @@ subroutine statistics(exitcode)
         !call rindexx(n(ic),alldat(ic,p,1:n(ic)),indexx(p,1:n(ic)))  !Re-sort
         call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))  !Re-sort
         indexx(p,1:n(ic)) = index1(1:n(ic))
-        !if(p.eq.8) write(6,'(I3,A8,4x,6F10.5,I4)')ic,varnames(p),y1,y2,minrange,centre,minval(alldat(ic,p,1:n(ic))),maxval(alldat(ic,p,1:n(ic))),wrap(ic,p)
         
         if(abs( abs( minval(alldat(ic,p,1:n(ic))) - maxval(alldat(ic,p,1:n(ic))) ) - shival) .lt. 1.e-3)  wrap(ic,p) = 1   !If centre is around shival2, still needs to be flagged 'wrap' to plot PDF
      end do !p
@@ -332,7 +327,7 @@ subroutine statistics(exitcode)
      
      !Change variables
      !Columns in alldat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:longi, 7:sinlati:, 8:phase, 9:spin,   10:kappa,     11:sinthJ0, 12:phiJ0, 13:alpha
-     if(changevar.eq.1.and.version.eq.1) then
+     if(version.eq.1.and.changevar.ge.1) then
         if(prprogress.ge.1.and.ic.eq.i.and.update.eq.0) write(6,'(A,$)')'.  Change vars. '
         do p=par1,par2
            if(p.eq.5) then !Distance
@@ -393,10 +388,10 @@ subroutine statistics(exitcode)
         if(fonttype.eq.2) then  !Use 'roman-like' Greek font
            varnames(1:15) = (/'logL','Mc','eta','tc','dl','spin','th_SL','RA','Dec','phase','incl','p.ang','alpha','M1','M2'/)
            !pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',  &
-           !     'd\dL\u (Mpc)          ','a\dspin\u             ','\(2185)\dSL\u(\(2218))','R.A. (h)              ','Dec. (\(2218))        ', &
+           !     'd\dL\u (Mpc)          ','a\dspin\u             ','\(2185)\dSL\u(\(2218))','\(2127) (h)           ','\(2130) (\(2218))     ', &
            !     '\(2147)\dc\u (\(2218))','\(2135)\dJ0\u','\(2149)\dJ\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
            !!Include units
-           !pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2185)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
+           !pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2185)\dSL\u (\(2218))','\(2127) (h)','\(2130) (\(2218))','\(2147)\dc\u (\(2218))',  &
            !     '\(2135)\dJ0\u (\(2218))','\(2149)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
            !Replace RA and Dec with alpha, delta, d_L -> d
            pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',  &
@@ -410,10 +405,10 @@ subroutine statistics(exitcode)
         else  !Same, but replace '\(06' with \(06' for arial-like Greek font
            varnames(1:15) = (/'logL','Mc','eta','tc','dl','spin','th_SL','RA','Dec','phase','incl','p.ang','alpha','M1','M2'/)
            !pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\dc\u (s)            ',  &
-           !     'd\dL\u (Mpc)          ','a\dspin\u             ','\(0685)\dSL\u(\(2218))','R.A. (h)              ','Dec. (\(2218))        ', &
+           !     'd\dL\u (Mpc)          ','a\dspin\u             ','\(0685)\dSL\u(\(2218))','\(0627) (h)           ','\(0630) (\(2218))     ', &
            !     '\(0647)\dc\u (\(2218))','\(0635)\dJ0\u','\(0649)\dJ\u (\(2218))','\(0627)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
            !!Include units
-           !pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(0633)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(0685)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(0647)\dc\u (\(2218))',  &
+           !pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(0633)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(0685)\dSL\u (\(2218))','\(0627) (h)','\(0630) (\(2218))','\(0647)\dc\u (\(2218))',  &
            !     '\(0635)\dJ0\u (\(2218))','\(0649)\dJ0\u (\(2218))','\(0627)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
            !Replace RA and Dec with alpha, delta, d_L -> d
            pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\dc\u (s)            ',  &
@@ -425,12 +420,12 @@ subroutine statistics(exitcode)
            !Units only
            pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
         end if
-     end if !if(changevar.eq.1.and.version.eq.1)
+     end if !if(changevar.ge.1.and.version.eq.1)
      
      
      !Change variables
      !Columns in alldat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:RA, 7:sindec:, 8:cosi, 9:phase, 10:psi,   11:spin1, 12:phi1, 13:theta1,   14:spin2, 15:phi2, 16:theta2
-     if(changevar.eq.1.and.version.eq.2) then
+     if(version.eq.2.and.changevar.ge.1) then
         if(prprogress.ge.1.and.ic.eq.i.and.update.eq.0) write(6,'(A,$)')'.  Change vars. '
         do p=par1,par2
            if(p.eq.5) then !exp: Distance
@@ -441,8 +436,8 @@ subroutine statistics(exitcode)
               stats(ic,p,1:nstat) = exp(stats(ic,p,1:nstat))
               ranges(ic,1:nival,p,1:nr) = exp(ranges(ic,1:nival,p,1:nr))
            end if
-           !if(p.eq.8.or.p.eq.13.or.p.eq.16) then !arccos: cosi,costheta1,costheta2
-           if(p.eq.8) then !arccos: cosi
+           if(p.eq.8.or.p.eq.12.or.p.eq.15) then !arccos: cosi,costheta1,costheta2
+           !if(p.eq.8) then !arccos: cosi
               stdev1(p) = abs(-1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
               stdev2(p) = abs(-1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
               alldat(ic,p,1:n(ic)) = acos(alldat(ic,p,1:n(ic)))*rr2d
@@ -463,7 +458,7 @@ subroutine statistics(exitcode)
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2h
               ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*rr2h
            end if
-           if(p.eq.9) then  !arcsine: Declination                                                               
+           if(p.eq.7) then  !arcsine: Declination                                                               
               stdev1(p) = abs(1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
               stdev2(p) = abs(1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
               alldat(ic,p,1:n(ic)) = asin(alldat(ic,p,1:n(ic)))*rr2d
@@ -471,7 +466,7 @@ subroutine statistics(exitcode)
               stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*rr2d
               ranges(ic,1:nival,p,1:nr) = asin(ranges(ic,1:nival,p,1:nr))*rr2d
            end if
-           if(p.eq.9.or.p.eq.10.or.p.eq.12.or.p.eq.16) then  !rad2deg: phi_c, psi, phi1, phi2
+           if(p.eq.9.or.p.eq.10.or.p.eq.13.or.p.eq.16) then  !rad2deg: phi_c, psi, phi1, phi2
               stdev1(p) = stdev1(p)*rr2d
               stdev2(p) = stdev2(p)*rr2d
               alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*rr2d
@@ -482,44 +477,45 @@ subroutine statistics(exitcode)
            ranges(ic,1:nival,p,3) = 0.5*(ranges(ic,1:nival,p,1) + ranges(ic,1:nival,p,2))
            ranges(ic,1:nival,p,4) = ranges(ic,1:nival,p,2) - ranges(ic,1:nival,p,1)
            ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)
-           if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
+           !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
+           if(p.eq.2.or.p.eq.5) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
         end do !p
         
         !Columns: 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:RA, 7:sindec:, 8:cosi, 9:phase, 10:psi,   11:spin1, 12:phi1, 13:theta1,   14:spin2, 15:phi2, 16:theta2
         if(fonttype.eq.2) then  !Use 'roman-like' Greek font
-           varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
+           varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','th1','phi1','spin2','th2','phi2'/)
            !pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\d0\u (s)            ', &
-           !     'd\dL\u (Mpc)          ','R.A. (h)              ','Dec. (\(2218))        ','\(2135) (\(2218))     ', &
-           !     '\(2147)\dc\u (\(2218))','\(2149) (\(2218))     ','a\dspin1\u            ','\(2147)\d1\u (\(2218))', &
-           !     '\(2185)\d1\u (\(2218))','a\dspin2\u            ','\(2147)\d2\u (\(2218))','\(2185)\d2\u (\(2218))'/)
-           !pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(2133)','t\dc\u','d\dL\u','R.A.','dec.','\(2135)','\(2147)\dc\u', '\(2149)', &
-           !     'a\dspin1\u','\(2147)\d1\u','\(2185)\d1\u','a\dspin2\u','\(2147)\d2\u','\(2185)\d2\u'/)
+           !     'd\dL\u (Mpc)          ','\(2127) (h)           ','\(2130) (\(2218))     ','\(2135) (\(2218))     ', &
+           !     '\(2147)\dc\u (\(2218))','\(2149) (\(2218))     ','a\dspin1\u            ','\(2185)\d1\u (\(2218))', &
+           !     '\(2147)\d1\u (\(2218))','a\dspin2\u            ','\(2185)\d2\u (\(2218))','\(2147)\d2\u (\(2218))'/)
+           !pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(2133)','t\dc\u','d\dL\u','\(2127)','\(2130)','\(2135)','\(2147)\dc\u', '\(2149)', &
+           !     'a\dspin1\u','\(2185)\d1\u','\(2147)\d1\u','a\dspin2\u','\(2185)\d2\u','\(2147)\d2\u'/)
            !Replace RA and Dec with alpha,delta
            pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\d0\u (s)            ', &
                 'd\dL\u (Mpc)          ','\(2127) (h)           ','\(2130) (\(2218))     ','\(2135) (\(2218))     ', &
-                '\(2147)\dc\u (\(2218))','\(2149) (\(2218))     ','a\dspin1\u            ','\(2147)\d1\u (\(2218))', &
-                '\(2185)\d1\u (\(2218))','a\dspin2\u            ','\(2147)\d2\u (\(2218))','\(2185)\d2\u (\(2218))'/)
+                '\(2147)\dc\u (\(2218))','\(2149) (\(2218))     ','a\dspin1\u            ','\(2185)\d1\u (\(2218))', &
+                '\(2147)\d1\u (\(2218))','a\dspin2\u            ','\(2185)\d2\u (\(2218))','\(2147)\d2\u (\(2218))'/)
            pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(2133)','t\dc\u','d\dL\u','\(2127)','\(2130)','\(2135)','\(2147)\dc\u', '\(2149)', &
-                'a\dspin1\u','\(2147)\d1\u','\(2185)\d1\u','a\dspin2\u','\(2147)\d2\u','\(2185)\d2\u'/)
+                'a\dspin1\u','\(2185)\d1\u','\(2147)\d1\u','a\dspin2\u','\(2185)\d2\u','\(2147)\d2\u'/)
            pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','(\(2218))','(\(2218))','(\(2218))','(\(2218))','(\(2218))','','(\(2218))','(\(2218))','','(\(2218))','(\(2218))'/)
         else  !Same, but replace '\(21' with \(06' for arial-like Greek font
            varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
            !pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\d0\u (s)            ', &
-           !     'd\dL\u (Mpc)          ','R.A. (h)              ','Dec. (\(2218))        ','\(0635) (\(2218))     ', &
-           !     '\(0647)\dc\u (\(2218))','\(0649) (\(2218))     ','a\dspin1\u            ','\(0647)\d1\u (\(2218))', &
-           !     '\(0685)\d1\u (\(2218))','a\dspin2\u            ','\(0647)\d2\u (\(2218))','\(0685)\d2\u (\(2218))'/)
-           !pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(0633)','t\dc\u','d\dL\u','R.A.','dec.','\(0635)','\(0647)\dc\u', '\(0649)', &
-           !     'a\dspin1\u','\(0647)\d1\u','\(0685)\d1\u','a\dspin2\u','\(0647)\d2\u','\(0685)\d2\u'/)
+           !     'd\dL\u (Mpc)          ','\(0627) (h)           ','\(0630) (\(2218))     ','\(0635) (\(2218))     ', &
+           !     '\(0647)\dc\u (\(2218))','\(0649) (\(2218))     ','a\dspin1\u            ','\(0685)\d1\u (\(2218))', &
+           !     '\(0647)\d1\u (\(2218))','a\dspin2\u            ','\(0685)\d2\u (\(2218))','\(0647)\d2\u (\(2218))'/)
+           !pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(0633)','t\dc\u','d\dL\u','\(0627)','\(0630)','\(0635)','\(0647)\dc\u', '\(0649)', &
+           !     'a\dspin1\u','\(0685)\d1\u','\(0647)\d1\u','a\dspin2\u','\(0685)\d2\u','\(0647)\d2\u'/)
            !Replace RA and Dec with alpha,delta
            pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\d0\u (s)            ', &
                 'd\dL\u (Mpc)          ','\(0627) (h)           ','\(0630) (\(2218))     ','\(0635) (\(2218))     ', &
-                '\(0647)\dc\u (\(2218))','\(0649) (\(2218))     ','a\dspin1\u            ','\(0647)\d1\u (\(2218))', &
-                '\(0685)\d1\u (\(2218))','a\dspin2\u            ','\(0647)\d2\u (\(2218))','\(0685)\d2\u (\(2218))'/)
+                '\(0647)\dc\u (\(2218))','\(0649) (\(2218))     ','a\dspin1\u            ','\(0685)\d1\u (\(2218))', &
+                '\(0647)\d1\u (\(2218))','a\dspin2\u            ','\(0685)\d2\u (\(2218))','\(0647)\d2\u (\(2218))'/)
            pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(0633)','t\dc\u','d\dL\u','\(0627)','\(0630)','\(0635)','\(0647)\dc\u', '\(0649)', &
-                'a\dspin1\u','\(0647)\d1\u','\(0685)\d1\u','a\dspin2\u','\(0647)\d2\u','\(0685)\d2\u'/)
+                'a\dspin1\u','\(0685)\d1\u','\(0647)\d1\u','a\dspin2\u','\(0685)\d2\u','\(0647)\d2\u'/)
            pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','(\(2218))','(\(2218))','(\(2218))','(\(2218))','(\(2218))','','(\(2218))','(\(2218))','','(\(2218))','(\(2218))'/)
         end if
-     end if !if(changevar.eq.1.and.version.eq.2)
+     end if !if(version.eq.2.and.changevar.ge.1)
      
      
      
@@ -539,7 +535,10 @@ subroutine statistics(exitcode)
               ranges(ic,c,p,3) = 0.5*(ranges(ic,c,p,1) + ranges(ic,c,p,2))
               ranges(ic,c,p,4) = ranges(ic,c,p,2) - ranges(ic,c,p,1)
               ranges(ic,c,p,5) = ranges(ic,c,p,4)
-              if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,5)/ranges(ic,c,p,3)
+              !if(version.eq.1.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,5)/ranges(ic,c,p,3)
+              !if(version.eq.2.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14) ranges(ic,c,p,5) = ranges(ic,c,p,5)/ranges(ic,c,p,3)
+              if(version.eq.1.and.p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,5)/ranges(ic,c,p,3)
+              if(version.eq.2.and.p.eq.2.or.p.eq.5) ranges(ic,c,p,5) = ranges(ic,c,p,5)/ranges(ic,c,p,3)
            end do
         end if
      end do

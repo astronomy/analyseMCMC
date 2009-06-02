@@ -292,9 +292,13 @@ subroutine pdfs1d(exitcode)
               call pgline(2,(/xbin1(nbin1d+1),xbin1(nbin1d+1)/)+bindx/2.,(/ybin1(nbin1d+1),0./))
            else !If parameter is wrapped
               plshift = real(2*pi)
-              if(changevar.eq.1) plshift = 360.
-              if(changevar.eq.1.and.p.eq.8) plshift = 24.  !RA in hours
-              if(changevar.eq.1.and.p.eq.12) plshift = 180.  !Pol.angle
+              if(changevar.ge.1) then
+                 plshift = 360.
+                 if(version.eq.1.and.p.eq.8) plshift = 24.  !RA in hours
+                 if(version.eq.1.and.p.eq.12) plshift = 180.  !Pol.angle
+                 if(version.eq.2.and.p.eq.6) plshift = 24.  !RA in hours
+                 if(version.eq.2.and.p.eq.10) plshift = 180.  !Pol.angle
+              end if
               if(nchains.eq.1) call pgsci(15)
               if(plpdf1d.eq.1) then
                  call pgpoly(nbin1d+3,(/xbin1(1),xbin1(1:nbin1d),xbin1(1)+plshift,xbin1(1)+plshift/),(/0.,ybin1(1:nbin1d),ybin1(1),0./))

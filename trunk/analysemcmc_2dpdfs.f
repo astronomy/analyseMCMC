@@ -226,7 +226,7 @@ subroutine pdfs2d(exitcode)
            if(normpdf2d.eq.2) z = max(0.,sqrt(z + 1.e-30))
            if(normpdf2d.eq.4) then
               call identify_2d_ranges(nival,ivals,nbin2dx+1,nbin2dy+1,z,prprogress) !Get 2D probability ranges; identify to which range each bin belongs
-              call calc_2d_areas(p1,p2,changevar,nival,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
+              call calc_2d_areas(p1,p2,version,changevar,nival,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
               trueranges2d(p1,p2) = truerange2d(z,nbin2dx+1,nbin2dy+1,startval(1,p1,1),startval(1,p2,1),tr)
               !write(6,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
               do i=1,nival
@@ -1302,9 +1302,9 @@ end subroutine identify_2d_ranges
 
 !************************************************************************
 !Compute 2D probability areas
-subroutine calc_2d_areas(p1,p2,changevar,ni,nx,ny,z,tr,area)
+subroutine calc_2d_areas(p1,p2,version,changevar,ni,nx,ny,z,tr,area)
   implicit none
-  integer :: p1,p2,changevar,ni,nx,ny,ix,iy,i,i1,iv
+  integer :: p1,p2,version,changevar,ni,nx,ny,ix,iy,i,i1,iv
   real :: z(nx,ny),tr(6),y,dx,dy,d2r,area(ni)
   
   d2r = atan(1.)/45.
@@ -1315,17 +1315,20 @@ subroutine calc_2d_areas(p1,p2,changevar,ni,nx,ny,z,tr,area)
      do iy = 1,ny
         dx = tr(2)
         dy = tr(6)
-        if(changevar.eq.1 .and. (p1.eq.8.and.p2.eq.9 .or. p1.eq.12.and.p2.eq.11) ) then !Then: RA-Dec or phi/theta_Jo plot, convert lon -> lon * 15 * cos(lat)
-           !x = tr(1) + tr(2)*ix + tr(3)*iy
-           !y = tr(4) + tr(5)*ix + tr(6)*iy
-           y = tr(4) + tr(6)*iy
-           if(p1.eq.8) then
-              dx = dx*cos(y*d2r)
-           else if(p1.eq.12) then
-              dx = dx*abs(sin(y*d2r))  !Necessary for i-psi plot?
+        if(changevar.ge.1) then
+           if( (version.eq.1 .and. (p1.eq.8.and.p2.eq.9 .or. p1.eq.12.and.p2.eq.11)) .or. &
+                (version.eq.2 .and. (p1.eq.6.and.p2.eq.7 .or. p1.eq.10.and.p2.eq.8)) ) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
+              !x = tr(1) + tr(2)*ix + tr(3)*iy
+              !y = tr(4) + tr(5)*ix + tr(6)*iy
+              y = tr(4) + tr(6)*iy
+              if(p1.eq.8) then
+                 dx = dx*cos(y*d2r)
+              else if(p1.eq.12) then
+                 dx = dx*abs(sin(y*d2r))  !Necessary for i-psi plot?
+              end if
+              !print*,p1,y,cos(y*d2r)
+              if(p1.eq.8) dx = dx*15
            end if
-           !print*,p1,y,cos(y*d2r)
-           if(p1.eq.8) dx = dx*15
         end if
         iv = nint(z(ix,iy))
         !if(iv.gt.0) area(iv) = area(iv) + dx*dy
