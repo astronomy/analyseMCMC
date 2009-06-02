@@ -227,7 +227,7 @@ subroutine pdfs2d(exitcode)
            if(normpdf2d.eq.1) z = max(0.,log10(z + 1.e-30))
            if(normpdf2d.eq.2) z = max(0.,sqrt(z + 1.e-30))
            if(normpdf2d.eq.4) then
-              call identify_2d_ranges(nival,ivals,nbin2dx+1,nbin2dy+1,z,prprogress) !Get 2D probability ranges; identify to which range each bin belongs
+              call identify_2d_ranges(p1,p2,nival,nbin2dx+1,nbin2dy+1,z,tr) !Get 2D probability ranges; identify to which range each bin belongs
               call calc_2d_areas(p1,p2,changevar,nival,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
               trueranges2d(p1,p2) = truerange2d(z,nbin2dx+1,nbin2dy+1,startval(1,p1,1),startval(1,p2,1),tr)
               !write(6,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
@@ -984,6 +984,144 @@ end subroutine bindata2da
 
 
 
+!************************************************************************
+subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
+  !Get the 2d probability intervals; z lies between 1 (in 100% range) and ni (in lowest-% range, e.g. 90%)
+  use constants
+  use analysemcmc_settings
+  implicit none
+  integer :: p1,p2,ni,nx,ny,nn,indx(nx*ny),i,b,ib,full(ni),iy
+  real :: z(nx,ny),x1(nx*ny),x2(nx*ny),tot,np,tr(6),y
+  
+  
+  !Weight number of points in each bin by bin size for position/orientation plots
+  do iy = 1,ny
+     if(changevar.ge.1) then
+        if(version.eq.1 .and. (p1.eq.8.and.p2.eq.9 .or. p1.eq.12.and.p2.eq.11)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
+           y = tr(4) + tr(6)*iy
+           if(p1.eq.8) then
+              z(1:nx,iy) = z(1:nx,iy)/(cos(y*rd2r)+1.e-30)
+           else if(p1.eq.12) then
+              z(1:nx,iy) = z(1:nx,iy)/(abs(sin(y*rd2r))+1.e-30)
+           end if
+        end if
+        if(version.eq.2 .and. (p1.eq.6.and.p2.eq.7 .or. p1.eq.10.and.p2.eq.8)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
+           y = tr(4) + tr(6)*iy
+           if(p1.eq.6) then
+              z(1:nx,iy) = z(1:nx,iy)/(cos(y*rd2r)+1.e-30)
+           else if(p1.eq.10) then
+              z(1:nx,iy) = z(1:nx,iy)/(abs(sin(y*rd2r))+1.e-30)
+           end if
+        end if
+     end if !if(changevar.ge.1)
+  end do !iy
+  
+  
+  nn = nx*ny
+  x1 = reshape(z,(/nn/))  !x1 is an 1D array with the same data as the 2D array z
+  call rindexx(nn,-x1(1:nn),indx(1:nn)) ! -x1: sort the 1D array to descending value
+  
+  np = sum(z)
+  tot = 0.
+  full = 0
+  do b=1,nn !Loop over bins in 1D array
+     ib = indx(b)
+     x2(ib) = 0.
+     if(x1(ib).eq.0.) cycle
+     tot = tot + x1(ib)
+     do i=ni,1,-1 !Loop over intervals
+        if(tot.le.np*ivals(i)) then
+           x2(ib) = real(ni-i+1)  !e.g. x2(b) = ni if within 68%, ni-1 if within 95%, etc, and 1 if within 99.7%
+        else
+           if(prprogress.ge.3.and.full(i).eq.0) then !Report the number of points in the lastly selected bin
+              if(i.eq.1) write(6,'(A,$)')'Last bin:'
+              !write(6,'(F6.3,I5,$)')ivals(i),nint(x1(ib))
+              write(6,'(I5,$)')nint(x1(ib))
+              full(i) = 1
+           end if
+        end if
+        !write(6,'(2I4, F6.2, 3F20.5)')b,i, ivals(i), np,tot,np*ivals(i)
+     end do
+  end do
+  
+  z = reshape(x2, (/nx,ny/))  ! z lies between 1 and ni
+end subroutine identify_2d_ranges
+!************************************************************************
+
+
+
+!************************************************************************
+!Compute 2D probability areas
+subroutine calc_2d_areas(p1,p2,changevar,ni,nx,ny,z,tr,area)
+  use constants
+  implicit none
+  integer :: p1,p2,changevar,ni,nx,ny,ix,iy,i,i1,iv
+  real :: z(nx,ny),tr(6),y,dx,dy,area(ni)
+  
+  area = 0.
+  
+  do ix = 1,nx
+     do iy = 1,ny
+        dx = tr(2)
+        dy = tr(6)
+        if(changevar.ge.1) then
+           if(version.eq.1 .and. (p1.eq.8.and.p2.eq.9 .or. p1.eq.12.and.p2.eq.11)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
+              y = tr(4) + tr(6)*iy
+              if(p1.eq.8) then
+                 dx = dx*cos(y*rd2r)
+              else if(p1.eq.12) then
+                 dx = dx*abs(sin(y*rd2r))  !Necessary for i-psi plot?
+              end if
+              if(p1.eq.8) dx = dx*15
+           end if
+           if(version.eq.2 .and. (p1.eq.6.and.p2.eq.7 .or. p1.eq.10.and.p2.eq.8)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
+              y = tr(4) + tr(6)*iy
+              if(p1.eq.6) then
+                 dx = dx*cos(y*rd2r)
+              else if(p1.eq.10) then
+                 dx = dx*abs(sin(y*rd2r))  !Necessary for i-psi plot?
+              end if
+              if(p1.eq.6) dx = dx*15
+           end if
+        end if
+        iv = nint(z(ix,iy))
+        do i=1,ni
+           if(iv.ge.i) then
+              i1 = ni-i+1
+              area(i1) = area(i1) + dx*dy
+           end if
+        end do !i
+        
+     end do !iy
+  end do !ix
+end subroutine calc_2d_areas
+!************************************************************************
+
+
+!************************************************************************
+function truerange2d(z,nx,ny,truex,truey,tr)
+  !Get the smallest probability area in which the true values lie
+  implicit none
+  integer :: nx,ny,ix,iy,truerange2d
+  real :: truex,truey,z(nx,ny),tr(6)
+  
+  !x = tr(1) + tr(2)*ix + tr(3)*iy
+  !y = tr(4) + tr(5)*ix + tr(6)*iy
+  ix = floor((truex - tr(1))/tr(2))
+  iy = floor((truey - tr(4))/tr(6))
+  if(ix.lt.1.or.ix.gt.nx.or.iy.lt.1.or.iy.gt.ny) then
+     truerange2d = 0
+  else
+     truerange2d = nint(z(ix,iy))
+  end if
+end function truerange2d
+!************************************************************************
+
+
+
+
+
+
 
 
 !************************************************************************************************************************************
@@ -1261,115 +1399,6 @@ function getmag(m,mlim)  !Determine size of stellar 'disk'
 end function getmag
 !************************************************************************
 
-
-
-
-!************************************************************************
-subroutine identify_2d_ranges(ni,ivals,nx,ny,z,prprogress)
-  !Get the 2d probability intervals; z lies between 1 (in 100% range) and ni (in lowest-% range, e.g. 90%)
-  implicit none
-  integer :: ni,nx,ny,nn,indx(nx*ny),i,b,ib,full(ni),prprogress
-  real :: ivals(ni),z(nx,ny),x1(nx*ny),x2(nx*ny),tot,np
-  
-  nn = nx*ny
-  x1 = reshape(z,(/nn/))  !x1 is the 1D array with the same data as the 2D array z
-  call rindexx(nn,-x1(1:nn),indx(1:nn)) ! -x1: sort descending
-  
-  np = sum(z)
-  tot = 0.
-  full = 0
-  do b=1,nn !Loop over bins in 1D array
-     ib = indx(b)
-     x2(ib) = 0.
-     if(x1(ib).eq.0.) cycle
-     tot = tot + x1(ib)
-     do i=ni,1,-1 !Loop over intervals
-        if(tot.le.np*ivals(i)) then
-           x2(ib) = real(ni-i+1)  !e.g. x2(b) = ni if within 68%, ni-1 if within 95%, etc, and 1 if within 99.7%
-        else
-           if(prprogress.ge.3.and.full(i).eq.0) then !Report the number of points in the lastly selected bin
-              if(i.eq.1) write(6,'(A,$)')'Last bin:'
-              !write(6,'(F6.3,I5,$)')ivals(i),nint(x1(ib))
-              write(6,'(I5,$)')nint(x1(ib))
-              full(i) = 1
-           end if
-        end if
-        !write(6,'(2I4, F6.2, 3F20.5)')b,i, ivals(i), np,tot,np*ivals(i)
-     end do
-  end do
-  
-  z = reshape(x2, (/nx,ny/))  ! z lies between 1 and ni
-end subroutine identify_2d_ranges
-!************************************************************************
-
-
-
-!************************************************************************
-!Compute 2D probability areas
-subroutine calc_2d_areas(p1,p2,changevar,ni,nx,ny,z,tr,area)
-  use constants
-  implicit none
-  integer :: p1,p2,changevar,ni,nx,ny,ix,iy,i,i1,iv
-  real :: z(nx,ny),tr(6),y,dx,dy,area(ni)
-  
-  area = 0.
-  
-  do ix = 1,nx
-     do iy = 1,ny
-        dx = tr(2)
-        dy = tr(6)
-        if(changevar.ge.1) then
-           if(version.eq.1 .and. (p1.eq.8.and.p2.eq.9 .or. p1.eq.12.and.p2.eq.11)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
-              y = tr(4) + tr(6)*iy
-              if(p1.eq.8) then
-                 dx = dx*cos(y*rd2r)
-              else if(p1.eq.12) then
-                 dx = dx*abs(sin(y*rd2r))  !Necessary for i-psi plot?
-              end if
-              if(p1.eq.8) dx = dx*15
-           end if
-           if(version.eq.2 .and. (p1.eq.6.and.p2.eq.7 .or. p1.eq.10.and.p2.eq.8)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
-              y = tr(4) + tr(6)*iy
-              if(p1.eq.6) then
-                 dx = dx*cos(y*rd2r)
-              else if(p1.eq.10) then
-                 dx = dx*abs(sin(y*rd2r))  !Necessary for i-psi plot?
-              end if
-              if(p1.eq.6) dx = dx*15
-           end if
-        end if
-        iv = nint(z(ix,iy))
-        do i=1,ni
-           if(iv.ge.i) then
-              i1 = ni-i+1
-              area(i1) = area(i1) + dx*dy
-           end if
-        end do
-        
-     end do
-  end do
-end subroutine calc_2d_areas
-!************************************************************************
-
-
-!************************************************************************
-function truerange2d(z,nx,ny,truex,truey,tr)
-  !Get the smallest probability area in which the true values lie
-  implicit none
-  integer :: nx,ny,ix,iy,truerange2d
-  real :: truex,truey,z(nx,ny),tr(6)
-  
-  !x = tr(1) + tr(2)*ix + tr(3)*iy
-  !y = tr(4) + tr(5)*ix + tr(6)*iy
-  ix = floor((truex - tr(1))/tr(2))
-  iy = floor((truey - tr(4))/tr(6))
-  if(ix.lt.1.or.ix.gt.nx.or.iy.lt.1.or.iy.gt.ny) then
-     truerange2d = 0
-  else
-     truerange2d = nint(z(ix,iy))
-  end if
-end function truerange2d
-!************************************************************************
 
 
 

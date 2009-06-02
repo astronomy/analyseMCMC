@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    62: sluys, 02/06/2009
+     - Calculate 2D areas with version=2 correctly
+     - Some reorganisation of 2D routines
+     
     61: sluys, 02/06/2009
      - Make skymaps, calculate 2D areas with version=2
      
