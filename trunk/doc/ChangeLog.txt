@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    65: sluys, 03/06/2009
+     - Fixed small bug that affects 2D sky areas close to the pole
+     
     64: sluys, 03/06/2009
      - Plot 2D PDF plots to one page per file for eps/pdf
        - this allows 2:1 sky plot

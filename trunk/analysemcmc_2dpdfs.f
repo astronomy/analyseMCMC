@@ -1048,17 +1048,35 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
         if(version.eq.1 .and. (p1.eq.8.and.p2.eq.9 .or. p1.eq.12.and.p2.eq.11)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
            y = tr(4) + tr(6)*iy
            if(p1.eq.8) then
-              z(1:nx,iy) = z(1:nx,iy)/(cos(y*rd2r)+1.e-30)
+              if(abs(y).le.90.) then
+                 z(1:nx,iy) = z(1:nx,iy)/(cos(y*rd2r)+1.e-30)
+              else  !This can happen when the PDF lies close to the pole
+                 z(1:nx,iy) = 0.
+              end if
            else if(p1.eq.12) then
-              z(1:nx,iy) = z(1:nx,iy)/(abs(sin(y*rd2r))+1.e-30)
+              if(y.ge.0..and.y.lt.180.) then
+                 z(1:nx,iy) = z(1:nx,iy)/(abs(sin(y*rd2r))+1.e-30)
+              else  !This can happen when the PDF lies close to the pole
+                 z(1:nx,iy) = 0.
+                 write(0,'(//,A,//)')'  *** identify_2d_ranges:  sin(y)<0.  Please check whether the if(y.ge.0..and.y.lt.180.) statement works properly ***'
+              end if
            end if
         end if
         if(version.eq.2 .and. (p1.eq.6.and.p2.eq.7 .or. p1.eq.10.and.p2.eq.8)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
            y = tr(4) + tr(6)*iy
            if(p1.eq.6) then
-              z(1:nx,iy) = z(1:nx,iy)/(cos(y*rd2r)+1.e-30)
+              if(abs(y).le.90.) then
+                 z(1:nx,iy) = z(1:nx,iy)/(cos(y*rd2r)+1.e-30)
+              else  !This can happen when the PDF lies close to the pole
+                 z(1:nx,iy) = 0.
+              end if
            else if(p1.eq.10) then
-              z(1:nx,iy) = z(1:nx,iy)/(abs(sin(y*rd2r))+1.e-30)
+              if(y.ge.0..and.y.lt.180.) then
+                 z(1:nx,iy) = z(1:nx,iy)/(abs(sin(y*rd2r))+1.e-30)
+              else  !This can happen when the PDF lies close to the pole
+                 z(1:nx,iy) = 0.
+                 write(0,'(//,A,//)')'  *** identify_2d_ranges:  sin(y)<0.  Please check whether the if(y.ge.0..and.y.lt.180.) statement works properly ***'
+              end if
            end if
         end if
      end if !if(changevar.ge.1)
