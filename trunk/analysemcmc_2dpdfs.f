@@ -73,7 +73,7 @@ subroutine pdfs2d(exitcode)
         sch = 1.5*fontsize2d
      end if
      if(file.ge.1) then
-        if(file.ge.2) io = pgopen('pdf2d.eps'//trim(psclr))
+        !if(file.ge.2.and.multipagefile) io = pgopen('pdf2d.eps'//trim(psclr))
         lw = 3
         lw2 = 2 !Font lw
         if(quality.eq.91) lw2 = 3 !NINJA
@@ -85,14 +85,15 @@ subroutine pdfs2d(exitcode)
         end if
         if(pssz.lt.5) sch = sch * sqrt(5.0/pssz)
      end if
-     if(file.ge.2.and.io.le.0) then
-        write(0,'(A,I4)')'  Error:  cannot open PGPlot device.  Quitting the programme',io
-        exitcode = 1
-        return
-     end if
-     if(file.ge.2) call pgpap(pssz,psrat)
-     if(file.ge.2) call pgscf(fonttype)
-     if(file.gt.1) call pginitl(colour,file,whitebg)
+     !if(file.ge.2.and.multipagefile) then
+     !   if(io.le.0) then
+     !      write(0,'(A,I4)')'  Error:  cannot open PGPlot device.  Quitting the programme',io
+     !      exitcode = 1
+     !      return
+     !   end if
+     !   call pgscf(fonttype)
+     !   call pginitl(colour,file,whitebg)
+     !end if
   end if !if(plot.eq.1)
   
   if(savepdf.eq.1) then
@@ -152,7 +153,18 @@ subroutine pdfs2d(exitcode)
               end if
               call pginitl(colour,file,whitebg)
            end if
-           if(file.lt.2.and.io.le.0) then
+           if(file.ge.2) then
+              write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.eps'
+              io = pgopen(trim(tempfile)//trim(psclr))
+              if(project_map) then
+                 call pgpap(pssz/0.5*psrat,0.5)
+              else
+                 call pgpap(pssz,psrat)
+              end if
+              call pginitl(colour,file,whitebg)
+              call pgscf(fonttype)
+           end if
+           if(io.le.0) then
               write(0,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
               exitcode = 1
               return
@@ -370,7 +382,7 @@ subroutine pdfs2d(exitcode)
               
               !Plot the PDF
               if(project_map .and. plotsky.ge.2) then
-                 call pgimag_project(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,0.,1.,tr)
+                 call pgimag_project(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,0.,1.,tr,map_projection)
               else
                  call pgimag(z,nbin2dx+1,nbin2dy+1,1,nbin2dx+1,1,nbin2dy+1,0.,1.,tr)
               end if
@@ -440,160 +452,172 @@ subroutine pdfs2d(exitcode)
         
         
         !Plot true value, median, ranges, etc. in 2D PDF
-        if(plot.eq.1 .and. (.not.project_map.or.plotsky.eq.1)) then
-           call pgsci(1)
-           
-           !Plot max likelihood in 2D PDF
-           if(pllmax.ge.1) then
-              call pgsci(1); call pgsls(5)
+        if(plot.eq.1) then
+           if(.not.project_map.or.plotsky.eq.1) then
+              call pgsci(1)
               
-              plx = pldat(icloglmax,p1,iloglmax)
-              if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) plx = rev24(plx)
-              if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) plx = rev360(plx)
-              if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) plx = rev180(plx)
-              call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Max logL
-              if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) then
-                 call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !Max logL
-                 call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !Max logL
-              end if
-              if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) then
-                 call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !Max logL
-                 call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !Max logL
-              end if
-              if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) then
-                 call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !Max logL
-                 call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !Max logL
-              end if
-              
-              ply = pldat(icloglmax,p2,iloglmax)
-              if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) ply = rev24(ply)
-              if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) ply = rev360(ply)
-              if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) ply = rev180(ply)
-              call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !Max logL
-              if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) then
-                 call pgline(2,(/-1.e20,1.e20/),(/ply-24.,ply-24./)) !Max logL
-                 call pgline(2,(/-1.e20,1.e20/),(/ply+24.,ply+24./)) !Max logL
-              end if
-              if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) then
-                 call pgline(2,(/-1.e20,1.e20/),(/ply-360.,ply-360./)) !Max logL
-                 call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !Max logL
-              end if
-              if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) then
-                 call pgline(2,(/-1.e20,1.e20/),(/ply-180.,ply-180./)) !Max logL
-                 call pgline(2,(/-1.e20,1.e20/),(/ply+180.,ply+180./)) !Max logL
-              end if
-              
-              call pgpoint(1,plx,ply,12)
-           end if
-           
-           
-           if(project_map .and. (plotsky.eq.1.or.plotsky.eq.3)) call pgsci(0)
-           call pgsls(2)
-           
-           !Plot true value in 2D PDF
-           if((pltrue.eq.1.or.pltrue.eq.3).and.(.not.project_map) .or. &
-                !((pltrue.eq.2.or.pltrue.eq.4) .and. (p1.eq.2.and.p2.eq.3).or.(p1.eq.6.and.p2.eq.7).or.(p1.eq.14.and.p2.eq.15)) ) then
-                ((pltrue.eq.2.or.pltrue.eq.4) .and. (p1.eq.2.and.p2.eq.3).or.(p1.eq.14.and.p2.eq.15)) ) then
-              !call pgline(2,(/startval(ic,p1,1),startval(ic,p1,1)/),(/-1.e20,1.e20/))
-              !call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p2,1),startval(ic,p2,1)/))
-              
-              if(mergechains.ne.1.or.ic.le.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
-                 !x
-                 call pgsls(2); call pgsci(1)
-                 if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
-                 plx = startval(ic,p1,1)
+              !Plot max likelihood in 2D PDF
+              if(pllmax.ge.1) then
+                 call pgsci(1); call pgsls(5)
+                 
+                 plx = pldat(icloglmax,p1,iloglmax)
                  if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) plx = rev24(plx)
                  if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) plx = rev360(plx)
                  if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) plx = rev180(plx)
-                 call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !True value
+                 call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Max logL
                  if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) then
-                    call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !True value
-                    call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !True value
+                    call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !Max logL
+                    call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !Max logL
                  end if
                  if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) then
-                    call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !True value
-                    call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !True value
+                    call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !Max logL
+                    call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !Max logL
                  end if
                  if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) then
-                    call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !True value
-                    call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !True value
+                    call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !Max logL
+                    call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !Max logL
                  end if
                  
-                 !y
-                 call pgsls(2); call pgsci(1)
-                 if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
-                 ply = startval(ic,p2,1)
+                 ply = pldat(icloglmax,p2,iloglmax)
                  if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) ply = rev24(ply)
                  if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) ply = rev360(ply)
                  if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) ply = rev180(ply)
-                 call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !True value
+                 call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !Max logL
                  if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) then
-                    call pgline(2,(/-1.e20,1.e20/),(/ply-24.,ply-24./)) !True value
-                    call pgline(2,(/-1.e20,1.e20/),(/ply+24.,ply+24./)) !True value
+                    call pgline(2,(/-1.e20,1.e20/),(/ply-24.,ply-24./)) !Max logL
+                    call pgline(2,(/-1.e20,1.e20/),(/ply+24.,ply+24./)) !Max logL
                  end if
                  if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) then
-                    call pgline(2,(/-1.e20,1.e20/),(/ply-360.,ply-360./)) !True value
-                    call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !True value
+                    call pgline(2,(/-1.e20,1.e20/),(/ply-360.,ply-360./)) !Max logL
+                    call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !Max logL
                  end if
                  if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) then
-                    call pgline(2,(/-1.e20,1.e20/),(/ply-180.,ply-180./)) !True value
-                    call pgline(2,(/-1.e20,1.e20/),(/ply+180.,ply+180./)) !True value
+                    call pgline(2,(/-1.e20,1.e20/),(/ply-180.,ply-180./)) !Max logL
+                    call pgline(2,(/-1.e20,1.e20/),(/ply+180.,ply+180./)) !Max logL
                  end if
                  
-                 call pgpoint(1,plx,ply,18)
+                 call pgpoint(1,plx,ply,12)
               end if
-           end if
-           call pgsci(1)
-           call pgsls(4)
-           
-           
-           !Plot starting values in 2D PDF
-           !call pgline(2,(/startval(ic,p1,2),startval(ic,p1,2)/),(/-1.e20,1.e20/))
-           !call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p2,2),startval(ic,p2,2)/))
-           
-           call pgsci(2)
-           
-           !Plot interval ranges in 2D PDF
-           if(plrange.eq.2.or.plrange.eq.3.or.plrange.eq.5.or.plrange.eq.6) then
-              call pgsls(1)
-              call pgsch(sch*0.6)
-              call pgsah(1,45.,0.1)
-              a = 0.0166667*sch
-              call pgarro(ranges(ic,c0,p1,3),ymin+dy*a,ranges(ic,c0,p1,1),ymin+dy*a)
-              call pgarro(ranges(ic,c0,p1,3),ymin+dy*a,ranges(ic,c0,p1,2),ymin+dy*a)
-              a = 0.0333333*sch
-              call pgptxt(ranges(ic,c0,p1,3),ymin+dy*a,0.,0.5,'\(2030)\d90%\u')
-              a = 0.0233333*sch
-              call pgarro(xmin+dx*a,ranges(ic,c0,p2,3),xmin+dx*a,ranges(ic,c0,p2,1))
-              call pgarro(xmin+dx*a,ranges(ic,c0,p2,3),xmin+dx*a,ranges(ic,c0,p2,2))
-              a = 0.01*sch
-              call pgptxt(xmin+dx*a,ranges(ic,c0,p2,3),90.,0.5,'\(2030)\d90%\u')
-           end if
-           
-           call pgsch(sch)
-           call pgsls(2)
-           
-           
-           !Plot medians in 2D PDF
-           if(plmedian.eq.2.or.plmedian.eq.3.or.plmedian.eq.5.or.plmedian.eq.6) then
-              call pgline(2,(/stats(ic,p1,1),stats(ic,p1,1)/),(/-1.e20,1.e20/))
-              call pgline(2,(/-1.e20,1.e20/),(/stats(ic,p2,1),stats(ic,p2,1)/))
-              call pgpoint(1,stats(ic,p1,1),stats(ic,p2,1),18)
-           end if
-           
-           call pgsls(1)
-           
-           
-           !Big star at true position in 2D PDF
-           if(project_map .and. (plotsky.eq.1.or.plotsky.eq.3) .and. (pltrue.eq.1.or.pltrue.eq.3)) then
-              call pgsch(sch*2)
-              call pgsci(9)
-              call pgpoint(1,startval(ic,p1,1),startval(ic,p2,1),18)
+              
+              
+              if(project_map .and. (plotsky.eq.1.or.plotsky.eq.3)) call pgsci(0)
+              call pgsls(2)
+              
+              !Plot true value in 2D PDF
+              if((pltrue.eq.1.or.pltrue.eq.3).and.(.not.project_map) .or. &
+                   !((pltrue.eq.2.or.pltrue.eq.4) .and. (p1.eq.2.and.p2.eq.3).or.(p1.eq.6.and.p2.eq.7).or.(p1.eq.14.and.p2.eq.15)) ) then
+                   ((pltrue.eq.2.or.pltrue.eq.4) .and. (p1.eq.2.and.p2.eq.3).or.(p1.eq.14.and.p2.eq.15)) ) then
+                 !call pgline(2,(/startval(ic,p1,1),startval(ic,p1,1)/),(/-1.e20,1.e20/))
+                 !call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p2,1),startval(ic,p2,1)/))
+                 
+                 if(mergechains.ne.1.or.ic.le.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+                    !x
+                    call pgsls(2); call pgsci(1)
+                    if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
+                    plx = startval(ic,p1,1)
+                    if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) plx = rev24(plx)
+                    if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) plx = rev360(plx)
+                    if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) plx = rev180(plx)
+                    call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !True value
+                    if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) then
+                       call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !True value
+                       call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !True value
+                    end if
+                    if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) then
+                       call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !True value
+                       call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !True value
+                    end if
+                    if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) then
+                       call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !True value
+                       call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !True value
+                    end if
+                    
+                    !y
+                    call pgsls(2); call pgsci(1)
+                    if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
+                    ply = startval(ic,p2,1)
+                    if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) ply = rev24(ply)
+                    if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) ply = rev360(ply)
+                    if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) ply = rev180(ply)
+                    call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !True value
+                    if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) then
+                       call pgline(2,(/-1.e20,1.e20/),(/ply-24.,ply-24./)) !True value
+                       call pgline(2,(/-1.e20,1.e20/),(/ply+24.,ply+24./)) !True value
+                    end if
+                    if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) then
+                       call pgline(2,(/-1.e20,1.e20/),(/ply-360.,ply-360./)) !True value
+                       call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !True value
+                    end if
+                    if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) then
+                       call pgline(2,(/-1.e20,1.e20/),(/ply-180.,ply-180./)) !True value
+                       call pgline(2,(/-1.e20,1.e20/),(/ply+180.,ply+180./)) !True value
+                    end if
+                    
+                    call pgpoint(1,plx,ply,18)
+                 end if
+              end if
+              call pgsci(1)
+              call pgsls(4)
+              
+              
+              !Plot starting values in 2D PDF
+              !call pgline(2,(/startval(ic,p1,2),startval(ic,p1,2)/),(/-1.e20,1.e20/))
+              !call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p2,2),startval(ic,p2,2)/))
+              
+              call pgsci(2)
+              
+              !Plot interval ranges in 2D PDF
+              if(plrange.eq.2.or.plrange.eq.3.or.plrange.eq.5.or.plrange.eq.6) then
+                 call pgsls(1)
+                 call pgsch(sch*0.6)
+                 call pgsah(1,45.,0.1)
+                 a = 0.0166667*sch
+                 call pgarro(ranges(ic,c0,p1,3),ymin+dy*a,ranges(ic,c0,p1,1),ymin+dy*a)
+                 call pgarro(ranges(ic,c0,p1,3),ymin+dy*a,ranges(ic,c0,p1,2),ymin+dy*a)
+                 a = 0.0333333*sch
+                 call pgptxt(ranges(ic,c0,p1,3),ymin+dy*a,0.,0.5,'\(2030)\d90%\u')
+                 a = 0.0233333*sch
+                 call pgarro(xmin+dx*a,ranges(ic,c0,p2,3),xmin+dx*a,ranges(ic,c0,p2,1))
+                 call pgarro(xmin+dx*a,ranges(ic,c0,p2,3),xmin+dx*a,ranges(ic,c0,p2,2))
+                 a = 0.01*sch
+                 call pgptxt(xmin+dx*a,ranges(ic,c0,p2,3),90.,0.5,'\(2030)\d90%\u')
+              end if
+              
               call pgsch(sch)
+              call pgsls(2)
+              
+              
+              !Plot medians in 2D PDF
+              if(plmedian.eq.2.or.plmedian.eq.3.or.plmedian.eq.5.or.plmedian.eq.6) then
+                 call pgline(2,(/stats(ic,p1,1),stats(ic,p1,1)/),(/-1.e20,1.e20/))
+                 call pgline(2,(/-1.e20,1.e20/),(/stats(ic,p2,1),stats(ic,p2,1)/))
+                 call pgpoint(1,stats(ic,p1,1),stats(ic,p2,1),18)
+              end if
+              
+              call pgsls(1)
+              
+              
+           end if  !if(.not.project_map.or.plotsky.eq.1)
+           
+           !Plot big star at true position in sky map
+           if(project_map .and. (pltrue.eq.1.or.pltrue.eq.3)) then
+              call pgsch(sch*1.5) !Use 1.5 for plsym=8, 2 for plsym=18
+              call pgslw(lw*2)
+              call pgsci(9)
+              if(normpdf2d.eq.4) call pgsci(1)  !Black
+              plx = startval(ic,p1,1)
+              ply = startval(ic,p2,1)
+              if(plotsky.eq.2.or.plotsky.eq.4) call project_skymap(plx,ply,racentre,map_projection)
+              call pgpoint(1,plx,ply,8)
+              call pgsch(sch)
+              call pgslw(lw)
               call pgsci(1)
            end if
            
-        end if  !if(plot.eq.1 .and. (.not.project_map.or.plotsky.eq.1))
+        end if  !if(plot.eq.1)
+        
+        
+        
         
         
         
@@ -681,6 +705,7 @@ subroutine pdfs2d(exitcode)
         end if  !if(plot.eq.1)
         
         
+        
         if(plot.eq.1) then
            countplots = countplots + 1  !The current plot is number countplots
            
@@ -695,9 +720,15 @@ subroutine pdfs2d(exitcode)
                       trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.png &')
               end if
               if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
-              !i = system('rm -f '//trim(tempfile))
            end if
-           if(file.ge.2) call pgpage
+           !if(file.ge.2.and.multipagefile) call pgpage
+           if(file.ge.2) then
+              call pgend
+              if(file.eq.3) then
+                 i = system('eps2pdf '//trim(tempfile))
+                 if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
+              end if
+           end if
         end if !if(plot.eq.1)
         
      end do !p2
@@ -708,16 +739,16 @@ subroutine pdfs2d(exitcode)
   
   if(plot.eq.1) then
      if(file.ne.1) call pgend
-     if(file.ge.2) then
-        !if(abs(j2-j1).le.1) then
-        !   if(file.eq.3) i = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(varnames(j1))//'-'//trim(varnames(j2))//'.pdf  &> /dev/null')
-        !   i = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(varnames(j1))//'-'//trim(varnames(j2))//'.eps')
-        !else
-           if(file.eq.3) i = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.pdf  &> /dev/null')
-           i = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.eps')
-        !end if
-     end if
-     
+     !if(file.ge.2.and.multipagefile) then
+     !   if(abs(j2-j1).le.1) then
+     !      if(file.eq.3) i = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(varnames(j1))//'-'//trim(varnames(j2))//'.pdf  &> /dev/null')
+     !      i = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(varnames(j1))//'-'//trim(varnames(j2))//'.eps')
+     !   else
+     !      if(file.eq.3) i = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.pdf  &> /dev/null')
+     !      i = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.eps')
+     !   end if
+     !end if
+  
      !Remove all the .ppm files
      if(file.eq.1) then
         do p1=j1,j2
@@ -962,10 +993,7 @@ subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)  !
   
   zz = 0.
   zztot = 0.
-  !print*,xmin,xmax
-  !print*,ymin,ymax
   do bx=1,nxbin
-     !print*,bx,xbin(bx),xbin(bx+1)
      do by=1,nybin
         zz(bx,by) = 0.
         do i=1,n
@@ -1423,7 +1451,7 @@ end function getmag
 
 
 !*****************************************************************************************************************************************************
-subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr)  !Clone of pgimag, use projection
+subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)  !Clone of pgimag, use projection
   use constants
   use general_data
   implicit none
@@ -1433,9 +1461,6 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr)  !Clone of pgimag,
   real :: x,y,dx,dy,xs(5),ys(5),xell(nell),yell(nell),sch
   integer :: i,ix,iy,clr1,clr2,dc,ci,projection,lw
   character :: str*99
-  
-  projection = 1  !Choose projection: 1: Mollweide
-  
   
   call pgqcir(clr1,clr2)
   dz = z2-z1

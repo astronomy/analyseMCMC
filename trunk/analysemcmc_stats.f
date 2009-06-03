@@ -48,7 +48,7 @@ subroutine statistics(exitcode)
              (version.eq.2.and.p.ne.6.and.p.ne.9.and.p.ne.10.and.p.ne.13.and.p.ne.16) ) then
            call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
-           if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) racentre = rpi
+           if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) racentre = rpi !Plot 0-24h when not wrapping
            cycle !No wrapping
         end if
         

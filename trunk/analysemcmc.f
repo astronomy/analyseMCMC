@@ -13,8 +13,9 @@ program analysemcmc
   real :: pltsz
   real*8 :: timestamp,timestamps(9)
   
-  version = 2   !1: 12-par MCMC,  2: 15-par  -  closer to fully implemented now...
+  version = 1   !1: 12-par MCMC,  2: 15-par  -  closer to fully implemented now...
   wikioutput = 1  !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
+  map_projection = 1  !Choose map projection: 1-Mollweide
   
   timestamps(1) = timestamp(os)
   write(6,*)

@@ -2,6 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    64: sluys, 03/06/2009
+     - Plot 2D PDF plots to one page per file for eps/pdf
+       - this allows 2:1 sky plot
+     - Plot true sky position in projected sky map
+     
     63: sluys, 03/06/2009
      - Adapt analysemcmc_1dpdfs.f and analysemcmc_2dpdfs.f for version=2
     
