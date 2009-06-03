@@ -173,7 +173,7 @@ subroutine pdfs1d(exitcode)
         !call bindata1da(n(ic),x(ic,1:n(ic)),y(ic,1:n(ic)),1,nbin1d,xmin1,xmax1,xbin1,ybin1) !Measure the amount of likelihood in each bin
         
         !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:d_l, 6:spin, 7:theta_SL, 8: RA, 9:dec,10:phase, 11:thetaJ0, 12:phiJ0, 13:alpha, 14:M1, 15:M2
-        if(p.eq.5.or.p.eq.7.or.p.eq.9.or.p.eq.11) then  !Do something about chains 'sticking to the wall'
+        if(version.eq.1.and.(p.eq.5.or.p.eq.7.or.p.eq.9.or.p.eq.11) .or. version.eq.2.and.(p.eq.5.or.p.eq.7.or.p.eq.8.or.p.eq.12.or.p.eq.15)) then  !Do something about chains 'sticking to the wall'
            if(ybin1(1).gt.ybin1(2)) ybin1(1)=0.
            if(ybin1(nbin1d).gt.ybin1(nbin1d-1)) ybin1(nbin1d)=0.
         end if
@@ -369,9 +369,9 @@ subroutine pdfs1d(exitcode)
         !Plot max likelihood
         if(pllmax.ge.1) then
            ply = pldat(icloglmax,p,iloglmax)
-           if(p.eq.8) ply = rev24(ply)
-           if(p.eq.10.or.p.eq.13) ply = rev360(ply)
-           if(p.eq.12) ply = rev180(ply)
+           if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) ply = rev24(ply)
+           if(version.eq.1.and.(p.eq.10.or.p.eq.13) .or. version.eq.2.and.(p.eq.9.or.p.eq.13.or.p.eq.16)) ply = rev360(ply)
+           if(version.eq.1.and.p.eq.12 .or. version.eq.2.and.p.eq.10) ply = rev180(ply)
            call pgsci(1)
            call pgsls(5)
            call pgline(2,(/ply,ply/),(/-1.e20,1.e20/))
@@ -425,19 +425,19 @@ subroutine pdfs1d(exitcode)
                  call pgsls(2); call pgsci(1)
                  if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
                  plx = startval(ic,p,1)
-                 if(p.eq.8) plx = rev24(plx)
-                 if(p.eq.10.or.p.eq.13) ply = rev360(ply)
-                 if(p.eq.12) ply = rev180(ply)
+                 if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) plx = rev24(plx)
+                 if(version.eq.1.and.(p.eq.10.or.p.eq.13) .or. version.eq.2.and.(p.eq.9.or.p.eq.13.or.p.eq.16)) ply = rev360(ply)
+                 if(version.eq.1.and.p.eq.12 .or. version.eq.2.and.p.eq.10) ply = rev180(ply)
                  call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !True value
-                 if(p.eq.8) then
+                 if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) then
                     call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !True value
                     call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !True value
                  end if
-                 if(p.eq.10.or.p.eq.13) then
+                 if(version.eq.1.and.(p.eq.10.or.p.eq.13) .or. version.eq.2.and.(p.eq.9.or.p.eq.13.or.p.eq.16)) then
                     call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !True value
                     call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !True value
                  end if
-                 if(p.eq.12) then
+                 if(version.eq.1.and.p.eq.12 .or. version.eq.2.and.p.eq.10) then
                     call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !True value
                     call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !True value
                  end if
@@ -467,8 +467,8 @@ subroutine pdfs1d(exitcode)
               write(str,'(A,F7.3,A5,F7.3)')trim(pgvarns(p))//': mdl:',startval(ic,p,1),' med:',stats(ic,p,1)
               if(prival.ge.1) then
                  if(plrange.eq.4.or.plrange.eq.5.or.plrange.eq.6) then
-                    !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
-                    if(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) then
+                    if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) .or. &
+                         version.eq.2.and.(p.eq.2.or.p.eq.5) ) then
                        write(str,'(A,F6.2,A1)')trim(str)//' \(2030):',ranges(ic,c0,p,5)*100,'%'
                     else
                        write(str,'(A,F7.3)')trim(str)//' \(2030):',ranges(ic,c0,p,5)
@@ -477,8 +477,8 @@ subroutine pdfs1d(exitcode)
               end if
            else  !if nplvar>=5
               str = ' '
-              !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
-              if(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) then
+              if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) .or. &
+                   version.eq.2.and.(p.eq.2.or.p.eq.5) ) then
                  if(pltrue.eq.3.or.pltrue.eq.4) write(str,'(A,F7.3)')trim(str)//' mdl:',startval(ic,p,1)
                  if(plmedian.eq.4.or.plmedian.eq.5.or.plmedian.eq.6) write(str,'(A,F8.3)')trim(str)//' med:',stats(ic,p,1)
                  if(prival.ge.1.and.(plrange.eq.4.or.plrange.eq.5.or.plrange.eq.6)) write(str,'(A,F6.2,A1)')trim(str)//' \(2030):',ranges(ic,c0,p,5)*100,'%'
@@ -494,14 +494,14 @@ subroutine pdfs1d(exitcode)
         
         
         if(quality.eq.2.or.quality.eq.3.or.quality.eq.4) then  !Talk/poster/thesis quality for 1D PDF
-           !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
+           !if(version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) .or version.eq.2.and.(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14)) then
            !   write(str,'(A9,F6.2,A1)')' \(2030):',ranges(ic,c0,p,5)*100,'%'
            !else
            !   write(str,'(A9,F7.3)')' \(2030):',ranges(ic,c0,p,5)
            !end if
            if(plrange.eq.1.or.plrange.eq.3.or.plrange.eq.4.or.plrange.eq.6) then
               x0 = ranges(ic,c0,p,5)
-              if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) x0 = x0*100
+              if(version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) .or. version.eq.2.and.(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14)) x0 = x0*100
               !print*,p,x0,nint(x0)
               if(x0.lt.0.01) write(str,'(F6.4)')x0
               if(x0.ge.0.01.and.x0.lt.0.1) write(str,'(F5.3)')x0
@@ -510,8 +510,7 @@ subroutine pdfs1d(exitcode)
               if(x0.ge.9.95.and.x0.lt.99.5) write(str,'(I2)')nint(x0)
               if(x0.ge.99.5) write(str,'(I3)')nint(x0)
               write(str,'(A)')'\(2030): '//trim(str)
-              !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
-              if(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) then
+              if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) .or. version.eq.2.and.(p.eq.2.or.p.eq.5)) then
                  write(str,'(A)')trim(str)//'%'
               else
                  write(str,'(A)')trim(str)//trim(pgunits(p))
@@ -542,7 +541,8 @@ subroutine pdfs1d(exitcode)
         !Write the deltas of the two pdfs
         if(nchains.eq.2..and.(plrange.eq.4.or.plrange.eq.5.or.plrange.eq.6)) then
            write(str,'(A8)')'\(2030)'
-           if(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) then
+           if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) .or. &
+                version.eq.1.and.(p.eq.2.or.p.eq.5)) then
               write(str1,'(A8,F6.2,A1)')'\(2030):',ranges(1,c0,p,5)*100.,'%'
               write(str2,'(A8,F6.2,A1)')'\(2030):',ranges(2,c0,p,5)*100.,'%'
            else

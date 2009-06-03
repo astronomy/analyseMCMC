@@ -11,7 +11,7 @@ subroutine pdfs2d(exitcode)
   implicit none
   integer :: i,j,j1,j2,p1,p2,ic,lw,io,exitcode,c,system,pgopen,clr,maxclr
   integer :: npdf,ncont,lw2,plotthis,truerange2d,countplots,totplots
-  real :: rev360,rev24
+  real :: rev360,rev180,rev24
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(nchs*narr1),yy(nchs*narr1),zz(nchs*narr1)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
@@ -448,29 +448,39 @@ subroutine pdfs2d(exitcode)
               call pgsci(1); call pgsls(5)
               
               plx = pldat(icloglmax,p1,iloglmax)
-              if(p1.eq.8) plx = rev24(plx)
-              if(p1.eq.10.or.p1.eq.12.or.p1.eq.13) plx = rev360(plx)
+              if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) plx = rev24(plx)
+              if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) plx = rev360(plx)
+              if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) plx = rev180(plx)
               call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Max logL
-              if(p1.eq.8) then
+              if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) then
                  call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !Max logL
                  call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !Max logL
               end if
-              if(p1.eq.10.or.p1.eq.12.or.p1.eq.13) then
+              if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) then
                  call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !Max logL
                  call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !Max logL
               end if
+              if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) then
+                 call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !Max logL
+                 call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !Max logL
+              end if
               
               ply = pldat(icloglmax,p2,iloglmax)
-              if(p2.eq.8) ply = rev24(ply)
-              if(p2.eq.10.or.p2.eq.12.or.p2.eq.13) ply = rev360(ply)
+              if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) ply = rev24(ply)
+              if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) ply = rev360(ply)
+              if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) ply = rev180(ply)
               call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !Max logL
-              if(p2.eq.8) then
+              if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) then
                  call pgline(2,(/-1.e20,1.e20/),(/ply-24.,ply-24./)) !Max logL
                  call pgline(2,(/-1.e20,1.e20/),(/ply+24.,ply+24./)) !Max logL
               end if
-              if(p2.eq.10.or.p2.eq.12.or.p2.eq.13) then
+              if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) then
                  call pgline(2,(/-1.e20,1.e20/),(/ply-360.,ply-360./)) !Max logL
                  call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !Max logL
+              end if
+              if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) then
+                 call pgline(2,(/-1.e20,1.e20/),(/ply-180.,ply-180./)) !Max logL
+                 call pgline(2,(/-1.e20,1.e20/),(/ply+180.,ply+180./)) !Max logL
               end if
               
               call pgpoint(1,plx,ply,12)
@@ -492,32 +502,42 @@ subroutine pdfs2d(exitcode)
                  call pgsls(2); call pgsci(1)
                  if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
                  plx = startval(ic,p1,1)
-                 if(p1.eq.8) plx = rev24(plx)
-                 if(p1.eq.10.or.p1.eq.12.or.p1.eq.13) plx = rev360(plx)
+                 if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) plx = rev24(plx)
+                 if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) plx = rev360(plx)
+                 if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) plx = rev180(plx)
                  call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !True value
-                 if(p1.eq.8) then
+                 if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) then
                     call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !True value
                     call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !True value
                  end if
-                 if(p1.eq.10.or.p1.eq.12.or.p1.eq.13) then
+                 if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) then
                     call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !True value
                     call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !True value
+                 end if
+                 if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) then
+                    call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !True value
+                    call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !True value
                  end if
                  
                  !y
                  call pgsls(2); call pgsci(1)
                  if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
                  ply = startval(ic,p2,1)
-                 if(p2.eq.8) ply = rev24(ply)
-                 if(p2.eq.10.or.p2.eq.12.or.p2.eq.13) ply = rev360(ply)
+                 if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) ply = rev24(ply)
+                 if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) ply = rev360(ply)
+                 if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) ply = rev180(ply)
                  call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !True value
-                 if(p2.eq.8) then
+                 if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) then
                     call pgline(2,(/-1.e20,1.e20/),(/ply-24.,ply-24./)) !True value
                     call pgline(2,(/-1.e20,1.e20/),(/ply+24.,ply+24./)) !True value
                  end if
-                 if(p2.eq.10.or.p2.eq.12.or.p2.eq.13) then
+                 if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) then
                     call pgline(2,(/-1.e20,1.e20/),(/ply-360.,ply-360./)) !True value
                     call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !True value
+                 end if
+                 if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) then
+                    call pgline(2,(/-1.e20,1.e20/),(/ply-180.,ply-180./)) !True value
+                    call pgline(2,(/-1.e20,1.e20/),(/ply+180.,ply+180./)) !True value
                  end if
                  
                  call pgpoint(1,plx,ply,18)

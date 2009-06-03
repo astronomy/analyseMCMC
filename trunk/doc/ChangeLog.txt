@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    63: sluys, 03/06/2009
+     - Adapt analysemcmc_1dpdfs.f and analysemcmc_2dpdfs.f for version=2
+    
     62: sluys, 02/06/2009
      - Calculate 2D areas with version=2 correctly
      - Some reorganisation of 2D routines
