@@ -278,8 +278,8 @@ subroutine statistics(exitcode)
            ranges(ic,c,p,5) = ranges(ic,c,p,4)
            !if(version.eq.1.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
            !if(version.eq.2.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
-           if(version.eq.1.and.p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  !Remove eta, a_spin
-           if(version.eq.2.and.p.eq.2.or.p.eq.5) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
+           if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15)) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  !Remove eta, a_spin
+           if(version.eq.2.and.(p.eq.2.or.p.eq.5)) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
         end do !p
      end do !c
      !if(prprogress.ge.2) write(6,'(A34,F8.4)')'.  Standard probability interval: ',ivals(ival0)
@@ -482,7 +482,7 @@ subroutine statistics(exitcode)
            ranges(ic,1:nival,p,4) = ranges(ic,1:nival,p,2) - ranges(ic,1:nival,p,1)
            ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)
            !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
-           if(p.eq.2.or.p.eq.5) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
+           if(p.eq.2.or.p.eq.5) ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)/ranges(ic,1:nival,p,3)
         end do !p
         
         !Columns: 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:RA, 7:sindec:, 8:cosi, 9:phase, 10:psi,   11:spin1, 12:phi1, 13:theta1,   14:spin2, 15:phi2, 16:theta2
@@ -501,7 +501,7 @@ subroutine statistics(exitcode)
                 '\(2147)\d1\u (\(2218))','a\dspin2\u            ','\(2185)\d2\u (\(2218))','\(2147)\d2\u (\(2218))'/)
            pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(2133)','t\dc\u','d\dL\u','\(2127)','\(2130)','\(2135)','\(2147)\dc\u', '\(2149)', &
                 'a\dspin1\u','\(2185)\d1\u','\(2147)\d1\u','a\dspin2\u','\(2185)\d2\u','\(2147)\d2\u'/)
-           pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','(\(2218))','(\(2218))','(\(2218))','(\(2218))','(\(2218))','','(\(2218))','(\(2218))','','(\(2218))','(\(2218))'/)
+           pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','h','\(2218)','\(2218)','\(2218)','\(2218)','','\(2218)','\(2218)','','\(2218)','\(2218)'/)
         else  !Same, but replace '\(21' with \(06' for arial-like Greek font
            varnames(1:16) = (/'logL','Mc','eta','t0','d_L','RA','Dec','incl','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
            !pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\d0\u (s)            ', &
@@ -517,7 +517,7 @@ subroutine statistics(exitcode)
                 '\(0647)\d1\u (\(2218))','a\dspin2\u            ','\(0685)\d2\u (\(2218))','\(0647)\d2\u (\(2218))'/)
            pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(0633)','t\dc\u','d\dL\u','\(0627)','\(0630)','\(0635)','\(0647)\dc\u', '\(0649)', &
                 'a\dspin1\u','\(0685)\d1\u','\(0647)\d1\u','a\dspin2\u','\(0685)\d2\u','\(0647)\d2\u'/)
-           pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','(\(2218))','(\(2218))','(\(2218))','(\(2218))','(\(2218))','','(\(2218))','(\(2218))','','(\(2218))','(\(2218))'/)
+           pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','h','\(2218)','\(2218)','\(2218)','\(2218)','','\(2218)','\(2218)','','\(2218)','\(2218)'/)
         end if
      end if !if(version.eq.2.and.changevar.ge.1)
      
@@ -541,8 +541,8 @@ subroutine statistics(exitcode)
               ranges(ic,c,p,5) = ranges(ic,c,p,4)
               !if(version.eq.1.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,5)/ranges(ic,c,p,3)
               !if(version.eq.2.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14) ranges(ic,c,p,5) = ranges(ic,c,p,5)/ranges(ic,c,p,3)
-              if(version.eq.1.and.p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,5)/ranges(ic,c,p,3)
-              if(version.eq.2.and.p.eq.2.or.p.eq.5) ranges(ic,c,p,5) = ranges(ic,c,p,5)/ranges(ic,c,p,3)
+              if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15)) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
+              if(version.eq.2.and.(p.eq.2.or.p.eq.5)) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
            end do
         end if
      end do
@@ -602,9 +602,9 @@ subroutine statistics(exitcode)
                  write(o,'(A4,$)')'*N*'
               end if
               write(o,'(F10.4,A3,F9.4)')ranges(ic,c,p,3),'+-',0.5*ranges(ic,c,p,4)
-           end do
-        end do
-     end if
+           end do !p
+        end do !c
+     end if 
      
      
      !Print intervals as: centre, delta, in range:

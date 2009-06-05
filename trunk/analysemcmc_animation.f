@@ -22,7 +22,7 @@ subroutine animation(exitcode)
   ts1 = timestamp(os)
   write(6,*)
   p = 2 !Parameter to plot: 2-Mc
-  small_anim = 0  !Make small animation (e.g. gif) rather than ~screen size
+  small_anim = 1  !Make small animation (e.g. gif) rather than ~screen size
   
   !Autodetermine number of bins:
   if(nbin1d.le.0) then

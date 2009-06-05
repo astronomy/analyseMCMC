@@ -501,7 +501,8 @@ subroutine pdfs1d(exitcode)
            !end if
            if(plrange.eq.1.or.plrange.eq.3.or.plrange.eq.4.or.plrange.eq.6) then
               x0 = ranges(ic,c0,p,5)
-              if(version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) .or. version.eq.2.and.(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14)) x0 = x0*100
+              if(p.eq.5) print*,x0,ranges(ic,c0,p,4)
+              if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) .or. version.eq.2.and.(p.eq.2.or.p.eq.5)) x0 = x0*100
               !print*,p,x0,nint(x0)
               if(x0.lt.0.01) write(str,'(F6.4)')x0
               if(x0.ge.0.01.and.x0.lt.0.1) write(str,'(F5.3)')x0
