@@ -1,4 +1,10 @@
-!Read and plot the data output from the spinning MCMC code.  This programme replaces plotspins
+!> AnalyseMCMC main routine.
+!<
+
+! Read and plot the data output from SPINspiral.  
+! This program replaces plotspins.
+
+
 
 program analysemcmc
   use constants
@@ -11,9 +17,9 @@ program analysemcmc
   implicit none
   integer :: i,ic,p,iargc,exitcode,tempintarray(99),getos
   real :: pltsz
-  real*8 :: timestamp,timestamps(9)
+  real*8 :: timestamp,timestamps(9)  !< Time the progress of the code.
   
-  version = 1   !1: 12-par MCMC,  2: 15-par  -  closer to fully implemented now...
+  version = 1   !1: 12-par MCMC,  2: 15-par  -  close to fully implemented now...
   wikioutput = 1  !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
   map_projection = 1  !Choose map projection: 1-Mollweide
   

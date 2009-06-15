@@ -2,10 +2,12 @@
 
 
 !***************************************************************************************************
+!> Module with settings from the input file (e.g. analysemcmc.dat)
+!<
 module analysemcmc_settings
   implicit none
   save
-  integer, parameter :: nchs=20,npar1=18,nival1=9  !Npar1: logL+MCMCpar+secundary vars, e.g. 1+12+2(M1M2) = 15. For 15-par: 18?  
+  integer, parameter :: nchs=20,npar1=18,nival1=9  !< Npar1: logL+MCMCpar+secondary variables, e.g. 1+12+2(M1M2) = 15. For 15-par: 18?  
   integer :: plvars(npar1),nplvar,nbin1d,nbin2dx,nbin2dy,npdf2d,pdf2dpairs(250,2),panels(2)
   integer :: thin,nburn(nchs),reverseread,update,mergechains,wrapdata,changevar,maxchlen
   integer :: file,colour,orientation,quality,fonttype
@@ -20,6 +22,8 @@ end module analysemcmc_settings
 !***************************************************************************************************
 
 !***************************************************************************************************
+!> Module with (currently) mathematical and string constants
+!<
 module constants
   implicit none
   save
@@ -31,6 +35,8 @@ end module constants
 !***************************************************************************************************
 
 !***************************************************************************************************
+!> Module with Markov-chain data from the SPINspiral output files
+!< 
 module general_data
   use analysemcmc_settings
   implicit none
@@ -54,6 +60,8 @@ end module general_data
 !***************************************************************************************************
 
 !***************************************************************************************************
+!> Module with MCMC run data from the SPINspiral output files
+!< 
 module mcmcrun_data
   use general_data
   implicit none
@@ -68,6 +76,8 @@ end module mcmcrun_data
 
 
 !***************************************************************************************************
+!> Module with generated statistics
+!< 
 module stats_data
   use analysemcmc_settings
   implicit none
@@ -80,6 +90,8 @@ end module stats_data
 
 
 !***************************************************************************************************
+!> Module with plot settings
+!< 
 module plot_data
   use analysemcmc_settings
   implicit none
@@ -94,6 +106,8 @@ end module plot_data
 
 !***************************************************************************************************
 module chain_data
+!> Module with secondary Markov-chain data
+!< 
   use general_data
   implicit none
   save

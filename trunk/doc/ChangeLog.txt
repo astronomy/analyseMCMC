@@ -3,7 +3,7 @@
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
     66: sluys, 05/06/2009
-     - Fixed bug in converting abs -> rel prob. ranges for version=2
+     - Fixed bug in converting abs. -> rel. probability ranges for version=2
      - Improved labels in 1D PDF plots for version=2
      
     65: sluys, 03/06/2009

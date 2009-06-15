@@ -1238,13 +1238,18 @@ end subroutine save_cbc_wiki_data
 
 
 !***********************************************************************************************************************************
+!>
+!!  Check convergence for multiple chains. This works only for fixed chain length, so take the min N
+!!  This is probably taken from (at least equal to):
+!!    Brooks & Gelman, Journal of Computational and Graphical Statistics, Vol.7, Nr.4, p.434-455, 1998:
+!!    "General Methods for Monitoring Convergence of Iterative Simulations"
+!!    http://www.jstor.org/pss/1390675 (for purchase)
+!!    http://www.stat.columbia.edu/~gelman/research/published/brooksgelman.pdf (Author's website)
+!!    See Eq.1.1,  where:  B/n := totvar  and  W := chvar
+!!  Todo:  use only data selected after (auto)burnin
+!<
+!***********************************************************************************************************************************
 subroutine compute_convergence()
-  !Check convergence for multiple chains. This works only for fixed chain length, so take the min N
-  !This is probably taken from (at least equal to):
-  !  Brooks & Gelman, Journal of Computational and Graphical Statistics, Vol.7, Nr.4, p.434-455  (Eq.1.1)
-  !    where:  B/n := totvar  and  W := chvar
-  !Todo:  use only data selected after (auto)burnin
-  
   use constants
   use analysemcmc_settings
   use general_data
