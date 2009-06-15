@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    68: sluys, 15/06/2009
+     - Added version to first line of input file
+     - Removed  *** identify_2d_ranges:  sin(y)<0. warning
+     
     66: sluys, 05/06/2009
      - Fixed bug in converting abs. -> rel. probability ranges for version=2
      - Improved labels in 1D PDF plots for version=2

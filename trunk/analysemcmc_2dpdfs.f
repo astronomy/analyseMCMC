@@ -240,7 +240,7 @@ subroutine pdfs2d(exitcode)
            if(normpdf2d.eq.2) z = max(0.,sqrt(z + 1.e-30))
            if(normpdf2d.eq.4) then
               call identify_2d_ranges(p1,p2,nival,nbin2dx+1,nbin2dy+1,z,tr) !Get 2D probability ranges; identify to which range each bin belongs
-              call calc_2d_areas(p1,p2,changevar,nival,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
+              call calc_2d_areas(p1,p2,nival,nbin2dx+1,nbin2dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
               trueranges2d(p1,p2) = truerange2d(z,nbin2dx+1,nbin2dy+1,startval(1,p1,1),startval(1,p2,1),tr)
               !write(6,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
               do i=1,nival
@@ -1058,7 +1058,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
                  z(1:nx,iy) = z(1:nx,iy)/(abs(sin(y*rd2r))+1.e-30)
               else  !This can happen when the PDF lies close to the pole
                  z(1:nx,iy) = 0.
-                 write(0,'(//,A,//)')'  *** identify_2d_ranges:  sin(y)<0.  Please check whether the if(y.ge.0..and.y.lt.180.) statement works properly ***'
+                 !write(0,'(//,A,//)')'  *** identify_2d_ranges:  sin(y)<0.  Please check whether the if(y.ge.0..and.y.lt.180.) statement works properly ***'
               end if
            end if
         end if
@@ -1075,7 +1075,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
                  z(1:nx,iy) = z(1:nx,iy)/(abs(sin(y*rd2r))+1.e-30)
               else  !This can happen when the PDF lies close to the pole
                  z(1:nx,iy) = 0.
-                 write(0,'(//,A,//)')'  *** identify_2d_ranges:  sin(y)<0.  Please check whether the if(y.ge.0..and.y.lt.180.) statement works properly ***'
+                 !write(0,'(//,A,//)')'  *** identify_2d_ranges:  sin(y)<0.  Please check whether the if(y.ge.0..and.y.lt.180.) statement works properly ***'
               end if
            end if
         end if
@@ -1118,10 +1118,11 @@ end subroutine identify_2d_ranges
 
 !************************************************************************
 !Compute 2D probability areas
-subroutine calc_2d_areas(p1,p2,changevar,ni,nx,ny,z,tr,area)
+subroutine calc_2d_areas(p1,p2,ni,nx,ny,z,tr,area)
   use constants
+  use analysemcmc_settings
   implicit none
-  integer :: p1,p2,changevar,ni,nx,ny,ix,iy,i,i1,iv
+  integer :: p1,p2,ni,nx,ny,ix,iy,i,i1,iv
   real :: z(nx,ny),tr(6),y,dx,dy,area(ni)
   
   area = 0.

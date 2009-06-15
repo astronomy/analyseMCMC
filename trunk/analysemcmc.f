@@ -19,7 +19,6 @@ program analysemcmc
   real :: pltsz
   real*8 :: timestamp,timestamps(9)  !< Time the progress of the code.
   
-  version = 1   !1: 12-par MCMC,  2: 15-par  -  close to fully implemented now...
   wikioutput = 1  !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
   map_projection = 1  !Choose map projection: 1-Mollweide
   
@@ -31,7 +30,6 @@ program analysemcmc
   call setconstants           !Define mathematical constants
   call set_plotsettings()     !Set plot settings to 'default' values
   call read_settingsfile()    !Read the plot settings (overwrite the defaults)
-  !if(version.eq.2) changevar = 0  !Force this for the moment for 15 par
   call write_settingsfile()   !Write the input file back to disc
   
   fontsize1d = 1.             !Set plot scale for 1D plots, needs to be implemented fully

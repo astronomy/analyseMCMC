@@ -2,6 +2,7 @@
 
 
  Basic options:
+         1             version     Output version: 1: 12-par Apostolatos, 2:15-par LAL
          1                thin     If >1, "thin" the output; read every thin-th line 
     500000               nburn     If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain
    0.50000           nburnfrac     If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides nburn above
@@ -23,7 +24,7 @@
          0           prinitial     Print true values, starting values and their difference
          1              prstat     Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals
          0              prcorr     Print correlations: 0-no, 1-yes
-         0              prival     Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both
+         1              prival     Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both
          1              prconv     Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain
          1           savestats     Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
          0             savepdf     Save the binned data for 1d and/or 2d pdfs (depending on plpdf1d and plpdf2d).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
@@ -40,7 +41,7 @@
          1             plpdf1d     Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.
          2             plpdf2d     Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).
          0             placorr     Plot autocorrelations: 0-no, >0-yes: plot placorr steps
-         0             plotsky     Plot 2d pdf with stars, implies plpdf2d>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars
+         2             plotsky     Plot 2d pdf with stars, implies plpdf2d>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars
          0             plmovie     Plot movie frames
 
  Detailed plot settings:

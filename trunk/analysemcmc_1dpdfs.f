@@ -130,7 +130,6 @@ subroutine pdfs1d(exitcode)
         call pgpage
         if(j.eq.1) call pginitl(colour,file,whitebg)
      end if
-     
      !Set x-ranges for plotting, bin the data and get y-ranges
      !Use widest probability range (hopefully ~3-sigma) - doesn't always work well...
      if(1.eq.2.and.version.eq.1) then  !This can only be used if ranges are computed - isn't this always the case?

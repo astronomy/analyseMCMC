@@ -54,6 +54,7 @@ subroutine read_settingsfile
   
 
   read(u,*,iostat=io)bla
+  read(u,*,iostat=io)version
   read(u,*,iostat=io)thin
   read(u,*,iostat=io)nburn(1)
   do i=2,nchs

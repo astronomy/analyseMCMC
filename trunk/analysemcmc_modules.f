@@ -9,7 +9,7 @@ module analysemcmc_settings
   save
   integer, parameter :: nchs=20,npar1=18,nival1=9  !< Npar1: logL+MCMCpar+secondary variables, e.g. 1+12+2(M1M2) = 15. For 15-par: 18?  
   integer :: plvars(npar1),nplvar,nbin1d,nbin2dx,nbin2dy,npdf2d,pdf2dpairs(250,2),panels(2)
-  integer :: thin,nburn(nchs),reverseread,update,mergechains,wrapdata,changevar,maxchlen
+  integer :: version,thin,nburn(nchs),reverseread,update,mergechains,wrapdata,changevar,maxchlen
   integer :: file,colour,orientation,quality,fonttype
   integer :: prprogress,prruninfo,prchaininfo,prinitial,prstat,prcorr,prival,prconv,savestats,savepdf       
   integer :: plot,combinechainplots,pllogl,plchain,plparl,pljump,rdsigacc,plsigacc,plpdf1d,plpdf2d,placorr,plotsky,plmovie       
@@ -27,7 +27,7 @@ end module analysemcmc_settings
 module constants
   implicit none
   save
-  integer :: version,os
+  integer :: os
   real*8 :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
   real :: rpi,rtpi,rpi2,rr2d,rd2r,rr2h,rh2r,rc3rd
   character :: upline*4,detabbrs(4)*2
