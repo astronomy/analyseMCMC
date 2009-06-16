@@ -54,9 +54,9 @@ subroutine statistics(exitcode)
         
         wraptype = 1  !0-2pi (e.g. phases)
         if(version.eq.1.and.p.eq.12 .or. version.eq.2.and.p.eq.10) wraptype = 2  !0-pi (polarisation angle)
-           
-           
-           
+        
+        
+        
         !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
         !Make sure data are between 0 and 2pi or between 0 and pi to start with:
         do i=1,n(ic)
@@ -132,8 +132,11 @@ subroutine statistics(exitcode)
         if(wrap(ic,p).gt.0) shift(ic,p) = shival - mod(centre + shival2, shival)
         if(version.eq.1.and.p.eq.8.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
         if(version.eq.2.and.p.eq.6.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
+        
+        !Do the actual wrapping:
         alldat(ic,p,1:n(ic))   = mod(alldat(ic,p,1:n(ic))   + shift(ic,p), shival) - shift(ic,p)
         pldat(ic,p,1:ntot(ic)) = mod(pldat(ic,p,1:ntot(ic)) + shift(ic,p), shival) - shift(ic,p)   !Original data
+        startval(ic,p,1:3)     = mod(startval(ic,p,1:3)     + shift(ic,p), shival) - shift(ic,p)   !True, starting and Lmax values
         y1 = mod(y1 + shift(ic,p), shival) - shift(ic,p)
         y2 = mod(y2 + shift(ic,p), shival) - shift(ic,p)
         centre = mod(centre + shift(ic,p), shival) - shift(ic,p)

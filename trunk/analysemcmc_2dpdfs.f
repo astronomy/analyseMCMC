@@ -599,7 +599,7 @@ subroutine pdfs2d(exitcode)
               
            end if  !if(.not.project_map.or.plotsky.eq.1)
            
-           !Plot big star at true position in sky map
+           !Plot big symbol at true position in sky map
            if(project_map .and. (pltrue.eq.1.or.pltrue.eq.3)) then
               call pgsch(sch*1.5) !Use 1.5 for plsym=8, 2 for plsym=18
               call pgslw(lw*2)

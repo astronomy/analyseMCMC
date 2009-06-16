@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    70: sluys, 16/06/2009
+     - Added wrapping for startval(:,:,1:3) (true, starting and Lmax values)
+     
     68: sluys, 15/06/2009
      - Added version to first line of input file
      - Removed  *** identify_2d_ranges:  sin(y)<0. warning
