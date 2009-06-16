@@ -379,6 +379,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
   integer :: i,i1,io,ic,j,exitcode,readerror
   character :: bla*1,detname*14
   real*8 :: t
+  !real*8 :: lon2ra
 
   exitcode = 0
   readerror = 0
@@ -455,6 +456,8 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
               if(io.lt.0) exit !EOF
            end do
         end if
+        
+        !dat(6,ic,i) = real(lon2ra(dble(dat(6,ic,i)),t))  !In case you ran with lon rather than RA
         dat(4,ic,i) = real(t - t0)
         
         i = i+1
@@ -807,7 +810,7 @@ function lon2ra(lon, GPSsec)
   real*8 :: lon2ra,lon,gmst,seconds,days,centuries,secCurrentDay
   real*8 :: gps0,leapseconds,GPSsec,tpi
   tpi = 8*datan(1.d0)
-
+  
   gps0 = 630720013.d0 !GPS time at 1/1/2000 at midnight
   leapseconds = 32.d0 !At Jan 1st 2000
   if(GPSsec.gt.(gps0 + 189388800.d0)) leapseconds = leapseconds + 1.d0 !One more leapsecond after 1/1/2006
