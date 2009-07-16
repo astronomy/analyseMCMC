@@ -105,9 +105,9 @@ end module plot_data
 
 
 !***************************************************************************************************
-module chain_data
 !> Module with secondary Markov-chain data
 !< 
+module chain_data
   use general_data
   implicit none
   save

@@ -1,12 +1,18 @@
-!> AnalyseMCMC main routine.
+!> \mainpage Documentation analyseMCMC
+!! AnalyseMCMC is a Fortran code that can be used to analyse the output of <a href="http://www.astro.northwestern.edu/~sluys/index.php?title=SPINspiral">SPINspiral</a>.
+!! 
+!! \file analysemcmc.f
+!! \brief Contains analyseMCMC main routine
 !<
 
-! Read and plot the data output from SPINspiral.  
 ! This program replaces plotspins.
 
 
 
-program analysemcmc
+!> \brief Main routine of AnalyseMCMC
+!<
+!************************************************************************************************************************************
+program analyseMCMC
   use constants
   use analysemcmc_settings
   use general_data
@@ -349,23 +355,17 @@ program analysemcmc
   if(plot.eq.1.and.prprogress.ge.1.and.update.eq.0) write(6,'(/,A,$)')'  Plotting: '
   
   
+  
+  
   !***********************************************************************************************************************************      
   !Plot (1d) chains: logL, parameter chains, jumps, etc.
   if(plot.eq.1) then
      call chains(exitcode)
      if(exitcode.ne.0) goto 9999
   end if
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   timestamps(5) = timestamp(os)
+  
+  
   
   
   !***********************************************************************************************************************************      
@@ -374,18 +374,10 @@ program analysemcmc
      call pdfs1d(exitcode)
      if(exitcode.ne.0) goto 9999
   end if !if(plpdf1d.ge.1)
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   timestamps(6) = timestamp(os)
+  
+  
+  
   
   !***********************************************************************************************************************************      
   if(plpdf2d.ge.1.and.mergechains.eq.0) then
@@ -404,37 +396,12 @@ program analysemcmc
      if(prprogress.ge.1.and.update.eq.0) write(6,'(A,/)')'done.  '
   end if
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+  timestamps(7) = timestamp(os)  
   
   
   
   
   !***********************************************************************************************************************************      
-  !***********************************************************************************************************************************      
-  !***********************************************************************************************************************************      
-  
-  
-  
-  
-  timestamps(7) = timestamp(os)
   
   !Write statistics to file
   if(savestats.ge.1.and.nchains.gt.1) write(0,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
@@ -447,21 +414,6 @@ program analysemcmc
   
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  !***********************************************************************************************************************************      
-  !***********************************************************************************************************************************      
   !***********************************************************************************************************************************      
   
   timestamps(8) = timestamp(os)
@@ -470,11 +422,6 @@ program analysemcmc
      call animation(exitcode)
      if(exitcode.ne.0) goto 9999
   end if
-  
-  
-  
-  
-  
   
   
   
@@ -517,7 +464,7 @@ program analysemcmc
   end if
   
   write(6,*)''
-end program analysemcmc
+end program analyseMCMC
 !************************************************************************************************************************************
 
 

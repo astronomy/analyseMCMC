@@ -458,6 +458,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
         end if
         
         !dat(6,ic,i) = real(lon2ra(dble(dat(6,ic,i)),t))  !In case you ran with lon rather than RA
+        !if(i.ne.1) dat(6,ic,i) = real(lon2ra(dble(dat(6,ic,i)),t))  !In case all but the true value is lon rather than RA
         dat(4,ic,i) = real(t - t0)
         
         i = i+1
@@ -498,7 +499,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   implicit none
   integer :: i,ic,j,exitcode,narr
   real :: m1,m2,avgtotthin
-  real*8 :: lon2ra
+  real*8 :: lon2ra,gmst
   
   exitcode = 0
   totiter = 0
@@ -729,7 +730,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   
   
   !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')'  Done.'
-  if(prprogress.ge.2.and.update.eq.0) write(6,'(A,I12)')'  t0:',nint(t0)
+  if(prprogress.ge.2.and.update.eq.0) write(6,'(A,I12,A,F7.4)')'  t0:',nint(t0), '  GMST:',gmst(t0)
   
   
   
@@ -799,21 +800,32 @@ end subroutine mcmcruninfo
 
 !************************************************************************************************************************************
 function lon2ra(lon, GPSsec)
-  ! Derives right ascension (in radians!) from longitude (radians) and GPS time. 
-  ! Declination == latitude for equatorial coordinates.                        
+  ! Compute right ascension (in radians) from longitude (radians) and GPS time (seconds). 
+  ! Declination == latitude for equatorial coordinates.
   
-  
-  ! Derive the `Greenwich Mean Sidereal Time' (in radians!) 
-  ! from GPS time (in seconds).                              
-  ! (see K.R.Lang(1999), p.80sqq.)                           
+  use constants
   implicit none
-  real*8 :: lon2ra,lon,gmst,seconds,days,centuries,secCurrentDay
-  real*8 :: gps0,leapseconds,GPSsec,tpi
-  tpi = 8*datan(1.d0)
+  real*8 :: lon2ra,lon,GPSsec,gmst
+  
+  lon2ra = mod(lon + gmst(GPSsec) + 10*tpi,tpi)
+end function lon2ra
+!************************************************************************************************************************************
+
+
+!************************************************************************************************************************************
+function gmst(GPSsec)
+  ! Compute the 'Greenwich Mean Sidereal Time' (in radians) from GPS time (in seconds).                              
+  ! See K.R. Lang (1999), p.80sqq.
+  
+  use constants
+  implicit none
+  real*8 :: gmst,seconds,days,centuries,secCurrentDay
+  real*8 :: gps0,leapseconds,GPSsec
   
   gps0 = 630720013.d0 !GPS time at 1/1/2000 at midnight
   leapseconds = 32.d0 !At Jan 1st 2000
-  if(GPSsec.gt.(gps0 + 189388800.d0)) leapseconds = leapseconds + 1.d0 !One more leapsecond after 1/1/2006
+  if(GPSsec.gt.820108813.d0) leapseconds = leapseconds + 1.d0 !One more leapsecond after 1/1/2006
+  if(GPSsec.gt.914803214.d0) leapseconds = leapseconds + 1.d0 !One more leapsecond after 1/1/2009
   if(GPSsec.lt.630720013.d0) write(0,'(A)')'   WARNING: GMSTs before 1.1.2000 are inaccurate!'
   !Time since 1/1/2000 midnight
   seconds       = (GPSsec - gps0) + (leapseconds - 32.d0)
@@ -824,9 +836,7 @@ function lon2ra(lon, GPSsec)
   gmst = gmst + secCurrentDay * 1.002737909350795d0   !UTC day is 1.002 * MST day
   gmst = mod(gmst/86400.d0,1.d0)
   gmst = gmst * tpi
-
-  lon2ra = mod(lon + gmst + 10*tpi,tpi)
-end function lon2ra
+end function gmst
 !************************************************************************************************************************************
 
 

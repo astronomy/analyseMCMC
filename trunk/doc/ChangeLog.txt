@@ -2,6 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    71: sluys, 15/07/2009
+     - When plotting all 2D PDFs, skip the ones with a fixed parameter
+     - Added leap second at 01/01/2009
+     - Some cleaning
+    
     70: sluys, 16/06/2009
      - Added wrapping for startval(:,:,1:3) (true, starting and Lmax values)
      

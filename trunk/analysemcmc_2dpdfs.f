@@ -30,13 +30,10 @@ subroutine pdfs2d(exitcode)
   if(prprogress.ge.1.and.update.eq.0.and.npdf2d.ge.0) write(6,'(A,$)')'  2D pdfs: '
   if(npdf2d.lt.0) then
      totplots = 0
-     do i=j1,j2
-        totplots = totplots + i - j1
+     do j=j1,j2-nfixedpar
+        totplots = totplots + j - j1
      end do
-     if(prprogress.ge.1.and.update.eq.0) then
-        if(totplots.lt.100) write(6,'(A,I2,A,/)')'  *ALL* (',totplots,') 2D pdfs: '
-        if(totplots.ge.100) write(6,'(A,I3,A,/)')'  *ALL* (',totplots,') 2D pdfs: '
-     end if
+     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,I3,A,I3,A,/)')'  *all* ',totplots,' 2D PDFs for the all combinations of the',j2-j1+1-nfixedpar,' non-fixed parameters: '
   end if
   
 
@@ -125,6 +122,7 @@ subroutine pdfs2d(exitcode)
            if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')trim(varnames(p1))//'-'//trim(varnames(p2))//' '
         else
            if(p2.le.p1) cycle
+           if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
            write(6,*)upline !Move cursor up 1 line
            if(prprogress.ge.1.and.update.eq.0) write(6,'(F7.1,A)')real(countplots+1)/real(totplots)*100,'%    ('//trim(varnames(p1))//'-'//trim(varnames(p2))//')                                      '
         end if
@@ -761,6 +759,7 @@ subroutine pdfs2d(exitcode)
                  if(plotthis.eq.0) cycle
               else
                  if(p2.le.p1) cycle
+                 if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
               end if
               write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.ppm'
               i = system('rm -f '//trim(tempfile))
