@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    72: sluys, 17/07/2009
+     - Remove gfortran warnings for mcmcstats.f
+     
     71: sluys, 15/07/2009
      - When plotting all 2D PDFs, skip the ones with a fixed parameter
      - Added leap second at 01/01/2009

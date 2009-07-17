@@ -17,12 +17,12 @@ program mcmcstats
   
   integer :: npdf2d(nf1),nbin2dx(nf1),nbin2dy(nf1),pdfpar2dx(nf1,npar1),pdfpar2dy(nf1,npar1)
   
-  integer :: sym,ci,ci0,ls,ls0,p0,p1,p2,p3,p10,p20,p30,p11,p22
+  integer :: sym,ci,ci0,ls,ls0,p0,p1,p2,p3,p10,p20,p11,p22
   real :: xmin,xmax,dx,ymin,ymax,dy,x0,y0,x1,y1,clr
-  real :: par1,par2,par3,par1s(10),par2s(10),par3s(10)
+  real :: par1,par2,par3
   
   integer :: rel,nplpar,plpar1,plpar2,plpars(20),docycle
-  real :: x,y,pi,d2r
+  real :: x,pi,d2r
   real :: papsize,paprat
   
   integer :: plotdeltas,plotsnrs,plotcorrelations,plotcorrmatrix,printdeltastable
@@ -110,7 +110,7 @@ program mcmcstats
      totsnr(f) = sqrt(totsnr(f))
      read(o,*)bla,tbase(f)
      if(prinput.eq.1) write(6,*)''
-     if(prinput.eq.1) write(6,'(A,I)')' t0: ',tbase(f)
+     if(prinput.eq.1) write(6,'(A,I12)')' t0:',tbase(f)
      
      
      !Read correlations:
@@ -221,7 +221,7 @@ program mcmcstats
      if(plfile.ge.2) io = pgopen('deltas.eps/cps')
      
      if(io.le.0) then
-        write(6,'(A,I,/)')'Cannot open PGPlot device.  Quitting the programme ',io
+        write(6,'(A,I6,/)')'Cannot open PGPlot device.  Quitting the programme',io
         stop
      end if
      call pgsch(1.5)
@@ -347,7 +347,7 @@ program mcmcstats
      if(plfile.ge.2) io = pgopen('snrs.eps/cps')
      
      if(io.le.0) then
-        write(6,'(A,I,/)')'Cannot open PGPlot device.  Quitting the programme ',io
+        write(6,'(A,I6,/)')'Cannot open PGPlot device.  Quitting the programme',io
         stop
      end if
      call pgsch(1.5)
@@ -467,7 +467,7 @@ program mcmcstats
         if(plfile.ge.2) io = pgopen('corrs.eps/cps')
         
         if(io.le.0) then
-           write(6,'(A,I,/)')'Cannot open PGPlot device.  Quitting the programme ',io
+           write(6,'(A,I6,/)')'Cannot open PGPlot device.  Quitting the programme',io
            stop
         end if
         call pgsch(1.5)
@@ -587,7 +587,7 @@ program mcmcstats
      if(plfile.ge.2) io = pgopen('corr_matrix.eps/cps')
      
      if(io.le.0) then
-        write(6,'(A,I,/)')'Cannot open PGPlot device.  Quitting the programme ',io
+        write(6,'(A,I6,/)')'Cannot open PGPlot device.  Quitting the programme',io
         stop
      end if
      call pgpap(papsize,paprat)
