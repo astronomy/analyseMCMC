@@ -377,10 +377,11 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
   use chain_data
   implicit none
   integer :: i,i1,io,ic,j,exitcode,readerror
-  character :: bla*1,detname*14
+  character :: tmpStr*99,detname*14,firstLine*999
   real*8 :: t
+  real :: outputVersion,prior
   !real*8 :: lon2ra
-
+  
   exitcode = 0
   readerror = 0
   !narr = narr1
@@ -406,27 +407,41 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
      
      !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
      !Read the headers
-     read(10,*,end=199,err=199)bla
-     !read(10,'(I10,I12,I8,F,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
+     
+     !Determine from the length of the first line whether this is output from before of after July 2009
+     !  before: first line is >80 characters long header (     Niter       Nburn    seed       null likelihood    Ndet    Ncorr   Ntemps      Tmax      Tchain   Network SNR)
+     !  after:  first line is <80 characters long version number (  SPINspiral version:    1.00)
+     
+     outputVersion = 0.0  !Use old format
+     read(10,'(A999)',end=199,err=199)firstLine
+     if(len_trim(firstLine).lt.80) read(firstLine,'(A21,F8.2)')tmpStr,outputVersion  !Use new format
+
+     if(outputVersion > 0.5) read(10,*,end=199,err=199)tmpStr  !Read empty line between version number and first header
      read(10,'(I10,I12,I8,F22.10,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
-     read(10,*,end=199,err=199)bla
+     read(10,*,end=199,err=199)tmpStr
+     
      do i=1,ndet(ic)
         !read(10,'(2x,A14,F18.8,4F12.2,F22.8,F17.7,3I14)') detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
         read(10,*)detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
-        !print*,trim(detnames(ic,i))
         detname = detnames(ic,i)
+        !write(0,'(A)')trim(detname)
         j = len_trim(detname)
         if(detname(j-3:j).eq.'ford') detnr(ic,i) = 1
         if(detname(j-3:j).eq.'ston') detnr(ic,i) = 2
         if(detname(j-3:j).eq.'Pisa') detnr(ic,i) = 3
      end do
-     !if(prprogress.ge.1.and.update.eq.0) write(6,*)''
-     read(10,*,end=199,err=199)bla
+     
+     if(outputVersion > 0.5) read(10,*,end=199,err=199)tmpStr !Read numbers of parameters used - discard values for now
+     read(10,*,end=199,err=199)tmpStr
      
      i=1
      do while(i.le.narr1)
-        !read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
-        read(10,*,iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
+        if(outputVersion < 0.5) then
+           !read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
+           read(10,*,iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
+        else
+           read(10,*,iostat=io)i1,dat(1,ic,i),prior,(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)  !Read prior as well
+        end if
         
         if(io.lt.0) exit !EOF
         if(io.gt.0) then !Read error
@@ -452,7 +467,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
         if(ic.eq.1.and.i.eq.1) t0 = dble(floor(t/10.d0)*10)
         if(thin.gt.1.and.i.gt.2) then !'Thin' the output by reading every thin-th line
            do j=1,thin-1
-              read(10,*,iostat=io)bla
+              read(10,*,iostat=io)tmpStr
               if(io.lt.0) exit !EOF
            end do
         end if
@@ -512,12 +527,12 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   
   !Print run info (detectors, SNR, amount of data, FFT, etc)
   if(prruninfo.gt.0.and.update.eq.0) then
-     if(prruninfo.eq.1) write(6,'(/,A)')'  Run inormation for chain 1:'
-     if(prruninfo.eq.2) write(6,'(/,A)')'  Run inormation:'
+     if(prruninfo.eq.1) write(6,'(/,A)')'  Run information for chain 1:'
+     if(prruninfo.eq.2) write(6,'(/,A)')'  Run information:'
      do ic = 1,nchains0
         if((prruninfo.eq.1.and.ic.eq.1) .or. prruninfo.eq.2) then
-           write(6,'(4x,A7,A23,A13,A10,A12,A8,A22,A8)')'Chain','file name','colour','niter','nburn','seed','null likelihood','ndet'
-           write(6,'(4x,I7,A23,A13,I10,I12,I8,F22.10,I8)')ic,trim(infiles(ic)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
+           write(6,'(4x,A7,A29,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
+           write(6,'(4x,I7,A29,A13,I10,I12,I8,I8)')ic,trim(infiles(ic)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),nburn0(ic),seed(ic),ndet(ic)
            write(6,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
            
            do i=1,ndet(ic)
@@ -582,8 +597,8 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   if(prruninfo.ge.1) then
      ic = icloglmax
      i = iloglmax
-     write(6,'(A,I4,2(A,I9),A,F10.3,A)')'    Maximum likelihood point:   chain:',ic,' ('//trim(infiles(ic))//'),   line:',i*thin+7+ndet(ic), &
-          ',   iteration:',nint(is(ic,i)),',   max log(L):',loglmax,'.'
+     write(6,'(A,I4,2(A,I9),A,F10.3,A,F7.2,A)')'    Maximum likelihood point:   chain:',ic,' ('//trim(infiles(ic))//'),   line:',i*thin+7+ndet(ic), &
+          ',   iteration:',nint(is(ic,i)),',   max log(L):',loglmax,'  -> SNR:',sqrt(2*loglmax),'.'
      
      !Test: get parameter values for L=Lmax
      if(prprogress.ge.3) then

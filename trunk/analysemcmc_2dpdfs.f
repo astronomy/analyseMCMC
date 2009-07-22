@@ -1316,7 +1316,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
            y2 = real(dec(c(i,j+1))*r2d)
            !if((x1*x1+y1*y1.le.prinf.or.x2*x2+y2*y2.le.prinf).and.(x2-x1)**2+(y2-y1)**2.le.90.**2) & !Not too far from centre and each other 
            if((x2-x1)**2+(y2-y1)**2.le.90.**2)  call pgline(2,(/x1,x2/),(/y1,y2/))  !Not too far from centre and each other 
-	end do
+        end do
         if(constx(i).lt.bx1.or.constx(i).gt.bx2.or.consty(i).lt.by1.or.consty(i).gt.by2) cycle
         if(plcst.eq.2) call pgptext(constx(i),consty(i),0.,0.5,cn(i))
         if(plcst.eq.3) call pgptext(constx(i),consty(i),0.,0.5,con(i))
@@ -1343,7 +1343,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
            sni = sn(i)
            !if(sni(1:1).eq.'\') call pgsch(schlbl*max(1.33,schfac))  !Greek letters need larger font
            if(sni(1:1).eq.char(92)) call pgsch(schlbl*max(1.33,schfac))  !Greek letters need larger font.  Char(92) is a \, but this way it doesn't mess up emacs' parentheses count
-	   call pgsci(14)
+           call pgsci(14)
            if(vm(i).lt.sllim) then
               if((plstar.eq.2.or.plstar.eq.5)) call pgtext(x+0.02*sz1,y+0.02*sz1,sn(i))
               if(plstar.eq.4) then !Check if the name will be printed
@@ -1356,8 +1356,8 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
                  if(prslbl.eq.1) call pgtext(x+0.02*sz1,y+0.02*sz1,sn(i))
               end if
            end if
-	   spld = spld+1
-	end if
+           spld = spld+1
+        end if
      end do
      if(plstar.ge.3) then !Plot star proper names
         call pgsch(schfac*schlbl)

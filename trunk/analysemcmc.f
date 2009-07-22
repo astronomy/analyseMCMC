@@ -352,8 +352,13 @@ program analyseMCMC
   timestamps(4) = timestamp(os)
   
   if(prprogress.ge.2) write(6,*)''
-  if(plot.eq.1.and.prprogress.ge.1.and.update.eq.0) write(6,'(/,A,$)')'  Plotting: '
-  
+  if(plot.eq.1.and.prprogress.ge.1.and.update.eq.0) then
+     write(6,'(/,A,$)')'  Plotting '
+     if(file.eq.0) write(6,'(A,$)')'to screen: '
+     if(file.eq.1) write(6,'(A,$)')'to png: '
+     if(file.eq.2) write(6,'(A,$)')'to eps: '
+     if(file.eq.3) write(6,'(A,$)')'to pdf: '
+  end if
   
   
   
@@ -393,7 +398,7 @@ program analyseMCMC
   if(npdf2d.lt.0) then !Then we just plotted all 2D PDFs
      write(6,*)
   else
-     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,/)')'done.  '
+     if(prprogress.ge.1.and.update.eq.0.and.plot.gt.0) write(6,'(A,/)')' done.  '
   end if
   
   timestamps(7) = timestamp(os)  

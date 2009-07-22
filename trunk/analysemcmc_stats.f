@@ -581,7 +581,8 @@ subroutine statistics(exitcode)
      
      if(prprogress+prstat+prival+prconv.gt.0.and.ic.eq.1) then
         write(o,'(/,A,2(A,F6.2),$)')'  Bayes factor:   ','log_e(B_SN) =',logebayesfactor(ic),',  log_10(B_SN) =',log10bayesfactor(ic)
-        write(o,'(8x,A,3(A,F6.2))')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),',  log_10(Lmax) =',startval(ic,1,3)/log(10.),',  sqrt[2 log_e(Lmax)] =',sqrt(2*startval(ic,1,3))
+        !write(o,'(8x,A,3(A,F6.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),',  log_10(Lmax) =',startval(ic,1,3)/log(10.),',  sqrt[2 log_e(Lmax)] =',sqrt(2*startval(ic,1,3)),'.'
+        write(o,'(8x,A,3(A,F6.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),',  log_10(Lmax) =',startval(ic,1,3)/log(10.),',  -> SNR =',sqrt(2*startval(ic,1,3)),'.'
      end if
      
      
