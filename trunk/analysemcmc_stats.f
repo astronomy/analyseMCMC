@@ -963,10 +963,11 @@ subroutine save_cbc_wiki_data(ic)
      write(0,'(A)')'  Error opening wiki.txt, aborting...'
      stop
   end if
-  write(gps,'(I9)')nint(t0)+floor(startval(ic,4,1))
-  write(url,'(A)')'http://www.astro.northwestern.edu/~sluys/CBC/gps'//trim(gps)//'/'
+  write(gps,'(I9)')nint(t0)+floor(startval(ic,4,1)+0.05)
+  print*,t0,startval(ic,4,1)
+  write(url,'(A)')'http://www.astro.northwestern.edu/~sluys/CBC/GPS'//trim(gps)//'/'
   write(o,'(A)')'= GPS'//trim(gps)//' - description ='
-  write(o,'(/,A)')'Back to [:JointS5/InterestingEventsForBayesianFollowUp:Interesting events for Bayesian follow-up]'
+  write(o,'(/,A)')'Back to [:JointS5/BayesianFollowUpOfE14Events:Bayesian follow-up in E14]'
   
   
   
@@ -975,7 +976,7 @@ subroutine save_cbc_wiki_data(ic)
   write(o,'(A)')"|| '''Detectors'''  || '''M1'''    || '''M2'''    || '''Mc'''    || '''&eta;''' || '''time'''      || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
   write(o,'(A)')"||                  ||  (Mo)       || (Mo)        || (Mo)        ||             ||  (s)            ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
   
-  write(o,'(A4,$)')'|| !'
+  write(o,'(A4,$)')'||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -1006,8 +1007,8 @@ subroutine save_cbc_wiki_data(ic)
   write(o,'(///,A)')'== Bayes Factors =='
   write(o,'(A)')"|| '''Model'''                                      || '''Detectors'''        || '''log_e Bayes Factor'''    || '''log_10 Bayes Factor'''    || '''Details'''                                                           ||"
   
-  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN simple precession vs. Gaussian noise       || !'
-  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN non-spinning vs. Gaussian noise            || !'
+  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN simple precession vs. Gaussian noise       ||  '
+  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN non-spinning vs. Gaussian noise            ||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -1027,8 +1028,8 @@ subroutine save_cbc_wiki_data(ic)
   write(o,'(///,A)')'== Medians =='
   write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  || '''Mc'''    || '''&eta;''' || '''time'''  || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
   write(o,'(A)')"||                               ||                  || (Mo)        ||             ||  (s)        ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
-  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
-  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
+  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          ||  '
+  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      ||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -1057,8 +1058,8 @@ subroutine save_cbc_wiki_data(ic)
   write(o,'(///,A)')'== Means =='
   write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  || '''Mc'''    || '''&eta;''' || '''time'''  || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
   write(o,'(A)')"||                               ||                  || (Mo)        ||             ||  (s)        ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
-  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
-  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
+  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          ||  '
+  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      ||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -1087,8 +1088,8 @@ subroutine save_cbc_wiki_data(ic)
   write(o,'(///,A)')'== Maximum-likelihood points =='
   write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  ||'''log(L)''' || '''Mc'''    || '''&eta;''' || '''time'''  || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
   write(o,'(A)')"||                               ||                  ||             || (Mo)        ||             ||  (s)        ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
-  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
-  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
+  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          ||  '
+  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      ||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -1117,8 +1118,8 @@ subroutine save_cbc_wiki_data(ic)
   write(o,'(///,A)')'== Standard deviations =='
   write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  || '''Mc'''    || '''&eta;''' || '''time'''  || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
   write(o,'(A)')"||                               ||                  || (Mo)        ||             ||  (s)        ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
-  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
-  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
+  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          ||  '
+  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      ||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -1161,8 +1162,8 @@ subroutine save_cbc_wiki_data(ic)
         stop
      end if
   end if
-  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          || !'
-  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      || !'
+  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          ||  '
+  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      ||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -1202,7 +1203,7 @@ subroutine save_cbc_wiki_data(ic)
   write(o,'(A)')"|| '''Detectors'''  || '''M1'''    || '''M2'''    || '''Mc'''    || '''&eta;''' || '''time'''      || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
   write(o,'(A)')"||                  ||  (Mo)       || (Mo)        || (Mo)        ||             ||  (s)            ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
   
-  write(o,'(A4,$)')'|| !'
+  write(o,'(A4,$)')'||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -1228,7 +1229,7 @@ subroutine save_cbc_wiki_data(ic)
   
   
   write(o,'(///,A)')'----'
-  write(o,'(A)')'Back to [:JointS5/InterestingEventsForBayesianFollowUp:Interesting events for Bayesian follow-up]'
+  write(o,'(A)')'Back to [:JointS5/BayesianFollowUpOfE14Events:Bayesian follow-up in E14]'
   
   close(o)
   

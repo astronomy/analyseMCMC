@@ -1419,9 +1419,11 @@ function timestamp(os)  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
   implicit none
   real*8 :: timestamp
   integer :: os,i,system
-  character :: fname*99
+  character :: fname*99,homedir*99
   
-  fname = './.analysemcmc_timestamp'  !gfortran doesn't want to read from ~ for some reason
+  call getenv('HOME',homedir)
+  
+  fname = trim(homedir)//'/.analysemcmc_timestamp'
   if(os.eq.1) then !Linux
      i = system('date +%s.%N >& '//trim(fname))
   else

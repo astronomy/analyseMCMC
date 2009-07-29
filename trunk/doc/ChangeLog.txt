@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    73: sluys, 29/07/2009
+     - Put temporary timestamp file in ~
+     - Update wiki output
+     
     73: sluys, 22/07/2009
      - Quick fix to make analysemcmc compatible with new output
      
