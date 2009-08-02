@@ -78,21 +78,11 @@ program analyseMCMC
   if(file.ge.2) pltrat = psrat
   
   
-  !Use full unsharp-mask strength for plots with many panels and dots, weaker for those with fewer panels and.or no dots
+  !Use full unsharp-mask strength for plots with many panels and dots, weaker for those with fewer panels and/or no dots
   write(unsharplogl,'(I4)')max(nint(real(unsharp)/2.),1)  !Only one panel with dots
   write(unsharpchain,'(I4)')unsharp                       !~12 panels with dots
   write(unsharppdf1d,'(I4)')max(nint(real(unsharp)/2.),1) !~12 panels, no dots
   write(unsharppdf2d,'(I4)')max(nint(real(unsharp)/4.),1) !1 panel, no dots
-  
-  !CHECK: still needed?
-  !Trying to implement this, for chains plot at the moment
-  !pssz   = 10.5   !Default: 10.5   \__ Gives same result as without pgpap
-  !psrat  = 0.742  !Default: 0.742  /
-  
-  !if(quality.eq.2) then
-  !   pssz   = 10.5
-  !   psrat  = 0.82     !Nice for presentation (Beamer)
-  !end if
   
   outputdir = '.'  !Directory where output is saved (either relative or absolute path)
   
@@ -264,7 +254,13 @@ program analyseMCMC
   
   !if(prprogress+prruninfo+prinitial.ge.1) write(6,*)
   npar = 13
-  if(prchaininfo.ge.1) write(6,'(A,I3,A)')'  Analysing',nchains0,' chains from SPINspiral'
+  if(prchaininfo.ge.1) then
+     if(nchains0.eq.1) then
+        write(6,'(A)')'  Analysing 1 chain from SPINspiral'
+     else
+        write(6,'(A,I3,A)')'  Analysing',nchains0,' chains from SPINspiral'
+     end if
+  end if
   nchains = nchains0
   
   
@@ -432,7 +428,7 @@ program analyseMCMC
   
   
   if(update.eq.1) then
-     deallocate(pldat,alldat)
+     deallocate(pldat,alldat,post,prior)
      call sleep(5)
      if(sum(ntot).gt.1.e4) call sleep(5)
      if(sum(ntot).gt.1.e5) call sleep(10)
@@ -444,7 +440,7 @@ program analyseMCMC
   !pause
   
 9999 continue
-  deallocate(pldat,alldat)
+  deallocate(pldat,alldat,post,prior)
   !if(prprogress.ge.1) write(6,*)''
   
   timestamps(9) = timestamp(os)

@@ -46,7 +46,7 @@ module general_data
   integer :: n(nchs),ntot(nchs),npar,iloglmax,icloglmax,c0,nchains,nchains0
   integer :: fixedpar(npar1),nfixedpar,contrchains,contrchain(nchs)
   integer :: par1,par2
-  real, allocatable :: dat(:,:,:),alldat(:,:,:),pldat(:,:,:)
+  real, allocatable :: dat(:,:,:),alldat(:,:,:),pldat(:,:,:),post(:,:),prior(:,:)
   real :: startval(nchs,npar1,3)
   real :: ranges(nchs,nival1,npar1,nr1),stats(nchs,npar1,nstat1),log10bayesfactor(nchs),logebayesfactor(nchs)
   real*8 :: rhat(npar1)
@@ -63,12 +63,17 @@ end module general_data
 !> Module with MCMC run data from the SPINspiral output files
 !< 
 module mcmcrun_data
+  use analysemcmc_settings
   use general_data
   implicit none
   save
+  integer, parameter :: nParDB = 99
   integer :: niter(nchs),totiter,totlines,totpts,nburn0(nchs),seed(nchs),ndet(nchs),totthin(nchs)
+  integer :: nCorr(nchs),nTemps(nchs),waveform,nMCMCpar,Tmax(nchs)
   integer :: samplerate(nchs,ndets),samplesize(nchs,ndets),FTsize(nchs,ndets),detnr(nchs,ndets),offsetrun
+  integer :: parID(npar1),revID(nParDB)
   real :: snr(nchs,ndets),flow(nchs,ndets),fhigh(nchs,ndets),t_before(nchs,ndets),t_after(nchs,ndets),deltaFT(nchs,ndets)
+  real :: Tchain(nchs),networkSNR(nchs),pnOrder
   real*8 :: FTstart(nchs,ndets),t0,loglmax,loglmaxs(nchs)
   character :: detnames(nchs,ndets)*14
 end module mcmcrun_data

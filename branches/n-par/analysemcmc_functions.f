@@ -179,6 +179,7 @@ subroutine write_settingsfile
   
   
   write(u,'(/,A)')' Basic options:'
+  write(u,11)version, 'version',   'Output version: 1: 12-par Apostolatos, 2:15-par LAL'
   write(u,11)thin, 'thin',   'If >1, "thin" the output; read every thin-th line '
   write(u,11)maxval(nburn), 'nburn',   'If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain'
   write(u,21)nburnfrac, 'nburnfrac',   'If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides nburn above'
@@ -286,6 +287,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   use analysemcmc_settings
   implicit none
   
+  version = 1       !Output version: 1: 12-par Apostolatos, 2:15-par LAL
   thin = 10         !If >1, 'thin' the output; read every thin-th line 
   nburn = 1e5       !If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number, but it becomes the line number later on in the code.  Nburn > Nchain sets Nburn = 0.1*Nchain
   nburnfrac = 0.5   !If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
@@ -370,22 +372,23 @@ end subroutine set_plotsettings
 
 
 !************************************************************************************************************************************
-subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
+subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspiral.output.*)
   use analysemcmc_settings
   use general_data
   use mcmcrun_data
   use chain_data
   implicit none
-  integer :: i,i1,io,ic,j,exitcode,readerror
+  integer :: i,tmpInt,io,ic,j,exitcode,readerror,p
   character :: tmpStr*99,detname*14,firstLine*999
-  real*8 :: t
-  real :: outputVersion,prior
+  real*8 :: tmpDat(npar1),dtmpDat(npar1)
+  real :: outputVersion
   !real*8 :: lon2ra
   
   exitcode = 0
   readerror = 0
   !narr = narr1
   allocate(dat(npar1,nchains,narr1))
+  allocate(post(nchains,narr1),prior(nchains,narr1))
   
   do ic = 1,nchains0
      if(reverseread.eq.0) then
@@ -417,9 +420,9 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
      if(len_trim(firstLine).lt.80) read(firstLine,'(A21,F8.2)')tmpStr,outputVersion  !Use new format
 
      if(outputVersion > 0.5) read(10,*,end=199,err=199)tmpStr  !Read empty line between version number and first header
-     read(10,'(I10,I12,I8,F22.10,I8)')niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic)
-     read(10,*,end=199,err=199)tmpStr
+     read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform,pnOrder,nMCMCpar
      
+     read(10,*,end=199,err=199)tmpStr !Read empty line above detector info
      do i=1,ndet(ic)
         !read(10,'(2x,A14,F18.8,4F12.2,F22.8,F17.7,3I14)') detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
         read(10,*)detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
@@ -431,17 +434,28 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
         if(detname(j-3:j).eq.'Pisa') detnr(ic,i) = 3
      end do
      
-     if(outputVersion > 0.5) read(10,*,end=199,err=199)tmpStr !Read numbers of parameters used - discard values for now
-     read(10,*,end=199,err=199)tmpStr
+     if(outputVersion > 0.5) then
+        revID = 0
+        read(10,*,iostat=io)parID(1:nMCMCpar) !Read parameter IDs
+        if(io.ne.0) then
+           write(0,'(//,A,//)')'  Error reading MCMC parameter IDs, aborting...'
+           stop
+        end if
+        do i=1,nMCMCpar
+           revID(parID(i)) = i  !Reverse ID
+        end do
+     end if
+     read(10,*,end=199,err=199)tmpStr  !Read line with column headers (Cycle, log Post., Prior, etc)
      
      i=1
      do while(i.le.narr1)
         if(outputVersion < 0.5) then
-           !read(10,'(I10,F14.6,2(F13.7),F20.8,9(F12.7))',iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
-           read(10,*,iostat=io)i1,dat(1,ic,i),(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)
+           read(10,*,iostat=io)tmpInt,post(ic,i),tmpDat(1:nMCMCpar)
         else
-           read(10,*,iostat=io)i1,dat(1,ic,i),prior,(dat(j,ic,i),j=2,3),  t,  (dat(j,ic,i),j=5,npar0)  !Read prior as well
+           read(10,*,iostat=io)tmpInt,post(ic,i),prior(ic,i),tmpDat(1:nMCMCpar)
         end if
+        is(ic,i) = real(tmpInt)
+        dat(1,ic,i) = post(ic,i)
         
         if(io.lt.0) exit !EOF
         if(io.gt.0) then !Read error
@@ -463,8 +477,19 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
         end if
         readerror = 0
         
-        is(ic,i) = real(i1)
-        if(ic.eq.1.and.i.eq.1) t0 = dble(floor(t/10.d0)*10)
+        
+        !GPS time doesn't fit in single-precision variable
+        if(ic.eq.1.and.i.eq.1) then
+           dtmpDat = 0.d0
+           do p=1,nMCMCpar
+              if(parID(p).ge.11.and.parID(p).le.19) then
+                 dtmpDat(p) = dble(floor(tmpDat(p)/10.d0)*10)  !GPS time
+                 t0 = dtmpDat(p)  !Used elsewhere in the code
+              end if
+           end do
+        end if
+        dat(2:nMCMCpar+1,ic,i) = real(tmpDat(1:nMCMCpar) - dtmpDat(1:nMCMCpar))
+        
         if(thin.gt.1.and.i.gt.2) then !'Thin' the output by reading every thin-th line
            do j=1,thin-1
               read(10,*,iostat=io)tmpStr
@@ -472,12 +497,8 @@ subroutine read_mcmcfiles(exitcode)  !Read the MCMC files (mcmc.output.*)
            end do
         end if
         
-        !dat(6,ic,i) = real(lon2ra(dble(dat(6,ic,i)),t))  !In case you ran with lon rather than RA
-        !if(i.ne.1) dat(6,ic,i) = real(lon2ra(dble(dat(6,ic,i)),t))  !In case all but the true value is lon rather than RA
-        dat(4,ic,i) = real(t - t0)
-        
         i = i+1
-        if(i1.ge.maxchlen) exit
+        if(tmpInt.ge.maxchlen) exit
      end do !i
      
      if(i.ge.narr1-2) write(0,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
