@@ -9,10 +9,10 @@ subroutine animation(exitcode)
   use chain_data
   use plot_data
   implicit none
-  integer :: c,i,ic,io,p,iframe,nplt,pgopen,lw,n0,n1,n2,exitcode,system
-  integer :: index(npar1,nchs*narr1),small_anim
+  integer :: c,i,ic,io,p,iframe,nplt,pgopen,lw,n1,n2,exitcode,system
+  integer :: index(maxMCMCpar,maxChs*maxIter),small_anim
   real :: range,range1,range2,drange,minrange,centre,median,plshift,ival,norm
-  real :: x(nchs,nchs*narr1),x1,x2,xmin,xmax,xmin1,xmax1,dx,y1,y2,ymin,ymax,dy,sch
+  real :: x(maxChs,maxChs*maxIter),x1,x2,xmin,xmax,xmin1,xmax1,dx,y1,y2,ymin,ymax,dy,sch
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:)    !These depend on nbin1d, allocate after reading input file
   real*8 :: ts1,ts2,timestamp
   character :: framename*99,tms*8,str*99
@@ -42,7 +42,7 @@ subroutine animation(exitcode)
   !moviescheme = 3  !Upper panel: numbers and PDF, lower panel: chain and logL
   
   !Allocate memory:
-  allocate(xbin(nchs,nbin1d+1),ybin(nchs,nbin1d+1),xbin1(nbin1d+1),ybin1(nbin1d+1))
+  allocate(xbin(maxChs,nbin1d+1),ybin(maxChs,nbin1d+1),xbin1(nbin1d+1),ybin1(nbin1d+1))
   
   !nmovframes = nmovframes-1
   if(prprogress.ge.1.and.update.eq.0) write(6,'(A,I5,A,I6,A,/)')'  Creating animation using',nmovframes,' frames and',maxval(ntot(1:nchains)),' points..'
@@ -326,121 +326,6 @@ subroutine animation(exitcode)
            call pgslw(lw)
         end if
      end if
-     
-     
-     
-     
-     !***********************************************************************************************************************************            
-     !Plot sigma values ('jump size')
-     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')'  - sigma'
-     
-     if(moviescheme.eq.1) then
-        call pgsvp(0.05,0.35,0.35,0.65)
-        
-        xmax = -1.e30
-        ymin =  1.e30
-        ymax = -1.e30
-        do ic=1,nchains0
-           xmin = 0.
-           xmax = max(xmax,real(ntot(ic)))
-           dx = abs(xmax-xmin)*0.01
-           ymin = min(ymin,minval(sig(p,ic,10:ntot(ic))))
-           ymax = max(ymax,maxval(sig(p,ic,10:ntot(ic))))
-           dy = abs(ymax-ymin)*0.05
-        end do
-        call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
-        !call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-        call pgbox('BCTS',0.0,0,'BCNTS',0.0,0)
-        
-        do ic=1,nchains0
-           !call pgsci(mod(ic*2,10))
-           if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !        !do i=1,ntot(ic),chainpli
-           !do i=1,nplt,chainpli
-           do i=ic,nplt,chainpli !Start at ic to reduce overplotting
-              call pgpoint(1,is(ic,i),sig(p,ic,i),chainsymbol)
-           end do
-        end do
-        
-        call pgsls(2)
-        call pgsci(6)
-        do ic=1,nchains0
-           !call pgline(2,(/real(nburn(ic)),real(nburn(ic))/),(/-1.e20,1.e20/))
-           !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-           if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-        end do
-        call pgsci(1)
-        call pgsls(1)
-        !call pgmtxt('T',1.,0.5,0.5,'Sigma')
-        if(fonttype.eq.2) then
-           call pgmtxt('T',-1.5,0.05,0.0,'\(2144)')
-        else
-           call pgmtxt('T',-1.5,0.05,0.0,'\(0644)')
-        end if
-        
-     end if
-     
-     
-     !***********************************************************************************************************************************            
-     !Plot acceptance rate
-     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')'  - acceptance rate'
-     
-     if(moviescheme.eq.1) then
-        call pgsvp(0.05,0.35,0.05,0.35)
-        
-        xmax = -1.e30
-        ymin =  1.e30
-        ymax = -1.e30
-        do ic=1,nchains0
-           xmin = 0.
-           xmax = max(xmax,real(ntot(ic)))
-           dx = abs(xmax-xmin)*0.01
-           do i=1,ntot(ic)
-              if(acc(p,ic,i).gt.1.e-10 .and. acc(p,ic,i).lt.1.-1.e-10) then
-                 n0 = i
-                 exit
-              end if
-           end do
-           n0 = n0+10
-           ymin = min(ymin,minval(acc(p,ic,n0:ntot(ic))))
-           ymax = max(ymax,maxval(acc(p,ic,n0:ntot(ic))))
-           dy = abs(ymax-ymin)*0.05
-        end do
-        
-        call pgsci(1)
-        call pgsls(1)
-        call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
-        call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-        
-        
-        call pgsci(2)
-        call pgsls(2)
-        call pgline(2,(/-1.e20,1.e20/),(/0.25,0.25/))
-        call pgsci(6)
-        do ic=1,nchains0
-           !call pgline(2,(/real(nburn(ic)),real(nburn(ic))/),(/-1.e20,1.e20/))
-           !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-           if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-        end do
-        
-        do ic=1,nchains0
-           !call pgsci(mod(ic*2,10))
-           if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !do i=1,ntot(ic),chainpli
-           !do i=1,nplt,chainpli
-           do i=ic,nplt,chainpli !Start at ic to reduce overplotting
-              call pgpoint(1,is(ic,i),acc(p,ic,i),chainsymbol)
-           end do
-        end do
-        
-        call pgsci(1)
-        call pgsls(1)
-        !call pgmtxt('T',1.,0.5,0.5,'Acceptance')
-        call pgmtxt('T',-1.5,0.05,0.0,'Acceptance')
-        
-     end if
-     
-     
      
      
      

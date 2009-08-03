@@ -2,7 +2,23 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
-    73: sluys, 29/07/2009
+    
+    77: sluys, 02/08/2009
+     - remove support for sigma and acceptance-rate output:  analysemcmc.dat changed !!!
+     - rename nchs -> maxChs,  npar1 -> maxMCMCpar, narr1 -> maxIter
+     - remove npar0
+     
+    76: sluys, 02/08/2009
+     - read data and determine GPS time
+     
+    75: sluys, 02/08/2009
+     - branch off n-par development
+    
+    
+    **************************************************************************************
+    
+    
+    74: sluys, 29/07/2009
      - Put temporary timestamp file in ~
      - Update wiki output
      

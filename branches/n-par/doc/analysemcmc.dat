@@ -36,8 +36,6 @@
          1             plchain     Plot parameter chains: 0-no, 1-yes
          0              plparl     Plot L vs. parameter value: 0-no, 1-yes
          0              pljump     Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log
-         1            rdsigacc     Read sigma and acceptance rate: 0-no, 1-yes   (0-Dont read these data, save 40% read-in time).  0 can give problems with large scale, or high-temperature chains
-         0            plsigacc     Plot sigma and acceptance rate: 0-no, 1-yes (lin sig), 2-yes (log sig)  (If >0, this sets rdsigacc to 1)
          1             plpdf1d     Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.
          2             plpdf2d     Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).
          0             placorr     Plot autocorrelations: 0-no, >0-yes: plot placorr steps

@@ -11,7 +11,7 @@ subroutine pdfs1d(exitcode)
   
   integer :: i,j,p,ic,io,pgopen,lw,exitcode,system
   real :: rev24,rev360,rev180
-  real :: x(nchs,nchs*narr1),xmin,xmax,xmin1,xmax1,xpeak,dx,ymin,ymax,sch
+  real :: x(maxChs,maxChs*maxIter),xmin,xmax,xmin1,xmax1,xpeak,dx,ymin,ymax,sch
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ysum(:),yconv(:),ycum(:)  !These depend on nbin1d, allocate after reading input file
   real :: plshift,plx,ply,x0,norm,bindx
   character :: string*99,str*99,str1*99,str2*99
@@ -39,7 +39,7 @@ subroutine pdfs1d(exitcode)
   end if
 
   !Allocate memory:
-  allocate(xbin(nchs,nbin1d+1),ybin(nchs,nbin1d+1),xbin1(nbin1d+1),ybin1(nbin1d+1),ysum(nbin1d+1),yconv(nbin1d+1),ycum(nbin1d+1))
+  allocate(xbin(maxChs,nbin1d+1),ybin(maxChs,nbin1d+1),xbin1(nbin1d+1),ybin1(nbin1d+1),ysum(nbin1d+1),yconv(nbin1d+1),ycum(nbin1d+1))
 
   if(plot.eq.1) then
      if(file.eq.0) then
@@ -500,7 +500,7 @@ subroutine pdfs1d(exitcode)
            !end if
            if(plrange.eq.1.or.plrange.eq.3.or.plrange.eq.4.or.plrange.eq.6) then
               x0 = ranges(ic,c0,p,5)
-              if(p.eq.5) print*,x0,ranges(ic,c0,p,4)
+              !if(p.eq.5) print*,x0,ranges(ic,c0,p,4)
               if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) .or. version.eq.2.and.(p.eq.2.or.p.eq.5)) x0 = x0*100
               !print*,p,x0,nint(x0)
               if(x0.lt.0.01) write(str,'(F6.4)')x0

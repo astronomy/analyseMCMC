@@ -9,10 +9,10 @@ subroutine statistics(exitcode)
   use mcmcrun_data
   implicit none
   integer :: c,i,ic,i0,j,j1,o,p,p1,p2,nr,nstat,exitcode,wraptype
-  integer :: indexx(npar1,nchs*narr1),index1(nchs*narr1)
+  integer :: indexx(maxMCMCpar,maxChs*maxIter),index1(maxChs*maxIter)
   real :: rev2pi,x0,x1,x2,y1,y2,rrevpi
   real :: range1,minrange,maxgap,ival,wrapival,centre,maxlogl,minlogl,shival,shival2
-  real :: medians(npar1),mean(npar1),var1(npar1),var2(npar1),corr,corr1,corr2
+  real :: medians(maxMCMCpar),mean(maxMCMCpar),var1(maxMCMCpar),var2(maxMCMCpar),corr,corr1,corr2
   real*8 :: var,total
   !real*16 :: var,total  !gfortran doesn't support this
   
@@ -952,7 +952,7 @@ subroutine save_cbc_wiki_data(ic)
   use mcmcrun_data
   implicit none
   
-  integer :: c,i,ic,io,o,p,p1,parr(npar1)
+  integer :: c,i,ic,io,o,p,p1,parr(maxMCMCpar)
   real :: x,rev2pi,x1,x2
   character :: url*99,gps*19,xs10*10,xs20*20,ans
   
@@ -964,7 +964,7 @@ subroutine save_cbc_wiki_data(ic)
      stop
   end if
   write(gps,'(I9)')nint(t0)+floor(startval(ic,4,1)+0.05)
-  print*,t0,startval(ic,4,1)
+  
   write(url,'(A)')'http://www.astro.northwestern.edu/~sluys/CBC/GPS'//trim(gps)//'/'
   write(o,'(A)')'= GPS'//trim(gps)//' - description ='
   write(o,'(/,A)')'Back to [:JointS5/BayesianFollowUpOfE14Events:Bayesian follow-up in E14]'
@@ -1264,9 +1264,9 @@ subroutine compute_convergence()
   
   implicit none
   integer :: i,ic,p
-  integer :: nn,lowvar(npar1),nlowvar,highvar(npar1),nhighvar,ntotrelvar,nrhat
+  integer :: nn,lowvar(maxMCMCpar),nlowvar,highvar(maxMCMCpar),nhighvar,ntotrelvar,nrhat
   real :: dx
-  real*8 :: chmean(nchs,npar1),totmean(npar1),chvar(npar1),chvar1(nchs,npar1),totvar(npar1),totrhat,totrelvar
+  real*8 :: chmean(maxChs,maxMCMCpar),totmean(maxMCMCpar),chvar(maxMCMCpar),chvar1(maxChs,maxMCMCpar),totvar(maxMCMCpar),totrhat,totrelvar
   character :: ch
   
   
@@ -1308,7 +1308,7 @@ subroutine compute_convergence()
      write(6,*)''
      if(prconv.ge.2) write(6,'(A,I7,A)')'  Convergence parameters for',nn,' iterations:'
      write(6,'(A18,$)')''
-     do p=par1,min(par2,npar0)
+     do p=par1,par2
         if(fixedpar(p).eq.1) cycle
         write(6,'(A11,$)')trim(varnames(p))
      end do
@@ -1318,14 +1318,14 @@ subroutine compute_convergence()
         write(6,'(A)')'  Means:'
         do ic=1,nchains0
            write(6,'(I16,A2,$)')ic,': '
-           do p=par1,min(par2,npar0)
+           do p=par1,par2
               if(fixedpar(p).eq.1) cycle
               write(6,'(F11.6,$)')chmean(ic,p)
            end do
            write(6,*)
         end do
         write(6,'(A18,$)')'           Total: '
-        do p=par1,min(par2,npar0)
+        do p=par1,par2
            if(fixedpar(p).eq.1) cycle
            write(6,'(F11.6,$)')totmean(p)
         end do
@@ -1377,7 +1377,7 @@ subroutine compute_convergence()
   end do
   if(prconv.ge.3) then
      write(6,'(A18,$)')'  Total:          '
-     do p=par1,min(par2,npar0)
+     do p=par1,par2
         if(fixedpar(p).eq.1) cycle
         write(6,'(F11.5,$)')chvar(p)
      end do
@@ -1387,13 +1387,13 @@ subroutine compute_convergence()
   if(prconv.ge.2) then
      write(6,'(A)')'  Variances:'
      write(6,'(A18,$)')'   Within chains: '
-     do p=par1,min(par2,npar0)
+     do p=par1,par2
         if(fixedpar(p).eq.1) cycle
         write(6,'(ES11.3,$)')chvar(p)
      end do
      write(6,*)
      write(6,'(A18,$)')'  Between chains: '
-     do p=par1,min(par2,npar0)
+     do p=par1,par2
         if(fixedpar(p).eq.1) cycle
         write(6,'(ES11.3,$)')totvar(p)
      end do
@@ -1404,7 +1404,7 @@ subroutine compute_convergence()
      write(6,'(A18,$)')'     Convergence: '
      totrhat = 1.d0
      nrhat = 0
-     do p=par1,min(par2,npar0)
+     do p=par1,par2
         if(fixedpar(p).eq.1) cycle
         write(6,'(F11.5,$)')rhat(p)
         if(p.gt.1) then !Don't include logL

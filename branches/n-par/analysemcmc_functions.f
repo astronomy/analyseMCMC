@@ -57,7 +57,7 @@ subroutine read_settingsfile
   read(u,*,iostat=io)version
   read(u,*,iostat=io)thin
   read(u,*,iostat=io)nburn(1)
-  do i=2,nchs
+  do i=2,maxChs
      nburn(i) = nburn(1)
   end do
   read(u,*,iostat=io)nburnfrac
@@ -93,8 +93,6 @@ subroutine read_settingsfile
   read(u,*,iostat=io)plchain
   read(u,*,iostat=io)plparl
   read(u,*,iostat=io)pljump
-  read(u,*,iostat=io)rdsigacc
-  read(u,*,iostat=io)plsigacc
   read(u,*,iostat=io)plpdf1d
   read(u,*,iostat=io)plpdf2d
   read(u,*,iostat=io)placorr
@@ -210,13 +208,11 @@ subroutine write_settingsfile
   
   write(u,'(/,A)')' Select which plots to make:'
   write(u,11)plot, 'plot',   '0: plot nothing at all, 1: plot the items selected below'
-  write(u,11)combinechainplots, 'combinechainplots',   'Combine logL, chain, sigma and acc plots into one multipage file'
+  write(u,11)combinechainplots, 'combinechainplots',   'Combine logL and chain plots into one multipage file'
   write(u,11)pllogl, 'pllogl',   'Plot log L chains: 0-no, 1-yes'
   write(u,11)plchain, 'plchain',   'Plot parameter chains: 0-no, 1-yes'
   write(u,11)plparl, 'plparl',   'Plot L vs. parameter value: 0-no, 1-yes'
   write(u,11)pljump, 'pljump',   'Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log'
-  write(u,11)rdsigacc, 'rdsigacc',   'Read sigma and acceptance rate: 0-no, 1-yes   (0-Dont read these data, save 40% read-in time).  0 can give problems with large scale, or high-temperature chains'
-  write(u,11)plsigacc, 'plsigacc',   'Plot sigma and acceptance rate: 0-no, 1-yes (lin sig), 2-yes (log sig)  (If >0, this sets rdsigacc to 1)'
   write(u,11)plpdf1d, 'plpdf1d',   'Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.'
   write(u,11)plpdf2d, 'plpdf2d',   'Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).'
   write(u,11)placorr, 'placorr',   'Plot autocorrelations: 0-no, >0-yes: plot placorr steps'
@@ -313,7 +309,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   savepdf = 0       !Save the binned data for 1d and/or 2d pdfs (depending on plpdf1d and plpdf2d).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
   
   plot = 1          !0: plot nothing at all, 1: plot the items selected below
-  combinechainplots = 0  !Combine logL, chain, sigma and acc plots into one multipage file
+  combinechainplots = 0  !Combine logL and chain plots into one multipage file
   autoburnin = 1.   !Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoburnin
   scloglpl = 1      !Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account
   scchainspl = 1    !Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account
@@ -321,8 +317,6 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   plchain = 1       !Plot parameter chains: 0-no, 1-yes
   plparl = 1        !Plot L vs. parameter value: 0-no, 1-yes
   pljump = 1        !Plot actual jump sizes
-  rdsigacc = 1      !Read sigma and acceptance rate: 0-no, 1-yes   (0-Don't read these data, save 40% read-in time).  0 can give problems with large scale, or high-temperature chains
-  plsigacc = 0      !Plot sigma and acceptance rate: 0-no, 1-yes   (Sets rdsigacc to 1)
   plpdf1d = 1       !Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.
   plpdf2d = 2       !Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).
   placorr = 0e4     !Plot autocorrelations: 0-no, >0-yes: plot placorr steps
@@ -380,15 +374,15 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
   implicit none
   integer :: i,tmpInt,io,ic,j,exitcode,readerror,p
   character :: tmpStr*99,detname*14,firstLine*999
-  real*8 :: tmpDat(npar1),dtmpDat(npar1)
+  real*8 :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar)
   real :: outputVersion
   !real*8 :: lon2ra
   
   exitcode = 0
   readerror = 0
-  !narr = narr1
-  allocate(dat(npar1,nchains,narr1))
-  allocate(post(nchains,narr1),prior(nchains,narr1))
+  allocate(dat(maxMCMCpar,nchains,maxIter))
+  allocate(post(nchains,maxIter),prior(nchains,maxIter))
+  
   
   do ic = 1,nchains0
      if(reverseread.eq.0) then
@@ -448,7 +442,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      read(10,*,end=199,err=199)tmpStr  !Read line with column headers (Cycle, log Post., Prior, etc)
      
      i=1
-     do while(i.le.narr1)
+     do while(i.le.maxIter)
         if(outputVersion < 0.5) then
            read(10,*,iostat=io)tmpInt,post(ic,i),tmpDat(1:nMCMCpar)
         else
@@ -501,18 +495,13 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
         if(tmpInt.ge.maxchlen) exit
      end do !i
      
-     if(i.ge.narr1-2) write(0,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
+     if(i.ge.maxIter-2) write(0,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
      goto 199
 199  close(10)
      ntot(ic) = i-1
      n(ic) = ntot(ic) !n can be changed in rearranging chains, ntot won't be changed
      !if(prprogress.ge.2.and.update.ne.1) write(6,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',nburn(ic),'.'
   end do !do ic = 1,nchains0
-  
-  !varnames(1:16) = (/'logL','Mc','eta','t0','log_dl','RA','sin_dec','cosi','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
-  !do i=1,npar0
-  !   write(6,'(A,I3,2F10.3)')varnames(i),i,minval(dat(i,1,3:n(1))),maxval(dat(i,1,3:n(1)))
-  !end do
   
 end subroutine read_mcmcfiles
 !************************************************************************************************************************************
@@ -604,10 +593,10 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   loglmaxs = -1.d99
   do ic=1,nchains0
      do i=3,ntot(ic)  !3: exclude true and starting values
-        if(dat(1,ic,i).gt.loglmaxs(ic)) then
-           loglmaxs(ic) = dat(1,ic,i)
-           if(dat(1,ic,i).gt.loglmax) then
-              loglmax = dat(1,ic,i)
+        if(post(ic,i).gt.loglmaxs(ic)) then
+           loglmaxs(ic) = post(ic,i)
+           if(post(ic,i).gt.loglmax) then
+              loglmax = post(ic,i)
               iloglmax = i
               icloglmax = ic
            end if
@@ -641,7 +630,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
         isburn(ic) = is(ic,ntot(ic)) !Set burnin to last iteration, so that chain is completely excluded if condition is never fulfilled
         nburn(ic) = ntot(ic)
         do i=2,ntot(ic) !i=1 is true value?
-           if(dat(1,ic,i).gt.real(loglmax)-autoburnin) then
+           if(post(ic,i).gt.real(loglmax)-autoburnin) then
               isburn(ic) = is(ic,i)
               nburn(ic) = i
               cycle loop1
@@ -727,14 +716,10 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
         end do
      end do
   end if
-  npar = 15
-  if(par2.eq.0) par2 = npar
-  if(version.eq.2) then
-     npar=16
-     if(par2.eq.0) par2 = npar
-  end if
-  acc = acc*0.25  !Transfom back to the actual acceptance rate
   
+  npar = 15
+  if(version.eq.2) npar = 16
+  if(par2.eq.0) par2 = npar
   
   
   !*** Put plot data in pldat, startval and jumps.  Print initial and starting values to screen.  Startval: 1: true value, 2: starting value, 3: Lmax value
@@ -802,7 +787,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   
   !*** Put data in alldat
   if(mergechains.eq.1) then  !Merge chains, leave out burnin (then nchains = 1)
-     allocate(alldat(1,npar1,nchains*narr))
+     allocate(alldat(1,maxMCMCpar,nchains*narr))
      j = 1
      do ic=1,nchains
         do i=nburn(ic)+1,n(ic)
@@ -814,7 +799,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      n(1) = j-1
      !if(prprogress.ge.1) write(6,'(A,I8,A,ES7.1,A)')'  Data points in combined chains: ',n(1),'  (',real(n(1)),')'
   else
-     allocate(alldat(nchains,npar1,narr))
+     allocate(alldat(nchains,maxMCMCpar,narr))
      do ic=1,nchains
         alldat(ic,1:npar,1:n(ic)-nburn(ic)) = real(dat(1:npar,ic,nburn(ic)+1:n(ic)))  !Note the change of order of indices!!!  Alldat has the same structure as pldat, but contains only info AFTER the burnin.
         n(ic) = n(ic)-nburn(ic) !n(ic)=0 if a chain is not contributing (in which case contrchain(ic)=0)!

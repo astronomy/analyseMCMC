@@ -53,8 +53,8 @@ program analyseMCMC
      write(0,'(A,/)')'  Syntax: analysemcmc <file1> [file2] ...'
      stop
   end if
-  if(nchains0.gt.nchs) write(0,'(A,I3,A)')'  *** WARNING:  Too many input files (chains), please increase nchs in analysemcmc_functions.f. Only',nchs,' files can be read.'
-  nchains0 = min(nchains0,nchs)
+  if(nchains0.gt.maxChs) write(0,'(A,I3,A)')'  *** WARNING:  Too many input files (chains), please increase maxChs in analysemcmc_functions.f. Only',maxChs,' files can be read.'
+  nchains0 = min(nchains0,maxChs)
   
   
   !Some of the stuff below will have to go to the input file
@@ -148,7 +148,7 @@ program analyseMCMC
      end if
      !print*,chainsymbol,nsymbols
   end if
-  if(colour.eq.1.and.quality.eq.0.and.nchs.gt.5) then
+  if(colour.eq.1.and.quality.eq.0.and.maxChs.gt.5) then
      ncolours = 10
      colours(1:ncolours)=(/2,3,4,5,6,7,8,9,10,11/)
   end if
@@ -172,7 +172,6 @@ program analyseMCMC
      pllogl = 0
      plchain = 0
      pljump = 0
-     plsigacc = 0
      if(savepdf.eq.0) then
         plpdf1d = 0
         plpdf2d = 0
@@ -186,7 +185,6 @@ program analyseMCMC
   end if
   !if(par1.lt.2) par1 = 2
   if(par1.lt.1) par1 = 1 !Include log(L)
-  if(plsigacc.ge.1.or.plmovie.ge.1) rdsigacc = 1
   if(file.eq.1) combinechainplots = 0
   if(file.ge.1) update = 0
   if(plmovie.ge.1) update = 0
@@ -251,9 +249,6 @@ program analyseMCMC
   end if
   
   
-  
-  !if(prprogress+prruninfo+prinitial.ge.1) write(6,*)
-  npar = 13
   if(prchaininfo.ge.1) then
      if(nchains0.eq.1) then
         write(6,'(A)')'  Analysing 1 chain from SPINspiral'
@@ -451,7 +446,7 @@ program analyseMCMC
      !write(6,'(A,F5.1,A,$)')'   info:',min(dabs(timestamps(3)-timestamps(2)),999.9),'s,'
      !write(6,'(A,F5.1,A,$)')'   stats:',min(dabs(timestamps(4)-timestamps(3)),999.9),'s,'
      write(6,'(A,F5.1,A,$)')'   stats:',min(dabs(timestamps(4)-timestamps(2)),999.9),'s,'
-     if(plot.eq.1.and.pllogl+plchain+pljump+plsigacc+placorr.gt.0) then
+     if(plot.eq.1.and.pllogl+plchain+pljump+placorr.gt.0) then
         write(6,'(A,F5.1,A,$)')'   chains:',min(dabs(timestamps(5)-timestamps(4)),999.9),'s,'
      end if
      if(plot.eq.1.or.savepdf.ge.1) then

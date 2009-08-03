@@ -13,7 +13,7 @@ subroutine pdfs2d(exitcode)
   integer :: npdf,ncont,lw2,plotthis,truerange2d,countplots,totplots
   real :: rev360,rev180,rev24
   real :: a,rat,cont(11),tr(6),sch,plx,ply
-  real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(nchs*narr1),yy(nchs*narr1),zz(nchs*narr1)
+  real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
   character :: string*99,str*99,tempfile*99,ivalstr*99
   logical :: project_map,sky_position,binary_orientation
@@ -61,7 +61,7 @@ subroutine pdfs2d(exitcode)
   if(nbin2dy.le.-1) nbin2dy = nbin2dx*pltrat
   
   !Allocate memory:
-  allocate(z(nbin2dx+1,nbin2dy+1),zs(nchs,nbin2dx+1,nbin2dy+1))
+  allocate(z(nbin2dx+1,nbin2dy+1),zs(maxChs,nbin2dx+1,nbin2dy+1))
   
   if(plot.eq.1) then
      if(file.eq.0) then

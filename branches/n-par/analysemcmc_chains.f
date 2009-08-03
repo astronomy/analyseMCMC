@@ -7,13 +7,13 @@ subroutine chains(exitcode)
   use plot_data
   use chain_data
   implicit none
-  integer :: i,j,n0,pgopen,imin,ci,lw,symbol,io,ic,p,system,exitcode
+  integer :: i,j,pgopen,imin,ci,lw,symbol,io,ic,p,system,exitcode
   real :: rev360,rev24,rev180
   real :: dx,dy,xmin,xmax,ymin,ymax,sch,plx,ply
   character :: string*99
   
   exitcode = 0
-  if(combinechainplots.eq.1.and.(pllogl.eq.1.or.plchain.eq.1.or.plsigacc.ge.1)) then
+  if(combinechainplots.eq.1.and.(pllogl.eq.1.or.plchain.eq.1)) then
      io = pgopen('chaininfo.eps'//trim(psclr))
      call pginitl(colour,file,whitebg)
   end if
@@ -264,7 +264,6 @@ subroutine chains(exitcode)
      call pgsubp(panels(1),panels(2))
 
      ic = 1
-     !do p=2,npar0
      do j=1,nplvar
         p = plvars(j)
 
@@ -600,7 +599,6 @@ subroutine chains(exitcode)
      call pgsubp(panels(1),panels(2))
 
      ic = 1
-     !do p=2,npar0
      do j=1,nplvar
         p = plvars(j)
         call pgpage
@@ -835,7 +833,6 @@ subroutine chains(exitcode)
      call pgsubp(panels(1),panels(2))
 
      ic = 1
-     !do p=2,npar0
      do j=1,nplvar
         p = plvars(j)
         call pgpage
@@ -952,288 +949,6 @@ subroutine chains(exitcode)
 
 
 
-  !***********************************************************************************************************************************            
-  !Plot sigma values ('jump proposal width')
-  if(plsigacc.ge.1) then
-     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting sigma...'
-     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' sigma, '
-     if(file.eq.0) then
-        io = pgopen('16/xs')
-        call pgsch(1.5)
-     end if
-     if(file.ge.1.and.combinechainplots.eq.0) then
-        if(file.eq.1) io = pgopen('sigs.ppm/ppm')
-        if(file.ge.2) io = pgopen('sigs.eps'//trim(psclr))
-        call pgsch(1.2)
-     end if
-     if(io.le.0) then
-        write(0,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
-        exitcode = 1
-        return
-     end if
-     if(file.eq.0) call pgpap(scrsz,scrrat)
-     if(file.eq.0) call pgsch(1.5)
-     if(file.eq.1) call pgpap(bmpsz,bmprat)
-     if(file.eq.1) call pgsch(1.5)
-
-     if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
-
-     call pgsubp(panels(1),panels(2))
-
-     ic = 1
-     !do p=2,npar0
-     do j=1,nplvar
-        p = plvars(j)
-        call pgpage
-        if(j.eq.1) call pginitl(colour,file,whitebg)
-        xmax = -1.e30
-        ymin =  1.e30
-        ymax = -1.e30
-        do ic=1,nchains0
-           xmin = 0.
-           xmax = max(xmax,maxval(is(ic,1:ntot(ic))))
-           dx = abs(xmax-xmin)*0.01
-           if(plsigacc.eq.1) then
-              ymin = min(ymin,minval(sig(p,ic,10:ntot(ic))))
-              ymax = max(ymax,maxval(sig(p,ic,10:ntot(ic))))
-           end if
-           do i=10,ntot(ic)
-              if(plsigacc.eq.2.and.sig(p,ic,i).gt.1.e-20) then
-                 ymin = min(ymin,log10(sig(p,ic,i)))
-                 ymax = max(ymax,log10(sig(p,ic,i)))
-              end if
-           end do
-           !print*,p-1,ymin,ymax,dy
-           dy = abs(ymax-ymin)*0.05
-           if(dy.lt.1.e-10) dy = ymin*0.1
-        end do
-
-        call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
-        if(plsigacc.eq.1) call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0) !lin
-        if(plsigacc.eq.2) call pgbox('BCNTS',0.0,0,'BCLNTS',0.0,0) !log
-
-        do ic=1,nchains0
-           !call pgsci(mod(ic*2,10))
-           call pgsci(defcolour)
-           if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !if(thin.le.1) then
-           !   if(plsigacc.eq.1) then
-           !      do i=1,ntot(ic),chainpli
-           !         call pgpoint(1,is(ic,i),sig(p,ic,i),1)
-           !      end do
-           !   else
-           !      do i=1,ntot(ic),chainpli
-           !         call pgpoint(1,is(ic,i),log10(sig(p,ic,i)+1.e-30),1)
-           !      end do
-           !   end if
-           !else
-           !   if(plsigacc.eq.1) then
-           !      call pgpoint(ntot(ic),is(ic,1:ntot(ic)),sig(p,ic,1:ntot(ic)),1)
-           !   else
-           !      call pgpoint(ntot(ic),is(ic,1:ntot(ic)),log10(sig(p,ic,1:ntot(ic))+1.e-30),1)
-           !   end if
-           !end if
-           if(plsigacc.eq.1) then
-              !do i=1,ntot(ic),chainpli
-              do i=ic,ntot(ic),chainpli !Start at ic to reduce overplotting
-                 call pgpoint(1,is(ic,i),sig(p,ic,i),1)
-              end do
-           else
-              !do i=1,ntot(ic),chainpli
-              do i=ic,ntot(ic),chainpli !Start at ic to reduce overplotting
-                 call pgpoint(1,is(ic,i),log10(sig(p,ic,i)+1.e-30),1)
-              end do
-           end if
-        end do
-
-        call pgsls(2)
-        call pgsci(6)
-        do ic=1,nchains0
-           !call pgline(2,(/real(nburn(ic)),real(nburn(ic))/),(/-1.e20,1.e20/))
-           if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-           if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-        end do
-        call pgsci(1)
-        call pgsls(1)
-        call pgmtxt('T',1.,0.5,0.5,'Sigma: '//trim(pgvarns(p)))
-        !call pgmtxt('T',1.,0.5,0.5,'log Sigma: '//trim(pgvarns(p)))
-     end do
-
-     if(quality.eq.0) then
-        call pgsubp(1,1)
-        call pgsvp(0.,1.,0.,1.)
-        call pgswin(-1.,1.,-1.,1.)
-
-        call pgsch(sch*0.8)
-        call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  !Print title
-        call pgsch(sch)
-     end if
-
-     if(combinechainplots.eq.1) call pgpage
-     if(combinechainplots.eq.0) then
-        call pgend
-        if(file.ge.2) then
-           if(file.eq.3) then
-              i = system('eps2pdf sigs.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__sigs.pdf   >& /dev/null')
-              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
-           end if
-           i = system('mv -f sigs.eps '//trim(outputdir)//'/'//trim(outputname)//'__sigs.eps')
-        end if
-     end if
-     if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' sigs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__sigs.png')
-        if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
-        i = system('rm -f sigs.ppm')
-     end if
-  end if !if(plsigacc.ge.1)
-
-
-
-
-
-
-
-
-
-  !***********************************************************************************************************************************      
-  !Plot acceptance rates
-  if(plsigacc.ge.1) then
-     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting acceptance rates...'
-     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' acceptance rates, '
-     if(file.eq.0) then
-        io = pgopen('17/xs')
-        call pgsch(1.5)
-     end if
-     if(file.ge.1.and.combinechainplots.eq.0) then
-        if(file.eq.1) io = pgopen('accs.ppm/ppm')
-        if(file.ge.2) io = pgopen('accs.eps'//trim(psclr))
-        call pgsch(1.2)
-     end if
-     if(io.le.0) then
-        write(0,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
-        exitcode = 1
-        return
-     end if
-     if(file.eq.0) call pgpap(scrsz,scrrat)
-     if(file.eq.0) call pgsch(1.5)
-     if(file.eq.1) call pgpap(bmpsz,bmprat)
-     if(file.eq.1) call pgsch(1.5)
-
-     if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
-
-     call pgsubp(panels(1),panels(2))
-
-     ic = 1
-     !do p=2,npar0
-     do j=1,nplvar
-        p = plvars(j)
-        call pgpage
-        if(j.eq.1) call pginitl(colour,file,whitebg)
-        xmax = -1.e30
-        ymin =  1.e30
-        ymax = -1.e30
-        do ic=1,nchains0
-           xmin = 0.
-           !xmax = max(xmax,real(ntot(ic)))
-           xmax = max(xmax,maxval(is(ic,1:ntot(ic))))
-           dx = abs(xmax-xmin)*0.01
-           do i=1,ntot(ic)
-              if(acc(p,ic,i).gt.1.e-10 .and. acc(p,ic,i).lt.1.-1.e-10) then
-                 n0 = i
-                 exit
-              end if
-           end do
-           n0 = n0+10
-           ymin = min(ymin,minval(acc(p,ic,n0:ntot(ic))))
-           ymax = max(ymax,maxval(acc(p,ic,n0:ntot(ic))))
-           dy = abs(ymax-ymin)*0.05
-        end do
-
-        call pgsci(1)
-        call pgsls(1)
-        call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
-        call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-
-
-        call pgsci(3)
-        call pgsls(2)
-        call pgline(2,(/-1.e20,1.e20/),(/0.25,0.25/))
-        call pgsci(6)
-        do ic=1,nchains0
-           !call pgline(2,(/real(nburn(ic)),real(nburn(ic))/),(/-1.e20,1.e20/))
-           if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-           if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-        end do
-        call pgsci(1)
-        call pgsls(1)
-        call pgmtxt('T',1.,0.5,0.5,'Acceptance: '//trim(pgvarns(p)))
-
-        do ic=1,nchains0
-           !call pgsci(mod(ic*2,10))
-           call pgsci(defcolour)
-           if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !if(thin.le.1) then
-           !   do i=1,ntot(ic),chainpli
-           !      call pgpoint(1,is(ic,i),acc(p,ic,i),1)
-           !   end do
-           !else
-           !   call pgpoint(ntot(ic),is(ic,1:ntot(ic)),acc(p,ic,1:ntot(ic)),1)
-           !end if
-           !do i=1,ntot(ic),chainpli
-           do i=ic,ntot(ic),chainpli !Start at ic to reduce overplotting
-              call pgpoint(1,is(ic,i),acc(p,ic,i),1)
-           end do
-        end do
-     end do
-
-     if(quality.eq.0) then
-        call pgsubp(1,1)
-        call pgsvp(0.,1.,0.,1.)
-        call pgswin(-1.,1.,-1.,1.)
-
-        call pgsch(sch*0.8)
-        call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  !Print title
-        call pgsch(sch)
-     end if
-
-     !if(combinechainplots.eq.1) call pgpage
-     if(combinechainplots.eq.0) then
-        call pgend
-        if(file.ge.2) then
-           if(file.eq.3) then
-              i = system('eps2pdf accs.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__accs.pdf   >& /dev/null')
-              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
-           end if
-           i = system('mv -f accs.eps '//trim(outputdir)//'/'//trim(outputname)//'__accs.eps')
-        end if
-     end if
-     if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' accs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__accs.png')
-        if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
-        i = system('rm -f accs.ppm')
-     end if
-  end if !if(plsigacc.ge.1)
-
-
-
-  if(file.ge.1.and.combinechainplots.eq.1.and.(pllogl.eq.1.or.plchain.eq.1.or.plsigacc.ge.1)) then
-     call pgend
-     if(file.eq.3) i = system('eps2pdf chaininfo.eps -o '//trim(outputdir)//'/'//trim(outputname)//'__chaininfo.pdf  >& /dev/null')
-     i = system('mv -f chaininfo.eps '//trim(outputdir)//'/'//trim(outputname)//'__chaininfo.eps')
-  end if
-  !***********************************************************************************************************************************        
-
-
-
-
-
-
-
-
-
-
   !***********************************************************************************************************************************      
   !Plot autocorrelations for each parameter
   if(placorr.gt.0) then
@@ -1263,7 +978,6 @@ subroutine chains(exitcode)
      call pgsubp(panels(1),panels(2))
 
      ic = 1
-     !do p=2,npar0
      do j=1,nplvar
         p = plvars(j)
         call pgpage
