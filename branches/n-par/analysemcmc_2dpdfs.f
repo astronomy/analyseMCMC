@@ -172,18 +172,18 @@ subroutine pdfs2d(exitcode)
            call pgsch(sch)
         end if
         
-        xmin = minval(alldat(ic,p1,1:n(ic)))
-        xmax = maxval(alldat(ic,p1,1:n(ic)))
-        ymin = minval(alldat(ic,p2,1:n(ic)))
-        ymax = maxval(alldat(ic,p2,1:n(ic)))
+        xmin = minval(selDat(ic,p1,1:n(ic)))
+        xmax = maxval(selDat(ic,p1,1:n(ic)))
+        ymin = minval(selDat(ic,p2,1:n(ic)))
+        ymax = maxval(selDat(ic,p2,1:n(ic)))
         dx = xmax - xmin
         dy = ymax - ymin
         !write(6,'(A,2F10.5)')'  Xmin,Xmax: ',xmin,xmax
         !write(6,'(A,2F10.5)')'  Ymin,Ymax: ',ymin,ymax
 
-        xx(1:n(ic)) = alldat(ic,p1,1:n(ic)) !Parameter 1
-        yy(1:n(ic)) = alldat(ic,p2,1:n(ic)) !Parameter 2
-        zz(1:n(ic)) = alldat(ic,1,1:n(ic))   !Likelihood
+        xx(1:n(ic)) = selDat(ic,p1,1:n(ic)) !Parameter 1
+        yy(1:n(ic)) = selDat(ic,p2,1:n(ic)) !Parameter 2
+        zz(1:n(ic)) = selDat(ic,1,1:n(ic))   !Likelihood
         
         if(.not.project_map) then
            xmin = xmin - 0.05*dx
@@ -458,7 +458,7 @@ subroutine pdfs2d(exitcode)
               if(pllmax.ge.1) then
                  call pgsci(1); call pgsls(5)
                  
-                 plx = pldat(icloglmax,p1,iloglmax)
+                 plx = allDat(icloglmax,p1,iloglmax)
                  if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) plx = rev24(plx)
                  if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) plx = rev360(plx)
                  if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) plx = rev180(plx)
@@ -476,7 +476,7 @@ subroutine pdfs2d(exitcode)
                     call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !Max logL
                  end if
                  
-                 ply = pldat(icloglmax,p2,iloglmax)
+                 ply = allDat(icloglmax,p2,iloglmax)
                  if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) ply = rev24(ply)
                  if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) ply = rev360(ply)
                  if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) ply = rev180(ply)

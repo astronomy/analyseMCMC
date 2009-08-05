@@ -70,16 +70,16 @@ subroutine animation(exitcode)
      if(nplt.gt.nburn(ic)) then
         
         !Determine the median
-        !call rindexx(nplt-nburn(ic),pldat(ic,p,1:nplt-nburn(ic)),index(p,1:nplt-nburn(ic)))  !Sort
-        x(ic,1:nplt-nburn(ic)) = pldat(ic,p,nburn(ic)+1:nplt)
+        !call rindexx(nplt-nburn(ic),allDat(ic,p,1:nplt-nburn(ic)),index(p,1:nplt-nburn(ic)))  !Sort
+        x(ic,1:nplt-nburn(ic)) = allDat(ic,p,nburn(ic)+1:nplt)
         call rindexx(nplt-nburn(ic),x(ic,1:nplt-nburn(ic)),index(p,1:nplt-nburn(ic)))  !Sort
         !print*,x(ic,index(p,1:nplt-nburn(ic)))
         
         if(mod(nplt-nburn(ic),2).eq.0) then
-           !median = 0.5*(pldat(ic,p,index(p,(nplt-nburn(ic))/2)) + pldat(ic,p,index(p,(nplt-nburn(ic))/2+1)))  !Centre = nb + (n-nb)/2 = (n+nb)/2
+           !median = 0.5*(allDat(ic,p,index(p,(nplt-nburn(ic))/2)) + allDat(ic,p,index(p,(nplt-nburn(ic))/2+1)))  !Centre = nb + (n-nb)/2 = (n+nb)/2
            median = 0.5*(x(ic,index(p,(nplt-nburn(ic))/2)) + x(ic,index(p,(nplt-nburn(ic))/2+1)))  !Centre = nb + (n-nb)/2 = (n+nb)/2
         else
-           !median = pldat(ic,p,index(p,(nplt-nburn(ic)+1)/2))
+           !median = allDat(ic,p,index(p,(nplt-nburn(ic)+1)/2))
            median = x(ic,index(p,(nplt-nburn(ic)+1)/2))
         end if
         !print*,'median:',median
@@ -92,8 +92,8 @@ subroutine animation(exitcode)
         minrange = 1.e30
         !do i=1,floor(nplt*(1.-ival))
         do i=1,floor((nplt-nburn(ic))*(1.-ival))
-           !x1 = pldat(ic,p,index(p,i))
-           !x2 = pldat(ic,p,index(p,i+floor((nplt-nburn(ic))*ival)))
+           !x1 = allDat(ic,p,index(p,i))
+           !x2 = allDat(ic,p,index(p,i+floor((nplt-nburn(ic))*ival)))
            x1 = x(ic,index(p,i))
            x2 = x(ic,index(p,i+floor((nplt-nburn(ic))*ival)))
            range = abs(x2 - x1)
@@ -167,11 +167,11 @@ subroutine animation(exitcode)
      ymin =  1.e30
      ymax = -1.e30
      do ic=1,nchains0
-        ymin = min(ymin,minval(pldat(ic,p,10:ntot(ic))))
-        ymax = max(ymax,maxval(pldat(ic,p,10:ntot(ic))))
+        ymin = min(ymin,minval(allDat(ic,p,10:ntot(ic))))
+        ymax = max(ymax,maxval(allDat(ic,p,10:ntot(ic))))
         !if(moviescheme.eq.3) then
-        !   ymin = min(ymin,minval(pldat(ic,p,1:ntot(ic))))
-        !   ymax = max(ymax,maxval(pldat(ic,p,1:ntot(ic))))
+        !   ymin = min(ymin,minval(allDat(ic,p,1:ntot(ic))))
+        !   ymax = max(ymax,maxval(allDat(ic,p,1:ntot(ic))))
         !end if
         if(pltrue.ge.1) then
            ymin = minval((/startval(ic,p,1),ymin/))
@@ -201,11 +201,11 @@ subroutine animation(exitcode)
         if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
         !do i=1,ntot(ic),chainpli
         if(chainsymbol.eq.0) then !Plot lines rather than symbols
-           call pgline(nplt-1,is(ic,2:nplt),pldat(ic,p,2:nplt))
+           call pgline(nplt-1,is(ic,2:nplt),allDat(ic,p,2:nplt))
         else
            call pgpoint(1,0.,startval(ic,p,2),chainsymbol)       !Starting value
            do i=1,nplt,chainpli
-              call pgpoint(1,is(ic,i),pldat(ic,p,i),chainsymbol)
+              call pgpoint(1,is(ic,i),allDat(ic,p,i),chainsymbol)
            end do
         end if
      end do
@@ -261,8 +261,8 @@ subroutine animation(exitcode)
         ymin =  1.e30
         ymax = -1.e30
         do ic=1,nchains0
-           ymin = min(ymin,minval(pldat(ic,p,1:ntot(ic))))
-           ymax = max(ymax,maxval(pldat(ic,p,1:ntot(ic))))
+           ymin = min(ymin,minval(allDat(ic,p,1:ntot(ic))))
+           ymax = max(ymax,maxval(allDat(ic,p,1:ntot(ic))))
         end do
         ymin = 0.
         dy = abs(ymax-ymin)*0.05
@@ -280,13 +280,13 @@ subroutine animation(exitcode)
            !do i=1,ntot(ic),chainpli
            if(chainsymbol.eq.0) then !Plot lines rather than symbols
               call pgsls(1)
-              call pgline(nplt-1,is(ic,2:nplt),pldat(ic,p,2:nplt))
+              call pgline(nplt-1,is(ic,2:nplt),allDat(ic,p,2:nplt))
            else
               !call pgpoint(1,0.,startval(ic,p,2),chainsymbol)       !Starting value
               call pgsls(4)
               call pgline(2,(/-is(ic,ntot(ic)),2*is(ic,ntot(ic))/),(/startval(ic,p,2),startval(ic,p,2)/))       !Starting value
               do i=1,nplt,chainpli
-                 call pgpoint(1,is(ic,i),pldat(ic,p,i),chainsymbol)
+                 call pgpoint(1,is(ic,i),allDat(ic,p,i),chainsymbol)
               end do
            end if
            call pgsls(1)
@@ -345,8 +345,8 @@ subroutine animation(exitcode)
      xmax = -1.e30
      p = 2 !Mc
      do ic=1,nchains0
-        xmin = min(xmin,minval(pldat(ic,p,1:ntot(ic))))
-        xmax = max(xmax,maxval(pldat(ic,p,1:ntot(ic))))
+        xmin = min(xmin,minval(allDat(ic,p,1:ntot(ic))))
+        xmax = max(xmax,maxval(allDat(ic,p,1:ntot(ic))))
      end do
      dx = xmax - xmin
      if(offsetrun.eq.0) then
@@ -361,7 +361,7 @@ subroutine animation(exitcode)
         do ic=1,nchains0
            if(nplt.gt.nburn(ic)) then
               n2 = n1 + min(nplt,ntot(ic))-nburn(ic) - 1
-              x(1,n1:n2) = pldat(ic,p,nburn(ic)+1:min(nplt,ntot(ic)))
+              x(1,n1:n2) = allDat(ic,p,nburn(ic)+1:min(nplt,ntot(ic)))
               n1 = n2 + 1
            end if
         end do
@@ -373,7 +373,7 @@ subroutine animation(exitcode)
            n1 = 1
            if(mergechains.ne.1) then
               n2 = nplt-nburn(ic)
-              x(ic,1:n2) = pldat(ic,p,nburn(ic)+1:nplt)
+              x(ic,1:n2) = allDat(ic,p,nburn(ic)+1:nplt)
            end if
            xmin1 = minval(x(ic,1:n2))
            xmax1 = maxval(x(ic,1:n2))

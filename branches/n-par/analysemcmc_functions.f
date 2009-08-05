@@ -380,7 +380,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
   
   exitcode = 0
   readerror = 0
-  allocate(dat(maxMCMCpar,nchains,maxIter))
+  allocate(allDat(nchains,maxMCMCpar,maxIter))
   allocate(post(nchains,maxIter),prior(nchains,maxIter))
   
   
@@ -402,9 +402,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      
      !if(prprogress.ge.2) write(6,'(A,I3,A,I3,A20,$)')'    File',ic,':  '//trim(infile)//'    Using colour',colours(mod(ic-1,ncolours)+1),': '//colournames(colours(mod(ic-1,ncolours)+1))
      
-     !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
      !Read the headers
-     
      !Determine from the length of the first line whether this is output from before of after July 2009
      !  before: first line is >80 characters long header (     Niter       Nburn    seed       null likelihood    Ndet    Ncorr   Ntemps      Tmax      Tchain   Network SNR)
      !  after:  first line is <80 characters long version number (  SPINspiral version:    1.00)
@@ -449,7 +447,6 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
            read(10,*,iostat=io)tmpInt,post(ic,i),prior(ic,i),tmpDat(1:nMCMCpar)
         end if
         is(ic,i) = real(tmpInt)
-        dat(1,ic,i) = post(ic,i)
         
         if(io.lt.0) exit !EOF
         if(io.gt.0) then !Read error
@@ -482,7 +479,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
               end if
            end do
         end if
-        dat(2:nMCMCpar+1,ic,i) = real(tmpDat(1:nMCMCpar) - dtmpDat(1:nMCMCpar))
+        allDat(ic,1:nMCMCpar,i) = real(tmpDat(1:nMCMCpar) - dtmpDat(1:nMCMCpar))
         
         if(thin.gt.1.and.i.gt.2) then !'Thin' the output by reading every thin-th line
            do j=1,thin-1
@@ -514,7 +511,7 @@ end subroutine read_mcmcfiles
 !************************************************************************************************************************************
 subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some of it to screen:
   !  print MCMC run info,  determine Lmax, burnin,  print chain info,  determine thinning for chains plots,  change/add MCMC parameters, 
-  !  determine true, start, Lmax values of chains,  compute jumps,  construct output file name,  store data in alldat (from dat)
+  !  determine true, start, Lmax values of chains,  compute jumps,  construct output file name,  store data in selDat (from dat)
   use constants
   use analysemcmc_settings
   use general_data
@@ -522,8 +519,8 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   use chain_data
   use plot_data
   implicit none
-  integer :: i,ic,j,exitcode,narr
-  real :: m1,m2,avgtotthin
+  integer :: i,ic,j,exitcode,maxLine
+  real :: avgtotthin
   real*8 :: lon2ra,gmst
   
   exitcode = 0
@@ -553,7 +550,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      end do !do ic = 1,nchains0
   end if  !prruninfo.gt.0
   
-  narr = maxval(n(1:nchains0))
+  maxLine = maxval(n(1:nchains0))
   
   
   
@@ -611,15 +608,11 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
           ',   iteration:',nint(is(ic,i)),',   max log(L):',loglmax,'  -> SNR:',sqrt(2*loglmax),'.'
      
      !Test: get parameter values for L=Lmax
-     if(prprogress.ge.3) then
-        write(6,'(I10,F14.6,1x,2F12.7,F20.8,9F12.7)')nint(is(ic,i)),loglmax,dat(2:3,ic,i),dat(4,ic,i)+t0,dat(5:13,ic,i)
-        call mc_eta_2_m1_m2r(dat(2,ic,i),dat(3,ic,i), m1,m2)
-        !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
-        !call compute_incli_polangr(dat(8,ic,i), asin(dat(9,ic,i)), real(lon2ra(dble(dat(12,ic,i)), dble(dat(4,ic,i)) + t0)), asin(dat(11,ic,i)),   inc,psi)  !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad)
-        !write(6,'(F9.4,F10.4,F21.6,F11.4,F10.4,F12.4,2F11.4,F12.4,3F11.4)')m1,m2,dat(4,ic,i)+t0,dat(5:10,ic,i),inc,psi,dat(13,ic,i)
-        
-        write(6,'(F9.4,F10.4,F21.6,F11.4,F10.4,F12.4,2F11.4,F12.4,3F11.4)')m1,m2,dat(4,ic,i)+t0,exp(dat(5,ic,i)),dat(6,ic,i),acos(dat(7,ic,i))*r2d,dat(8,ic,i)*r2h,asin(dat(9,ic,i))*r2d,dat(10,ic,i)*r2d,asin(dat(11,ic,i))*r2d,dat(12,ic,i)*r2d,dat(13,ic,i)*r2d
-     end if
+     !if(prprogress.ge.3) then
+     !   write(6,'(I10,F14.6,1x,2F12.7,F20.8,9F12.7)')nint(is(ic,i)),loglmax,allDat(ic,2:3,i),allDat(ic,4,i)+t0,allDat(ic,5:13,i)
+     !   call mc_eta_2_m1_m2r(allDat(ic,2,i),allDat(ic,3,i), m1,m2)
+     !   write(6,'(F9.4,F10.4,F21.6,F11.4,F10.4,F12.4,2F11.4,F12.4,3F11.4)')m1,m2,allDat(ic,4,i)+t0,exp(allDat(ic,5,i)),allDat(ic,6,i),acos(allDat(ic,7,i))*r2d,allDat(ic,8,i)*r2h,asin(allDat(ic,9,i))*r2d,allDat(ic,10,i)*r2d,asin(allDat(ic,11,i))*r2d,allDat(ic,12,i)*r2d,allDat(ic,13,i)*r2d
+     !end if
      if(prruninfo.ge.1) write(6,*)
   end if
   
@@ -662,8 +655,6 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      end if
   end do
   totlines = sum(ntot(1:nchains0))
-  !if(prchaininfo.ge.1.and.update.ne.1) write(6,'(4x,A, A,ES10.4, A,ES10.4, A,ES10.4,  A2,F5.1, A,I3,A1,I2,A1)') 'In all chains:','  number of lines: ',real(totlines), &
-  !     ',  number of iterations: ',real(totiter),',  number of data points after burnin: ',real(totpts),' (',real(totpts)/real(totlines)*100,'%), contributing chains:',contrchains,'/',nchains0,'.'
   if(prchaininfo.ge.1.and.update.ne.1) write(6,'(4x,A, A,ES10.4, A,ES10.4, A,I4, A,ES10.4,  A2,F5.1, A,I3,A1,I2,A1)') 'In all chains:','  # lines: ',real(totlines), &
        ',  # iterations: ',real(totiter),',  total thinning:',nint(avgtotthin),'x, # data points after burnin: ',real(totpts),' (',real(totpts)/real(totlines)*100,'%), contributing chains:',contrchains,'/',nchains0,'.'
   
@@ -689,41 +680,59 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   
   
   !*** Change some MCMC parameters:
-  if(version.eq.1.and.changevar.ge.1) then
+  if(changevar.ge.1) then
      if(prprogress.ge.2.and.update.eq.0) write(6,'(A,$)')'  Changing some variables...   '
-     !Columns in dat() (12 par): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
-     !Columns in dat() (15 par): 1:logL 2:mc, 3:eta, 4:t0, 5:logdl, 6:RA, 7:sindec, 8: cosi, 9:phase,10:psi, 11:spin1, 12:theta1, 13:phi1, 14:spin2, 15:theta2, 16:phi2
+     
+     !If Mc and eta are know, compute M1,M2:
      do ic=1,nchains0
-        if(maxval(dat(3,ic,1:ntot(ic))).le.0.5d0) then
-           !Calculate the individual masses from Mch and eta:
-           if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(6,'(A)')"  I'm assuming the MCMC was done with Mc and eta."
+        if(revID(61).ne.0 .and. revID(62).ne.0 .and. revID(63).eq.0 .and. revID(64).eq.0) then  !Calculate the individual masses from Mch and eta:
+           if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(6,'(A)')'  Computing M1, M2 from Mc, eta'
+           parID(nMCMCpar+1) = 63  !M1
+           parID(nMCMCpar+2) = 64  !M2
+           revID(63) = nMCMCpar + 1  !M1
+           revID(64) = nMCMCpar + 2  !M2
+           nMCMCpar = nMCMCpar + 2
+           if(nMCMCpar.gt.maxMCMCpar) then
+              write(0,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar,' to at least',nMCMCpar,' in order to continue.  Aborting...'
+              stop
+           end if
            do i=1,ntot(ic)
-              call mc_eta_2_m1_m2r(dat(2,ic,i),dat(3,ic,i), dat(14,ic,i),dat(15,ic,i))
+              call mc_eta_2_m1_m2r(allDat(ic,revID(61),i),allDat(ic,revID(62),i), allDat(ic,revID(63),i),allDat(ic,revID(64),i))
            end do
-        else
+        else if(revID(61).eq.0 .and. revID(62).eq.0 .and. revID(63).ne.0 .and. revID(64).ne.0) then  !Calculate Mc, eta from the individual masses:
            !Calculate Mch and eta from the individual masses:
-           if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(6,'(A)')"  I'm assuming the MCMC was done with M1 and M2."
-           dat(14,ic,1:ntot(ic)) = dat(2,ic,1:ntot(ic))  !M1
-           dat(15,ic,1:ntot(ic)) = dat(3,ic,1:ntot(ic))  !M2
+           if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(6,'(A)')'  Computing Mc, eta from M1, M2'
+           parID(nMCMCpar+1) = 61  !Mc
+           parID(nMCMCpar+2) = 62  !eta
+           revID(61) = nMCMCpar + 1  !Mc
+           revID(62) = nMCMCpar + 2  !eta
+           nMCMCpar = nMCMCpar + 2
+           if(nMCMCpar.gt.maxMCMCpar) then
+              write(0,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar,' to at least',nMCMCpar,' in order to continue.  Aborting...'
+              stop
+           end if
            do i=1,ntot(ic)
-              call m1_m2_2_mc_etar(dat(14,ic,i),dat(15,ic,i), dat(2,ic,i),dat(3,ic,i))
+              call m1_m2_2_mc_etar(allDat(ic,revID(63),i),allDat(ic,revID(64),i), allDat(ic,revID(61),i),allDat(ic,revID(62),i))
            end do
         end if
         
         !Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
         do i=1,ntot(ic)
-           call compute_incli_polangr(dat(8,ic,i), asin(dat(9,ic,i)), real(lon2ra(dble(dat(12,ic,i)), dble(dat(4,ic,i)) + t0)), asin(dat(11,ic,i)),   dat(11,ic,i),dat(12,ic,i))  !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad)
+           !call compute_incli_polangr(allDat(ic,8,i), asin(allDat(ic,9,i)), real(lon2ra(dble(allDat(ic,12,i)), dble(allDat(ic,4,i)) + t0)), asin(allDat(ic,11,i)),   allDat(ic,11,i),allDat(ic,12,i))  !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad)
+           call compute_incli_polangr(allDat(ic,revID(31),i), asin(allDat(ic,revID(32),i)), real(lon2ra(dble(allDat(ic,revID(54),i)), dble(allDat(ic,revID(11),i)) + t0)), asin(allDat(ic,revID(53),i)),   allDat(ic,revID(53),i),allDat(ic,revID(54),i))  !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad)
+           allDat(ic,revID(53),i) = cos(allDat(ic,revID(53),i))    !i -> cos(i)
         end do
+        parID(revID(53)) = 51  !Was sin(thJ0), now cos(i)
+        parID(revID(54)) = 52  !Was phi_J0, now psi
+        revID(51) = revID(53)  !Now cos(i)
+        revID(52) = revID(54)  !Now psi
+        revID(53) = 0          !No longer exists
+        revID(54) = 0          !No longer exists
      end do
   end if
   
-  npar = 15
-  if(version.eq.2) npar = 16
-  if(par2.eq.0) par2 = npar
   
-  
-  !*** Put plot data in pldat, startval and jumps.  Print initial and starting values to screen.  Startval: 1: true value, 2: starting value, 3: Lmax value
-  allocate(pldat(nchains,npar,narr))
+  !*** Put plot data in allDat, startval and jumps.  Print initial and starting values to screen.  Startval: 1: true value, 2: starting value, 3: Lmax value
   jumps = 0.
   offsetrun = 0
   if(prinitial.ne.0) then
@@ -731,10 +740,9 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      write(6,'(11x,A20,14A10)')varnames(1:15)
   end if
   do ic=1,nchains
-     pldat(ic,1:npar,1:n(ic)) = real(dat(1:npar,ic,1:n(ic))) !Note the change of order of indices!!!  Pldat has the same structure as alldat.  Pldat contains all data that's in dat (also before the burnin), but in single precision.  Use it to plot log(L), jumps, chains, etc., but not for statistics (and PDF creation).
-     startval(ic,1:npar,1:2)  = real(dat(1:npar,ic,1:2)) !True value and starting value
-     startval(ic,1:npar,3)    = real(dat(1:npar,icloglmax,iloglmax)) !Lmax value
-     jumps(ic,1:npar,2:n(ic)) = real(dat(1:npar,ic,2:n(ic)) -  dat(1:npar,ic,1:n(ic)-1))
+     startval(ic,1:nMCMCpar,1:2)  = allDat(ic,1:nMCMCpar,1:2) !True value and starting value
+     startval(ic,1:nMCMCpar,3)    = allDat(icloglmax,1:nMCMCpar,iloglmax) !Lmax value
+     jumps(ic,1:nMCMCpar,2:n(ic)) = allDat(ic,1:nMCMCpar,2:n(ic)) -  allDat(ic,1:nMCMCpar,1:n(ic)-1)
      if(prinitial.ne.0) then 
         if(ic.eq.1) write(6,'(5x,A11,F15.5,14F10.5,/)')'True:  ',startval(1,1:15,1)
         if(abs((sum(startval(ic,1:15,1))-sum(startval(ic,1:15,2)))/sum(startval(ic,1:15,1))).gt.1.e-10) then
@@ -785,13 +793,13 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   
   
   
-  !*** Put data in alldat
+  !*** Put data in selDat
   if(mergechains.eq.1) then  !Merge chains, leave out burnin (then nchains = 1)
-     allocate(alldat(1,maxMCMCpar,nchains*narr))
+     allocate(selDat(1,maxMCMCpar,nchains*maxLine))
      j = 1
      do ic=1,nchains
         do i=nburn(ic)+1,n(ic)
-           alldat(1,1:npar,j) = real(dat(1:npar,ic,i))  !Note the change of order of indices!!!  Alldat has the same structure as pldat, but contains only info AFTER the burnin.
+           selDat(1,1:nMCMCpar,j) = allDat(ic,1:nMCMCpar,i)  !SelDat has the same structure as allDat, but contains only info AFTER the burnin.
            j = j+1
         end do
      end do
@@ -799,20 +807,213 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      n(1) = j-1
      !if(prprogress.ge.1) write(6,'(A,I8,A,ES7.1,A)')'  Data points in combined chains: ',n(1),'  (',real(n(1)),')'
   else
-     allocate(alldat(nchains,maxMCMCpar,narr))
+     allocate(selDat(nchains,maxMCMCpar,maxLine))
      do ic=1,nchains
-        alldat(ic,1:npar,1:n(ic)-nburn(ic)) = real(dat(1:npar,ic,nburn(ic)+1:n(ic)))  !Note the change of order of indices!!!  Alldat has the same structure as pldat, but contains only info AFTER the burnin.
+        selDat(ic,1:nMCMCpar,1:n(ic)-nburn(ic)) = allDat(ic,1:nMCMCpar,nburn(ic)+1:n(ic))  !SelDat has the same structure as allDat, but contains only info AFTER the burnin.
         n(ic) = n(ic)-nburn(ic) !n(ic)=0 if a chain is not contributing (in which case contrchain(ic)=0)!
      end do
      !if(prprogress.ge.1) write(6,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
   end if
   
   
-  
-  
 end subroutine mcmcruninfo
 !************************************************************************************************************************************
 
+
+
+
+
+!> \brief Set the names and symbols of the original MCMC parameters
+!<
+!************************************************************************************************************************************
+subroutine set_originalParameterNames()
+  use analysemcmc_settings
+  use general_data
+  implicit none
+  
+  varnames = ''
+  pgvarns = ''
+  pgvarnss = ''
+  pgunits = ''
+  
+  !Short ASCII names for text output:
+  varnames(11:19) = (/'tc','t40','','','','','','',''/)
+  varnames(21:29) = (/'dl^3','log_dl','','','','','','',''/)
+  varnames(31:39) = (/'RA','sin_dec','','','','','','',''/)
+  varnames(41:49) = (/'phase','','','','','','','',''/)
+  varnames(51:59) = (/'cos_i','psi','sin_thJo','ph_Jo','','','','',''/)
+  varnames(61:69) = (/'Mc','eta','M1','M2','','','','',''/)
+  varnames(71:79) = (/'spin1','cos_th1','phi1','','','','','',''/)
+  varnames(81:89) = (/'spin2','cos_th2','phi2','','','','','',''/)
+  !varnames(1:9) = (/'','','','','','','','',''/)
+  
+  
+  if(fonttype.eq.2) then  !Use 'roman-like' Greek font in PGPlot
+     
+     !Long PGPlot names (symbol + unit)
+     pgvarns(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
+     pgvarns(21:29) = (/'d\dL\u\u3\d (Mpc)','logd\dL\u (Mpc)','','','','','','',''/)
+     pgvarns(31:39) = (/'\(2127) (rad)','sin \(2130)','','','','','','',''/)
+     pgvarns(41:49) = (/'\(2147)\dc\u (rad)','','','','','','','',''/)
+     pgvarns(51:59) = (/'cos \(2135)','\(2149) (rad)','sin \(2185)\dJ0\u','\(2147)\dJ0\u (rad)','','','','',''/)
+     pgvarns(61:69) = (/'\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
+     pgvarns(71:79) = (/'a\dspin1\u','cos \(2185)\d1\u','\(2147)\d1\u (rad)','','','','','',''/)
+     pgvarns(81:89) = (/'a\dspin2\u','cos \(2185)\d2\u','\(2147)\d2\u (rad)','','','','','',''/)
+     !pgvarns(1:9) = (/'','','','','','','','',''/)
+     
+     !Short PGPlot symbols (no unit)
+     pgvarnss(11:19) = (/'t\dc\u','t\d40\u','','','','','','',''/)
+     pgvarnss(21:29) = (/'d\dL\u\u3\d','logd\dL\u','','','','','','',''/)
+     pgvarnss(31:39) = (/'\(2127)','sin \(2130)','','','','','','',''/)
+     pgvarnss(41:49) = (/'\(2147)\dc\u','','','','','','','',''/)
+     pgvarnss(51:59) = (/'cos \(2135)','\(2149)','sin \(2185)\dJ0\u','\(2147)\dJ0\u','','','','',''/)
+     pgvarnss(61:69) = (/'\(2563)','\(2133)','M\d1\u','M\d2\u','','','','',''/)
+     pgvarnss(71:79) = (/'a\dspin1\u','cos \(2185)\d1\u','\(2147)\d1\u','','','','','',''/)
+     pgvarnss(81:89) = (/'a\dspin2\u','cos \(2185)\d2\u','\(2147)\d2\u','','','','','',''/)
+     !pgvarnss(1:9) = (/'','','','','','','','',''/)
+     
+  else  !Same, but replace '\(21' with \(06' for arial-like Greek font
+     
+     !Long PGPlot names (symbol + unit)
+     pgvarns(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
+     pgvarns(21:29) = (/'d\dL\u\u3\d (Mpc)','logd\dL\u (Mpc)','','','','','','',''/)
+     pgvarns(31:39) = (/'\(0627) (rad)','sin \(0630)','','','','','','',''/)
+     pgvarns(41:49) = (/'\(0647)\dc\u (rad)','','','','','','','',''/)
+     pgvarns(51:59) = (/'cos \(0635)','\(0649) (rad)','sin \(0685)\dJ0\u','\(0647)\dJ0\u (rad)','','','','',''/)
+     pgvarns(61:69) = (/'\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
+     pgvarns(71:79) = (/'a\dspin1\u','cos \(0685)\d1\u','\(0647)\d1\u (rad)','','','','','',''/)
+     pgvarns(81:89) = (/'a\dspin2\u','cos \(0685)\d2\u','\(0647)\d2\u (rad)','','','','','',''/)
+     !pgvarns(1:9) = (/'','','','','','','','',''/)
+     
+     !Short PGPlot symbols (no unit)
+     pgvarnss(11:19) = (/'t\dc\u','t\d40\u','','','','','','',''/)
+     pgvarnss(21:29) = (/'d\dL\u\u3\d','logd\dL\u','','','','','','',''/)
+     pgvarnss(31:39) = (/'\(0627)','sin \(0630)','','','','','','',''/)
+     pgvarnss(41:49) = (/'\(0647)\dc\u','','','','','','','',''/)
+     pgvarnss(51:59) = (/'cos \(0635)','\(0649)','sin \(0685)\dJ0\u','\(0647)\dJ0\u','','','','',''/)
+     pgvarnss(61:69) = (/'\(2563)','\(0633)','M\d1\u','M\d2\u','','','','',''/)
+     pgvarnss(71:79) = (/'a\dspin1\u','cos \(0685)\d1\u','\(0647)\d1\u','','','','','',''/)
+     pgvarnss(81:89) = (/'a\dspin2\u','cos \(0685)\d2\u','\(0647)\d2\u','','','','','',''/)
+     !pgvarnss(1:9) = (/'','','','','','','','',''/)
+     
+  end if
+  
+  !PGPlot units (no names)
+  pgunits(11:19) = (/'s','s','','','','','','',''/)
+  pgunits(21:29) = (/'Mpc','Mpc','','','','','','',''/)
+  pgunits(31:39) = (/'rad','','','','','','','',''/)
+  pgunits(41:49) = (/'rad','','','','','','','',''/)
+  pgunits(51:59) = (/'','rad','','rad','','','','',''/)
+  pgunits(61:69) = (/'M\d\(2281)\u','','M\d\(2281)\u','M\d\(2281)\u','','','','',''/)
+  pgunits(71:79) = (/'','','rad','','','','','',''/)
+  pgunits(81:89) = (/'','','rad','','','','','',''/)
+  !pgunits(1:9) = (/'','','','','','','','',''/)
+  
+     
+  !Save the original parameter names for use after they get changed
+  pgorigvarns = pgvarns
+  
+  
+  
+  
+end subroutine set_originalParameterNames
+!************************************************************************************************************************************
+
+
+
+
+
+
+!> \brief Set the names and symbols of the derived MCMC parameters
+!! e.g. d_L rather than d_L^3 or log(d_L), i rather than cos(i), etc.
+!<
+!************************************************************************************************************************************
+subroutine set_derivedParameterNames()
+  use analysemcmc_settings
+  use general_data
+  implicit none
+  
+  varnames = ''
+  pgvarns = ''
+  pgvarnss = ''
+  pgunits = ''
+  
+  !Short ASCII names for text output:
+  varnames(11:19) = (/'tc','t40','','','','','','',''/)
+  varnames(21:29) = (/'dl','dl','','','','','','',''/)
+  varnames(31:39) = (/'RA','dec','','','','','','',''/)
+  varnames(41:49) = (/'phase','','','','','','','',''/)
+  varnames(51:59) = (/'i','psi','th_Jo','ph_Jo','','','','',''/)
+  varnames(61:69) = (/'Mc','eta','M1','M2','','','','',''/)
+  varnames(71:79) = (/'spin1','th1','phi1','','','','','',''/)
+  varnames(81:89) = (/'spin2','th2','phi2','','','','','',''/)
+  !varnames(1:9) = (/'','','','','','','','',''/)
+  
+  
+  if(fonttype.eq.2) then  !Use 'roman-like' Greek font in PGPlot
+     
+     !Long PGPlot names (symbol + unit)
+     pgvarns(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
+     pgvarns(21:29) = (/'d\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','',''/)
+     pgvarns(31:39) = (/'\(2127) (deg)','\(2130) (deg)','','','','','','',''/)
+     pgvarns(41:49) = (/'\(2147)\dc\u (deg)','','','','','','','',''/)
+     pgvarns(51:59) = (/'\(2135) (deg)','\(2149) (deg)','\(2185)\dJ0\u (deg)','\(2147)\dJ0\u (deg)','','','','',''/)
+     pgvarns(61:69) = (/'\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
+     pgvarns(71:79) = (/'a\dspin1\u','\(2185)\d1\u (deg)','\(2147)\d1\u (deg)','','','','','',''/)
+     pgvarns(81:89) = (/'a\dspin2\u','\(2185)\d2\u (deg)','\(2147)\d2\u (deg)','','','','','',''/)
+     !pgvarns(1:9) = (/'','','','','','','','',''/)
+     
+     !Short PGPlot symbols (no unit)
+     pgvarnss(11:19) = (/'t\dc\u','t\d40\u','','','','','','',''/)
+     pgvarnss(21:29) = (/'d\dL\u\u3\d','logd\dL\u','','','','','','',''/)
+     pgvarnss(31:39) = (/'\(2127)','\(2130)','','','','','','',''/)
+     pgvarnss(41:49) = (/'\(2147)\dc\u','','','','','','','',''/)
+     pgvarnss(51:59) = (/'\(2135)','\(2149)','\(2185)\dJ0\u','\(2147)\dJ0\u','','','','',''/)
+     pgvarnss(61:69) = (/'\(2563)','\(2133)','M\d1\u','M\d2\u','','','','',''/)
+     pgvarnss(71:79) = (/'a\dspin1\u','\(2185)\d1\u','\(2147)\d1\u','','','','','',''/)
+     pgvarnss(81:89) = (/'a\dspin2\u','\(2185)\d2\u','\(2147)\d2\u','','','','','',''/)
+     !pgvarnss(1:9) = (/'','','','','','','','',''/)
+     
+  else  !Same, but replace '\(21' with \(06' for arial-like Greek font
+     
+     !Long PGPlot names (symbol + unit)
+     pgvarns(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
+     pgvarns(21:29) = (/'d\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','',''/)
+     pgvarns(31:39) = (/'\(0627) (deg)','\(0630) (deg)','','','','','','',''/)
+     pgvarns(41:49) = (/'\(0647)\dc\u (deg)','','','','','','','',''/)
+     pgvarns(51:59) = (/'\(0635) (deg)','\(0649) (deg)','\(0685)\dJ0\u (deg)','\(0647)\dJ0\u (deg)','','','','',''/)
+     pgvarns(61:69) = (/'\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
+     pgvarns(71:79) = (/'a\dspin1\u','\(0685)\d1\u (deg)','\(0647)\d1\u (deg)','','','','','',''/)
+     pgvarns(81:89) = (/'a\dspin2\u','\(0685)\d2\u (deg)','\(0647)\d2\u (deg)','','','','','',''/)
+     !pgvarns(1:9) = (/'','','','','','','','',''/)
+     
+     !Short PGPlot symbols (no unit)
+     pgvarnss(11:19) = (/'t\dc\u','t\d40\u','','','','','','',''/)
+     pgvarnss(21:29) = (/'d\dL\u','d\dL\u','','','','','','',''/)
+     pgvarnss(31:39) = (/'\(0627)','\(0630)','','','','','','',''/)
+     pgvarnss(41:49) = (/'\(0647)\dc\u','','','','','','','',''/)
+     pgvarnss(51:59) = (/'\(0635)','\(0649)','\(0685)\dJ0\u','\(0647)\dJ0\u','','','','',''/)
+     pgvarnss(61:69) = (/'\(2563)','\(0633)','M\d1\u','M\d2\u','','','','',''/)
+     pgvarnss(71:79) = (/'a\dspin1\u','\(0685)\d1\u','\(0647)\d1\u','','','','','',''/)
+     pgvarnss(81:89) = (/'a\dspin2\u','\(0685)\d2\u','\(0647)\d2\u','','','','','',''/)
+     !pgvarnss(1:9) = (/'','','','','','','','',''/)
+     
+  end if
+  
+  !PGPlot units (no names)
+  pgunits(11:19) = (/'s','s','','','','','','',''/)
+  pgunits(21:29) = (/'Mpc','Mpc','','','','','','',''/)
+  pgunits(31:39) = (/'deg','deg','','','','','','',''/)
+  pgunits(41:49) = (/'deg','','','','','','','',''/)
+  pgunits(51:59) = (/'deg','deg','deg','deg','','','','',''/)
+  pgunits(61:69) = (/'M\d\(2281)\u','','M\d\(2281)\u','M\d\(2281)\u','','','','',''/)
+  pgunits(71:79) = (/'','deg','deg','','','','','',''/)
+  pgunits(81:89) = (/'','deg','deg','','','','','',''/)
+  !pgunits(1:9) = (/'','','','','','','','',''/)
+  
+     
+end subroutine set_derivedParameterNames
+!************************************************************************************************************************************
 
 
 

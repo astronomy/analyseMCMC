@@ -2,7 +2,14 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
-    
+    78: sluys, 04/08/2009
+     - Rename pldat -> allDat, since it contains all MCMC data
+     - Rename alldat -> selDat, since it contains data after burn-in
+     - Remove original dat() array, since it's no longer double, hence 
+       identical to allDat - should save some memory
+     - Set parameter names, symbols and units using new parameter DB
+     - Do parameter conversion using parameter DB
+          
     77: sluys, 02/08/2009
      - remove support for sigma and acceptance-rate output:  analysemcmc.dat changed !!!
      - rename nchs -> maxChs,  npar1 -> maxMCMCpar, narr1 -> maxIter

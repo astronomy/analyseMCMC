@@ -10,6 +10,7 @@ module analysemcmc_settings
   integer, parameter :: nival1=9
   integer, parameter :: maxChs=20     !< Maximum number of chains that can be read
   integer, parameter :: maxMCMCpar=18 !< MaxMCMCpar: logL+MCMCpar+secondary variables, e.g. 1+12+2(M1M2) = 15 for 12 par; 18 for 15 par
+  integer, parameter :: nParDB=99     !< nParDB: size of the parameter database
   integer :: plvars(maxMCMCpar),nplvar,nbin1d,nbin2dx,nbin2dy,npdf2d,pdf2dpairs(250,2),panels(2)
   integer :: version,thin,nburn(maxChs),reverseread,update,mergechains,wrapdata,changevar,maxchlen
   integer :: file,colour,orientation,quality,fonttype
@@ -47,13 +48,13 @@ module general_data
   integer :: n(maxChs),ntot(maxChs),npar,iloglmax,icloglmax,c0,nchains,nchains0
   integer :: fixedpar(maxMCMCpar),nfixedpar,contrchains,contrchain(maxChs)
   integer :: par1,par2
-  real, allocatable :: dat(:,:,:),alldat(:,:,:),pldat(:,:,:),post(:,:),prior(:,:)
+  real, allocatable :: selDat(:,:,:),allDat(:,:,:),post(:,:),prior(:,:)
   real :: startval(maxChs,maxMCMCpar,3)
   real :: ranges(maxChs,nival1,maxMCMCpar,nr1),stats(maxChs,maxMCMCpar,nstat1),log10bayesfactor(maxChs),logebayesfactor(maxChs)
   real*8 :: rhat(maxMCMCpar)
   
-  character :: varnames(maxMCMCpar)*8,infile*99,infiles(maxChs)*99,outputname*99,outputdir*99
-  character :: pgunits(maxMCMCpar)*99,pgvarns(maxMCMCpar)*99,pgvarnss(maxMCMCpar)*99,pgorigvarns(maxMCMCpar)*99
+  character :: varnames(nParDB)*8,infile*99,infiles(maxChs)*99,outputname*99,outputdir*99
+  character :: pgunits(nParDB)*99,pgvarns(nParDB)*99,pgvarnss(nParDB)*99,pgorigvarns(nParDB)*99
   
   integer :: wrap(maxChs,maxMCMCpar)
   real :: rashift,racentre,shift(maxChs,maxMCMCpar)
@@ -68,7 +69,6 @@ module mcmcrun_data
   use general_data
   implicit none
   save
-  integer, parameter :: nParDB=99
   integer :: niter(maxChs),totiter,totlines,totpts,nburn0(maxChs),seed(maxChs),ndet(maxChs),totthin(maxChs)
   integer :: nCorr(maxChs),nTemps(maxChs),waveform,nMCMCpar,Tmax(maxChs)
   integer :: samplerate(maxChs,ndets),samplesize(maxChs,ndets),FTsize(maxChs,ndets),detnr(maxChs,ndets),offsetrun

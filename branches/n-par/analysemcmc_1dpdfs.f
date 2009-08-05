@@ -148,8 +148,8 @@ subroutine pdfs1d(exitcode)
         xmax = -1.e30
         do ic=1,nchains
            if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
-           xmin = min(xmin,minval(alldat(ic,p,1:n(ic))))
-           xmax = max(xmax,maxval(alldat(ic,p,1:n(ic))))
+           xmin = min(xmin,minval(selDat(ic,p,1:n(ic))))
+           xmax = max(xmax,maxval(selDat(ic,p,1:n(ic))))
         end do
      !end if
      dx = xmax - xmin
@@ -157,9 +157,9 @@ subroutine pdfs1d(exitcode)
      
      do ic=1,nchains
         if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
-        x(ic,1:n(ic)) = alldat(ic,p,1:n(ic))
-        xmin1 = minval(alldat(ic,p,1:n(ic)))
-        xmax1 = maxval(alldat(ic,p,1:n(ic)))
+        x(ic,1:n(ic)) = selDat(ic,p,1:n(ic))
+        xmin1 = minval(selDat(ic,p,1:n(ic)))
+        xmax1 = maxval(selDat(ic,p,1:n(ic)))
         if(wrap(ic,p).eq.0) then !Use the plotting ranges
            !xmin1 = xmin - 0.1*dx
            !xmax1 = xmax + 0.1*dx
@@ -168,7 +168,7 @@ subroutine pdfs1d(exitcode)
         call bindata1d(n(ic),x(ic,1:n(ic)),1,nbin1d,xmin1,xmax1,xbin1,ybin1)
         
         !Weight with likelihood.  I should probably do something like this at the start, to get updated ranges etc.
-        !y(ic,1:n(ic)) = alldat(ic,1,1:n(ic))
+        !y(ic,1:n(ic)) = selDat(ic,1,1:n(ic))
         !call bindata1da(n(ic),x(ic,1:n(ic)),y(ic,1:n(ic)),1,nbin1d,xmin1,xmax1,xbin1,ybin1) !Measure the amount of likelihood in each bin
         
         !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:d_l, 6:spin, 7:theta_SL, 8: RA, 9:dec,10:phase, 11:thetaJ0, 12:phiJ0, 13:alpha, 14:M1, 15:M2
@@ -367,7 +367,7 @@ subroutine pdfs1d(exitcode)
         
         !Plot max likelihood
         if(pllmax.ge.1) then
-           ply = pldat(icloglmax,p,iloglmax)
+           ply = allDat(icloglmax,p,iloglmax)
            if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) ply = rev24(ply)
            if(version.eq.1.and.(p.eq.10.or.p.eq.13) .or. version.eq.2.and.(p.eq.9.or.p.eq.13.or.p.eq.16)) ply = rev360(ply)
            if(version.eq.1.and.p.eq.12 .or. version.eq.2.and.p.eq.10) ply = rev180(ply)

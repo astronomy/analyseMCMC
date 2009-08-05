@@ -62,8 +62,8 @@ subroutine chains(exitcode)
         xmax = max(xmax,maxval(is(ic,1:ntot(ic))))
         imin = 10                                              !Take into account burn-in
         if(scloglpl.eq.1) imin = nburn(ic)                   !Scale without taking into account burnin
-        ymin = min(ymin,minval(pldat(ic,p,imin:ntot(ic)))) 
-        ymax = max(ymax,maxval(pldat(ic,p,imin:ntot(ic))))
+        ymin = min(ymin,minval(allDat(ic,p,imin:ntot(ic)))) 
+        ymax = max(ymax,maxval(allDat(ic,p,imin:ntot(ic))))
      end do
      ic = 1
      p = 1
@@ -97,7 +97,7 @@ subroutine chains(exitcode)
         !call pgsci(defcolour)
         !if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
         !do i=ic,ntot(ic),chainpli !Start at ic to reduce overplotting
-        !   call pgpoint(1,is(ic,i),pldat(ic,p,i),1)
+        !   call pgpoint(1,is(ic,i),allDat(ic,p,i),1)
         !end do
 
         !Give pre- and post-burnin different colour
@@ -105,17 +105,17 @@ subroutine chains(exitcode)
         if(nchains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
         call pgscidark(ci,file,whitebg)
         do i=ic,nburn(ic),chainpli !Start at ic to reduce overplotting
-           call pgpoint(1,is(ic,i),pldat(ic,p,i),1)
+           call pgpoint(1,is(ic,i),allDat(ic,p,i),1)
         end do
         call pgsci(ci)
         do i=nburn(ic)+ic,ntot(ic),chainpli !Start at ic to reduce overplotting
-           call pgpoint(1,is(ic,i),pldat(ic,p,i),1)
+           call pgpoint(1,is(ic,i),allDat(ic,p,i),1)
         end do
      end do
 
      !Plot max likelihood
      if(pllmax.ge.1) then
-        ply = pldat(icloglmax,p,iloglmax)
+        ply = allDat(icloglmax,p,iloglmax)
         call pgsci(1)
         call pgpoint(1,is(icloglmax,iloglmax),ply,18)
         call pgsls(5)
@@ -286,8 +286,8 @@ subroutine chains(exitcode)
            xmax = max(xmax,maxval(is(ic,1:ntot(ic))))
            imin = 1                                               !Take into account burn-in
            if(scchainspl.eq.1) imin = nburn(ic)                   !Scale without taking into account burnin
-           ymin = min(ymin,minval(pldat(ic,p,imin:ntot(ic))))
-           ymax = max(ymax,maxval(pldat(ic,p,imin:ntot(ic))))
+           ymin = min(ymin,minval(allDat(ic,p,imin:ntot(ic))))
+           ymax = max(ymax,maxval(allDat(ic,p,imin:ntot(ic))))
         end do
         
         if(changevar.gt.0) then
@@ -347,14 +347,14 @@ subroutine chains(exitcode)
            call pgsci(defcolour)
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
            if(chainsymbol.eq.0) then !Plot lines rather than symbols
-              call pgline(ntot(ic),is(ic,1:ntot(ic)),pldat(ic,p,1:ntot(ic)))
+              call pgline(ntot(ic),is(ic,1:ntot(ic)),allDat(ic,p,1:ntot(ic)))
            else
               !Give pre- and post-burnin different colour
               ci = defcolour
               if(nchains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
               call pgscidark(ci,file,whitebg)
               do i=ic,nburn(ic),chainpli !Start at ic to reduce overplotting
-                 ply = pldat(ic,p,i)
+                 ply = allDat(ic,p,i)
                  if(changevar.gt.0) then
                     if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) ply = rev24(ply)  !RA
                     if(version.eq.1.and.(p.eq.10.or.p.eq.13) .or. version.eq.2.and.(p.eq.9.or.p.eq.13.or.p.eq.16)) ply = rev360(ply)
@@ -364,7 +364,7 @@ subroutine chains(exitcode)
               end do
               call pgsci(ci)
               do i=nburn(ic)+ic,ntot(ic),chainpli !Start at ic to reduce overplotting
-                 ply = pldat(ic,p,i)
+                 ply = allDat(ic,p,i)
                  if(changevar.gt.0) then
                     if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) ply = rev24(ply)  !RA
                     if(version.eq.1.and.(p.eq.10.or.p.eq.13) .or. version.eq.2.and.(p.eq.9.or.p.eq.13.or.p.eq.16)) ply = rev360(ply)
@@ -381,7 +381,7 @@ subroutine chains(exitcode)
 
         !Plot max likelihood
         if(pllmax.ge.1) then
-           ply = pldat(icloglmax,p,iloglmax)
+           ply = allDat(icloglmax,p,iloglmax)
            if(changevar.gt.0) then
               if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) ply = rev24(ply)  !RA
               if(version.eq.1.and.(p.eq.10.or.p.eq.13) .or. version.eq.2.and.(p.eq.9.or.p.eq.13.or.p.eq.16)) ply = rev360(ply)
@@ -610,10 +610,10 @@ subroutine chains(exitcode)
         do ic=1,nchains0
            !xmin = min(xmin,minval(is(ic,nburn(ic):ntot(ic))))
            !xmax = max(xmax,maxval(is(ic,nburn(ic):ntot(ic))))
-           xmin = min(xmin,minval(pldat(ic,p,nburn(ic):ntot(ic))))
-           xmax = max(xmax,maxval(pldat(ic,p,nburn(ic):ntot(ic))))
-           ymin = min(ymin,minval(pldat(ic,1,nburn(ic):ntot(ic))))
-           ymax = max(ymax,maxval(pldat(ic,1,nburn(ic):ntot(ic))))
+           xmin = min(xmin,minval(allDat(ic,p,nburn(ic):ntot(ic))))
+           xmax = max(xmax,maxval(allDat(ic,p,nburn(ic):ntot(ic))))
+           ymin = min(ymin,minval(allDat(ic,1,nburn(ic):ntot(ic))))
+           ymax = max(ymax,maxval(allDat(ic,1,nburn(ic):ntot(ic))))
         end do
         
         if(changevar.gt.0) then
@@ -693,8 +693,8 @@ subroutine chains(exitcode)
            call pgsci(defcolour)
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
            do i=nburn(ic),ntot(ic),chainpli
-              plx = pldat(ic,p,i)
-              ply = pldat(ic,1,i)
+              plx = allDat(ic,p,i)
+              ply = allDat(ic,1,i)
               if(changevar.gt.0) then
                  if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) plx = rev24(plx)
                  if(version.eq.1.and.(p.eq.10.or.p.eq.13) .or. version.eq.2.and.(p.eq.9.or.p.eq.13.or.p.eq.16)) plx = rev360(plx)
@@ -710,13 +710,13 @@ subroutine chains(exitcode)
 
         !Plot max likelihood
         if(pllmax.ge.1) then
-           plx = pldat(icloglmax,p,iloglmax)
+           plx = allDat(icloglmax,p,iloglmax)
            if(changevar.gt.0) then
               if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) plx = rev24(plx)
               if(version.eq.1.and.(p.eq.10.or.p.eq.13) .or. version.eq.2.and.(p.eq.9.or.p.eq.13.or.p.eq.16)) plx = rev360(plx)
               if(version.eq.1.and.p.eq.12 .or. version.eq.2.and.p.eq.10) plx = rev180(plx)
            end if
-           ply = exp(pldat(icloglmax,1,iloglmax)-ymin)
+           ply = exp(allDat(icloglmax,1,iloglmax)-ymin)
            call pgsci(1)
            call pgpoint(1,plx,ply,12)
            call pgsls(5)

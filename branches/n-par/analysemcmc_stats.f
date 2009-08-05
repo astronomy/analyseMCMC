@@ -22,8 +22,8 @@ subroutine statistics(exitcode)
   !Check which parameters were fixed during the MCMC run
   fixedpar = 0
   do ic=1,nchains
-     do p=par1,par2
-        if( abs(minval(alldat(ic,p,5:n(ic))) - maxval(alldat(ic,p,5:n(ic))) ) .lt. 1.d-6) fixedpar(p) = 1  !Doesn't matter in which chain this happens
+     do p=1,nMCMCpar
+        if( abs(minval(selDat(ic,p,5:n(ic))) - maxval(selDat(ic,p,5:n(ic))) ) .lt. 1.d-6) fixedpar(p) = 1  !Doesn't matter in which chain this happens
      end do
   end do
   nfixedpar = sum(fixedpar)
@@ -42,11 +42,11 @@ subroutine statistics(exitcode)
      indexx = 0
      if(prprogress.ge.2.and.mergechains.eq.0) write(6,'(A,I2.2,A,$)')' Ch',ic,' '
      if(prprogress.ge.2.and.ic.eq.1.and.wrapdata.ge.1) write(6,'(A,$)')'  Wrap data. '
-     do p=par1,par2
+     do p=1,nMCMCpar
         if(wrapdata.eq.0 .or. &
              (version.eq.1.and.p.ne.8.and.p.ne.10.and.p.ne.12.and.p.ne.13) .or. &
              (version.eq.2.and.p.ne.6.and.p.ne.9.and.p.ne.10.and.p.ne.13.and.p.ne.16) ) then
-           call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))
+           call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
            if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) racentre = rpi !Plot 0-24h when not wrapping -> centre = 12h = pi
            cycle !No wrapping
@@ -57,19 +57,18 @@ subroutine statistics(exitcode)
         
         
         
-        !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha
         !Make sure data are between 0 and 2pi or between 0 and pi to start with:
         do i=1,n(ic)
-           if(wraptype.eq.1) alldat(ic,p,i) = rev2pi(alldat(ic,p,i)) 
-           if(wraptype.eq.2) alldat(ic,p,i) = rrevpi(alldat(ic,p,i)) !Pol.angle
+           if(wraptype.eq.1) selDat(ic,p,i) = rev2pi(selDat(ic,p,i)) 
+           if(wraptype.eq.2) selDat(ic,p,i) = rrevpi(selDat(ic,p,i)) !Pol.angle
         end do
-        call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))
+        call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))
         indexx(p,1:n(ic)) = index1(1:n(ic))
         
         minrange = 1.e30
         do i=1,n(ic)
-           x1 = alldat(ic,p,indexx(p,i))
-           x2 = alldat(ic,p,indexx(p,mod(i+nint(n(ic)*wrapival)-1,n(ic))+1))
+           x1 = selDat(ic,p,indexx(p,i))
+           x2 = selDat(ic,p,indexx(p,mod(i+nint(n(ic)*wrapival)-1,n(ic))+1))
            if(wraptype.eq.1) range1 = mod(x2 - x1 + real(20*pi),rtpi)
            if(wraptype.eq.2) range1 = mod(x2 - x1 + real(10*pi),rpi)
            if(range1.lt.minrange) then
@@ -98,22 +97,22 @@ subroutine statistics(exitcode)
         
         !See whether there's a gap in the data.  WHY is this necessary, should it work like this???
         if(wrap(ic,p).eq.0 .and. 1.eq.2) then
-           !ymin = minval(alldat(ic,p,1:n(ic)))
-           !ymax = maxval(alldat(ic,p,1:n(ic)))
+           !ymin = minval(selDat(ic,p,1:n(ic)))
+           !ymax = maxval(selDat(ic,p,1:n(ic)))
            i0 = -1
            maxgap = -1.e30
            !write(6,'(2I3,I8)')ic,p,n(ic)
            do i=1,n(ic)-1
-              x1 = alldat(ic,p,indexx(p,i))
-              x2 = alldat(ic,p,indexx(p,i+1))
+              x1 = selDat(ic,p,indexx(p,i))
+              x2 = selDat(ic,p,indexx(p,i+1))
               !write(6,'(2I3,2I8,4F10.5)')ic,p,i,i0,x1,x2,x2-x2,maxgap
               if(x2-x1.gt.maxgap) then
                  maxgap = x2-x1
                  i0 = i
               end if
            end do !i
-           x1 = alldat(ic,p,indexx(p,i0))
-           x2 = alldat(ic,p,indexx(p,i0+1))
+           x1 = selDat(ic,p,indexx(p,i0))
+           x2 = selDat(ic,p,indexx(p,i0+1))
            !if(maxgap.gt.2*tpi/sqrt(real(n(ic)))) then
            if(maxgap.gt.0.1) then 
               x0 = (x1+x2)/2.
@@ -134,8 +133,8 @@ subroutine statistics(exitcode)
         if(version.eq.2.and.p.eq.6.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
         
         !Do the actual wrapping:
-        alldat(ic,p,1:n(ic))   = mod(alldat(ic,p,1:n(ic))   + shift(ic,p), shival) - shift(ic,p)
-        pldat(ic,p,1:ntot(ic)) = mod(pldat(ic,p,1:ntot(ic)) + shift(ic,p), shival) - shift(ic,p)   !Original data
+        selDat(ic,p,1:n(ic))   = mod(selDat(ic,p,1:n(ic))   + shift(ic,p), shival) - shift(ic,p)
+        allDat(ic,p,1:ntot(ic)) = mod(allDat(ic,p,1:ntot(ic)) + shift(ic,p), shival) - shift(ic,p)   !Original data
         startval(ic,p,1:3)     = mod(startval(ic,p,1:3)     + shift(ic,p), shival) - shift(ic,p)   !True, starting and Lmax values
         y1 = mod(y1 + shift(ic,p), shival) - shift(ic,p)
         y2 = mod(y2 + shift(ic,p), shival) - shift(ic,p)
@@ -147,11 +146,11 @@ subroutine statistics(exitcode)
         end if
         
         minrange = y2-y1
-        !call rindexx(n(ic),alldat(ic,p,1:n(ic)),indexx(p,1:n(ic)))  !Re-sort
-        call rindexx(n(ic),alldat(ic,p,1:n(ic)),index1(1:n(ic)))  !Re-sort
+        !call rindexx(n(ic),selDat(ic,p,1:n(ic)),indexx(p,1:n(ic)))  !Re-sort
+        call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))  !Re-sort
         indexx(p,1:n(ic)) = index1(1:n(ic))
         
-        if(abs( abs( minval(alldat(ic,p,1:n(ic))) - maxval(alldat(ic,p,1:n(ic))) ) - shival) .lt. 1.e-3)  wrap(ic,p) = 1   !If centre is around shival2, still needs to be flagged 'wrap' to plot PDF
+        if(abs( abs( minval(selDat(ic,p,1:n(ic))) - maxval(selDat(ic,p,1:n(ic))) ) - shival) .lt. 1.e-3)  wrap(ic,p) = 1   !If centre is around shival2, still needs to be flagged 'wrap' to plot PDF
      end do !p
      
      
@@ -159,23 +158,23 @@ subroutine statistics(exitcode)
      !Do statistics
      !if(prprogress.ge.2) write(6,'(A)')' Calculating: statistics...'
      if(prprogress.ge.1.and.ic.eq.1) write(6,'(A,$)')'  Calc: stats, '
-     do p=par1,par2
+     do p=1,nMCMCpar
         !Determine the median
-        if(mod(n(ic),2).eq.0) medians(p) = 0.5*(alldat(ic,p,indexx(p,n(ic)/2)) + alldat(ic,p,indexx(p,n(ic)/2+1)))
-        if(mod(n(ic),2).eq.1) medians(p) = alldat(ic,p,indexx(p,(n(ic)+1)/2))
+        if(mod(n(ic),2).eq.0) medians(p) = 0.5*(selDat(ic,p,indexx(p,n(ic)/2)) + selDat(ic,p,indexx(p,n(ic)/2+1)))
+        if(mod(n(ic),2).eq.1) medians(p) = selDat(ic,p,indexx(p,(n(ic)+1)/2))
         
         !Mean:
-        mean(p) = sum(alldat(ic,p,1:n(ic)))/real(n(ic))
+        mean(p) = sum(selDat(ic,p,1:n(ic)))/real(n(ic))
         
         !Variances, etc:
         var1(p)=0.; var2(p)=0.; absvar1(p)=0.; absvar2(p)=0.; stdev1(p)=0.; stdev2(p)=0.
         do i=1,n(ic)
-           var1(p) = var1(p) + (alldat(ic,p,i) - medians(p))**2
-           var2(p) = var2(p) + (alldat(ic,p,i) - mean(p))**2
-           absvar1(p) = absvar1(p) + abs(alldat(ic,p,i) - medians(p))
-           absvar2(p) = absvar2(p) + abs(alldat(ic,p,i) - mean(p))
-           stdev1(p) = stdev1(p) + (alldat(ic,p,i) - medians(p))**2
-           stdev2(p) = stdev2(p) + (alldat(ic,p,i) - mean(p))**2
+           var1(p) = var1(p) + (selDat(ic,p,i) - medians(p))**2
+           var2(p) = var2(p) + (selDat(ic,p,i) - mean(p))**2
+           absvar1(p) = absvar1(p) + abs(selDat(ic,p,i) - medians(p))
+           absvar2(p) = absvar2(p) + abs(selDat(ic,p,i) - mean(p))
+           stdev1(p) = stdev1(p) + (selDat(ic,p,i) - medians(p))**2
+           stdev2(p) = stdev2(p) + (selDat(ic,p,i) - mean(p))**2
         end do
         
         absvar1(p) = absvar1(p)/real(n(ic))
@@ -204,8 +203,8 @@ subroutine statistics(exitcode)
               corrs(p1,p2) = 0.
               if(fixedpar(p1)+fixedpar(p2).eq.0) then
                  do i=1,n(ic)
-                    !corrs(p1,p2) = corrs(p1,p2) + (alldat(ic,p1,i) - medians(p1))*(alldat(ic,p2,i) - medians(p2))  !Use median
-                    corrs(p1,p2) = corrs(p1,p2) + (alldat(ic,p1,i) - mean(p1))*(alldat(ic,p2,i) - mean(p2)) !Use mean; hardly differs from median method
+                    !corrs(p1,p2) = corrs(p1,p2) + (selDat(ic,p1,i) - medians(p1))*(selDat(ic,p2,i) - medians(p2))  !Use median
+                    corrs(p1,p2) = corrs(p1,p2) + (selDat(ic,p1,i) - mean(p1))*(selDat(ic,p2,i) - mean(p2)) !Use mean; hardly differs from median method
                  end do
                  !corrs(p1,p2) = corrs(p1,p2) / (stdev1(p1)*stdev1(p2)*(n(ic)-1))  !Use median
                  corrs(p1,p2) = corrs(p1,p2) / (stdev2(p1)*stdev2(p2)*(n(ic)-1))  !Use mean
@@ -220,14 +219,14 @@ subroutine statistics(exitcode)
         !write(6,'(A)')' Calculating autocorrelations...'
         if(prprogress.ge.1) write(6,'(A,$)')' autocorrs, '
         j1 = placorr/100 !Step size to get 100 autocorrelations per var
-        do p=par1,par2
+        do p=1,nMCMCpar
            acorrs(ic,p,:) = 0.
            !do j=1,ntot(ic)-1
            !do j=1,min(placorr,ntot(ic)-1)
            do j=0,min(100,ntot(ic)-1)
               do i=1,ntot(ic)-j*j1
-                 acorrs(ic,p,j) = acorrs(ic,p,j) + (pldat(ic,p,i) - medians(p))*(pldat(ic,p,i+j*j1) - medians(p))
-                 !acorrs(p,j) = acorrs(ic,p,j) + (pldat(ic,p,i) - mean(p))*(pldat(ic,p,i+j*j1) - mean(p))
+                 acorrs(ic,p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - medians(p))*(allDat(ic,p,i+j*j1) - medians(p))
+                 !acorrs(p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - mean(p))*(allDat(ic,p,i+j*j1) - mean(p))
               end do
               !if(j.eq.0) write(6,'(3I6,A,4F9.3)')j1,j,j*j1,'  '//varnames(p),acorrs(ic,0,j),acorrs(ic,p,j),(stdev1(p)*stdev1(p)*(ntot(ic)-j*j1)),acorrs(ic,p,0)
               acorrs(ic,0,j) = real(j*j1)
@@ -252,14 +251,14 @@ subroutine statistics(exitcode)
         
         if(prprogress.ge.1.and.ic.eq.1) write(6,'(F6.3,$)')ival
         !print*,par1,par2
-        do p=par1,par2
+        do p=1,nMCMCpar
         !do p=2,2
-           !print*,p,minval(alldat(ic,p,1:n(ic))),maxval(alldat(ic,p,1:n(ic)))
+           !print*,p,minval(selDat(ic,p,1:n(ic))),maxval(selDat(ic,p,1:n(ic)))
            minrange = 1.e30
            !write(6,'(A8,4x,4F10.5,I4)')varnames(p),y1,y2,minrange,centre,wrap(ic,p)
            do i=1,floor(n(ic)*(1.-ival))
-              x1 = alldat(ic,p,indexx(p,i))
-              x2 = alldat(ic,p,indexx(p,i+floor(n(ic)*ival)))
+              x1 = selDat(ic,p,indexx(p,i))
+              x2 = selDat(ic,p,indexx(p,i+floor(n(ic)*ival)))
               range1 = abs(x2 - x1)
               !range1 = x2 - x1
               if(range1.lt.minrange) then
@@ -303,11 +302,11 @@ subroutine statistics(exitcode)
      maxlogl = -1.e30
      minlogl =  1.e30
      do i=1,n(ic)
-        var = alldat(ic,p,i)          !Use quadruple precision
+        var = selDat(ic,p,i)          !Use quadruple precision
         total = total + exp(-var)
         !write(6,'(2ES15.5)')var,exp(-var)
-        maxlogl = max(alldat(ic,p,i),maxlogl)
-        minlogl = min(alldat(ic,p,i),minlogl)
+        maxlogl = max(selDat(ic,p,i),maxlogl)
+        minlogl = min(selDat(ic,p,i),minlogl)
      end do
      var = dble(n(ic))/total
      log10bayesfactor(ic) = real(log10(var))
@@ -333,22 +332,22 @@ subroutine statistics(exitcode)
      
      
      !Change variables
-     !Columns in alldat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:longi, 7:sinlati:, 8:phase, 9:spin,   10:kappa,     11:sinthJ0, 12:phiJ0, 13:alpha
-     if(version.eq.1.and.changevar.ge.1) then
+     if(changevar.ge.1) then
         if(prprogress.ge.1.and.ic.eq.i.and.update.eq.0) write(6,'(A,$)')'.  Change vars. '
-        do p=par1,par2
-           if(p.eq.5) then !Distance
+        do p=1,nMCMCpar
+           !CHECK: need d^3!
+           if(parID(p).eq.22) then !Take exp
               stdev1(p) = stdev1(p)*exp(stats(ic,p,1))  !Median  For exponential function y = exp(x), sig_y = exp(x) sig_x
               stdev2(p) = stdev2(p)*exp(stats(ic,p,2))  !Mean
-              alldat(ic,p,1:n(ic)) = exp(alldat(ic,p,1:n(ic)))     !logD -> Distance
+              selDat(ic,p,1:n(ic)) = exp(selDat(ic,p,1:n(ic)))     !logD -> Distance
               if(ic.eq.1) startval(1:nchains0,p,1:3) = exp(startval(1:nchains0,p,1:3))
               stats(ic,p,1:nstat) = exp(stats(ic,p,1:nstat))
               ranges(ic,1:nival,p,1:nr) = exp(ranges(ic,1:nival,p,1:nr))
            end if
-           if(p.eq.7) then !Kappa -> theta_SL
+           if(parID(p).eq.51.or.parID(p).eq.72.or.parID(p).eq.82) then !cos -> deg
               stdev1(p) = abs(-1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
               stdev2(p) = abs(-1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
-              alldat(ic,p,1:n(ic)) = acos(alldat(ic,p,1:n(ic)))*rr2d
+              selDat(ic,p,1:n(ic)) = acos(selDat(ic,p,1:n(ic)))*rr2d
               if(ic.eq.1) startval(1:nchains0,p,1:3) = acos(startval(1:nchains0,p,1:3))*rr2d
               stats(ic,p,1:nstat) = acos(stats(ic,p,1:nstat))*rr2d
               ranges(ic,1:nival,p,1:nr) = acos(ranges(ic,1:nival,p,1:nr))*rr2d
@@ -358,187 +357,51 @@ subroutine statistics(exitcode)
                  ranges(ic,c,p,1) = y1
               end do
            end if
-           if(p.eq.8) then !RA
+           if(parID(p).eq.31) then !rad -> h
               stdev1(p) = stdev1(p)*rr2h
               stdev2(p) = stdev2(p)*rr2h
-              alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*rr2h
+              selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2h
               if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*rr2h
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2h
               ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*rr2h
            end if
-           !if(p.eq.9.or.p.eq.11) then  !Declination or theta_Jo
-           if(p.eq.9) then  !Declination                                                               
+           if(parID(p).eq.32.or.parID(p).eq.53) then !sin -> deg
               stdev1(p) = abs(1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
               stdev2(p) = abs(1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
-              alldat(ic,p,1:n(ic)) = asin(alldat(ic,p,1:n(ic)))*rr2d
+              selDat(ic,p,1:n(ic)) = asin(selDat(ic,p,1:n(ic)))*rr2d
               if(ic.eq.1) startval(1:nchains0,p,1:3) = asin(startval(1:nchains0,p,1:3))*rr2d
               stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*rr2d
               ranges(ic,1:nival,p,1:nr) = asin(ranges(ic,1:nival,p,1:nr))*rr2d
            end if
-           !if(p.eq.10.or.p.eq.12.or.p.eq.13) then  !hi_c, phi_Jo, alpha_c
-           if(p.ge.10.and.p.le.13) then  !Phi_c, incl, pol.ang, alpha_c
+           if(parID(p).eq.41.or.parID(p).eq.52.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) then  !rad -> deg
               stdev1(p) = stdev1(p)*rr2d
               stdev2(p) = stdev2(p)*rr2d
-              alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*rr2d
+              selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2d
               if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*rr2d
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2d
               ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*rr2d
            end if
+           
            ranges(ic,1:nival,p,3) = 0.5*(ranges(ic,1:nival,p,1) + ranges(ic,1:nival,p,2))
            ranges(ic,1:nival,p,4) = ranges(ic,1:nival,p,2) - ranges(ic,1:nival,p,1)
            ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)
-           !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)/ranges(ic,1:nival,p,3)
            if(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)/ranges(ic,1:nival,p,3)
         end do !p
         
-        !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:dl, 6:spin,  7:theta_SL, 8: RA,   9:dec, 10:phase, 11:incl, 12:pol.ang., 13:alpha
-        if(fonttype.eq.2) then  !Use 'roman-like' Greek font
-           varnames(1:15) = (/'logL','Mc','eta','tc','dl','spin','th_SL','RA','Dec','phase','incl','p.ang','alpha','M1','M2'/)
-           !pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',  &
-           !     'd\dL\u (Mpc)          ','a\dspin\u             ','\(2185)\dSL\u(\(2218))','\(2127) (h)           ','\(2130) (\(2218))     ', &
-           !     '\(2147)\dc\u (\(2218))','\(2135)\dJ0\u','\(2149)\dJ\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
-           !!Include units
-           !pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2185)\dSL\u (\(2218))','\(2127) (h)','\(2130) (\(2218))','\(2147)\dc\u (\(2218))',  &
-           !     '\(2135)\dJ0\u (\(2218))','\(2149)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
-           !Replace RA and Dec with alpha, delta, d_L -> d
-           pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',  &
-                'd\dL\u (Mpc)          ','a\dspin1\u            ','\(2185)\dspin1\u(\(2218))','\(2127) (h)','\(2130) (\(2218))        ', &
-                '\(2147)\dc\u (\(2218))','\(2135)\dJ0\u','\(2149)\dJ\u (\(2218))','\(2147)\dspin1\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
-           !Include units
-           pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin1\u','\(2185)\dspin1\u (\(2218))','\(2127) (h)','\(2130) (\(2218))','\(2147)\dc\u (\(2218))',  &
-                '\(2135)\dJ0\u (\(2218))','\(2149)\dJ0\u (\(2218))','\(2147)\dspin1\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
-           !Units only
-           pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
-        else  !Same, but replace '\(06' with \(06' for arial-like Greek font
-           varnames(1:15) = (/'logL','Mc','eta','tc','dl','spin','th_SL','RA','Dec','phase','incl','p.ang','alpha','M1','M2'/)
-           !pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\dc\u (s)            ',  &
-           !     'd\dL\u (Mpc)          ','a\dspin\u             ','\(0685)\dSL\u(\(2218))','\(0627) (h)           ','\(0630) (\(2218))     ', &
-           !     '\(0647)\dc\u (\(2218))','\(0635)\dJ0\u','\(0649)\dJ\u (\(2218))','\(0627)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
-           !!Include units
-           !pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(0633)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(0685)\dSL\u (\(2218))','\(0627) (h)','\(0630) (\(2218))','\(0647)\dc\u (\(2218))',  &
-           !     '\(0635)\dJ0\u (\(2218))','\(0649)\dJ0\u (\(2218))','\(0627)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
-           !Replace RA and Dec with alpha, delta, d_L -> d
-           pgvarns(1:15)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\dc\u (s)            ',  &
-                'd\dL\u (Mpc)          ','a\dspin1\u             ','\(0685)\dspin1\u(\(2218))','\(0627) (h)','\(0630) (\(2218))        ', &
-                '\(0647)\dc\u (\(2218))','\(0635)\dJ0\u','\(0649)\dJ\u (\(2218))','\(0647)\dspin1\u (\(2218))','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  '/)
-           !Include units
-           pgvarnss(1:15)  = (/'log L','\(2563) (M\d\(2281)\u)','\(0633)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin1\u','\(0685)\dspin1\u (\(2218))','\(0627) (h)','\(0630) (\(2218))','\(0647)\dc\u (\(2218))',  &
-                '\(0635)\dJ0\u (\(2218))','\(0649)\dJ0\u (\(2218))','\(0647)\dspin1\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)'/)
-           !Units only
-           pgunits(1:15)  = (/'','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u'/)
-        end if
-     end if !if(changevar.ge.1.and.version.eq.1)
-     
-     
-     !Change variables
-     !Columns in alldat(): 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:RA, 7:sindec:, 8:cosi, 9:phase, 10:psi,   11:spin1, 12:phi1, 13:theta1,   14:spin2, 15:phi2, 16:theta2
-     if(version.eq.2.and.changevar.ge.1) then
-        if(prprogress.ge.1.and.ic.eq.i.and.update.eq.0) write(6,'(A,$)')'.  Change vars. '
-        do p=par1,par2
-           if(p.eq.5) then !exp: Distance
-              stdev1(p) = stdev1(p)*exp(stats(ic,p,1))  !Median  For exponential function y = exp(x), sig_y = exp(x) sig_x
-              stdev2(p) = stdev2(p)*exp(stats(ic,p,2))  !Mean
-              alldat(ic,p,1:n(ic)) = exp(alldat(ic,p,1:n(ic)))     !logD -> Distance
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = exp(startval(1:nchains0,p,1:3))
-              stats(ic,p,1:nstat) = exp(stats(ic,p,1:nstat))
-              ranges(ic,1:nival,p,1:nr) = exp(ranges(ic,1:nival,p,1:nr))
-           end if
-           if(p.eq.8.or.p.eq.12.or.p.eq.15) then !arccos: cosi,costheta1,costheta2
-           !if(p.eq.8) then !arccos: cosi
-              stdev1(p) = abs(-1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
-              stdev2(p) = abs(-1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
-              alldat(ic,p,1:n(ic)) = acos(alldat(ic,p,1:n(ic)))*rr2d
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = acos(startval(1:nchains0,p,1:3))*rr2d
-              stats(ic,p,1:nstat) = acos(stats(ic,p,1:nstat))*rr2d
-              ranges(ic,1:nival,p,1:nr) = acos(ranges(ic,1:nival,p,1:nr))*rr2d
-              do c=1,nival
-                 y1 = ranges(ic,c,p,2)
-                 ranges(ic,c,p,2) = ranges(ic,c,p,1)  !acos is monotonously decreasing
-                 ranges(ic,c,p,1) = y1
-              end do
-           end if
-           if(p.eq.6) then !rad2hr: RA
-              stdev1(p) = stdev1(p)*rr2h
-              stdev2(p) = stdev2(p)*rr2h
-              alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*rr2h
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*rr2h
-              stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2h
-              ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*rr2h
-           end if
-           if(p.eq.7) then  !arcsine: Declination                                                               
-              stdev1(p) = abs(1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
-              stdev2(p) = abs(1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
-              alldat(ic,p,1:n(ic)) = asin(alldat(ic,p,1:n(ic)))*rr2d
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = asin(startval(1:nchains0,p,1:3))*rr2d
-              stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*rr2d
-              ranges(ic,1:nival,p,1:nr) = asin(ranges(ic,1:nival,p,1:nr))*rr2d
-           end if
-           if(p.eq.9.or.p.eq.10.or.p.eq.13.or.p.eq.16) then  !rad2deg: phi_c, psi, phi1, phi2
-              stdev1(p) = stdev1(p)*rr2d
-              stdev2(p) = stdev2(p)*rr2d
-              alldat(ic,p,1:n(ic)) = alldat(ic,p,1:n(ic))*rr2d
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*rr2d
-              stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2d
-              ranges(ic,1:nival,p,1:nr) = ranges(ic,1:nival,p,1:nr)*rr2d
-           end if
-           ranges(ic,1:nival,p,3) = 0.5*(ranges(ic,1:nival,p,1) + ranges(ic,1:nival,p,2))
-           ranges(ic,1:nival,p,4) = ranges(ic,1:nival,p,2) - ranges(ic,1:nival,p,1)
-           ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)
-           !if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
-           if(p.eq.2.or.p.eq.5) ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)/ranges(ic,1:nival,p,3)
-        end do !p
+        !Change the parameter names:
+        call set_derivedParameterNames()
         
-        !Columns: 1:logL, 2:Mc, 3:eta, 4:tc, 5:logdl,   6:RA, 7:sindec:, 8:cosi, 9:phase, 10:psi,   11:spin1, 12:phi1, 13:theta1,   14:spin2, 15:phi2, 16:theta2
-        if(fonttype.eq.2) then  !Use 'roman-like' Greek font
-           varnames(1:16) = (/'logL','Mc','eta','t0','d_L','RA','Dec','incl','phase','psi','spin1','th1','phi1','spin2','th2','phi2'/)
-           !pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\d0\u (s)            ', &
-           !     'd\dL\u (Mpc)          ','\(2127) (h)           ','\(2130) (\(2218))     ','\(2135) (\(2218))     ', &
-           !     '\(2147)\dc\u (\(2218))','\(2149) (\(2218))     ','a\dspin1\u            ','\(2185)\d1\u (\(2218))', &
-           !     '\(2147)\d1\u (\(2218))','a\dspin2\u            ','\(2185)\d2\u (\(2218))','\(2147)\d2\u (\(2218))'/)
-           !pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(2133)','t\dc\u','d\dL\u','\(2127)','\(2130)','\(2135)','\(2147)\dc\u', '\(2149)', &
-           !     'a\dspin1\u','\(2185)\d1\u','\(2147)\d1\u','a\dspin2\u','\(2185)\d2\u','\(2147)\d2\u'/)
-           !Replace RA and Dec with alpha,delta
-           pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(2133)               ','t\d0\u (s)            ', &
-                'd\dL\u (Mpc)          ','\(2127) (h)           ','\(2130) (\(2218))     ','\(2135) (\(2218))     ', &
-                '\(2147)\dc\u (\(2218))','\(2149) (\(2218))     ','a\dspin1\u            ','\(2185)\d1\u (\(2218))', &
-                '\(2147)\d1\u (\(2218))','a\dspin2\u            ','\(2185)\d2\u (\(2218))','\(2147)\d2\u (\(2218))'/)
-           pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(2133)','t\dc\u','d\dL\u','\(2127)','\(2130)','\(2135)','\(2147)\dc\u', '\(2149)', &
-                'a\dspin1\u','\(2185)\d1\u','\(2147)\d1\u','a\dspin2\u','\(2185)\d2\u','\(2147)\d2\u'/)
-           pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','h','\(2218)','\(2218)','\(2218)','\(2218)','','\(2218)','\(2218)','','\(2218)','\(2218)'/)
-        else  !Same, but replace '\(21' with \(06' for arial-like Greek font
-           varnames(1:16) = (/'logL','Mc','eta','t0','d_L','RA','Dec','incl','phase','psi','spin1','phi1','th1','spin2','phi2','th2'/)
-           !pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\d0\u (s)            ', &
-           !     'd\dL\u (Mpc)          ','\(0627) (h)           ','\(0630) (\(2218))     ','\(0635) (\(2218))     ', &
-           !     '\(0647)\dc\u (\(2218))','\(0649) (\(2218))     ','a\dspin1\u            ','\(0685)\d1\u (\(2218))', &
-           !     '\(0647)\d1\u (\(2218))','a\dspin2\u            ','\(0685)\d2\u (\(2218))','\(0647)\d2\u (\(2218))'/)
-           !pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(0633)','t\dc\u','d\dL\u','\(0627)','\(0630)','\(0635)','\(0647)\dc\u', '\(0649)', &
-           !     'a\dspin1\u','\(0685)\d1\u','\(0647)\d1\u','a\dspin2\u','\(0685)\d2\u','\(0647)\d2\u'/)
-           !Replace RA and Dec with alpha,delta
-           pgvarns(1:16)  = (/'log Likelihood        ','\(2563) (M\d\(2281)\u) ','\(0633)               ','t\d0\u (s)            ', &
-                'd\dL\u (Mpc)          ','\(0627) (h)           ','\(0630) (\(2218))     ','\(0635) (\(2218))     ', &
-                '\(0647)\dc\u (\(2218))','\(0649) (\(2218))     ','a\dspin1\u            ','\(0685)\d1\u (\(2218))', &
-                '\(0647)\d1\u (\(2218))','a\dspin2\u            ','\(0685)\d2\u (\(2218))','\(0647)\d2\u (\(2218))'/)
-           pgvarnss(1:16)  = (/'log L    ','\(2563) ','\(0633)','t\dc\u','d\dL\u','\(0627)','\(0630)','\(0635)','\(0647)\dc\u', '\(0649)', &
-                'a\dspin1\u','\(0685)\d1\u','\(0647)\d1\u','a\dspin2\u','\(0685)\d2\u','\(0647)\d2\u'/)
-           pgunits(1:16)  = (/'','M\d\(2281)\u ','','s','Mpc','h','\(2218)','\(2218)','\(2218)','\(2218)','','\(2218)','\(2218)','','\(2218)','\(2218)'/)
-        end if
-     end if !if(version.eq.2.and.changevar.ge.1)
-     
-     
-     
-     
-     
-     
+     end if !if(changevar.ge.1.and.version.eq.1)
      
      
      !Find 100% probability range
      do c = 1,nival
         if(abs(ivals(c)-1.).lt.1.e-4) then !Then treat it as a 100% interval to prevent numerical problems
            if(prprogress.ge.1) write(6,'(A,F9.4,A)')'  Treating probability interval',ivals(c)*100,'% as 100%'
-           do p=par1,par2
+           do p=1,nMCMCpar
               if(p.eq.1) cycle
-              ranges(ic,c,p,1) = minval(alldat(ic,p,1:n(ic)))
-              ranges(ic,c,p,2) = maxval(alldat(ic,p,1:n(ic)))
+              ranges(ic,c,p,1) = minval(selDat(ic,p,1:n(ic)))
+              ranges(ic,c,p,2) = maxval(selDat(ic,p,1:n(ic)))
               ranges(ic,c,p,3) = 0.5*(ranges(ic,c,p,1) + ranges(ic,c,p,2))
               ranges(ic,c,p,4) = ranges(ic,c,p,2) - ranges(ic,c,p,1)
               ranges(ic,c,p,5) = ranges(ic,c,p,4)
@@ -594,11 +457,10 @@ subroutine statistics(exitcode)
            if(c.gt.1.and.prstat.ge.2) write(o,*)
            write(o,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)')'param.','model','median','mean','Lmax','stdev1','stdev2','abvar1','abvar2',  &
                 'rng_c','rng1','rng2','drng','d/drng','delta','ok?','result (',ivals(c)*100,'%)'
-           do p=par1,par2
+           do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle !Parameter was not fitted
-              write(o,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4,$)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absvar1(p),  &
+              write(o,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4,$)')varnames(parID(p)),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absvar1(p),  &
                    absvar2(p),ranges(ic,c,p,3),ranges(ic,c,p,1),ranges(ic,c,p,2),ranges(ic,c,p,4),  &
-                   !abs(startval(ic,p,1)-stats(ic,p,1))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt median
                    2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt centre of range
               if(startval(ic,p,1).ge.ranges(ic,c,p,1).and.startval(ic,p,1).le.ranges(ic,c,p,2)) then
                  write(o,'(A4,$)')'y '
@@ -608,7 +470,7 @@ subroutine statistics(exitcode)
               write(o,'(F10.4,A3,F9.4)')ranges(ic,c,p,3),'+-',0.5*ranges(ic,c,p,4)
            end do !p
         end do !c
-     end if 
+     end if
      
      
      !Print intervals as: centre, delta, in range:
@@ -626,7 +488,7 @@ subroutine statistics(exitcode)
            write(o,'(2x,3A9,$)')'centre','delta','in rnge'
         end do
         write(o,*)''
-        do p=par1,par2
+        do p=1,nMCMCpar
            !if(stdev1(p).lt.1.d-20) cycle
            if(fixedpar(p).eq.1) cycle
            write(o,'(A10,2x,2F9.4,$)')varnames(p),startval(ic,p,1),stats(ic,p,1)
@@ -738,7 +600,7 @@ subroutine statistics(exitcode)
         write(o,'(/,A,$)')'  Correlations  '
         write(o,'(A,3(F4.2,A))')'  (weak [',corr1,'<abs(cor)<',corr2,']: in lower triangle,  strong [abs(cor)>',corr2,']: in upper triangle):'
         write(o,'(A8,$)')''
-        do p=par1,par2
+        do p=1,nMCMCpar
            !if(stdev1(p).gt.1.d-20) write(o,'(A7,$)')trim(varnames(p))
            if(fixedpar(p).eq.0) write(o,'(A7,$)')trim(varnames(p))
         end do
@@ -786,8 +648,27 @@ subroutine statistics(exitcode)
   
   
   !Compute convergence
-  if(nchains0.gt.1 .and. (prconv.ge.1.or.savestats.ge.1)) call compute_convergence()
-     
+  if(nchains0.gt.1 .and. (prconv.ge.1.or.savestats.ge.1)) call compute_convergence()  !Need unwrapped data for this (?)
+  
+  
+  !Change the original chain data
+  if(changevar.ge.1) then
+     do ic=1,nchains0
+        do p=1,nMCMCpar
+           if(parID(p).eq.21) allDat(ic,p,1:ntot(ic)) = allDat(ic,p,1:ntot(ic))**c3rd  !^(1/3)
+           if(parID(p).eq.22) allDat(ic,p,1:ntot(ic)) = exp(allDat(ic,p,1:ntot(ic)))   !exp
+           if(parID(p).eq.51.or.parID(p).eq.72.or.parID(p).eq.82) allDat(ic,p,1:ntot(ic)) = acos(allDat(ic,p,1:ntot(ic)))*r2d  !acos -> deg
+           if(parID(p).eq.31) allDat(ic,p,1:ntot(ic)) = allDat(ic,p,1:ntot(ic))*r2h  !rad -> h
+           if(parID(p).eq.32.or.parID(p).eq.53) allDat(ic,p,1:ntot(ic)) = asin(allDat(ic,p,1:ntot(ic)))*r2d  !asin -> deg
+           if(parID(p).eq.41.or.parID(p).eq.52.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) allDat(ic,p,1:ntot(ic)) = allDat(ic,p,1:ntot(ic))*r2d  !rad -> deg
+        end do !p
+     end do
+  end if !if(changevar.ge.1)
+  
+  
+  
+  
+  
 end subroutine statistics
 !***********************************************************************************************************************************
 
@@ -832,7 +713,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
   write(o,'(A,2I3)')'Npar,ncol:',par2-par1+1,7
   write(o,'(A8,7A12)')'param.','model','median','mean','stdev1','stdev2','abvar1','abvar2'
   
-  do p=par1,par2
+  do p=1,nMCMCpar
      if(fixedpar(p).eq.0) then
         write(o,'(A8,7F12.6)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),stdev1(p),stdev2(p),absvar1(p),absvar2(p)
      else
@@ -846,7 +727,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
   write(o,'(//,A,/)')'CORRELATIONS:'
   write(o,'(A,I3)')'Npar:',par2-par1+1
   write(o,'(A9,$)')''
-  do p=par1,par2
+  do p=1,nMCMCpar
      write(o,'(A10,$)')trim(varnames(p))
   end do
   write(o,*)''
@@ -874,7 +755,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
      write(o,'(2x,2A12,A9,$)')'centre','delta','in rnge'
   end do
   write(o,*)''
-  do p=par1,par2
+  do p=1,nMCMCpar
      write(o,'(A8,2x,$)')trim(varnames(p))
      do c=1,nival
         !write(o,'(2x,2F11.6,F6.3,$)')ranges(ic,c,p,1),ranges(ic,c,p,2),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
@@ -1251,7 +1132,8 @@ end subroutine save_cbc_wiki_data
 !!    http://www.jstor.org/pss/1390675 (for purchase)
 !!    http://www.stat.columbia.edu/~gelman/research/published/brooksgelman.pdf (Author's website)
 !!    See Eq.1.1,  where:  B/n := totvar  and  W := chvar
-!!  Todo:  use only data selected after (auto)burnin
+!!  \todo:  use only data selected after (auto)burnin
+!!  \todo:  do we need unwrapped data for this?
 !<
 !***********************************************************************************************************************************
 subroutine compute_convergence()
@@ -1274,10 +1156,10 @@ subroutine compute_convergence()
   totmean = 1.d-30
   nn = minval(ntot(1:nchains0))/2
   
-  do p=par1,par2
+  do p=1,nMCMCpar
      do ic=1,nchains0
         do i=nn+1,2*nn
-           chmean(ic,p) = chmean(ic,p) + dat(p,ic,i) !Can't use pldat, because it may have got wrapped earlier
+           chmean(ic,p) = chmean(ic,p) + allDat(p,ic,i) !We used to take unwrapped data for this...
         end do
         totmean(p) = totmean(p) + chmean(ic,p)
      end do
@@ -1288,10 +1170,10 @@ subroutine compute_convergence()
   chvar = 1.d-30
   chvar1 = 1.d-30
   totvar = 1.d-30
-  do p=par1,par2
+  do p=1,nMCMCpar
      do ic=1,nchains0
         do i=nn+1,2*nn
-           dx = (dat(p,ic,i) - chmean(ic,p))**2 !Can't use pldat, because it may have got wrapped earlier
+           dx = (allDat(p,ic,i) - chmean(ic,p))**2 !We used to take unwrapped data for this...
            chvar(p) = chvar(p) + dx
            chvar1(ic,p) = chvar1(ic,p) + dx !Keep track of the variance per chain
         end do
@@ -1308,7 +1190,7 @@ subroutine compute_convergence()
      write(6,*)''
      if(prconv.ge.2) write(6,'(A,I7,A)')'  Convergence parameters for',nn,' iterations:'
      write(6,'(A18,$)')''
-     do p=par1,par2
+     do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
         write(6,'(A11,$)')trim(varnames(p))
      end do
@@ -1318,14 +1200,14 @@ subroutine compute_convergence()
         write(6,'(A)')'  Means:'
         do ic=1,nchains0
            write(6,'(I16,A2,$)')ic,': '
-           do p=par1,par2
+           do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle
               write(6,'(F11.6,$)')chmean(ic,p)
            end do
            write(6,*)
         end do
         write(6,'(A18,$)')'           Total: '
-        do p=par1,par2
+        do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
            write(6,'(F11.6,$)')totmean(p)
         end do
@@ -1377,7 +1259,7 @@ subroutine compute_convergence()
   end do
   if(prconv.ge.3) then
      write(6,'(A18,$)')'  Total:          '
-     do p=par1,par2
+     do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
         write(6,'(F11.5,$)')chvar(p)
      end do
@@ -1387,13 +1269,13 @@ subroutine compute_convergence()
   if(prconv.ge.2) then
      write(6,'(A)')'  Variances:'
      write(6,'(A18,$)')'   Within chains: '
-     do p=par1,par2
+     do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
         write(6,'(ES11.3,$)')chvar(p)
      end do
      write(6,*)
      write(6,'(A18,$)')'  Between chains: '
-     do p=par1,par2
+     do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
         write(6,'(ES11.3,$)')totvar(p)
      end do
@@ -1404,7 +1286,7 @@ subroutine compute_convergence()
      write(6,'(A18,$)')'     Convergence: '
      totrhat = 1.d0
      nrhat = 0
-     do p=par1,par2
+     do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
         write(6,'(F11.5,$)')rhat(p)
         if(p.gt.1) then !Don't include logL
