@@ -1025,7 +1025,7 @@ subroutine set_derivedParameterNames()
   !PGPlot units (no names)
   pgunits(11:19) = (/'s','s','','','','','','',''/)
   pgunits(21:29) = (/'Mpc','Mpc','','','','','','',''/)
-  pgunits(31:39) = (/'h','\(2218)','','','','','','',''/)
+  pgunits(31:39) = (/'\uh\d','\(2218)','','','','','','',''/)
   pgunits(41:49) = (/'\(2218)','','','','','','','',''/)
   pgunits(51:59) = (/'\(2218)','\(2218)','\(2218)','\(2218)','','','','',''/)
   pgunits(61:69) = (/'M\d\(2281)\u','','M\d\(2281)\u','M\d\(2281)\u','','','','',''/)
@@ -1864,8 +1864,12 @@ end function posangle
 !************************************************************************
 
 
+!>
+!! Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
+!! All variables are angles (no cos, sin)
+!<
 !************************************************************************
-subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) !Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
+subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) 
   use constants
   implicit none
   !pl,ol in [0,2pi[;  pb,ob in ([-pi/2,pi/2]) now [0,pi], conf John & Christian
@@ -1874,17 +1878,23 @@ subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) !Compute the inclination and
   
   call ang2vec(pl,pb,p)       !Position normal vector
   call ang2vec(ol,ob,o)       !Orientation normal vector
+  
   !i = pi2 - dacos(dotproduct(p,o))  !Compute inclination angle: <0: points towards us, >0 points away from us
-  i = dacos(dotproduct(p,o))  !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky
-  !i = dotproduct(p,o)         !Compute cos(inclination angle): 1: points exactly away from us, -1 points exactly towards us, 0: in the plane of the sky
   !psi = polangle(p,o)         !Compute polarisation angle [-pi/2,pi/2]
+  
+  i = dacos(dotproduct(p,o))   !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky
   psi = drevpi(polangle(p,o))  !Compute polarisation angle [0,pi]
   
 end subroutine compute_incli_polang
 !************************************************************************
 
+!>
+!! Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
+!! All variables are angles (no cos, sin)
+!! Single-precision wrapper for compute_incli_polang()
+!<
 !************************************************************************
-subroutine compute_incli_polangr(plr,pbr,olr,obr, ir,psir) !Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob) - single precision I/O
+subroutine compute_incli_polangr(plr,pbr,olr,obr, ir,psir)
   implicit none
   real*8 :: pl,pb,ol,ob,i,psi
   real :: plr,pbr,olr,obr,ir,psir

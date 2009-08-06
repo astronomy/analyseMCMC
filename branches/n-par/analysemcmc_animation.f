@@ -535,7 +535,7 @@ subroutine animation(exitcode)
            call pgsch(2.)
            call pgslw(lw*2)
            
-           call pgptxt(0.5,0.15,0.0,0.5,trim(pgvarns(p)))
+           call pgptxt(0.5,0.15,0.0,0.5,trim(pgvarns(parID(p))))
            call pgslw(lw*2)
            call pgsch(1.4)
            
@@ -573,7 +573,7 @@ subroutine animation(exitcode)
         if(moviescheme.eq.1) then
            call pgsch(1.5)
            call pgslw(lw+2)
-           call pgmtxt('T',2.5,0.5,0.5,trim(pgvarns(p)))
+           call pgmtxt('T',2.5,0.5,0.5,trim(pgvarns(parID(p))))
            call pgslw(lw)
            call pgsch(1.)
            !if(iframe.gt.0) call pgmtxt('T',1.,0.5,0.5,trim(str)) 
@@ -596,7 +596,7 @@ subroutine animation(exitcode)
            call pgsch(2.)
            call pgslw(lw*2)
            
-           call pgptxt(0.5,0.15,0.0,0.5,trim(pgvarns(p)))
+           call pgptxt(0.5,0.15,0.0,0.5,trim(pgvarns(parID(p))))
            call pgslw(lw*2)
            call pgsch(1.4)
            

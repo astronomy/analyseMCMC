@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    81: sluys, 05/08/2009
+     - Bugfix at data wrapping (_stats.f)
+     - More optimisation of 1D plots
+     
     80: sluys, 05/08/2009
      - Removed version everywhere
      - Partly optimised 1D plots	

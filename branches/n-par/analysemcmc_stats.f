@@ -49,7 +49,7 @@ subroutine statistics(exitcode)
      if(prprogress.ge.2.and.ic.eq.1.and.wrapdata.ge.1) write(6,'(A,$)')'  Wrap data. '
      do p=1,nMCMCpar
         if(wrapdata.eq.0 .or. &
-             (parID(p).ne.31.and.parID(p).ne.41.or.parID(p).ne.52.or.parID(p).ne.54.or.parID(p).ne.73.or.parID(p).ne.83) ) then  !Not RA, phi_c, psi, phi_Jo, phi_1,2
+             (parID(p).ne.31.and.parID(p).ne.41.and.parID(p).ne.52.and.parID(p).ne.54.and.parID(p).ne.73.and.parID(p).ne.83) ) then  !Not RA, phi_c, psi, phi_Jo, phi_1,2
            call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
            if(parID(p).eq.31) racentre = rpi !Plot 0-24h when not wrapping -> centre = 12h = pi
@@ -101,11 +101,8 @@ subroutine statistics(exitcode)
         
         !See whether there's a gap in the data.  WHY is this necessary, should it work like this???
         if(wrap(ic,p).eq.0 .and. 1.eq.2) then
-           !ymin = minval(selDat(ic,p,1:n(ic)))
-           !ymax = maxval(selDat(ic,p,1:n(ic)))
            i0 = -1
            maxgap = -1.e30
-           !write(6,'(2I3,I8)')ic,p,n(ic)
            do i=1,n(ic)-1
               x1 = selDat(ic,p,indexx(p,i))
               x2 = selDat(ic,p,indexx(p,i+1))
@@ -136,22 +133,23 @@ subroutine statistics(exitcode)
         if(parID(p).eq.31.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
         
         !Do the actual wrapping:
-        selDat(ic,p,1:n(ic))   = mod(selDat(ic,p,1:n(ic))   + shift(ic,p), shival) - shift(ic,p)
-        allDat(ic,p,1:ntot(ic)) = mod(allDat(ic,p,1:ntot(ic)) + shift(ic,p), shival) - shift(ic,p)   !Original data
-        startval(ic,p,1:3)     = mod(startval(ic,p,1:3)     + shift(ic,p), shival) - shift(ic,p)   !True, starting and Lmax values
+        allDat(ic,p,1:ntot(ic))  = mod(allDat(ic,p,1:ntot(ic))  + shift(ic,p), shival) - shift(ic,p)   !Original data
+        selDat(ic,p,1:n(ic))     = mod(selDat(ic,p,1:n(ic))     + shift(ic,p), shival) - shift(ic,p)
+        startval(ic,p,1:3)       = mod(startval(ic,p,1:3)       + shift(ic,p), shival) - shift(ic,p)   !True, starting and Lmax values
         y1 = mod(y1 + shift(ic,p), shival) - shift(ic,p)
         y2 = mod(y2 + shift(ic,p), shival) - shift(ic,p)
-        centre = mod(centre + shift(ic,p), shival) - shift(ic,p)
         
+        centre = mod(centre + shift(ic,p), shival) - shift(ic,p)
         if(parID(p).eq.31.and.ic.eq.1) racentre = centre                             !Save RA centre to plot sky map
         
         minrange = y2-y1
-        !call rindexx(n(ic),selDat(ic,p,1:n(ic)),indexx(p,1:n(ic)))  !Re-sort
         call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))  !Re-sort
         indexx(p,1:n(ic)) = index1(1:n(ic))
         
         if(abs( abs( minval(selDat(ic,p,1:n(ic))) - maxval(selDat(ic,p,1:n(ic))) ) - shival) .lt. 1.e-3)  wrap(ic,p) = 1   !If centre is around shival2, still needs to be flagged 'wrap' to plot PDF
      end do !p
+     ! End wrapping data
+     
      
      
      

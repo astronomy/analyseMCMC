@@ -499,7 +499,7 @@ subroutine pdfs1d(exitcode)
               if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then
                  write(str,'(A)')trim(str)//'%'
               else
-                 write(str,'(A)')trim(str)//trim(pgunits(p))
+                 write(str,'(A)')trim(str)//trim(pgunits(parID(p)))
               end if
            else if(pltrue.eq.2.or.pltrue.eq.4) then  !If not plotting ranges, but do plot true values
               x0 = startval(ic,p,1)
@@ -510,7 +510,7 @@ subroutine pdfs1d(exitcode)
               if(x0.ge.1.and.x0.lt.9.995) write(str,'(F6.3)')x0
               if(x0.ge.9.995.and.x0.lt.99.9) write(str,'(F5.1)')x0
               if(x0.ge.99.9) write(str,'(F6.1)')x0
-              write(str,'(A)')'true: '//trim(str)//trim(pgunits(p))
+              write(str,'(A)')'true: '//trim(str)//trim(pgunits(parID(p)))
            end if
            
            
