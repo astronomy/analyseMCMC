@@ -519,7 +519,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   use chain_data
   use plot_data
   implicit none
-  integer :: i,ic,j,exitcode,maxLine
+  integer :: i,ic,j,p,exitcode,maxLine
   real :: avgtotthin
   real*8 :: lon2ra,gmst
   
@@ -737,24 +737,51 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   offsetrun = 0
   if(prinitial.ne.0) then
      write(6,'(/,A)')'  True, starting and Lmax values for the chains:'
-     write(6,'(11x,A20,14A10)')varnames(1:15)
+     write(6,'(5x,A10,$)')''
+     do p=1,nMCMCpar
+        write(6,'(A10,$)')trim(varnames(parID(p)))
+     end do
+     write(6,*)
   end if
+  
   do ic=1,nchains
      startval(ic,1:nMCMCpar,1:2)  = allDat(ic,1:nMCMCpar,1:2) !True value and starting value
      startval(ic,1:nMCMCpar,3)    = allDat(icloglmax,1:nMCMCpar,iloglmax) !Lmax value
      jumps(ic,1:nMCMCpar,2:n(ic)) = allDat(ic,1:nMCMCpar,2:n(ic)) -  allDat(ic,1:nMCMCpar,1:n(ic)-1)
      if(prinitial.ne.0) then 
-        if(ic.eq.1) write(6,'(5x,A11,F15.5,14F10.5,/)')'True:  ',startval(1,1:15,1)
-        if(abs((sum(startval(ic,1:15,1))-sum(startval(ic,1:15,2)))/sum(startval(ic,1:15,1))).gt.1.e-10) then
+        if(ic.eq.1) then
+           write(6,'(5x,A10,$)')'True:  '
+           do p=1,nMCMCpar
+              write(6,'(F10.5,$)')startval(1,p,1)
+           end do
+           write(6,'(/)')
+        end if
+        if(abs((sum(startval(ic,1:nMCMCpar,1))-sum(startval(ic,1:nMCMCpar,2)))/sum(startval(ic,1:nMCMCpar,1))).gt.1.e-10) then
            offsetrun = 1
-           write(6,'(I4,A1,A11,F15.5,14F10.5)')ic,':','  Start: ',startval(ic,1:15,2)
-           write(6,'(5x,A11,F15.5,14F10.5,/)')'Diff:  ',abs(startval(ic,1:15,1)-startval(ic,1:15,2))!/abs(startval(ic,1:15,1))
+           write(6,'(I4,A1,A10,$)')ic,':','  Start: '
+           do p=1,nMCMCpar
+              write(6,'(F10.5,$)')startval(ic,p,2)
+           end do
+           write(6,*)
+           write(6,'(5x,A10,$)')'Diff:  '
+           do p=1,nMCMCpar
+              write(6,'(F10.5,$)')abs(startval(ic,p,1)-startval(ic,p,2))
+           end do
+           write(6,'(/)')
         end if
      end if
   end do
   if(prinitial.ne.0) then
-     write(6,'(5x,A11,F15.5,14F10.5)')'Lmax:  ',startval(1,1:15,3)
-     write(6,'(5x,A11,F15.5,14F10.5,/)')'Diff:  ',abs(startval(1,1:15,1)-startval(1,1:15,3))
+     write(6,'(5x,A10,$)')'Lmax:  '
+     do p=1,nMCMCpar
+        write(6,'(F10.5,$)')startval(1,p,3)
+     end do
+     write(6,*)
+     write(6,'(5x,A10,$)')'Diff:  '
+     do p=1,nMCMCpar
+        write(6,'(F10.5,$)')abs(startval(1,p,1)-startval(1,p,3))
+     end do
+     write(6,'(/)')
   end if
   
   
@@ -776,18 +803,16 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
         end do
      end if
   end do
-  if(version.eq.1) then
-     !Spin magnitudes
-     do ic=1,nchains0
-        if(ic.eq.1) write(outputname,'(A,F4.2)')trim(outputname)//'_',startval(ic,6,1)
-        if(ic.gt.1.and.startval(ic,6,1).ne.startval(1,6,1)) write(outputname,'(A,F4.2)')trim(outputname)//'-',startval(ic,6,1)
-     end do
-     !Theta_SLs
-     do ic=1,nchains0
-        if(ic.eq.1) write(outputname,'(A,I3.3)')trim(outputname)//'_',nint(acos(startval(ic,7,1))*r2d)
-        if(ic.gt.1.and.startval(ic,7,1).ne.startval(1,7,1)) write(outputname,'(A,I3.3)')trim(outputname)//'-',nint(acos(startval(ic,7,1))*r2d)
-     end do
-  end if
+  !Spin magnitudes
+  do ic=1,nchains0
+     if(ic.eq.1) write(outputname,'(A,F4.2)')trim(outputname)//'_',startval(ic,revID(71),1)
+     if(ic.gt.1.and.startval(ic,revID(71),1).ne.startval(1,revID(71),1)) write(outputname,'(A,F4.2)')trim(outputname)//'-',startval(ic,revID(71),1)
+  end do
+  !Theta_SLs
+  do ic=1,nchains0
+     if(ic.eq.1) write(outputname,'(A,I3.3)')trim(outputname)//'_',nint(acos(startval(ic,revID(72),1))*r2d)
+     if(ic.gt.1.and.startval(ic,revID(72),1).ne.startval(1,revID(72),1)) write(outputname,'(A,I3.3)')trim(outputname)//'-',nint(acos(startval(ic,revID(72),1))*r2d)
+  end do
   !print*,trim(outputname)
   
   
@@ -943,7 +968,7 @@ subroutine set_derivedParameterNames()
   varnames(21:29) = (/'dl','dl','','','','','','',''/)
   varnames(31:39) = (/'RA','dec','','','','','','',''/)
   varnames(41:49) = (/'phase','','','','','','','',''/)
-  varnames(51:59) = (/'i','psi','th_Jo','ph_Jo','','','','',''/)
+  varnames(51:59) = (/'incl','psi','th_Jo','ph_Jo','','','','',''/)
   varnames(61:69) = (/'Mc','eta','M1','M2','','','','',''/)
   varnames(71:79) = (/'spin1','th1','phi1','','','','','',''/)
   varnames(81:89) = (/'spin2','th2','phi2','','','','','',''/)

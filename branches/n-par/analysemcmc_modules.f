@@ -47,7 +47,6 @@ module general_data
   integer, parameter :: maxIter=1.01e5+2,nr1=5,nstat1=10,ndets=3
   integer :: n(maxChs),ntot(maxChs),npar,iloglmax,icloglmax,c0,nchains,nchains0
   integer :: fixedpar(maxMCMCpar),nfixedpar,contrchains,contrchain(maxChs)
-  integer :: par1,par2
   real, allocatable :: selDat(:,:,:),allDat(:,:,:),post(:,:),prior(:,:)
   real :: startval(maxChs,maxMCMCpar,3)
   real :: ranges(maxChs,nival1,maxMCMCpar,nr1),stats(maxChs,maxMCMCpar,nstat1),log10bayesfactor(maxChs),logebayesfactor(maxChs)

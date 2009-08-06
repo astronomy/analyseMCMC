@@ -123,7 +123,6 @@ subroutine pdfs1d(exitcode)
      !write(30,'(3I6,T100,A)')nplvar-nfixedpar,nchains,nbin1d,'Total number of plot variables, total number of chains, number of bins'
   end if
 
-  !do p=par1,par2
   do j=1,nplvar
      p = plvars(j)
      if(plot.eq.1) then

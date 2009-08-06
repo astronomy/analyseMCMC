@@ -13,8 +13,13 @@ subroutine statistics(exitcode)
   real :: rev2pi,x0,x1,x2,y1,y2,rrevpi
   real :: range1,minrange,maxgap,ival,wrapival,centre,maxlogl,minlogl,shival,shival2
   real :: medians(maxMCMCpar),mean(maxMCMCpar),var1(maxMCMCpar),var2(maxMCMCpar),corr,corr1,corr2
-  real*8 :: var,total
+  
+  !Need extra accuracy to compute Bayes factor
+  !real*8 :: var,total
   !real*16 :: var,total  !gfortran doesn't support this
+  !real(kind=10) :: var,total  !Means different things on different compilers
+  real(kind=selected_real_kind(18,4931)) :: var,total  !Precision of 18, exponential range of 4931 - max gfortran supports?
+  !print*,precision(var),range(var)
   
   exitcode = 0
   
@@ -44,16 +49,15 @@ subroutine statistics(exitcode)
      if(prprogress.ge.2.and.ic.eq.1.and.wrapdata.ge.1) write(6,'(A,$)')'  Wrap data. '
      do p=1,nMCMCpar
         if(wrapdata.eq.0 .or. &
-             (version.eq.1.and.p.ne.8.and.p.ne.10.and.p.ne.12.and.p.ne.13) .or. &
-             (version.eq.2.and.p.ne.6.and.p.ne.9.and.p.ne.10.and.p.ne.13.and.p.ne.16) ) then
+             (parID(p).ne.31.and.parID(p).ne.41.or.parID(p).ne.52.or.parID(p).ne.54.or.parID(p).ne.73.or.parID(p).ne.83) ) then  !Not RA, phi_c, psi, phi_Jo, phi_1,2
            call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
-           if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) racentre = rpi !Plot 0-24h when not wrapping -> centre = 12h = pi
+           if(parID(p).eq.31) racentre = rpi !Plot 0-24h when not wrapping -> centre = 12h = pi
            cycle !No wrapping
         end if
         
         wraptype = 1  !0-2pi (e.g. phases)
-        if(version.eq.1.and.p.eq.12 .or. version.eq.2.and.p.eq.10) wraptype = 2  !0-pi (polarisation angle)
+        if(parID(p).eq.52) wraptype = 2  !0-pi (polarisation angle)
         
         
         
@@ -129,8 +133,7 @@ subroutine statistics(exitcode)
         
         !For the general case of shival (= pi or 2pi)
         if(wrap(ic,p).gt.0) shift(ic,p) = shival - mod(centre + shival2, shival)
-        if(version.eq.1.and.p.eq.8.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
-        if(version.eq.2.and.p.eq.6.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
+        if(parID(p).eq.31.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
         
         !Do the actual wrapping:
         selDat(ic,p,1:n(ic))   = mod(selDat(ic,p,1:n(ic))   + shift(ic,p), shival) - shift(ic,p)
@@ -140,10 +143,7 @@ subroutine statistics(exitcode)
         y2 = mod(y2 + shift(ic,p), shival) - shift(ic,p)
         centre = mod(centre + shift(ic,p), shival) - shift(ic,p)
         
-        if(ic.eq.1) then
-           if(version.eq.1.and.p.eq.8) racentre = centre                             !Save RA centre to plot sky map
-           if(version.eq.2.and.p.eq.6) racentre = centre                             !Save RA centre to plot sky map
-        end if
+        if(parID(p).eq.31.and.ic.eq.1) racentre = centre                             !Save RA centre to plot sky map
         
         minrange = y2-y1
         !call rindexx(n(ic),selDat(ic,p,1:n(ic)),indexx(p,1:n(ic)))  !Re-sort
@@ -197,9 +197,9 @@ subroutine statistics(exitcode)
      if(prcorr.gt.0.or.savestats.gt.0) then
         !write(6,'(A)')' Calculating correlations...   '
         if(prprogress.ge.1) write(6,'(A,$)')' corrs, '
-        do p1=par1,par2
-           do p2=par1,par2
-           !do p2=p1,par2
+        do p1=1,nMCMCpar
+           do p2=1,nMCMCpar
+           !do p2=p1,nMCMCpar
               corrs(p1,p2) = 0.
               if(fixedpar(p1)+fixedpar(p2).eq.0) then
                  do i=1,n(ic)
@@ -250,7 +250,6 @@ subroutine statistics(exitcode)
         if(c.ne.c0 .and. prival.eq.0 .and. prstat.lt.2 .and. savestats.eq.0) cycle
         
         if(prprogress.ge.1.and.ic.eq.1) write(6,'(F6.3,$)')ival
-        !print*,par1,par2
         do p=1,nMCMCpar
         !do p=2,2
            !print*,p,minval(selDat(ic,p,1:n(ic))),maxval(selDat(ic,p,1:n(ic)))
@@ -272,16 +271,13 @@ subroutine statistics(exitcode)
            !write(6,'(A8,4x,4F10.5,I4)')varnames(p),y1,y2,minrange,centre,wrap(ic,p)
            
            !Save ranges:
-           nr = 4                  !Only ranges(:,:,:,1:nr) get converted
+           nr = 4                  !Only ranges(:,:,:,1:nr) get converted later on
            ranges(ic,c,p,1) = y1
            ranges(ic,c,p,2) = y2
            ranges(ic,c,p,3) = centre
            ranges(ic,c,p,4) = y2-y1
            ranges(ic,c,p,5) = ranges(ic,c,p,4)
-           !if(version.eq.1.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
-           !if(version.eq.2.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
-           if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15)) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  !Remove eta, a_spin
-           if(version.eq.2.and.(p.eq.2.or.p.eq.5)) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
+           if(parID(p).eq.21.or.parID(p).eq.22 .or. parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  !Distance or mass
         end do !p
      end do !c
      !if(prprogress.ge.2) write(6,'(A34,F8.4)')'.  Standard probability interval: ',ivals(ival0)
@@ -297,23 +293,20 @@ subroutine statistics(exitcode)
      
      !Compute Bayes factor
      !if(prprogress.ge.1.and.ic.eq.1) write(6,'(A,$)')'  Bayes factor,'
-     p=1  !Likelihood/Posterior
      total = 0
      maxlogl = -1.e30
      minlogl =  1.e30
-     do i=1,n(ic)
-        var = selDat(ic,p,i)          !Use quadruple precision
+     do i=nburn(ic),n(ic)
+        var = post(ic,i)          !Use quadruple precision
         total = total + exp(-var)
-        !write(6,'(2ES15.5)')var,exp(-var)
-        maxlogl = max(selDat(ic,p,i),maxlogl)
-        minlogl = min(selDat(ic,p,i),minlogl)
+        maxlogl = max(post(ic,i),maxlogl)
+        minlogl = min(post(ic,i),minlogl)
      end do
      var = dble(n(ic))/total
-     log10bayesfactor(ic) = real(log10(var))
      logebayesfactor(ic) = real(log(var))
-     !write(6,'(2F10.3,I9)')maxlogl,minlogl,n(ic)
+     log10bayesfactor(ic) = real(log10(var))
+     !write(6,'(4F10.3,I9)')logebayesfactor(ic),log10bayesfactor(ic),maxlogl,minlogl,n(ic)
      
-          
      
      
      
@@ -385,13 +378,13 @@ subroutine statistics(exitcode)
            ranges(ic,1:nival,p,3) = 0.5*(ranges(ic,1:nival,p,1) + ranges(ic,1:nival,p,2))
            ranges(ic,1:nival,p,4) = ranges(ic,1:nival,p,2) - ranges(ic,1:nival,p,1)
            ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)
-           if(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)/ranges(ic,1:nival,p,3)
+           if(parID(p).eq.21.or.parID(p).eq.22 .or. parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) ranges(ic,1:nival,p,5) = ranges(ic,1:nival,p,4)/ranges(ic,1:nival,p,3)  !Distance or mass
         end do !p
         
         !Change the parameter names:
         call set_derivedParameterNames()
         
-     end if !if(changevar.ge.1.and.version.eq.1)
+     end if !if(changevar.ge.1)
      
      
      !Find 100% probability range
@@ -399,16 +392,12 @@ subroutine statistics(exitcode)
         if(abs(ivals(c)-1.).lt.1.e-4) then !Then treat it as a 100% interval to prevent numerical problems
            if(prprogress.ge.1) write(6,'(A,F9.4,A)')'  Treating probability interval',ivals(c)*100,'% as 100%'
            do p=1,nMCMCpar
-              if(p.eq.1) cycle
               ranges(ic,c,p,1) = minval(selDat(ic,p,1:n(ic)))
               ranges(ic,c,p,2) = maxval(selDat(ic,p,1:n(ic)))
               ranges(ic,c,p,3) = 0.5*(ranges(ic,c,p,1) + ranges(ic,c,p,2))
               ranges(ic,c,p,4) = ranges(ic,c,p,2) - ranges(ic,c,p,1)
               ranges(ic,c,p,5) = ranges(ic,c,p,4)
-              !if(version.eq.1.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) ranges(ic,c,p,5) = ranges(ic,c,p,5)/ranges(ic,c,p,3)
-              !if(version.eq.2.and.p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14) ranges(ic,c,p,5) = ranges(ic,c,p,5)/ranges(ic,c,p,3)
-              if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15)) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
-              if(version.eq.2.and.(p.eq.2.or.p.eq.5)) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)
+              if(parID(p).eq.21.or.parID(p).eq.22 .or. parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  !Distance or mass
            end do
         end if
      end do
@@ -444,8 +433,8 @@ subroutine statistics(exitcode)
      
      if(prprogress+prstat+prival+prconv.gt.0.and.ic.eq.1) then
         write(o,'(/,A,2(A,F6.2),$)')'  Bayes factor:   ','log_e(B_SN) =',logebayesfactor(ic),',  log_10(B_SN) =',log10bayesfactor(ic)
-        !write(o,'(8x,A,3(A,F6.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),',  log_10(Lmax) =',startval(ic,1,3)/log(10.),',  sqrt[2 log_e(Lmax)] =',sqrt(2*startval(ic,1,3)),'.'
-        write(o,'(8x,A,3(A,F6.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),',  log_10(Lmax) =',startval(ic,1,3)/log(10.),',  -> SNR =',sqrt(2*startval(ic,1,3)),'.'
+        !write(o,'(8x,A,3(A,F6.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),',  log_10(Lmax) =',startval(ic,1,3)/log(10.),',  -> SNR =',sqrt(2*startval(ic,1,3)),'.'
+        write(o,'(8x,A,3(A,F6.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',loglmax,',  log_10(Lmax) =',loglmax/log(10.),',  -> SNR =',sqrt(2*loglmax),'.'
      end if
      
      
@@ -491,7 +480,7 @@ subroutine statistics(exitcode)
         do p=1,nMCMCpar
            !if(stdev1(p).lt.1.d-20) cycle
            if(fixedpar(p).eq.1) cycle
-           write(o,'(A10,2x,2F9.4,$)')varnames(p),startval(ic,p,1),stats(ic,p,1)
+           write(o,'(A10,2x,2F9.4,$)')varnames(parID(p)),startval(ic,p,1),stats(ic,p,1)
            do c=1,nival
               if(mergechains.eq.0) then
                  write(o,'(2x,2F9.4,F6.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),9.999) !Defined with centre of prob. range, need some extra security to print correctly
@@ -525,7 +514,7 @@ subroutine statistics(exitcode)
            write(o,'(5x,A8,4x,A7,$)')'x','dx'
         end do
         write(o,*)''
-        do p=max(par1,2),par2  !Leave out logL
+        do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
            write(o,'(A10,2x,4F10.3,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            do c=1,nival
@@ -547,7 +536,7 @@ subroutine statistics(exitcode)
            write(o,'(6x,A8,3x,A7,$)')'min','max'
         end do
         write(o,*)''
-        do p=max(par1,2),par2  !Leave out logL
+        do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
            write(o,'(A10,2x,4F10.3,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            do c=1,nival
@@ -570,7 +559,7 @@ subroutine statistics(exitcode)
         !   write(o,'(5x,A9,4x,A8,$)')'x','dx'
         !end do
         !write(o,*)''
-        do p=max(par1,2),par2  !Leave out logL
+        do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
            !write(o,'(A10,2x,4F11.4,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            write(o,'(A10,2x,$)')varnames(p)
@@ -601,32 +590,26 @@ subroutine statistics(exitcode)
         write(o,'(A,3(F4.2,A))')'  (weak [',corr1,'<abs(cor)<',corr2,']: in lower triangle,  strong [abs(cor)>',corr2,']: in upper triangle):'
         write(o,'(A8,$)')''
         do p=1,nMCMCpar
-           !if(stdev1(p).gt.1.d-20) write(o,'(A7,$)')trim(varnames(p))
-           if(fixedpar(p).eq.0) write(o,'(A7,$)')trim(varnames(p))
+           if(fixedpar(p).eq.0) write(o,'(A7,$)')trim(varnames(parID(p)))
         end do
         write(o,*)''
-        do p1=par1,par2
-           !if(stdev1(p1).lt.1.d-20) cycle
+        do p1=1,nMCMCpar
            if(fixedpar(p1).eq.1) cycle
-           write(o,'(A8,$)')trim(varnames(p1))
-           do p2=par1,par2
+           write(o,'(A8,$)')trim(varnames(parID(p1)))
+           do p2=1,nMCMCpar
               corr = corrs(p1,p2)
-              !if(stdev1(p2).lt.1.d-20) cycle
               if(fixedpar(p2).eq.1) cycle
               if( (abs(corr).ge.corr2.and.p2.gt.p1) ) then  !Print in the upper triangle
                  write(o,'(F7.2,$)')corr
               else if( (abs(corr).ge.corr1.and.abs(corr).lt.corr2.and.p1.gt.p2) ) then   !Print in the lower triangle
                  write(o,'(F7.2,$)')corr
               else if(p1.eq.p2) then !Print on the diagonal
-                 !write(o,'(F7.2,$)')corr !=1
-                 !write(o,'(A7,$)')'\-----\'
-                 !write(o,'(A7,$)')'\______' !'
                  write(o,'(A7,$)')' ######' !'
               else
                  write(o,'(A7,$)')''
               end if
            end do
-           write(o,'(A)')'   '//trim(varnames(p1))
+           write(o,'(A)')'   '//trim(varnames(parID(p1)))
         end do
      end if
      
@@ -710,14 +693,14 @@ subroutine save_stats(exitcode)  !Save statistics to file
   
   !Print statistics
   write(o,'(///,A,/)')'BASIC STATISTICS:'
-  write(o,'(A,2I3)')'Npar,ncol:',par2-par1+1,7
+  write(o,'(A,2I3)')'Npar,ncol:',nMCMCpar,7
   write(o,'(A8,7A12)')'param.','model','median','mean','stdev1','stdev2','abvar1','abvar2'
   
   do p=1,nMCMCpar
      if(fixedpar(p).eq.0) then
-        write(o,'(A8,7F12.6)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),stdev1(p),stdev2(p),absvar1(p),absvar2(p)
+        write(o,'(A8,7F12.6)')varnames(parID(p)),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),stdev1(p),stdev2(p),absvar1(p),absvar2(p)
      else
-        write(o,'(A8,7F12.6)')varnames(p),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),0.,0.,0.,0.
+        write(o,'(A8,7F12.6)')varnames(parID(p)),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),0.,0.,0.,0.
      end if
   end do
   write(o,*)''
@@ -725,18 +708,18 @@ subroutine save_stats(exitcode)  !Save statistics to file
   
   !Print correlations:
   write(o,'(//,A,/)')'CORRELATIONS:'
-  write(o,'(A,I3)')'Npar:',par2-par1+1
+  write(o,'(A,I3)')'Npar:',nMCMCpar
   write(o,'(A9,$)')''
   do p=1,nMCMCpar
-     write(o,'(A10,$)')trim(varnames(p))
+     write(o,'(A10,$)')trim(varnames(parID(p)))
   end do
   write(o,*)''
-  do p1=par1,par2
-     write(o,'(A9,$)')trim(varnames(p1))
-     do p2=par1,par2
+  do p1=1,nMCMCpar
+     write(o,'(A9,$)')trim(varnames(parID(p1)))
+     do p2=1,nMCMCpar
         write(o,'(F10.5,$)')corrs(p1,p2)
      end do
-     write(o,'(A)')'   '//trim(varnames(p1))
+     write(o,'(A)')'   '//trim(varnames(parID(p1)))
   end do
   
   
@@ -756,7 +739,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
   end do
   write(o,*)''
   do p=1,nMCMCpar
-     write(o,'(A8,2x,$)')trim(varnames(p))
+     write(o,'(A8,2x,$)')trim(varnames(parID(p)))
      do c=1,nival
         !write(o,'(2x,2F11.6,F6.3,$)')ranges(ic,c,p,1),ranges(ic,c,p,2),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
         if(fixedpar(p).eq.0) then
@@ -794,7 +777,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
   do p=1,npdf2d
      p1 = pdf2dpairs(p,1)
      p2 = pdf2dpairs(p,2)
-     write(o,'(2I4,2(2x,A8),2x,$)')p1,p2,trim(varnames(p1)),trim(varnames(p2))
+     write(o,'(2I4,2(2x,A8),2x,$)')p1,p2,trim(varnames(parID(p1))),trim(varnames(parID(p2)))
      do c=1,nival
         write(o,'(2x,F14.8,$)')probareas(p1,p2,c,1)
         if(c.ge.nival+1-trueranges2d(p1,p2) .and. trueranges2d(p1,p2).ne.0) then
@@ -1192,7 +1175,7 @@ subroutine compute_convergence()
      write(6,'(A18,$)')''
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
-        write(6,'(A11,$)')trim(varnames(p))
+        write(6,'(A11,$)')trim(varnames(parID(p)))
      end do
      write(6,'(A11)')'total'
      
@@ -1219,13 +1202,13 @@ subroutine compute_convergence()
   end if !if(prconv.ge.1)
   
   do ic=1,nchains0
-     !write(6,'(I16,A2,20F11.6)')ic,': ',chvar1(ic,par1:min(par2,13))
+     !write(6,'(I16,A2,20F11.6)')ic,': ',chvar1(ic,1:nMCMCpar)
      !if(chvar1(ic,2).lt.0.5*chvar(2).and.chvar1(ic,3).lt.0.5*chvar(3).and.chvar1(ic,2).lt.0.5*chvar(2).and.chvar1(ic,2).lt.0.5*chvar(2)) then
      lowvar = 0
      highvar = 0
      totrelvar = 1.d0
      ntotrelvar = 0
-     do p=par1,min(par2,13)
+     do p=1,nMCMCpar
         !if(abs(chvar1(ic,p)).gt.1.e-30) then  !Take only the parameters that were fitted and have a variance > 0
         if(fixedpar(p).eq.0 .and.abs(chvar1(ic,p)).gt.1.e-30) then  !Take only the parameters that were fitted and have a variance > 0
            if(chvar1(ic,p).lt.0.5*chvar(p)) lowvar(p) = 1  !Too (?) low variance, mark it
@@ -1236,7 +1219,6 @@ subroutine compute_convergence()
      end do
      nlowvar = lowvar(2)+lowvar(3)+lowvar(6)+lowvar(7)  !Sum of 2 masses and 2 spin parameters
      nhighvar = highvar(2)+highvar(3)+highvar(6)+highvar(7)  !Sum of 2 masses and 2 spin parameters
-     !totrelvar = totrelvar**(1.d0/dble(abs(min(par2,13)-par1+1))) !Take geometric mean of (the variance of each chain, relative to the total variance)
      totrelvar = totrelvar**(1.d0/dble(ntotrelvar)) !Take geometric mean of (the variance of each chain, relative to the total variance)
      if(prconv.ge.3) then
         ch = ' '
@@ -1247,7 +1229,7 @@ subroutine compute_convergence()
         if(totrelvar.lt.0.5) ch = '*'
         if(totrelvar.gt.2.0) ch = '#'
         write(6,'(F8.3,A1,$)')totrelvar,ch
-        do p=par1,min(par2,13)
+        do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
            ch = ' '
            if(lowvar(p).eq.1) ch = '*'
@@ -1289,16 +1271,12 @@ subroutine compute_convergence()
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
         write(6,'(F11.5,$)')rhat(p)
-        if(p.gt.1) then !Don't include logL
-           totrhat = totrhat * rhat(p)
-           nrhat = nrhat + 1
-        end if
+        totrhat = totrhat * rhat(p)
+        nrhat = nrhat + 1
      end do
-     !write(6,'(F11.5)')sum(rhat(par1:min(par2,13)))/dble(min(par2,13)-par1+1)
      !write(6,'(F11.5)')totrhat/dble(nrhat)
      write(6,'(F11.5)')totrhat**(1.d0/dble(nrhat))
   end if
-  !write(6,*)''
   
 end subroutine compute_convergence
 !***********************************************************************************************************************************

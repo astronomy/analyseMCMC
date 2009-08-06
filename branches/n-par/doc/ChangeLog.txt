@@ -2,6 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    79: sluys, 05/08/2009
+     - Removed version in functions (except reading from file) and stats
+     - Removed par1,par2 everywhere
+     - logL no longer treated as parameter 1 in functions and stats
+     
     78: sluys, 04/08/2009
      - Rename pldat -> allDat, since it contains all MCMC data
      - Rename alldat -> selDat, since it contains data after burn-in

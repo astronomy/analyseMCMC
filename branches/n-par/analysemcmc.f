@@ -59,10 +59,6 @@ program analyseMCMC
   
   !Some of the stuff below will have to go to the input file
   
-  par1 = 1          !First parameter to treat (stats, plot): 0-all
-  par2 = 15         !Last parameter to treat (0: use npar)
-  if(version.eq.2) par2 = 16
-  
   maxdots = 25000  !~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much and eps/pdf files from becoming huge.  Use this to autoset chainpli
   
   
@@ -179,12 +175,10 @@ program analyseMCMC
      plmovie = 0
   end if
   if(savepdf.eq.1) then
-     if(nplvar.ne.15) write(0,'(/,A)')'*** WARNING:  I changed nplvar to 15, since savepdf is selected ***'
-     nplvar = 15; plvars(1:nplvar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !All 12 + m1,m2
+     !if(nplvar.ne.15) write(0,'(/,A)')'*** WARNING:  I changed nplvar to 15, since savepdf is selected ***'
+     !nplvar = 15; plvars(1:nplvar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !All 12 + m1,m2
      wrapdata = 0
   end if
-  !if(par1.lt.2) par1 = 2
-  if(par1.lt.1) par1 = 1 !Include log(L)
   if(file.eq.1) combinechainplots = 0
   if(file.ge.1) update = 0
   if(plmovie.ge.1) update = 0
