@@ -106,10 +106,8 @@ subroutine pdfs2d(exitcode)
         sky_position = .false.
         binary_orientation = .false.
         project_map = .false.
-        if(version.eq.1.and.p1.eq.8.and.p2.eq.9) sky_position = .true.
-        if(version.eq.1.and.p1.eq.12.and.p2.eq.11) binary_orientation = .true.
-        if(version.eq.2.and.p1.eq.6.and.p2.eq.7) sky_position = .true.
-        if(version.eq.2.and.p1.eq.12.and.p2.eq.11) binary_orientation = .true.
+        if(parID(p1).eq.31.and.parID(p2).eq.32) sky_position = .true.
+        if(parID(p1).eq.52.and.parID(p2).eq.51) binary_orientation = .true.
         if(sky_position .and. plotsky.ge.1) project_map = .true.  !Make a special sky plot (i.e., plot stars or use projection) if plotsky>0 and RA,Dec are plotted
         
         
@@ -459,37 +457,37 @@ subroutine pdfs2d(exitcode)
                  call pgsci(1); call pgsls(5)
                  
                  plx = allDat(icloglmax,p1,iloglmax)
-                 if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) plx = rev24(plx)
-                 if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) plx = rev360(plx)
-                 if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) plx = rev180(plx)
+                 if(parID(p1).eq.31) plx = rev24(plx)
+                 if(parID(p1).eq.41.or.parID(p1).eq.73.or.parID(p1).eq.83) plx = rev360(plx)
+                 if(parID(p1).eq.52) plx = rev180(plx)
                  call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Max logL
-                 if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) then
+                 if(parID(p1).eq.31) then
                     call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !Max logL
                     call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !Max logL
                  end if
-                 if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) then
+                 if(parID(p1).eq.41.or.parID(p1).eq.73.or.parID(p1).eq.83) then
                     call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !Max logL
                     call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !Max logL
                  end if
-                 if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) then
+                 if(parID(p1).eq.52) then
                     call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !Max logL
                     call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !Max logL
                  end if
                  
                  ply = allDat(icloglmax,p2,iloglmax)
-                 if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) ply = rev24(ply)
-                 if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) ply = rev360(ply)
-                 if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) ply = rev180(ply)
+                 if(parID(p2).eq.31) ply = rev24(ply)
+                 if(parID(p2).eq.41.or.parID(p2).eq.73.or.parID(p2).eq.83) ply = rev360(ply)
+                 if(parID(p2).eq.52) ply = rev180(ply)
                  call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !Max logL
-                 if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) then
+                 if(parID(p2).eq.31) then
                     call pgline(2,(/-1.e20,1.e20/),(/ply-24.,ply-24./)) !Max logL
                     call pgline(2,(/-1.e20,1.e20/),(/ply+24.,ply+24./)) !Max logL
                  end if
-                 if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) then
+                 if(parID(p2).eq.41.or.parID(p2).eq.73.or.parID(p2).eq.83) then
                     call pgline(2,(/-1.e20,1.e20/),(/ply-360.,ply-360./)) !Max logL
                     call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !Max logL
                  end if
-                 if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) then
+                 if(parID(p2).eq.52) then
                     call pgline(2,(/-1.e20,1.e20/),(/ply-180.,ply-180./)) !Max logL
                     call pgline(2,(/-1.e20,1.e20/),(/ply+180.,ply+180./)) !Max logL
                  end if
@@ -503,8 +501,7 @@ subroutine pdfs2d(exitcode)
               
               !Plot true value in 2D PDF
               if((pltrue.eq.1.or.pltrue.eq.3).and.(.not.project_map) .or. &
-                   !((pltrue.eq.2.or.pltrue.eq.4) .and. (p1.eq.2.and.p2.eq.3).or.(p1.eq.6.and.p2.eq.7).or.(p1.eq.14.and.p2.eq.15)) ) then
-                   ((pltrue.eq.2.or.pltrue.eq.4) .and. (p1.eq.2.and.p2.eq.3).or.(p1.eq.14.and.p2.eq.15)) ) then
+                   ((pltrue.eq.2.or.pltrue.eq.4) .and. (parID(p1).eq.61.and.parID(p2).eq.62).or.(parID(p1).eq.63.and.parID(p2).eq.64)) ) then
                  !call pgline(2,(/startval(ic,p1,1),startval(ic,p1,1)/),(/-1.e20,1.e20/))
                  !call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p2,1),startval(ic,p2,1)/))
                  
@@ -513,19 +510,19 @@ subroutine pdfs2d(exitcode)
                     call pgsls(2); call pgsci(1)
                     if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
                     plx = startval(ic,p1,1)
-                    if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) plx = rev24(plx)
-                    if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) plx = rev360(plx)
-                    if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) plx = rev180(plx)
+                    if(parID(p1).eq.31) plx = rev24(plx)
+                    if(parID(p1).eq.41.or.parID(p1).eq.73.or.parID(p1).eq.83) plx = rev360(plx)
+                    if(parID(p1).eq.52) plx = rev180(plx)
                     call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !True value
-                    if(version.eq.1.and.p1.eq.8 .or. version.eq.2.and.p1.eq.6) then
+                    if(parID(p1).eq.31) then
                        call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !True value
                        call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !True value
                     end if
-                    if(version.eq.1.and.(p1.eq.10.or.p1.eq.13) .or. version.eq.2.and.(p1.eq.9.or.p1.eq.13.or.p1.eq.16)) then
+                    if(parID(p1).eq.41.or.parID(p1).eq.73.or.parID(p1).eq.83) then
                        call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !True value
                        call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !True value
                     end if
-                    if(version.eq.1.and.p1.eq.12 .or. version.eq.2.and.p1.eq.8) then
+                    if(parID(p1).eq.52) then
                        call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !True value
                        call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !True value
                     end if
@@ -534,19 +531,19 @@ subroutine pdfs2d(exitcode)
                     call pgsls(2); call pgsci(1)
                     if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
                     ply = startval(ic,p2,1)
-                    if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) ply = rev24(ply)
-                    if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) ply = rev360(ply)
-                    if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) ply = rev180(ply)
+                    if(parID(p2).eq.31) ply = rev24(ply)
+                    if(parID(p2).eq.41.or.parID(p2).eq.73.or.parID(p2).eq.83) ply = rev360(ply)
+                    if(parID(p2).eq.52) ply = rev180(ply)
                     call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !True value
-                    if(version.eq.1.and.p2.eq.8 .or. version.eq.2.and.p2.eq.6) then
+                    if(parID(p2).eq.31) then
                        call pgline(2,(/-1.e20,1.e20/),(/ply-24.,ply-24./)) !True value
                        call pgline(2,(/-1.e20,1.e20/),(/ply+24.,ply+24./)) !True value
                     end if
-                    if(version.eq.1.and.(p2.eq.10.or.p2.eq.13) .or. version.eq.2.and.(p2.eq.9.or.p2.eq.13.or.p2.eq.16)) then
+                    if(parID(p2).eq.41.or.parID(p2).eq.73.or.parID(p2).eq.83) then
                        call pgline(2,(/-1.e20,1.e20/),(/ply-360.,ply-360./)) !True value
                        call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !True value
                     end if
-                    if(version.eq.1.and.p2.eq.12 .or. version.eq.2.and.p2.eq.8) then
+                    if(parID(p2).eq.52) then
                        call pgline(2,(/-1.e20,1.e20/),(/ply-180.,ply-180./)) !True value
                        call pgline(2,(/-1.e20,1.e20/),(/ply+180.,ply+180./)) !True value
                     end if
@@ -1036,6 +1033,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   !Get the 2d probability intervals; z lies between 1 (in 100% range) and ni (in lowest-% range, e.g. 90%)
   use constants
   use analysemcmc_settings
+  use mcmcrun_data
   implicit none
   integer :: p1,p2,ni,nx,ny,nn,indx(nx*ny),i,b,ib,full(ni),iy
   real :: z(nx,ny),x1(nx*ny),x2(nx*ny),tot,np,tr(6),y
@@ -1044,32 +1042,15 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   !Weight number of points in each bin by bin size for position/orientation plots
   do iy = 1,ny
      if(changevar.ge.1) then
-        if(version.eq.1 .and. (p1.eq.8.and.p2.eq.9 .or. p1.eq.12.and.p2.eq.11)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
+        if((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
            y = tr(4) + tr(6)*iy
-           if(p1.eq.8) then
+           if(parID(p1).eq.31) then
               if(abs(y).le.90.) then
                  z(1:nx,iy) = z(1:nx,iy)/(cos(y*rd2r)+1.e-30)
               else  !This can happen when the PDF lies close to the pole
                  z(1:nx,iy) = 0.
               end if
-           else if(p1.eq.12) then
-              if(y.ge.0..and.y.lt.180.) then
-                 z(1:nx,iy) = z(1:nx,iy)/(abs(sin(y*rd2r))+1.e-30)
-              else  !This can happen when the PDF lies close to the pole
-                 z(1:nx,iy) = 0.
-                 !write(0,'(//,A,//)')'  *** identify_2d_ranges:  sin(y)<0.  Please check whether the if(y.ge.0..and.y.lt.180.) statement works properly ***'
-              end if
-           end if
-        end if
-        if(version.eq.2 .and. (p1.eq.6.and.p2.eq.7 .or. p1.eq.10.and.p2.eq.8)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
-           y = tr(4) + tr(6)*iy
-           if(p1.eq.6) then
-              if(abs(y).le.90.) then
-                 z(1:nx,iy) = z(1:nx,iy)/(cos(y*rd2r)+1.e-30)
-              else  !This can happen when the PDF lies close to the pole
-                 z(1:nx,iy) = 0.
-              end if
-           else if(p1.eq.10) then
+           else if(parID(p1).eq.52) then
               if(y.ge.0..and.y.lt.180.) then
                  z(1:nx,iy) = z(1:nx,iy)/(abs(sin(y*rd2r))+1.e-30)
               else  !This can happen when the PDF lies close to the pole
@@ -1120,6 +1101,7 @@ end subroutine identify_2d_ranges
 subroutine calc_2d_areas(p1,p2,ni,nx,ny,z,tr,area)
   use constants
   use analysemcmc_settings
+  use mcmcrun_data
   implicit none
   integer :: p1,p2,ni,nx,ny,ix,iy,i,i1,iv
   real :: z(nx,ny),tr(6),y,dx,dy,area(ni)
@@ -1131,23 +1113,14 @@ subroutine calc_2d_areas(p1,p2,ni,nx,ny,z,tr,area)
         dx = tr(2)
         dy = tr(6)
         if(changevar.ge.1) then
-           if(version.eq.1 .and. (p1.eq.8.and.p2.eq.9 .or. p1.eq.12.and.p2.eq.11)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
+           if((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
               y = tr(4) + tr(6)*iy
-              if(p1.eq.8) then
+              if(parID(p1).eq.31) then
                  dx = dx*cos(y*rd2r)
-              else if(p1.eq.12) then
+              else if(parID(p1).eq.52) then
                  dx = dx*abs(sin(y*rd2r))  !Necessary for i-psi plot?
               end if
-              if(p1.eq.8) dx = dx*15
-           end if
-           if(version.eq.2 .and. (p1.eq.6.and.p2.eq.7 .or. p1.eq.10.and.p2.eq.8)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
-              y = tr(4) + tr(6)*iy
-              if(p1.eq.6) then
-                 dx = dx*cos(y*rd2r)
-              else if(p1.eq.10) then
-                 dx = dx*abs(sin(y*rd2r))  !Necessary for i-psi plot?
-              end if
-              if(p1.eq.6) dx = dx*15
+              if(parID(p1).eq.31) dx = dx*15
            end if
         end if
         iv = nint(z(ix,iy))

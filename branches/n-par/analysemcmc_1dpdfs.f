@@ -122,7 +122,7 @@ subroutine pdfs1d(exitcode)
      write(30,'(3I6,T100,A)')nplvar,nchains,nbin1d,'Total number of plot variables, total number of chains, number of bins'
      !write(30,'(3I6,T100,A)')nplvar-nfixedpar,nchains,nbin1d,'Total number of plot variables, total number of chains, number of bins'
   end if
-
+  
   do j=1,nplvar
      p = plvars(j)
      if(plot.eq.1) then
@@ -131,7 +131,7 @@ subroutine pdfs1d(exitcode)
      end if
      !Set x-ranges for plotting, bin the data and get y-ranges
      !Use widest probability range (hopefully ~3-sigma) - doesn't always work well...
-     if(1.eq.2.and.version.eq.1) then  !This can only be used if ranges are computed - isn't this always the case?
+     if(1.eq.2) then  !This can only be used if ranges are computed - isn't this always the case?
         xmin = 1.e30
         xmax = -1.e30
         do ic=1,nchains
@@ -143,13 +143,13 @@ subroutine pdfs1d(exitcode)
      !print*,xmin,huge(xmin)
      !if(xmin.le.-huge(xmin).or.xmin.ge.huge(xmin).or.xmax.le.-huge(xmax).or.xmax.ge.huge(xmax)) then !NaN
      !if(version.eq.2.or.xmin.ne.xmin.or.xmax.ne.xmax) then
-        xmin = 1.e30
-        xmax = -1.e30
-        do ic=1,nchains
-           if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
-           xmin = min(xmin,minval(selDat(ic,p,1:n(ic))))
-           xmax = max(xmax,maxval(selDat(ic,p,1:n(ic))))
-        end do
+     xmin = 1.e30
+     xmax = -1.e30
+     do ic=1,nchains
+        if(mergechains.eq.0.and.contrchain(ic).eq.0) cycle
+        xmin = min(xmin,minval(selDat(ic,p,1:n(ic))))
+        xmax = max(xmax,maxval(selDat(ic,p,1:n(ic))))
+     end do
      !end if
      dx = xmax - xmin
      !dx = max(xmax - xmin,1.e-30)
@@ -171,7 +171,7 @@ subroutine pdfs1d(exitcode)
         !call bindata1da(n(ic),x(ic,1:n(ic)),y(ic,1:n(ic)),1,nbin1d,xmin1,xmax1,xbin1,ybin1) !Measure the amount of likelihood in each bin
         
         !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:d_l, 6:spin, 7:theta_SL, 8: RA, 9:dec,10:phase, 11:thetaJ0, 12:phiJ0, 13:alpha, 14:M1, 15:M2
-        if(version.eq.1.and.(p.eq.5.or.p.eq.7.or.p.eq.9.or.p.eq.11) .or. version.eq.2.and.(p.eq.5.or.p.eq.7.or.p.eq.8.or.p.eq.12.or.p.eq.15)) then  !Do something about chains 'sticking to the wall'
+        if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.72.or.parID(p).eq.82.or.parID(p).eq.32.or.parID(p).eq.53) then
            if(ybin1(1).gt.ybin1(2)) ybin1(1)=0.
            if(ybin1(nbin1d).gt.ybin1(nbin1d-1)) ybin1(nbin1d)=0.
         end if
@@ -289,13 +289,11 @@ subroutine pdfs1d(exitcode)
               call pgline(2,(/xbin1(1)-bindx,xbin1(1)/)+bindx/2.,(/0.,ybin1(1)/))
               call pgline(2,(/xbin1(nbin1d+1),xbin1(nbin1d+1)/)+bindx/2.,(/ybin1(nbin1d+1),0./))
            else !If parameter is wrapped
-              plshift = real(2*pi)
+              plshift = rtpi  !2pi
               if(changevar.ge.1) then
                  plshift = 360.
-                 if(version.eq.1.and.p.eq.8) plshift = 24.  !RA in hours
-                 if(version.eq.1.and.p.eq.12) plshift = 180.  !Pol.angle
-                 if(version.eq.2.and.p.eq.6) plshift = 24.  !RA in hours
-                 if(version.eq.2.and.p.eq.10) plshift = 180.  !Pol.angle
+                 if(parID(p).eq.31) plshift = 24.  !RA in hours
+                 if(parID(p).eq.52) plshift = 180.  !Pol.angle
               end if
               if(nchains.eq.1) call pgsci(15)
               if(plpdf1d.eq.1) then
@@ -367,9 +365,9 @@ subroutine pdfs1d(exitcode)
         !Plot max likelihood
         if(pllmax.ge.1) then
            ply = allDat(icloglmax,p,iloglmax)
-           if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) ply = rev24(ply)
-           if(version.eq.1.and.(p.eq.10.or.p.eq.13) .or. version.eq.2.and.(p.eq.9.or.p.eq.13.or.p.eq.16)) ply = rev360(ply)
-           if(version.eq.1.and.p.eq.12 .or. version.eq.2.and.p.eq.10) ply = rev180(ply)
+           if(parID(p).eq.31) ply = rev24(ply)
+           if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) ply = rev360(ply)
+           if(parID(p).eq.52) ply = rev180(ply)
            call pgsci(1)
            call pgsls(5)
            call pgline(2,(/ply,ply/),(/-1.e20,1.e20/))
@@ -386,29 +384,27 @@ subroutine pdfs1d(exitcode)
               call pgslw(lw)
               call pgsls(1); call pgsci(0)
               if(pltrue.eq.1.or.pltrue.eq.3) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !True value
-              !if((pltrue.eq.2.or.pltrue.eq.4).and.version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.4.or.p.eq.6.or.p.eq.7.or.p.eq.14.or.p.eq.15)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !True value - mass and spin only
-              if((pltrue.eq.2.or.pltrue.eq.4).and.version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.4.or.p.eq.6.or.p.eq.14.or.p.eq.15)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !True value - mass and spin only
+              if((pltrue.eq.2.or.pltrue.eq.4).and.(parID(p).eq.11.or.parID(p).eq.12.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or. &
+                   parID(p).eq.71.or.parID(p).eq.81)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))  !True value - mass, t_c and spin only (?) - CHECK put in input file?
               !if(plstart.ge.1) call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))                   !Starting value
-              if(p.ne.1) then !Not if plotting log(L)
-                 if(plmedian.eq.1.or.plmedian.eq.3.or.plmedian.eq.4.or.plmedian.eq.6) call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))                          !Median
-                 if(plrange.eq.1.or.plrange.eq.3.or.plrange.eq.4.or.plrange.eq.6) then
-                    if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) !Left limit of 90% interval
-                    if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/)) !Right limit of 90% interval
-                    if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/-1.e20,1.e20/)) !Centre of 90% interval
-                 end if
+              if(plmedian.eq.1.or.plmedian.eq.3.or.plmedian.eq.4.or.plmedian.eq.6) call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))                          !Median
+              if(plrange.eq.1.or.plrange.eq.3.or.plrange.eq.4.or.plrange.eq.6) then
+                 if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) !Left limit of 90% interval
+                 if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/)) !Right limit of 90% interval
+                 if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/-1.e20,1.e20/)) !Centre of 90% interval
               end if
            end if
 
            call pgslw(lw+1)
            !Draw coloured lines over the white ones
            !Median
-           if((plmedian.eq.1.or.plmedian.eq.3.or.plmedian.eq.4.or.plmedian.eq.6) .and. p.ne.1) then
+           if((plmedian.eq.1.or.plmedian.eq.3.or.plmedian.eq.4.or.plmedian.eq.6)) then
               call pgsls(2); call pgsci(2); if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))
            end if
 
            !Plot ranges in 1D PDF
-           if((plrange.eq.1.or.plrange.eq.3.or.plrange.eq.4.or.plrange.eq.6) .and. p.ne.1) then
+           if((plrange.eq.1.or.plrange.eq.3.or.plrange.eq.4.or.plrange.eq.6)) then
               call pgsls(4); call pgsci(2); if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) !Left limit of 90% interval
               if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/)) !Right limit of 90% interval
@@ -417,25 +413,24 @@ subroutine pdfs1d(exitcode)
            
            !Plot true value in PDF
            !if(pltrue.ge.1) then !Plot true values
-           !if(pltrue.eq.1.or.pltrue.eq.3.or.((pltrue.eq.2.or.pltrue.eq.4).and.version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.4.or.p.eq.6.or.p.eq.7.or.p.eq.14.or.p.eq.15))) then
-           if(pltrue.eq.1.or.pltrue.eq.3.or.((pltrue.eq.2.or.pltrue.eq.4).and.version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.4.or.p.eq.6.or.p.eq.14.or.p.eq.15))) then
+           if(pltrue.eq.1.or.pltrue.eq.3.or.((pltrue.eq.2.or.pltrue.eq.4).and.(parID(p).eq.11.or.parID(p).eq.12.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or.parID(p).eq.71.or.parID(p).eq.81))) then
               if(mergechains.ne.1.or.ic.le.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  call pgsls(2); call pgsci(1)
                  if(pllmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
                  plx = startval(ic,p,1)
-                 if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) plx = rev24(plx)
-                 if(version.eq.1.and.(p.eq.10.or.p.eq.13) .or. version.eq.2.and.(p.eq.9.or.p.eq.13.or.p.eq.16)) ply = rev360(ply)
-                 if(version.eq.1.and.p.eq.12 .or. version.eq.2.and.p.eq.10) ply = rev180(ply)
+                 if(parID(p).eq.31) plx = rev24(plx)
+                 if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) ply = rev360(ply)
+                 if(parID(p).eq.52) ply = rev180(ply)
                  call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !True value
-                 if(version.eq.1.and.p.eq.8 .or. version.eq.2.and.p.eq.6) then
+                 if(parID(p).eq.31) then
                     call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !True value
                     call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !True value
                  end if
-                 if(version.eq.1.and.(p.eq.10.or.p.eq.13) .or. version.eq.2.and.(p.eq.9.or.p.eq.13.or.p.eq.16)) then
+                 if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) then
                     call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !True value
                     call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !True value
                  end if
-                 if(version.eq.1.and.p.eq.12 .or. version.eq.2.and.p.eq.10) then
+                 if(parID(p).eq.52) then
                     call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !True value
                     call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !True value
                  end if
@@ -462,11 +457,10 @@ subroutine pdfs1d(exitcode)
         !if(nplvar.lt.7.or.nplvar.eq.9) then  !Three or less columns
         if(quality.ne.2.and.quality.ne.3.and.quality.ne.4) then  !Not a talk/poster/thesis
            if(nplvar.le.5) then
-              write(str,'(A,F7.3,A5,F7.3)')trim(pgvarns(p))//': mdl:',startval(ic,p,1),' med:',stats(ic,p,1)
+              write(str,'(A,F7.3,A5,F7.3)')trim(pgvarns(parID(p)))//': mdl:',startval(ic,p,1),' med:',stats(ic,p,1)
               if(prival.ge.1) then
                  if(plrange.eq.4.or.plrange.eq.5.or.plrange.eq.6) then
-                    if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) .or. &
-                         version.eq.2.and.(p.eq.2.or.p.eq.5) ) then
+                    if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then  !Distance, Mc, M1, M2
                        write(str,'(A,F6.2,A1)')trim(str)//' \(2030):',ranges(ic,c0,p,5)*100,'%'
                     else
                        write(str,'(A,F7.3)')trim(str)//' \(2030):',ranges(ic,c0,p,5)
@@ -475,8 +469,7 @@ subroutine pdfs1d(exitcode)
               end if
            else  !if nplvar>=5
               str = ' '
-              if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) .or. &
-                   version.eq.2.and.(p.eq.2.or.p.eq.5) ) then
+              if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then  !Distacnce, Mc,M1,M2
                  if(pltrue.eq.3.or.pltrue.eq.4) write(str,'(A,F7.3)')trim(str)//' mdl:',startval(ic,p,1)
                  if(plmedian.eq.4.or.plmedian.eq.5.or.plmedian.eq.6) write(str,'(A,F8.3)')trim(str)//' med:',stats(ic,p,1)
                  if(prival.ge.1.and.(plrange.eq.4.or.plrange.eq.5.or.plrange.eq.6)) write(str,'(A,F6.2,A1)')trim(str)//' \(2030):',ranges(ic,c0,p,5)*100,'%'
@@ -486,21 +479,15 @@ subroutine pdfs1d(exitcode)
                  if(prival.ge.1.and.(plrange.eq.4.or.plrange.eq.5.or.plrange.eq.6)) write(str,'(A,F7.3)')trim(str)//' \(2030):',ranges(ic,c0,p,5)
               end if
               call pgsch(sch*1.2)
-              call pgptxt(xmin+0.05*dx,ymax*(1.0-0.1*fontsize1d),0.,0.,trim(pgvarnss(p)))
+              call pgptxt(xmin+0.05*dx,ymax*(1.0-0.1*fontsize1d),0.,0.,trim(pgvarnss(parID(p))))
            end if
         end if
         
         
         if(quality.eq.2.or.quality.eq.3.or.quality.eq.4) then  !Talk/poster/thesis quality for 1D PDF
-           !if(version.eq.1.and.(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) .or version.eq.2.and.(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.11.or.p.eq.14)) then
-           !   write(str,'(A9,F6.2,A1)')' \(2030):',ranges(ic,c0,p,5)*100,'%'
-           !else
-           !   write(str,'(A9,F7.3)')' \(2030):',ranges(ic,c0,p,5)
-           !end if
            if(plrange.eq.1.or.plrange.eq.3.or.plrange.eq.4.or.plrange.eq.6) then
               x0 = ranges(ic,c0,p,5)
-              !if(p.eq.5) print*,x0,ranges(ic,c0,p,4)
-              if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) .or. version.eq.2.and.(p.eq.2.or.p.eq.5)) x0 = x0*100
+              if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) x0 = x0*100
               !print*,p,x0,nint(x0)
               if(x0.lt.0.01) write(str,'(F6.4)')x0
               if(x0.ge.0.01.and.x0.lt.0.1) write(str,'(F5.3)')x0
@@ -509,7 +496,7 @@ subroutine pdfs1d(exitcode)
               if(x0.ge.9.95.and.x0.lt.99.5) write(str,'(I2)')nint(x0)
               if(x0.ge.99.5) write(str,'(I3)')nint(x0)
               write(str,'(A)')'\(2030): '//trim(str)
-              if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) .or. version.eq.2.and.(p.eq.2.or.p.eq.5)) then
+              if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then
                  write(str,'(A)')trim(str)//'%'
               else
                  write(str,'(A)')trim(str)//trim(pgunits(p))
@@ -530,9 +517,9 @@ subroutine pdfs1d(exitcode)
            !Print variable name in top of panel:
            call pgsch(sch*1.2)
            if(abs(xmin-xpeak).lt.abs(xmax-xpeak)) then !peak is at left, put varname at right
-              call pgptxt(xmax-0.05*dx,ymax*(1.-0.1*fontsize1d),0.,1.,trim(pgvarnss(p)))
+              call pgptxt(xmax-0.05*dx,ymax*(1.-0.1*fontsize1d),0.,1.,trim(pgvarns(parID(p))))
            else
-              call pgptxt(xmin+0.05*dx,ymax*(1.-0.1*fontsize1d),0.,0.,trim(pgvarnss(p)))
+              call pgptxt(xmin+0.05*dx,ymax*(1.-0.1*fontsize1d),0.,0.,trim(pgvarns(parID(p))))
            end if
         end if
         
@@ -540,8 +527,7 @@ subroutine pdfs1d(exitcode)
         !Write the deltas of the two pdfs
         if(nchains.eq.2..and.(plrange.eq.4.or.plrange.eq.5.or.plrange.eq.6)) then
            write(str,'(A8)')'\(2030)'
-           if(version.eq.1.and.(p.eq.2.or.p.eq.5.or.p.eq.14.or.p.eq.15) .or. &
-                version.eq.1.and.(p.eq.2.or.p.eq.5)) then
+           if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then  !Distance, Mc, M1, M2
               write(str1,'(A8,F6.2,A1)')'\(2030):',ranges(1,c0,p,5)*100.,'%'
               write(str2,'(A8,F6.2,A1)')'\(2030):',ranges(2,c0,p,5)*100.,'%'
            else
@@ -550,7 +536,7 @@ subroutine pdfs1d(exitcode)
            end if
         end if
         call pgsch(sch*1.1)
-        if(prvalues.eq.1.and.p.ne.1) then  !If not plotting log(L)
+        if(prvalues.eq.1) then
            if(nchains.eq.2) then
               call pgsci(colours(mod(0,ncolours)+1))
               call pgmtxt('T',0.5,0.25,0.5,trim(str1))
@@ -567,7 +553,7 @@ subroutine pdfs1d(exitcode)
         end if
         !else  !If parameter was fixed, plot variable name in empty panel
         !   call pgsch(sch*1.2)
-        !   call pgptxt(xmin+0.05*dx,ymax*0.9,0.,0.,trim(pgvarnss(p)))
+        !   call pgptxt(xmin+0.05*dx,ymax*0.9,0.,0.,trim(pgvarnss(parID(p))))
         !end if !if(fixedpar(p).eq.0)
         
         call pgsci(1)

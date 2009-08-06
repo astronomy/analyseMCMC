@@ -54,7 +54,6 @@ subroutine read_settingsfile
   
 
   read(u,*,iostat=io)bla
-  read(u,*,iostat=io)version
   read(u,*,iostat=io)thin
   read(u,*,iostat=io)nburn(1)
   do i=2,maxChs
@@ -177,7 +176,6 @@ subroutine write_settingsfile
   
   
   write(u,'(/,A)')' Basic options:'
-  write(u,11)version, 'version',   'Output version: 1: 12-par Apostolatos, 2:15-par LAL'
   write(u,11)thin, 'thin',   'If >1, "thin" the output; read every thin-th line '
   write(u,11)maxval(nburn), 'nburn',   'If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain'
   write(u,21)nburnfrac, 'nburnfrac',   'If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides nburn above'
@@ -283,7 +281,6 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   use analysemcmc_settings
   implicit none
   
-  version = 1       !Output version: 1: 12-par Apostolatos, 2:15-par LAL
   thin = 10         !If >1, 'thin' the output; read every thin-th line 
   nburn = 1e5       !If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number, but it becomes the line number later on in the code.  Nburn > Nchain sets Nburn = 0.1*Nchain
   nburnfrac = 0.5   !If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
@@ -882,8 +879,8 @@ subroutine set_originalParameterNames()
      pgvarns(41:49) = (/'\(2147)\dc\u (rad)','','','','','','','',''/)
      pgvarns(51:59) = (/'cos \(2135)','\(2149) (rad)','sin \(2185)\dJ0\u','\(2147)\dJ0\u (rad)','','','','',''/)
      pgvarns(61:69) = (/'\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
-     pgvarns(71:79) = (/'a\dspin1\u','cos \(2185)\d1\u','\(2147)\d1\u (rad)','','','','','',''/)
-     pgvarns(81:89) = (/'a\dspin2\u','cos \(2185)\d2\u','\(2147)\d2\u (rad)','','','','','',''/)
+     pgvarns(71:79) = (/'a\dspin1\u','cos \(2185)\dspin1\u','\(2147)\dspin1\u (rad)','','','','','',''/)
+     pgvarns(81:89) = (/'a\dspin2\u','cos \(2185)\dspin2\u','\(2147)\dspin2\u (rad)','','','','','',''/)
      !pgvarns(1:9) = (/'','','','','','','','',''/)
      
      !Short PGPlot symbols (no unit)
@@ -893,8 +890,8 @@ subroutine set_originalParameterNames()
      pgvarnss(41:49) = (/'\(2147)\dc\u','','','','','','','',''/)
      pgvarnss(51:59) = (/'cos \(2135)','\(2149)','sin \(2185)\dJ0\u','\(2147)\dJ0\u','','','','',''/)
      pgvarnss(61:69) = (/'\(2563)','\(2133)','M\d1\u','M\d2\u','','','','',''/)
-     pgvarnss(71:79) = (/'a\dspin1\u','cos \(2185)\d1\u','\(2147)\d1\u','','','','','',''/)
-     pgvarnss(81:89) = (/'a\dspin2\u','cos \(2185)\d2\u','\(2147)\d2\u','','','','','',''/)
+     pgvarnss(71:79) = (/'a\dspin1\u','cos \(2185)\dspin1\u','\(2147)\dspin1\u','','','','','',''/)
+     pgvarnss(81:89) = (/'a\dspin2\u','cos \(2185)\dspin2\u','\(2147)\dspin2\u','','','','','',''/)
      !pgvarnss(1:9) = (/'','','','','','','','',''/)
      
   else  !Same, but replace '\(21' with \(06' for arial-like Greek font
@@ -906,8 +903,8 @@ subroutine set_originalParameterNames()
      pgvarns(41:49) = (/'\(0647)\dc\u (rad)','','','','','','','',''/)
      pgvarns(51:59) = (/'cos \(0635)','\(0649) (rad)','sin \(0685)\dJ0\u','\(0647)\dJ0\u (rad)','','','','',''/)
      pgvarns(61:69) = (/'\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
-     pgvarns(71:79) = (/'a\dspin1\u','cos \(0685)\d1\u','\(0647)\d1\u (rad)','','','','','',''/)
-     pgvarns(81:89) = (/'a\dspin2\u','cos \(0685)\d2\u','\(0647)\d2\u (rad)','','','','','',''/)
+     pgvarns(71:79) = (/'a\dspin1\u','cos \(0685)\dspin1\u','\(0647)\dspin1\u (rad)','','','','','',''/)
+     pgvarns(81:89) = (/'a\dspin2\u','cos \(0685)\dspin2\u','\(0647)\dspin2\u (rad)','','','','','',''/)
      !pgvarns(1:9) = (/'','','','','','','','',''/)
      
      !Short PGPlot symbols (no unit)
@@ -917,8 +914,8 @@ subroutine set_originalParameterNames()
      pgvarnss(41:49) = (/'\(0647)\dc\u','','','','','','','',''/)
      pgvarnss(51:59) = (/'cos \(0635)','\(0649)','sin \(0685)\dJ0\u','\(0647)\dJ0\u','','','','',''/)
      pgvarnss(61:69) = (/'\(2563)','\(0633)','M\d1\u','M\d2\u','','','','',''/)
-     pgvarnss(71:79) = (/'a\dspin1\u','cos \(0685)\d1\u','\(0647)\d1\u','','','','','',''/)
-     pgvarnss(81:89) = (/'a\dspin2\u','cos \(0685)\d2\u','\(0647)\d2\u','','','','','',''/)
+     pgvarnss(71:79) = (/'a\dspin1\u','cos \(0685)\dspin1\u','\(0647)\dspin1\u','','','','','',''/)
+     pgvarnss(81:89) = (/'a\dspin2\u','cos \(0685)\dspin2\u','\(0647)\dspin2\u','','','','','',''/)
      !pgvarnss(1:9) = (/'','','','','','','','',''/)
      
   end if
@@ -980,12 +977,12 @@ subroutine set_derivedParameterNames()
      !Long PGPlot names (symbol + unit)
      pgvarns(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
      pgvarns(21:29) = (/'d\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','',''/)
-     pgvarns(31:39) = (/'\(2127) (deg)','\(2130) (deg)','','','','','','',''/)
-     pgvarns(41:49) = (/'\(2147)\dc\u (deg)','','','','','','','',''/)
-     pgvarns(51:59) = (/'\(2135) (deg)','\(2149) (deg)','\(2185)\dJ0\u (deg)','\(2147)\dJ0\u (deg)','','','','',''/)
+     pgvarns(31:39) = (/'\(2127) (h)','\(2130) (\(2218))','','','','','','',''/)
+     pgvarns(41:49) = (/'\(2147)\dc\u (\(2218))','','','','','','','',''/)
+     pgvarns(51:59) = (/'\(2135) (\(2218))','\(2149) (\(2218))','\(2185)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','','','','',''/)
      pgvarns(61:69) = (/'\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
-     pgvarns(71:79) = (/'a\dspin1\u','\(2185)\d1\u (deg)','\(2147)\d1\u (deg)','','','','','',''/)
-     pgvarns(81:89) = (/'a\dspin2\u','\(2185)\d2\u (deg)','\(2147)\d2\u (deg)','','','','','',''/)
+     pgvarns(71:79) = (/'a\dspin1\u','\(2185)\dspin1\u (\(2218))','\(2147)\dspin1\u (\(2218))','','','','','',''/)
+     pgvarns(81:89) = (/'a\dspin2\u','\(2185)\dspin2\u (\(2218))','\(2147)\dspin2\u (\(2218))','','','','','',''/)
      !pgvarns(1:9) = (/'','','','','','','','',''/)
      
      !Short PGPlot symbols (no unit)
@@ -995,8 +992,8 @@ subroutine set_derivedParameterNames()
      pgvarnss(41:49) = (/'\(2147)\dc\u','','','','','','','',''/)
      pgvarnss(51:59) = (/'\(2135)','\(2149)','\(2185)\dJ0\u','\(2147)\dJ0\u','','','','',''/)
      pgvarnss(61:69) = (/'\(2563)','\(2133)','M\d1\u','M\d2\u','','','','',''/)
-     pgvarnss(71:79) = (/'a\dspin1\u','\(2185)\d1\u','\(2147)\d1\u','','','','','',''/)
-     pgvarnss(81:89) = (/'a\dspin2\u','\(2185)\d2\u','\(2147)\d2\u','','','','','',''/)
+     pgvarnss(71:79) = (/'a\dspin1\u','\(2185)\dspin1\u','\(2147)\dspin1\u','','','','','',''/)
+     pgvarnss(81:89) = (/'a\dspin2\u','\(2185)\dspin2\u','\(2147)\dspin2\u','','','','','',''/)
      !pgvarnss(1:9) = (/'','','','','','','','',''/)
      
   else  !Same, but replace '\(21' with \(06' for arial-like Greek font
@@ -1004,12 +1001,12 @@ subroutine set_derivedParameterNames()
      !Long PGPlot names (symbol + unit)
      pgvarns(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
      pgvarns(21:29) = (/'d\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','',''/)
-     pgvarns(31:39) = (/'\(0627) (deg)','\(0630) (deg)','','','','','','',''/)
-     pgvarns(41:49) = (/'\(0647)\dc\u (deg)','','','','','','','',''/)
-     pgvarns(51:59) = (/'\(0635) (deg)','\(0649) (deg)','\(0685)\dJ0\u (deg)','\(0647)\dJ0\u (deg)','','','','',''/)
+     pgvarns(31:39) = (/'\(0627) (h)','\(0630) (\(2218))','','','','','','',''/)
+     pgvarns(41:49) = (/'\(0647)\dc\u (\(2218))','','','','','','','',''/)
+     pgvarns(51:59) = (/'\(0635) (\(2218))','\(0649) (\(2218))','\(0685)\dJ0\u (\(2218))','\(0647)\dJ0\u (\(2218))','','','','',''/)
      pgvarns(61:69) = (/'\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
-     pgvarns(71:79) = (/'a\dspin1\u','\(0685)\d1\u (deg)','\(0647)\d1\u (deg)','','','','','',''/)
-     pgvarns(81:89) = (/'a\dspin2\u','\(0685)\d2\u (deg)','\(0647)\d2\u (deg)','','','','','',''/)
+     pgvarns(71:79) = (/'a\dspin1\u','\(0685)\dspin1\u (\(2218))','\(0647)\dspin1\u (\(2218))','','','','','',''/)
+     pgvarns(81:89) = (/'a\dspin2\u','\(0685)\dspin2\u (\(2218))','\(0647)\dspin2\u (\(2218))','','','','','',''/)
      !pgvarns(1:9) = (/'','','','','','','','',''/)
      
      !Short PGPlot symbols (no unit)
@@ -1019,8 +1016,8 @@ subroutine set_derivedParameterNames()
      pgvarnss(41:49) = (/'\(0647)\dc\u','','','','','','','',''/)
      pgvarnss(51:59) = (/'\(0635)','\(0649)','\(0685)\dJ0\u','\(0647)\dJ0\u','','','','',''/)
      pgvarnss(61:69) = (/'\(2563)','\(0633)','M\d1\u','M\d2\u','','','','',''/)
-     pgvarnss(71:79) = (/'a\dspin1\u','\(0685)\d1\u','\(0647)\d1\u','','','','','',''/)
-     pgvarnss(81:89) = (/'a\dspin2\u','\(0685)\d2\u','\(0647)\d2\u','','','','','',''/)
+     pgvarnss(71:79) = (/'a\dspin1\u','\(0685)\dspin1\u','\(0647)\dspin1\u','','','','','',''/)
+     pgvarnss(81:89) = (/'a\dspin2\u','\(0685)\dspin2\u','\(0647)\dspin2\u','','','','','',''/)
      !pgvarnss(1:9) = (/'','','','','','','','',''/)
      
   end if
@@ -1028,12 +1025,12 @@ subroutine set_derivedParameterNames()
   !PGPlot units (no names)
   pgunits(11:19) = (/'s','s','','','','','','',''/)
   pgunits(21:29) = (/'Mpc','Mpc','','','','','','',''/)
-  pgunits(31:39) = (/'deg','deg','','','','','','',''/)
-  pgunits(41:49) = (/'deg','','','','','','','',''/)
-  pgunits(51:59) = (/'deg','deg','deg','deg','','','','',''/)
+  pgunits(31:39) = (/'h','\(2218)','','','','','','',''/)
+  pgunits(41:49) = (/'\(2218)','','','','','','','',''/)
+  pgunits(51:59) = (/'\(2218)','\(2218)','\(2218)','\(2218)','','','','',''/)
   pgunits(61:69) = (/'M\d\(2281)\u','','M\d\(2281)\u','M\d\(2281)\u','','','','',''/)
-  pgunits(71:79) = (/'','deg','deg','','','','','',''/)
-  pgunits(81:89) = (/'','deg','deg','','','','','',''/)
+  pgunits(71:79) = (/'','\(2218)','\(2218)','','','','','',''/)
+  pgunits(81:89) = (/'','\(2218)','\(2218)','','','','','',''/)
   !pgunits(1:9) = (/'','','','','','','','',''/)
   
      

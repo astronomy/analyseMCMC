@@ -111,7 +111,7 @@ subroutine animation(exitcode)
         range1 = y1
         range2 = y2
         drange = y2-y1
-        if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) drange = drange/((y1+y2)/2.)
+        if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or.parID(p).eq.71.or.parID(p).eq.81) drange = drange/((y1+y2)/2.)
         
         !print*,'ranges:',range1,range2,drange
      end if
@@ -435,8 +435,7 @@ subroutine animation(exitcode)
               plshift = real(2*pi)
               if(changevar.ge.1) then
                  plshift = 360.
-                 if(version.eq.1.and.p.eq.8) plshift = 24. !RA in hours
-                 if(version.eq.2.and.p.eq.6) plshift = 24. !RA in hours
+                 if(parID(p).eq.31) plshift = 24. !RA in hours
               end if
               if(nchains.eq.1) call pgsci(15)
               call pgpoly(nbin1d+3,(/xbin1(1),xbin1(1:nbin1d),xbin1(1)+plshift,xbin1(1)+plshift/),(/0.,ybin1(1:nbin1d),ybin1(1),0./))
@@ -518,7 +517,7 @@ subroutine animation(exitcode)
         call pgsci(1)
         ic = 1
         if(moviescheme.eq.1) then
-           if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) then
+           if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or.parID(p).eq.71.or.parID(p).eq.81) then
               write(str,'(A,F7.3,A5,F7.3,A9,F6.2,A1)')'mdl:',startval(ic,p,1),' med:',median,' \(2030):',drange*100,'%'
            else
               write(str,'(A,F7.3,A5,F7.3,A9,F7.3)')'mdl:',startval(ic,p,1),' med:',median,' \(2030):',drange
@@ -552,7 +551,7 @@ subroutine animation(exitcode)
            if(nint(ival*100.).lt.100) write(str,'(A,I2,A)')'\(2030)\d',nint(ival*100.),'%\u:'
            call pgptxt(0.04,0.65,0.,0.,trim(str))
            write(str,'(F7.3)')max(drange,0.001)
-           if(p.eq.2.or.p.eq.3.or.p.eq.5.or.p.eq.6.or.p.eq.14.or.p.eq.15) write(str,'(F6.2,A1)')max(drange*100,0.01),'%' 
+           if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or.parID(p).eq.71.or.parID(p).eq.81) write(str,'(F6.2,A1)')max(drange*100,0.01),'%' 
            call pgptxt(0.55,0.65,0.,0.,trim(str)) 
            
            call pgsch(1.)

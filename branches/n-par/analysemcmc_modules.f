@@ -12,7 +12,7 @@ module analysemcmc_settings
   integer, parameter :: maxMCMCpar=18 !< MaxMCMCpar: logL+MCMCpar+secondary variables, e.g. 1+12+2(M1M2) = 15 for 12 par; 18 for 15 par
   integer, parameter :: nParDB=99     !< nParDB: size of the parameter database
   integer :: plvars(maxMCMCpar),nplvar,nbin1d,nbin2dx,nbin2dy,npdf2d,pdf2dpairs(250,2),panels(2)
-  integer :: version,thin,nburn(maxChs),reverseread,update,mergechains,wrapdata,changevar,maxchlen
+  integer :: thin,nburn(maxChs),reverseread,update,mergechains,wrapdata,changevar,maxchlen
   integer :: file,colour,orientation,quality,fonttype
   integer :: prprogress,prruninfo,prchaininfo,prinitial,prstat,prcorr,prival,prconv,savestats,savepdf       
   integer :: plot,combinechainplots,pllogl,plchain,plparl,pljump,plpdf1d,plpdf2d,placorr,plotsky,plmovie       
