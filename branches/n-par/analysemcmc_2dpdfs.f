@@ -23,8 +23,8 @@ subroutine pdfs2d(exitcode)
   ic = 1 !Can only do one chain
   
   !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha, 14:M1, 15:M2
-  j1 = 2
-  j2 = npar
+  j1 = 1
+  j2 = nMCMCpar
   
   if(prprogress.ge.1.and.plot.eq.0.and.savepdf.eq.1.and.plpdf1d.eq.0) write(6,'(A,$)')'  Saving'
   if(prprogress.ge.1.and.update.eq.0.and.npdf2d.ge.0) write(6,'(A,$)')'  2D pdfs: '
@@ -36,7 +36,7 @@ subroutine pdfs2d(exitcode)
      if(prprogress.ge.1.and.update.eq.0) write(6,'(A,I3,A,I3,A,/)')'  *all* ',totplots,' 2D PDFs for the all combinations of the',j2-j1+1-nfixedpar,' non-fixed parameters: '
   end if
   
-
+  
   
   
   !Autodetermine number of bins for 2D PDFs:
@@ -102,6 +102,21 @@ subroutine pdfs2d(exitcode)
   do p1=j1,j2
      do p2=j1,j2
         
+        if(npdf2d.ge.0) then
+           plotthis = 0  !Determine to plot or save this combination of j1/j2 or p1/p2
+           do i=1,npdf2d
+              if(p1.eq.pdf2dpairs(i,1).and.p2.eq.pdf2dpairs(i,2)) plotthis = 1  !Use the data from the input file
+           end do
+           if(plotthis.eq.0) cycle
+           if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')trim(varnames(parID(p1)))//'-'//trim(varnames(parID(p2)))//' '
+        else
+           if(p2.le.p1) cycle
+           if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
+           write(6,*)upline !Move cursor up 1 line
+           if(prprogress.ge.1.and.update.eq.0) write(6,'(F7.1,A)')real(countplots+1)/real(totplots)*100,'%    ('//trim(varnames(parID(p1)))//'-'//trim(varnames(parID(p2)))//')                                      '
+        end if
+        
+        
         !Identify special combinations of parameters:
         sky_position = .false.
         binary_orientation = .false.
@@ -109,22 +124,6 @@ subroutine pdfs2d(exitcode)
         if(parID(p1).eq.31.and.parID(p2).eq.32) sky_position = .true.
         if(parID(p1).eq.52.and.parID(p2).eq.51) binary_orientation = .true.
         if(sky_position .and. plotsky.ge.1) project_map = .true.  !Make a special sky plot (i.e., plot stars or use projection) if plotsky>0 and RA,Dec are plotted
-        
-        
-        if(npdf2d.ge.0) then
-           plotthis = 0  !Determine to plot or save this combination of j1/j2 or p1/p2
-           do i=1,npdf2d
-              if(p1.eq.pdf2dpairs(i,1).and.p2.eq.pdf2dpairs(i,2)) plotthis = 1  !Use the data from the input file
-           end do
-           if(plotthis.eq.0) cycle
-           if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')trim(varnames(p1))//'-'//trim(varnames(p2))//' '
-        else
-           if(p2.le.p1) cycle
-           if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
-           write(6,*)upline !Move cursor up 1 line
-           if(prprogress.ge.1.and.update.eq.0) write(6,'(F7.1,A)')real(countplots+1)/real(totplots)*100,'%    ('//trim(varnames(p1))//'-'//trim(varnames(p2))//')                                      '
-        end if
-        
         
         
         if(plot.eq.1) then
@@ -140,7 +139,7 @@ subroutine pdfs2d(exitcode)
               call pginitl(colour,file,whitebg)
            end if
            if(file.eq.1) then
-              write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.ppm'
+              write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(varnames(parID(p1)))//'-'//trim(varnames(parID(p2)))//'.ppm'
               io = pgopen(trim(tempfile)//'/ppm')
               if(project_map) then
                  call pgpap(bmpsz/0.5*bmprat,0.5)
@@ -150,7 +149,7 @@ subroutine pdfs2d(exitcode)
               call pginitl(colour,file,whitebg)
            end if
            if(file.ge.2) then
-              write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.eps'
+              write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(varnames(parID(p1)))//'-'//trim(varnames(parID(p2)))//'.eps'
               io = pgopen(trim(tempfile)//trim(psclr))
               if(project_map) then
                  call pgpap(pssz/0.5*psrat,0.5)
@@ -178,7 +177,7 @@ subroutine pdfs2d(exitcode)
         dy = ymax - ymin
         !write(6,'(A,2F10.5)')'  Xmin,Xmax: ',xmin,xmax
         !write(6,'(A,2F10.5)')'  Ymin,Ymax: ',ymin,ymax
-
+        
         xx(1:n(ic)) = selDat(ic,p1,1:n(ic)) !Parameter 1
         yy(1:n(ic)) = selDat(ic,p2,1:n(ic)) !Parameter 2
         zz(1:n(ic)) = selDat(ic,1,1:n(ic))   !Likelihood
@@ -629,8 +628,8 @@ subroutine pdfs2d(exitcode)
            !   call pgsci(1)
            !   call pgbox('N',0.0,0,'N',0.0,0) !Number labels in black
            !end if
-           call pgmtxt('B',2.2,0.5,0.5,trim(pgvarns(p1)))
-           call pgmtxt('L',1.7,0.5,0.5,trim(pgvarns(p2)))
+           call pgmtxt('B',2.2,0.5,0.5,trim(pgvarns(parID(p1))))
+           call pgmtxt('L',1.7,0.5,0.5,trim(pgvarns(parID(p2))))
            
            
            !Print 2D probability ranges in plot title
@@ -709,10 +708,10 @@ subroutine pdfs2d(exitcode)
               call pgend
               if(countplots.eq.npdf2d) then !Convert the last plot in the foreground, so that the process finishes before deleting the original file
                  i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharppdf2d)//' '//trim(tempfile)//' '// &
-                      trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.png')
+                      trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(varnames(parID(p1)))//'-'//trim(varnames(parID(p2)))//'.png')
               else !in the background
                  i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharppdf2d)//' '//trim(tempfile)//' '// &
-                      trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.png &')
+                      trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(varnames(parID(p1)))//'-'//trim(varnames(parID(p2)))//'.png &')
               end if
               if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
            end if
@@ -736,8 +735,8 @@ subroutine pdfs2d(exitcode)
      if(file.ne.1) call pgend
      !if(file.ge.2.and.multipagefile) then
      !   if(abs(j2-j1).le.1) then
-     !      if(file.eq.3) i = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(varnames(j1))//'-'//trim(varnames(j2))//'.pdf  &> /dev/null')
-     !      i = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(varnames(j1))//'-'//trim(varnames(j2))//'.eps')
+     !      if(file.eq.3) i = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(varnames(parID(j1)))//'-'//trim(varnames(parID(j2)))//'.pdf  &> /dev/null')
+     !      i = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(varnames(parID(j1)))//'-'//trim(varnames(parID(j2)))//'.eps')
      !   else
      !      if(file.eq.3) i = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.pdf  &> /dev/null')
      !      i = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.eps')
@@ -758,7 +757,7 @@ subroutine pdfs2d(exitcode)
                  if(p2.le.p1) cycle
                  if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
               end if
-              write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(varnames(p1))//'-'//trim(varnames(p2))//'.ppm'
+              write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(varnames(parID(p1)))//'-'//trim(varnames(parID(p2)))//'.ppm'
               i = system('rm -f '//trim(tempfile))
            end do
         end do

@@ -25,6 +25,7 @@ subroutine setconstants
   
   
   detabbrs = (/'H1','L1','V ','H2'/)
+  waveforms = (/'Apostolatos','SpinTaylor12','SpinTaylor15','PPN'/)
   
   upline = char(27)//'[2A'  !Printing this makes the cursor move up one line (actually two lines, since a hard return is included)
 end subroutine setconstants
@@ -423,6 +424,8 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
         if(detname(j-3:j).eq.'Pisa') detnr(ic,i) = 3
      end do
      
+     parID = 0
+     revID = 0
      if(outputVersion > 0.5) then
         revID = 0
         read(10,*,iostat=io)parID(1:nMCMCpar) !Read parameter IDs
@@ -471,8 +474,9 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
            dtmpDat = 0.d0
            do p=1,nMCMCpar
               if(parID(p).ge.11.and.parID(p).le.19) then
-                 dtmpDat(p) = dble(floor(tmpDat(p)/10.d0)*10)  !GPS time
-                 t0 = dtmpDat(p)  !Used elsewhere in the code
+                 dtmpDat(p) = dble(floor(tmpDat(p)/10.d0)*10)  !'GPS base time', rounded off to the nearest 10s, 
+                 t0 = dtmpDat(p)                               !  to allow x.xx labels on the plots for GPS-t0
+                 GPStime = floor(tmpDat(p)+0.05)               !Always floor, unless >x.95s. Use as 'name' to refer to this event, e.g. in file names
               end if
            end do
         end if
@@ -497,6 +501,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      !if(prprogress.ge.2.and.update.ne.1) write(6,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',nburn(ic),'.'
   end do !do ic = 1,nchains0
   
+
 end subroutine read_mcmcfiles
 !************************************************************************************************************************************
 
@@ -729,7 +734,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   end if
   
   
-  !*** Put plot data in allDat, startval and jumps.  Print initial and starting values to screen.  Startval: 1: true value, 2: starting value, 3: Lmax value
+  !*** Put plot data in startval and jumps.  Print initial and starting values to screen.  Startval: 1: true value, 2: starting value, 3: Lmax value
   jumps = 0.
   offsetrun = 0
   if(prinitial.ne.0) then
@@ -786,31 +791,37 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   if(prprogress.ge.2.and.update.eq.0) write(6,'(A,I12,A,F7.4)')'  t0:',nint(t0), '  GMST:',gmst(t0)
   
   
+  !Check which parameters were fixed during the MCMC run
+  fixedpar = 0
+  do ic=1,nchains
+     do p=1,nMCMCpar
+        if( abs(minval(allDat(ic,p,5:n(ic))) - maxval(allDat(ic,p,5:n(ic))) ) .lt. 1.d-6) fixedpar(p) = 1  !Doesn't matter in which chain this happens
+     end do
+  end do
+  nfixedpar = sum(fixedpar)
+  
+  !Is this a 'spinning run' or not?  -  spinningRun: 0-no, 1-one spin, 2-two spins
+  spinningRun = 0
+  if(revID(71).ne.0) then
+     if(fixedpar(revID(71)).eq.0) spinningRun = spinningRun + 1
+  end if
+  if(revID(81).ne.0) then
+     if(fixedpar(revID(81)).eq.0) spinningRun = spinningRun + 1
+  end if
   
   
-  !*** Construct output file name
+  !*** Construct output file name:  GPS0929052945_H1L1V__Apostolatos_1.5pN_SP  for GPS time, detectors, waveform-pN Spinning
   ic = 1
-  !Number of detectors
-  do ic=1,nchains0
-     if(ic.eq.1) write(outputname,'(I1,A1)')ndet(ic),'d'
-     if(ic.gt.1 .and. (ndet(ic).ne.ndet(1) .or. sum(detnr(ic,1:ndet(ic))).ne.sum(detnr(1,1:ndet(1))))) write(outputname,'(A,I1,A1)')trim(outputname)//'-',ndet(ic),'d'
-     if(ic.eq.1 .or. (ic.gt.1.and. (ndet(ic).ne.ndet(1) .or. sum(detnr(ic,1:ndet(ic))).ne.sum(detnr(1,1:ndet(1)))) )) then 
-        do i=1,ndet(ic)
-           write(outputname,'(A,I1)')trim(outputname),detnr(ic,i)
-        end do
-     end if
+  write(outputname,'(A3,I10.10,A1)')'GPS',GPStime,'_'
+  do i=1,ndet(ic)
+     write(outputname,'(A)')trim(outputname)//trim(detabbrs(detnr(ic,i)))
   end do
-  !Spin magnitudes
-  do ic=1,nchains0
-     if(ic.eq.1) write(outputname,'(A,F4.2)')trim(outputname)//'_',startval(ic,revID(71),1)
-     if(ic.gt.1.and.startval(ic,revID(71),1).ne.startval(1,revID(71),1)) write(outputname,'(A,F4.2)')trim(outputname)//'-',startval(ic,revID(71),1)
-  end do
-  !Theta_SLs
-  do ic=1,nchains0
-     if(ic.eq.1) write(outputname,'(A,I3.3)')trim(outputname)//'_',nint(acos(startval(ic,revID(72),1))*r2d)
-     if(ic.gt.1.and.startval(ic,revID(72),1).ne.startval(1,revID(72),1)) write(outputname,'(A,I3.3)')trim(outputname)//'-',nint(acos(startval(ic,revID(72),1))*r2d)
-  end do
-  !print*,trim(outputname)
+  write(outputname,'(A,F3.1,A)')trim(outputname)//'__'//trim(waveforms(waveform))//'_',pnOrder,'pN'
+  if(spinningRun.gt.0) then
+     write(outputname,'(A,I1,A)')trim(outputname)//'_',spinningRun,'sp'
+  else
+     write(outputname,'(A)')trim(outputname)//'_ns'
+  end if
   
   
   

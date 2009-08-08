@@ -30,8 +30,8 @@ subroutine chains(exitcode)
         call pgsch(1.5)
      end if
      if(file.ge.1.and.combinechainplots.eq.0) then
-        if(file.eq.1) io = pgopen('logL.ppm/ppm')
-        if(file.ge.2) io = pgopen('logL.eps'//trim(psclr))
+        if(file.eq.1) io = pgopen('posterior.ppm/ppm')
+        if(file.ge.2) io = pgopen('posterior.eps'//trim(psclr))
         call pgsch(1.2)
      end if
      if(io.le.0) then
@@ -135,16 +135,16 @@ subroutine chains(exitcode)
         call pgend
         if(file.ge.2) then
            if(file.eq.3) then
-              i = system('eps2pdf logL.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__logL.pdf   >& /dev/null')
+              i = system('eps2pdf posterior.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__posterior.pdf   >& /dev/null')
               if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
            end if
-           i = system('mv -f logL.eps '//trim(outputdir)//'/'//trim(outputname)//'__logL.eps')
+           i = system('mv -f posterior.eps '//trim(outputdir)//'/'//trim(outputname)//'__posterior.eps')
         end if
      end if
      if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharplogl)//' logL.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__logL.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharplogl)//' posterior.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__posterior.png')
         if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
-        i = system('rm -f logL.ppm')
+        i = system('rm -f posterior.ppm')
         !if(i.ne.0) write(0,'(A)')'  Error removing file',i
      end if
   end if !if(pllogl.eq.1) then

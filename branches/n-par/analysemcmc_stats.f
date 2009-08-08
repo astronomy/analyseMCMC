@@ -24,19 +24,8 @@ subroutine statistics(exitcode)
   exitcode = 0
   
   
-  !Check which parameters were fixed during the MCMC run
-  fixedpar = 0
-  do ic=1,nchains
-     do p=1,nMCMCpar
-        if( abs(minval(selDat(ic,p,5:n(ic))) - maxval(selDat(ic,p,5:n(ic))) ) .lt. 1.d-6) fixedpar(p) = 1  !Doesn't matter in which chain this happens
-     end do
-  end do
-  nfixedpar = sum(fixedpar)
-  
-  
   !Sort all data and find the interval limits for the default probability interval for the wrapable parameters
   if(prprogress.ge.2) write(6,*)''
-  !ivals(nival+1) = 1. !The last probability interval is always 100% !Is this necessary?
   shift = 0.
   wrap = 0
   rashift = 0.
@@ -815,19 +804,23 @@ subroutine save_cbc_wiki_data(ic)
   implicit none
   
   integer :: c,i,ic,io,o,p,p1,parr(maxMCMCpar)
-  real :: x,rev2pi,x1,x2
-  character :: url*99,gps*19,xs10*10,xs20*20,ans
+  real :: x,rev2pi,rrevpi,x1,x2
+  character :: url*99,gps*19,xs11*11,xs20*20,ans,wikifilename*99,pnstr*3
+  
+  write(pnstr,'(F3.1)')pnOrder
   
   !Print output for CBC Wiki:
   o = 10
-  open(unit=o,form='formatted',status='replace',action='write',position='rewind',file='wiki.txt',iostat=io)
+  write(wikifilename,'(A)')trim(outputname)//'__wiki.dat'
+  open(unit=o,form='formatted',status='replace',action='write',position='rewind',file=trim(wikifilename),iostat=io)
   if(io.ne.0) then
-     write(0,'(A)')'  Error opening wiki.txt, aborting...'
+     write(0,'(A)')'  Error opening '//trim(wikifilename)//', aborting...'
      stop
   end if
-  write(gps,'(I9)')nint(t0)+floor(startval(ic,4,1)+0.05)
+  write(gps,'(I10.10)')GPStime
+  if(GPStime.lt.1e9) write(gps,'(I9.9)')GPStime
   
-  write(url,'(A)')'http://www.astro.northwestern.edu/~sluys/CBC/GPS'//trim(gps)//'/'
+  write(url,'(A)')'http://www.astro.northwestern.edu/~lsc/E14/GPS'//trim(gps)//'/'
   write(o,'(A)')'= GPS'//trim(gps)//' - description ='
   write(o,'(/,A)')'Back to [:JointS5/BayesianFollowUpOfE14Events:Bayesian follow-up in E14]'
   
@@ -835,8 +828,8 @@ subroutine save_cbc_wiki_data(ic)
   
   !True values:
   write(o,'(///,A)')'== True values =='
-  write(o,'(A)')"|| '''Detectors'''  || '''M1'''    || '''M2'''    || '''Mc'''    || '''&eta;''' || '''time'''      || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                  ||  (Mo)       || (Mo)        || (Mo)        ||             ||  (s)            ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
+  write(o,'(A)')"|| '''Detectors'''  || '''M1'''     || '''M2'''     || '''Mc'''     || '''&eta;'''  || '''time'''      || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
+  write(o,'(A)')"||                  ||  (Mo)        || (Mo)         || (Mo)         ||              ||  (s)            ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
   
   write(o,'(A4,$)')'||  '
   do i=1,4
@@ -847,30 +840,34 @@ subroutine save_cbc_wiki_data(ic)
      end if
   end do
   write(o,'(A6,$)')'    '
-  parr(1:12) = (/14,15,2,3,4,6,7,5,8,9,11,12/)
-  do p=1,12
+  parr(1:14) = (/63,64,61,62,11,71,72,81,82,22,31,32,51,52/)
+  do p=1,14
      p1 = parr(p)
-     x = stats(ic,p1,1)
-     if(p1.eq.8) x = rev2pi(x*rh2r)
-     if(p1.eq.12.or.p1.eq.13) x = rev2pi(x*rd2r)
-     if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
-     if(p1.eq.4) then
+     x = stats(ic,revID(p1),1)
+     if(p1.eq.31) x = rev2pi(x*rh2r)
+     if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
+     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
+     if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
+     if(p1.ge.11.and.p1.le.19) then
         write(o,'(A5,F14.4,$)')'  || ',x+t0
      else
-        write(o,'(A5,F10.4,$)')'  || ',x
+        write(o,'(A5,F11.4,$)')'  || ',x
      end if
   end do
-  write(o,'(A)')'  || [ injection info]  ||'
+  write(o,'(A,79x,A)')'  || [ injection info] ',' ||'
   
   
   
   
   !Bayes factor:
   write(o,'(///,A)')'== Bayes Factors =='
-  write(o,'(A)')"|| '''Model'''                                      || '''Detectors'''        || '''log_e Bayes Factor'''    || '''log_10 Bayes Factor'''    || '''Details'''                                                           ||"
+  write(o,'(A)')"|| '''Code'''                                     || '''Model'''                                                || '''Detectors'''  || '''log_e Bayes Factor'''    || '''log_10 Bayes Factor'''    || '''Details'''                                                           ||"
   
-  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN simple precession vs. Gaussian noise       ||  '
-  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN non-spinning vs. Gaussian noise            ||  '
+  write(o,'(A3,A47,$)')'|| ','[http://tinyurl.com/SPINspiral SPINspiral]     '
+  if(spinningRun.eq.0) write(o,'(A3,A59,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN non-spinning vs. Gaussian noise '
+  if(spinningRun.eq.1) write(o,'(A3,A59,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN one spin vs. Gaussian noise     '
+  if(spinningRun.eq.2) write(o,'(A3,A59,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN two spins vs. Gaussian noise    '
+  write(o,'(A,$)')'||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -878,20 +875,23 @@ subroutine save_cbc_wiki_data(ic)
         write(o,'(A2,$)')'  '
      end if
   end do
-  write(o,'(A17,$)')'              || '
+  write(o,'(A11,$)')'        || '
   write(o,'(F10.1,A,$)')logebayesfactor(ic),'                  || '
   write(o,'(F10.1,A,$)')log10bayesfactor(ic),'                   || '
-  write(o,'(A)')'['//trim(url)//' link]       ||'
+  write(o,'(A)')'['//trim(url)//' link]         ||'
   
   
   
   
   !Medians:
   write(o,'(///,A)')'== Medians =='
-  write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  || '''Mc'''    || '''&eta;''' || '''time'''  || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                               ||                  || (Mo)        ||             ||  (s)        ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
-  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          ||  '
-  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      ||  '
+  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 || '''Detectors'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
+  write(o,'(A)')"||                                                ||                                                ||                  || (Mo)         ||              ||  (s)         ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
+  write(o,'(A3,A47,$)')'|| ','[http://tinyurl.com/SPINspiral SPINspiral]     '
+  if(spinningRun.eq.0) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN non-spinning '
+  if(spinningRun.eq.1) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN one spin     '
+  if(spinningRun.eq.2) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN two spins    '
+  write(o,'(A,$)')'||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -900,28 +900,33 @@ subroutine save_cbc_wiki_data(ic)
      end if
   end do
   write(o,'(A10,$)')'       ||'
-  parr(1:10) = (/2,3,4,6,7,5,8,9,11,12/)
-  do p=1,10
+  !parr(1:10) = (/2,3,4,6,7,5,8,9,11,12/)
+  parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
+  do p=1,12
      p1 = parr(p)
-     x = stats(ic,p1,1)
-     if(p1.eq.8) x = rev2pi(x*rh2r)
-     if(p1.eq.12.or.p1.eq.13) x = rev2pi(x*rd2r)
-     if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
-     write(xs10,'(F10.4)')x
-     if(fixedpar(6).eq.1 .and. (p1.eq.6.or.p1.eq.7.or.p1.eq.13)) xs10 = ' - '  !If non-spinning
-     write(o,'(A10,A5,$)')xs10,'   ||'
+     x = stats(ic,revID(p1),1)
+     if(p1.eq.31) x = rev2pi(x*rh2r)
+     if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
+     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
+     if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
+     write(xs11,'(F11.4)')x
+     if(spinningRun.eq.0 .and. (p1.ge.71.and.p1.le.89) .or. spinningRun.eq.1 .and. (p1.ge.81.and.p1.le.89)) xs11 = ' - '  !If non-spinning
+     write(o,'(A11,A5,$)')xs11,'   ||'
   end do
-  write(o,'(A)')' ['//trim(url)//' link]                                 ||'
+  write(o,'(A)')' ['//trim(url)//' link]                                   ||'
   
   
   
   
   !Means:
   write(o,'(///,A)')'== Means =='
-  write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  || '''Mc'''    || '''&eta;''' || '''time'''  || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                               ||                  || (Mo)        ||             ||  (s)        ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
-  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          ||  '
-  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      ||  '
+  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 || '''Detectors'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
+  write(o,'(A)')"||                                                ||                                                ||                  || (Mo)         ||              ||  (s)         ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
+  write(o,'(A3,A47,$)')'|| ','[http://tinyurl.com/SPINspiral SPINspiral]     '
+  if(spinningRun.eq.0) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN non-spinning '
+  if(spinningRun.eq.1) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN one spin     '
+  if(spinningRun.eq.2) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN two spins    '
+  write(o,'(A,$)')'||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -930,28 +935,32 @@ subroutine save_cbc_wiki_data(ic)
      end if
   end do
   write(o,'(A10,$)')'       ||'
-  parr(1:10) = (/2,3,4,6,7,5,8,9,11,12/)
-  do p=1,10
+  parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
+  do p=1,12
      p1 = parr(p)
-     x = stats(ic,p1,2)
-     if(p1.eq.8) x = rev2pi(x*rh2r)
-     if(p1.eq.12.or.p1.eq.13) x = rev2pi(x*rd2r)
-     if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
-     write(xs10,'(F10.4)')x
-     if(fixedpar(6).eq.1 .and. (p1.eq.6.or.p1.eq.7.or.p1.eq.13)) xs10 = ' - '  !If non-spinning
-     write(o,'(A10,A5,$)')xs10,'   ||'
+     x = stats(ic,revID(p1),2)
+     if(p1.eq.31) x = rev2pi(x*rh2r)
+     if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
+     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
+     if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
+     write(xs11,'(F11.4)')x
+     if(spinningRun.eq.0 .and. (p1.ge.71.and.p1.le.89) .or. spinningRun.eq.1 .and. (p1.ge.81.and.p1.le.89)) xs11 = ' - '  !If non-spinning
+     write(o,'(A11,A5,$)')xs11,'   ||'
   end do
-  write(o,'(A)')' ['//trim(url)//' link]                                 ||'
+  write(o,'(A)')' ['//trim(url)//' link]                                   ||'
   
   
   
   
   !Lmax:
   write(o,'(///,A)')'== Maximum-likelihood points =='
-  write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  ||'''log(L)''' || '''Mc'''    || '''&eta;''' || '''time'''  || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                               ||                  ||             || (Mo)        ||             ||  (s)        ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
-  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          ||  '
-  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      ||  '
+  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 || '''Detectors'''  ||'''log(L)'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
+  write(o,'(A)')"||                                                ||                                                ||                  ||              || (Mo)         ||              ||  (s)         ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
+  write(o,'(A3,A47,$)')'|| ','[http://tinyurl.com/SPINspiral SPINspiral]     '
+  if(spinningRun.eq.0) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN non-spinning '
+  if(spinningRun.eq.1) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN one spin     '
+  if(spinningRun.eq.2) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN two spins    '
+  write(o,'(A,$)')'||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -960,28 +969,37 @@ subroutine save_cbc_wiki_data(ic)
      end if
   end do
   write(o,'(A10,$)')'       ||'
-  parr(1:11) = (/1,2,3,4,6,7,5,8,9,11,12/) !Include logL!
-  do p=1,11
+  
+  !Print log L:
+  write(xs11,'(F11.4)')logLmax
+  write(o,'(A11,A5,$)')xs11,'   ||'
+  
+  parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
+  do p=1,12
      p1 = parr(p)
-     x = startval(ic,p1,3)
-     if(p1.eq.8) x = rev2pi(x*rh2r)
-     if(p1.eq.10.or.p1.eq.12.or.p1.eq.13) x = rev2pi(x*rd2r)
-     if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
-     write(xs10,'(F10.4)')x
-     if(fixedpar(6).eq.1 .and. (p1.eq.6.or.p1.eq.7.or.p1.eq.13)) xs10 = ' - '  !If non-spinning
-     write(o,'(A10,A5,$)')xs10,'   ||'
+     x = startval(ic,revID(p1),3)
+     if(p1.eq.31) x = rev2pi(x*rh2r)
+     if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
+     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
+     if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
+     write(xs11,'(F11.4)')x
+     if(spinningRun.eq.0 .and. (p1.ge.71.and.p1.le.89) .or. spinningRun.eq.1 .and. (p1.ge.81.and.p1.le.89)) xs11 = ' - '  !If non-spinning
+     write(o,'(A11,A5,$)')xs11,'   ||'
   end do
-  write(o,'(A)')' ['//trim(url)//' link]                                 ||'
+  write(o,'(A)')' ['//trim(url)//' link]                                   ||'
   
   
   
   
   !Stdev:
   write(o,'(///,A)')'== Standard deviations =='
-  write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  || '''Mc'''    || '''&eta;''' || '''time'''  || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                               ||                  || (Mo)        ||             ||  (s)        ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
-  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          ||  '
-  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      ||  '
+  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 || '''Detectors'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
+  write(o,'(A)')"||                                                ||                                                ||                  || (Mo)         ||              ||  (s)         ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
+  write(o,'(A3,A47,$)')'|| ','[http://tinyurl.com/SPINspiral SPINspiral]     '
+  if(spinningRun.eq.0) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN non-spinning '
+  if(spinningRun.eq.1) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN one spin     '
+  if(spinningRun.eq.2) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN two spins    '
+  write(o,'(A,$)')'||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -990,25 +1008,26 @@ subroutine save_cbc_wiki_data(ic)
      end if
   end do
   write(o,'(A10,$)')'       ||'
-  parr(1:10) = (/2,3,4,6,7,5,8,9,11,12/)
-  do p=1,10
+  parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
+  do p=1,12
      p1 = parr(p)
-     x = stdev2(p1)
-     if(p1.eq.8) x = x*rh2r
-     if(p1.eq.10.or.p1.eq.12.or.p1.eq.13) x = x*rd2r
-     if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
-     write(xs10,'(F10.4)')x
-     if(fixedpar(6).eq.1 .and. (p1.eq.6.or.p1.eq.7.or.p1.eq.13)) xs10 = ' - '  !If non-spinning
-     write(o,'(A10,A5,$)')xs10,'   ||'
+     x = stdev2(revID(p1))
+     if(p1.eq.31) x = x*rh2r
+     if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
+     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = x*rd2r
+     if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
+     write(xs11,'(F11.4)')x
+     if(spinningRun.eq.0 .and. (p1.ge.71.and.p1.le.89) .or. spinningRun.eq.1 .and. (p1.ge.81.and.p1.le.89)) xs11 = ' - '  !If non-spinning
+     write(o,'(A11,A5,$)')xs11,'   ||'
   end do
-  write(o,'(A)')' ['//trim(url)//' link]                                 ||'
+  write(o,'(A)')' ['//trim(url)//' link]                                   ||'
   
   
   
   !2-sigma range:
   write(o,'(///,A)')'== 2-sigma probability ranges =='
-  write(o,'(A)')"|| '''Code'''                    || '''Detectors'''  || '''Mc'''              || '''&eta;'''           || '''time'''            || '''spin'''            || '''&theta;'''         || '''Distance'''        || '''R.A.'''            || '''Dec.'''            || '''incl.'''           || '''pol.'''            || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                               ||                  || (Mo)                  ||                       ||  (s)                  ||                       || (rad)                 || (Mpc)                 || (rad)                 || (rad)                 || (rad)                 || (rad)                 ||                                                                                                   ||"
+  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 || '''Detectors'''  || '''Mc'''              || '''&eta;'''           || '''time'''            || '''spin1'''           || '''&theta;1'''        || '''spin2'''           || '''&theta;2'''        || '''Distance'''        || '''R.A.'''            || '''Dec.'''            || '''incl.'''           || '''pol.'''            || '''details'''                                                                                     ||"
+  write(o,'(A)')"||                                                ||                                                ||                  || (Mo)                  ||                       ||  (s)                  ||                       || (rad)                 ||                       || (rad)                 || (Mpc)                 || (rad)                 || (rad)                 || (rad)                 || (rad)                 ||                                                                                                   ||"
   c = 0
   do i=1,nival
      if(abs(ivals(i)-0.9545).lt.0.0001) c = i
@@ -1024,8 +1043,11 @@ subroutine save_cbc_wiki_data(ic)
         stop
      end if
   end if
-  if(fixedpar(6).eq.0) write(o,'(A,$)')'|| 1.5pN, spinning MCMC          ||  '
-  if(fixedpar(6).eq.1) write(o,'(A,$)')'|| 1.5pN, non-spinning MCMC      ||  '
+  write(o,'(A3,A47,$)')'|| ','[http://tinyurl.com/SPINspiral SPINspiral]     '
+  if(spinningRun.eq.0) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN non-spinning '
+  if(spinningRun.eq.1) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN one spin     '
+  if(spinningRun.eq.2) write(o,'(A3,A47,$)')'|| ',trim(waveforms(waveform))//' '//pnstr//'pN two spins    '
+  write(o,'(A,$)')'||  '
   do i=1,4
      if(i.le.ndet(ic)) then
         write(o,'(A2,$)')detabbrs(detnr(ic,i))
@@ -1034,36 +1056,36 @@ subroutine save_cbc_wiki_data(ic)
      end if
   end do
   write(o,'(A10,$)')'       ||'
-  parr(1:10) = (/2,3,4,6,7,5,8,9,11,12/)
-  do p=1,10
+  parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
+  do p=1,12
      p1 = parr(p)
-     x1 = ranges(ic,c,p1,1)
-     x2 = ranges(ic,c,p1,2)
-     if(p1.eq.8) then
+     x1 = ranges(ic,c,revID(p1),1)
+     x2 = ranges(ic,c,revID(p1),2)
+     if(p1.eq.31) then  !RA
         x1 = x1*rh2r
         x2 = x2*rh2r
      end if
-     if(p1.eq.12.or.p1.eq.13) then
+     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) then
         x1 = x1*rd2r
         x2 = x2*rd2r
      end if
-     if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) then
+     if(p1.eq.32.or.p1.eq.51.or.p1.eq.52.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) then
         x1 = x1*rd2r
         x2 = x2*rd2r
      end if
      write(xs20,'(F9.4,A2,F9.4)')x1,' -',x2
-     if(fixedpar(6).eq.1 .and. (p1.eq.6.or.p1.eq.7.or.p1.eq.13)) xs20 = ' - '  !If non-spinning
+     if(spinningRun.eq.0 .and. (p1.ge.71.and.p1.le.89) .or. spinningRun.eq.1 .and. (p1.ge.81.and.p1.le.89)) xs20 = ' - '  !If non-spinning
      write(o,'(A20,A5,$)')xs20,'   ||'
      
   end do
-  write(o,'(A)')' ['//trim(url)//' link]                                 ||'
+  write(o,'(A)')' ['//trim(url)//' link]                                   ||'
   
   
   
   !True values:
   write(o,'(///,A)')'== True values =='
-  write(o,'(A)')"|| '''Detectors'''  || '''M1'''    || '''M2'''    || '''Mc'''    || '''&eta;''' || '''time'''      || '''spin'''  ||'''&theta;'''|| '''Dist'''  || '''R.A.'''  || '''Dec.'''  || '''incl'''  || '''pol.'''  || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                  ||  (Mo)       || (Mo)        || (Mo)        ||             ||  (s)            ||             || (rad)       || (Mpc)       || (rad)       || (rad)       || (rad)       || (rad)       ||                                                                                                   ||"
+  write(o,'(A)')"|| '''Detectors'''  || '''M1'''     || '''M2'''     || '''Mc'''     || '''&eta;'''  || '''time'''      || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
+  write(o,'(A)')"||                  ||  (Mo)        || (Mo)         || (Mo)         ||              ||  (s)            ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
   
   write(o,'(A4,$)')'||  '
   do i=1,4
@@ -1074,20 +1096,25 @@ subroutine save_cbc_wiki_data(ic)
      end if
   end do
   write(o,'(A6,$)')'    '
-  parr(1:12) = (/14,15,2,3,4,6,7,5,8,9,11,12/)
-  do p=1,12
+  parr(1:14) = (/63,64,61,62,11,71,72,81,82,22,31,32,51,52/)
+  do p=1,14
      p1 = parr(p)
-     x = stats(ic,p1,1)
-     if(p1.eq.8) x = rev2pi(x*rh2r)
-     if(p1.eq.12.or.p1.eq.13) x = rev2pi(x*rd2r)
-     if(p1.eq.7.or.p1.eq.9.or.p1.eq.11) x = x*rd2r
-     if(p1.eq.4) then
+     x = stats(ic,revID(p1),1)
+     if(p1.eq.31) x = rev2pi(x*rh2r)
+     if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
+     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
+     if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
+     if(p1.ge.11.and.p1.le.19) then
         write(o,'(A5,F14.4,$)')'  || ',x+t0
      else
-        write(o,'(A5,F10.4,$)')'  || ',x
+        write(o,'(A5,F11.4,$)')'  || ',x
      end if
   end do
-  write(o,'(A)')'  || [ injection info]  ||'
+  write(o,'(A,79x,A)')'  || [ injection info] ',' ||'
+  
+  
+  
+  
   
   
   write(o,'(///,A)')'----'

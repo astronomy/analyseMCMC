@@ -2,6 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    82: sluys, 07/08/2009
+     - 2D PDFs now waveform independent
+     - Changed output filenames, using GPS time, detectors and waveform
+     - Wiki output now waveform independent
+     
     81: sluys, 05/08/2009
      - Bugfix at data wrapping (_stats.f)
      - More optimisation of 1D plots

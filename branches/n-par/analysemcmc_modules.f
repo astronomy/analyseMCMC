@@ -33,7 +33,7 @@ module constants
   integer :: os
   real*8 :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
   real :: rpi,rtpi,rpi2,rr2d,rd2r,rr2h,rh2r,rc3rd
-  character :: upline*4,detabbrs(4)*2
+  character :: upline*4,detabbrs(4)*2,waveforms(4)*99
 end module constants
 !***************************************************************************************************
 
@@ -45,7 +45,7 @@ module general_data
   implicit none
   save
   integer, parameter :: maxIter=1.01e5+2,nr1=5,nstat1=10,ndets=3
-  integer :: n(maxChs),ntot(maxChs),npar,iloglmax,icloglmax,c0,nchains,nchains0
+  integer :: n(maxChs),ntot(maxChs),iloglmax,icloglmax,c0,nchains,nchains0
   integer :: fixedpar(maxMCMCpar),nfixedpar,contrchains,contrchain(maxChs)
   real, allocatable :: selDat(:,:,:),allDat(:,:,:),post(:,:),prior(:,:)
   real :: startval(maxChs,maxMCMCpar,3)
@@ -71,7 +71,8 @@ module mcmcrun_data
   integer :: niter(maxChs),totiter,totlines,totpts,nburn0(maxChs),seed(maxChs),ndet(maxChs),totthin(maxChs)
   integer :: nCorr(maxChs),nTemps(maxChs),waveform,nMCMCpar,Tmax(maxChs)
   integer :: samplerate(maxChs,ndets),samplesize(maxChs,ndets),FTsize(maxChs,ndets),detnr(maxChs,ndets),offsetrun
-  integer :: parID(maxMCMCpar),revID(nParDB)
+  integer :: parID(maxMCMCpar),revID(nParDB),spinningRun
+  integer*8 :: GPStime
   real :: snr(maxChs,ndets),flow(maxChs,ndets),fhigh(maxChs,ndets),t_before(maxChs,ndets),t_after(maxChs,ndets),deltaFT(maxChs,ndets)
   real :: Tchain(maxChs),networkSNR(maxChs),pnOrder
   real*8 :: FTstart(maxChs,ndets),t0,loglmax,loglmaxs(maxChs)
