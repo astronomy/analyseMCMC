@@ -2,7 +2,6 @@
 
 
  Basic options:
-         1             version     Output version: 1: 12-par Apostolatos, 2:15-par LAL
          1                thin     If >1, "thin" the output; read every thin-th line 
     500000               nburn     If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain
    0.50000           nburnfrac     If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides nburn above
