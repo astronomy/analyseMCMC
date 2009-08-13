@@ -761,6 +761,10 @@ subroutine save_stats(exitcode)  !Save statistics to file
   do p=1,Npdf2D
      p1 = PDF2Dpairs(p,1)
      p2 = PDF2Dpairs(p,2)
+     if(parID(p1)*parID(p2).eq.0) then
+        write(0,'(/,A,I4,A,I4,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter',p1,' or',p2,' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
+        stop
+     end if
      write(o,'(2I4,2(2x,A8),2x,$)')p1,p2,trim(parNames(parID(p1))),trim(parNames(parID(p2)))
      do c=1,Nival
         write(o,'(2x,F14.8,$)')probareas(p1,p2,c,1)
@@ -840,15 +844,19 @@ subroutine save_cbc_wiki_data(ic)
   parr(1:14) = (/63,64,61,62,11,71,72,81,82,22,31,32,51,52/)
   do p=1,14
      p1 = parr(p)
-     x = allDat(ic,revID(p1),1)
-     if(p1.eq.31) x = rev2pi(x*rh2r)
-     if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
-     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
-     if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
-     if(p1.ge.11.and.p1.le.19) then
-        write(o,'(A5,F14.4,$)')'  || ',x+t0
+     if(revID(p1).eq.0) then  !Parameter not used
+        write(o,'(A5,A11,$)')'  || ',' - '
      else
-        write(o,'(A5,F11.4,$)')'  || ',x
+        x = allDat(ic,revID(p1),1)
+        if(p1.eq.31) x = rev2pi(x*rh2r)
+        if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
+        if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
+        if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
+        if(p1.ge.11.and.p1.le.19) then
+           write(o,'(A5,F14.4,$)')'  || ',x+t0
+        else
+           write(o,'(A5,F11.4,$)')'  || ',x
+        end if
      end if
   end do
   write(o,'(A,79x,A)')'  || [ injection info] ',' ||'
@@ -901,13 +909,16 @@ subroutine save_cbc_wiki_data(ic)
   parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
   do p=1,12
      p1 = parr(p)
-     x = stats(ic,revID(p1),1)
-     if(p1.eq.31) x = rev2pi(x*rh2r)
-     if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
-     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
-     if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
-     write(xs11,'(F11.4)')x
-     if(spinningRun.eq.0 .and. (p1.ge.71.and.p1.le.89) .or. spinningRun.eq.1 .and. (p1.ge.81.and.p1.le.89)) xs11 = ' - '  !If non-spinning
+     if(revID(p1).eq.0) then  !Parameter not used
+        xs11 = ' - '
+     else
+        x = stats(ic,revID(p1),1)
+        if(p1.eq.31) x = rev2pi(x*rh2r)
+        if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
+        if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
+        if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
+        write(xs11,'(F11.4)')x
+     end if
      write(o,'(A11,A5,$)')xs11,'   ||'
   end do
   write(o,'(A)')' ['//trim(url)//' link]                                   ||'
@@ -935,13 +946,16 @@ subroutine save_cbc_wiki_data(ic)
   parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
   do p=1,12
      p1 = parr(p)
-     x = stats(ic,revID(p1),2)
-     if(p1.eq.31) x = rev2pi(x*rh2r)
-     if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
-     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
-     if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
-     write(xs11,'(F11.4)')x
-     if(spinningRun.eq.0 .and. (p1.ge.71.and.p1.le.89) .or. spinningRun.eq.1 .and. (p1.ge.81.and.p1.le.89)) xs11 = ' - '  !If non-spinning
+     if(revID(p1).eq.0) then  !Parameter not used
+        xs11 = ' - '
+     else
+        x = stats(ic,revID(p1),2)
+        if(p1.eq.31) x = rev2pi(x*rh2r)
+        if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
+        if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
+        if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
+        write(xs11,'(F11.4)')x
+     end if
      write(o,'(A11,A5,$)')xs11,'   ||'
   end do
   write(o,'(A)')' ['//trim(url)//' link]                                   ||'
@@ -974,13 +988,16 @@ subroutine save_cbc_wiki_data(ic)
   parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
   do p=1,12
      p1 = parr(p)
-     x = startval(ic,revID(p1),3)
-     if(p1.eq.31) x = rev2pi(x*rh2r)
-     if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
-     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
-     if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
-     write(xs11,'(F11.4)')x
-     if(spinningRun.eq.0 .and. (p1.ge.71.and.p1.le.89) .or. spinningRun.eq.1 .and. (p1.ge.81.and.p1.le.89)) xs11 = ' - '  !If non-spinning
+     if(revID(p1).eq.0) then  !Parameter not used
+        xs11 = ' - '
+     else
+        x = startval(ic,revID(p1),3)
+        if(p1.eq.31) x = rev2pi(x*rh2r)
+        if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
+        if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
+        if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
+        write(xs11,'(F11.4)')x
+     end if
      write(o,'(A11,A5,$)')xs11,'   ||'
   end do
   write(o,'(A)')' ['//trim(url)//' link]                                   ||'
@@ -1008,13 +1025,16 @@ subroutine save_cbc_wiki_data(ic)
   parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
   do p=1,12
      p1 = parr(p)
-     x = stdev2(revID(p1))
-     if(p1.eq.31) x = x*rh2r
-     if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
-     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = x*rd2r
-     if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
-     write(xs11,'(F11.4)')x
-     if(spinningRun.eq.0 .and. (p1.ge.71.and.p1.le.89) .or. spinningRun.eq.1 .and. (p1.ge.81.and.p1.le.89)) xs11 = ' - '  !If non-spinning
+     if(revID(p1).eq.0) then  !Parameter not used
+        xs11 = ' - '
+     else
+        x = stdev2(revID(p1))
+        if(p1.eq.31) x = x*rh2r
+        if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
+        if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = x*rd2r
+        if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
+        write(xs11,'(F11.4)')x
+     end if
      write(o,'(A11,A5,$)')xs11,'   ||'
   end do
   write(o,'(A)')' ['//trim(url)//' link]                                   ||'
@@ -1056,22 +1076,25 @@ subroutine save_cbc_wiki_data(ic)
   parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
   do p=1,12
      p1 = parr(p)
-     x1 = ranges(ic,c,revID(p1),1)
-     x2 = ranges(ic,c,revID(p1),2)
-     if(p1.eq.31) then  !RA
-        x1 = x1*rh2r
-        x2 = x2*rh2r
+     if(revID(p1).eq.0) then  !Parameter not used
+        xs20 = ' - '
+     else
+        x1 = ranges(ic,c,revID(p1),1)
+        x2 = ranges(ic,c,revID(p1),2)
+        if(p1.eq.31) then  !RA
+           x1 = x1*rh2r
+           x2 = x2*rh2r
+        end if
+        if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) then
+           x1 = x1*rd2r
+           x2 = x2*rd2r
+        end if
+        if(p1.eq.32.or.p1.eq.51.or.p1.eq.52.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) then
+           x1 = x1*rd2r
+           x2 = x2*rd2r
+        end if
+        write(xs20,'(F9.4,A2,F9.4)')x1,' -',x2
      end if
-     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) then
-        x1 = x1*rd2r
-        x2 = x2*rd2r
-     end if
-     if(p1.eq.32.or.p1.eq.51.or.p1.eq.52.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) then
-        x1 = x1*rd2r
-        x2 = x2*rd2r
-     end if
-     write(xs20,'(F9.4,A2,F9.4)')x1,' -',x2
-     if(spinningRun.eq.0 .and. (p1.ge.71.and.p1.le.89) .or. spinningRun.eq.1 .and. (p1.ge.81.and.p1.le.89)) xs20 = ' - '  !If non-spinning
      write(o,'(A20,A5,$)')xs20,'   ||'
      
   end do
@@ -1096,15 +1119,19 @@ subroutine save_cbc_wiki_data(ic)
   parr(1:14) = (/63,64,61,62,11,71,72,81,82,22,31,32,51,52/)
   do p=1,14
      p1 = parr(p)
-     x = allDat(ic,revID(p1),1)
-     if(p1.eq.31) x = rev2pi(x*rh2r)
-     if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
-     if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
-     if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
-     if(p1.ge.11.and.p1.le.19) then
-        write(o,'(A5,F14.4,$)')'  || ',x+t0
+     if(revID(p1).eq.0) then  !Parameter not used
+        write(o,'(A5,A11,$)')'  || ',' - '
      else
-        write(o,'(A5,F11.4,$)')'  || ',x
+        x = allDat(ic,revID(p1),1)
+        if(p1.eq.31) x = rev2pi(x*rh2r)
+        if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
+        if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
+        if(p1.eq.32.or.p1.eq.51.or.p1.eq.53.or.p1.eq.72.or.p1.eq.82) x = x*rd2r
+        if(p1.ge.11.and.p1.le.19) then
+           write(o,'(A5,F14.4,$)')'  || ',x+t0
+        else
+           write(o,'(A5,F11.4,$)')'  || ',x
+        end if
      end if
   end do
   write(o,'(A,79x,A)')'  || [ injection info] ',' ||'
@@ -1151,9 +1178,9 @@ subroutine compute_convergence()
   
   implicit none
   integer :: i,ic,p
-  integer :: nn,lowVar(maxMCMCpar),nLowVar,highVar(maxMCMCpar),nHighVar,nmeanRelVar,nrhat,IDs(maxMCMCpar),nUsedPar
+  integer :: nn,lowVar(maxMCMCpar),nLowVar,highVar(maxMCMCpar),nHighVar,nmeanRelVar,nRhat,IDs(maxMCMCpar),nUsedPar
   real :: dx
-  real*8 :: chmean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar),totrhat,meanRelVar
+  real*8 :: chmean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar),totRhat,meanRelVar
   character :: ch
   
   
@@ -1190,7 +1217,7 @@ subroutine compute_convergence()
      chVar(p) = chVar(p)/dble(nchains0*(nn-1))
      meanVar(p) = meanVar(p)/dble(nchains0-1)
      
-     rhat(p) = min( dble(nn-1)/dble(nn)  +  meanVar(p)/chVar(p) * (1.d0 + 1.d0/dble(nchains0)), 99.d0)
+     Rhat(p) = min( dble(nn-1)/dble(nn)  +  meanVar(p)/chVar(p) * (1.d0 + 1.d0/dble(nchains0)), 99.d0)
   end do
   
   
@@ -1311,16 +1338,16 @@ subroutine compute_convergence()
   !Print R-hat:
   if(prConv.ge.1) then
      write(6,'(A14,$)')'       R-hat: '
-     totrhat = 1.d0
-     nrhat = 0
+     totRhat = 1.d0
+     nRhat = 0
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
-        write(6,'(F9.4,$)')rhat(p)
-        totrhat = totrhat * rhat(p)
-        nrhat = nrhat + 1
+        write(6,'(F9.4,$)')Rhat(p)
+        totRhat = totRhat * Rhat(p)
+        nRhat = nRhat + 1
      end do
-     !write(6,'(F9.4)')totrhat/dble(nrhat)
-     write(6,'(F9.4)')totrhat**(1.d0/dble(nrhat))
+     !write(6,'(F9.4)')totRhat/dble(nRhat)
+     write(6,'(F9.4)')totRhat**(1.d0/dble(nRhat))
   end if
   
 end subroutine compute_convergence

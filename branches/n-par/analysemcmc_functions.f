@@ -252,16 +252,15 @@ subroutine write_settingsfile
   write(u,21)PSrat, 'PSrat',   'Ratio for PS/PDF (PGPlot units). Default: 0.742  /'
   write(u,11)whiteBG, 'whiteBG',   'Create white background for screen and .png plots: 0-no (black, default), 1-yes'
   write(u,21)scFac, 'scFac',   '!!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot'
-  write(u,11)unSharp, 'unSharp',   'Apply unSharp mask when creating .png plots. Default: 10.'
+  write(u,11)unSharp, 'unSharp',   'Apply unsharp mask when creating .png plots. Default: 10.'
   
   write(u,'(/,A)')' Data settings:'
   write(u,'(A)')' Plot MCMC parameters:  1:logL, 2:Mc, 3:eta, 4:tc, 5:dL, 6:a, 7:th, 8:RA, 9:dec, 10:phi, 11:thJ, 12:phiJ, 13:alpha, 14:M1, 15:M2'
-  write(u,11)nPlPar, 'nPlPar',   'Number of plot parameters for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savePDF=1. Put the MCMC parameters in the line below:'
+  write(u,11)nPlPar, 'nPlPar',   'Number of plot parameters for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savePDF=1. Put the MCMC parameters in the line below (plPars()):'
   do i=1,nPlPar
      write(u,'(I3,$)')plPars(i)
   end do
   write(u,*)''
-  !write(u,'(5x,A,5x,A)')'plPars','The actual plot parameters (1-nPlPar)'
   write(u,12)panels(1:2), 'panels',   'Number of for 1D plots in x,y direction:  0: autodetermine'
   write(u,11)Nbin1D, 'Nbin1D',   'Number of bins for 1D PDFs:  0: autodetermine'
   write(u,11)Nbin2Dx, 'Nbin2Dx',   'Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)'
@@ -437,8 +436,8 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
            revID(parID(i)) = i  !Reverse ID
         end do
      end if
-     read(10,*,end=199,err=199)tmpStr  !Read line with column headers (Cycle, log Post., Prior, etc)
      
+     read(10,*,end=199,err=199)tmpStr  !Read line with column headers (Cycle, log Post., Prior, etc)
      i=1
      do while(i.le.maxIter)
         if(outputVersion < 0.5) then
@@ -501,7 +500,8 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      !if(prProgress.ge.2.and.update.ne.1) write(6,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',Nburn(ic),'.'
   end do !do ic = 1,nchains0
   
-
+  
+  
 end subroutine read_mcmcfiles
 !************************************************************************************************************************************
 

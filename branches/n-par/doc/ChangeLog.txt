@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    86: sluys, 13/08/2009
+     - Fix Wiki output for singly/nonspinning runs
+     - Update analysemcmc.dat
+     
     85: sluys, 13/08/2009
      - Make parameter names better readable
      

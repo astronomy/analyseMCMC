@@ -2,87 +2,85 @@
 
 
  Basic options:
-         1                thin     If >1, "thin" the output; read every thin-th line 
-    500000               nburn     If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain
-   0.50000           nburnfrac     If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides nburn above
-   2.00000          autoburnin     If >0: Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoburnin. Overrides nburn and nburnfrac above
-  1.00E+09            maxchlen     Maximum chain length to read in (number of iterations, not number of lines)
+        10                thin     If >1, "thin" the output; read every thin-th line 
+    500000               Nburn     If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain
+   0.50000           NburnFrac     If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides Nburn above
+   5.00000          autoBurnin     If >0: Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin. Overrides Nburn and NburnFrac above
+  1.00E+09            maxChLen     Maximum chain length to read in (number of iterations, not number of lines)
          1                file     Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter "outputdir" below
          1              colour     Use colours: 0-no (grey scales), 1-yes
          2             quality     "Quality" of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
-         0         reverseread     Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too
+         0         reverseRead     Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too
          0              update     Update screen plot every 10 seconds: 0-no, 1-yes
-         1         mergechains     Merge the data from different files into one chain: 0-no (treat separately), 1-yes
-         1            wrapdata     Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
-         1           changevar     Change variables (e.g. logd->d, kappa->theta_SL, rad->deg)
+         1         mergeChains     Merge the data from different files into one chain: 0-no (treat separately), 1-yes
+         1            wrapData     Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
+         1           changeVar     Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)
 
  Select what output to print to screen and write to file:
-         1          prprogress     Print general messages about the progress of the program: 0-no, 1-some, 2-more, 3-debug output
-         1           prruninfo     Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files
-         1         prchaininfo     Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per chain (file name, plot colour, # iterations, burnin, Lmax, # data points)
-         0           prinitial     Print true values, starting values and their difference
-         1              prstat     Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals
-         0              prcorr     Print correlations: 0-no, 1-yes
-         1              prival     Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both
-         1              prconv     Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain
-         1           savestats     Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
-         0             savepdf     Save the binned data for 1d and/or 2d pdfs (depending on plpdf1d and plpdf2d).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
+         1          prProgress     Print general messages about the progress of the program: 0-no, 1-some, 2-more, 3-debug output
+         1           prRunInfo     Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files
+         0         prChainInfo     Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per chain (file name, plot colour, # iterations, burnin, Lmax, # data points)
+         0           prInitial     Print true values, starting values and their difference
+         0              prStat     Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals
+         0              prCorr     Print correlations: 0-no, 1-yes
+         0              prIval     Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both
+         0              prConv     Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain
+         1           saveStats     Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
+         0             savePDF     Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
 
  Select which plots to make:
-         1                plot     0: plot nothing at all, 1: plot the items selected below
-         0   combinechainplots     Combine logL, chain, sigma and acc plots into one multipage file
-         1              pllogl     Plot log L chains: 0-no, 1-yes
-         1             plchain     Plot parameter chains: 0-no, 1-yes
-         0              plparl     Plot L vs. parameter value: 0-no, 1-yes
-         0              pljump     Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log
-         1             plpdf1d     Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.
-         2             plpdf2d     Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).
-         0             placorr     Plot autocorrelations: 0-no, >0-yes: plot placorr steps
-         2             plotsky     Plot 2d pdf with stars, implies plpdf2d>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars
-         0             plmovie     Plot movie frames
+         0                plot     0: plot nothing at all, 1: plot the items selected below
+         0   combineChainPlots     Combine logL and chain plots into one multipage file
+         1              plLogL     Plot log L chains: 0-no, 1-yes
+         1             plChain     Plot parameter chains: 0-no, 1-yes
+         0              plParL     Plot L vs. parameter value: 0-no, 1-yes
+         0              plJump     Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log
+         1             plPDF1D     Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.
+         2             plPDF2D     Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) or not (=0).
+         0             plACorr     Plot autocorrelations: 0-no, >0-yes: plot plACorr steps
+         2             plotSky     Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars
+         0              plAnim     Create movie frames
 
  Detailed plot settings:
-         1         chainsymbol     Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols
-         0            chainpli     Plot every chainpli-th point in chains, logL, jump plots:  chainpli=0: autodetermine, chainpli>0: use this chainpli.  All states in between *are* used for statistics, pdf generation, etc.
-         1            scloglpl     Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account
-         1          scchainspl     Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account
-         0              pltrue     Plot true values in the chains and pdfs: 0: no,  1: yes (all pars),  2: yes (selected pars), 3-4: as 1-2 + print value in PDF panel
-         1             plstart     Plot starting values in the chains and pdfs
-         1            plmedian     Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel
-         4             plrange     Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel
-         1              plburn     Plot the burnin in logL, the chains, etc.
-         1              pllmax     Plot the position of the max logL, in the chains and pdfs
-         1            prvalues     Print values (true, median, range) in pdfs
+         1         chainSymbol     Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols
+         0            chainPlI     Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine, chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.
+         1            scLogLpl     Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account
+         1          scChainsPl     Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account
+         0            plInject     Plot true values in the chains and pdfs: 0: no,  1: yes (all pars),  2: yes (selected pars), 3-4: as 1-2 + print value in PDF panel
+         1             plStart     Plot starting values in the chains and pdfs
+         1            plMedian     Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel
+         4             plRange     Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel
+         1              plBurn     Plot the burnin in logL, the chains, etc.
+         1              plLmax     Plot the position of the max logL, in the chains and pdfs
+         1            prValues     Print values (true, median, range) in pdfs
          3              smooth     Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!
-         1             fillpdf     Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
-         1           normpdf1d     Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains
-         4           normpdf2d     'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value,  4-2D probability intervals
-         1          nmovframes     Number of frames for the movie
-         3         moviescheme     Moviescheme (1-3): determines what panels to show in a movie frame; see source code
-    3    2         nival ival0     Number of probability intervals,  number of the default probability interval (ival0<=nival)
+         1             fillPDF     Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
+         1           normPDF1D     Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains
+         4           normPDF2D     'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value,  4-2D probability intervals
+         1         nAnimFrames     Number of frames for the movie
+         3          animScheme     AnimScheme (1-3): determines what panels to show in a movie frame; see source code
+    3    2         Nival ival0     Number of probability intervals,  number of the default probability interval (ival0<=Nival)
   0.68269  0.95450  0.99730        Probability intervals (ivals()). Values > 0.9999 will be treated as 100%
 
  Output format:
-  10.80000               scrsz     Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8
-   0.57000              scrrat     Screen ratio for X11 windows (PGPlot units), MacBook: 0.57
-      1000              bmpxsz     X-size for bitmap (pixels):  1000  !!! Too large values give incomplete 2D PDFs somehow !!!
-       700              bmpysz     Y-size for bitmap (pixels):  700
-  10.50000                pssz     Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap
-   0.74200               psrat     Ratio for PS/PDF (PGPlot units). Default: 0.742  /
-         1             whitebg     Create white background for screen and .png plots: 0-no (black, default), 1-yes
-   1.20000               scfac     !!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot
-        10             unsharp     Apply unsharp mask when creating .png plots. Default: 10.
+  10.80000               scrSz     Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8
+   0.57000              scrRat     Screen ratio for X11 windows (PGPlot units), MacBook: 0.57
+      1000              bmpXSz     X-size for bitmap (pixels):  1000  !!! Too large values give incomplete 2D PDFs somehow !!!
+       700              bmpYSz     Y-size for bitmap (pixels):  700
+  10.50000                PSsz     Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap
+   0.74200               PSrat     Ratio for PS/PDF (PGPlot units). Default: 0.742  /
+         1             whiteBG     Create white background for screen and .png plots: 0-no (black, default), 1-yes
+   1.20000               scFac     !!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot
+        10             unSharp     Apply unsharp mask when creating .png plots. Default: 10.
 
  Data settings:
- Plot variables:  1:logL, 2:Mc, 3:eta, 4:tc, 5:dL, 6:a, 7:th, 8:RA, 9:dec, 10:phi, 11:thJ, 12:phiJ, 13:alpha, 14:M1, 15:M2
-        15              nplvar     Number of plot variables for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savepdf=1. Put the variables in the line below:
-  2  3  5  4 10  8  9  6  7 13 11 12 14 15  1 
+ Plot MCMC parameters:  1:logL, 2:Mc, 3:eta, 4:tc, 5:dL, 6:a, 7:th, 8:RA, 9:dec, 10:phi, 11:thJ, 12:phiJ, 13:alpha, 14:M1, 15:M2
+        14              nPlPar     Number of plot parameters for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savePDF=1. Put the MCMC parameters in the line below (plPars()):
+  1  2  4  3  9  7  8  5  6 12 10 11 13 14 
     0    0              panels     Number of for 1D plots in x,y direction:  0: autodetermine
-         0              nbin1d     Number of bins for 1D PDFs:  0: autodetermine
-         0             nbin2dx     Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)
-         0             nbin2dy     Number of bins in y-direction for 2D PDFs and 2D probability ranges:  0: use nbin2dx, -1: use nbin2dx*(scr/bmp/ps)rat
-         4              npdf2d     Number of 2D-PDF plots to make:  -1: all plots (91 for 12+2 parameters),  >0: read parameters from the lines below
-    2    3          pdf2dpairs     Pairs of parameters to plot a 2D PDF for
-   14   15          pdf2dpairs     Pairs of parameters to plot a 2D PDF for
-    8    9          pdf2dpairs     Pairs of parameters to plot a 2D PDF for
-   12   11          pdf2dpairs     Pairs of parameters to plot a 2D PDF for
+         0              Nbin1D     Number of bins for 1D PDFs:  0: autodetermine
+         0             Nbin2Dx     Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)
+         0             Nbin2Dy     Number of bins in y-direction for 2D PDFs and 2D probability ranges:  0: use Nbin2Dx, -1: use Nbin2Dx*(scr/bmp/ps)rat
+         2              Npdf2D     Number of 2D-PDF plots to make:  -1: all plots (91 for 12+2 parameters),  >0: read parameters from the lines below
+    1    2          PDF2Dpairs     Pairs of parameters to plot a 2D PDF for
+    7    8          PDF2Dpairs     Pairs of parameters to plot a 2D PDF for
