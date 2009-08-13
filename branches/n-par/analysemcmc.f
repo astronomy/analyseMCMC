@@ -320,7 +320,6 @@ program analyseMCMC
   
   
   
-  
   if(update.eq.1) then
      deallocate(allDat,selDat,post,prior)
      call sleep(5)

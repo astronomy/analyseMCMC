@@ -2,6 +2,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    84: sluys, 12/08/2009
+     - Removed bug at Bayes-factor computation: use data up to ntot(ic), not n(ic)
+     - Removed bug at injection values Wiki: use allDat(), not stats()
+     - Removed bug with wrong order of indices for allDat() in compute_convergence()
+     - Changed screen output to fit more parameters in
+    
     82: sluys, 07/08/2009
      - 2D PDFs now waveform independent
      - Changed output filenames, using GPS time, detectors and waveform

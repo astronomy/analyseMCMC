@@ -52,7 +52,7 @@ module general_data
   real :: ranges(maxChs,nival1,maxMCMCpar,nr1),stats(maxChs,maxMCMCpar,nstat1),log10bayesfactor(maxChs),logebayesfactor(maxChs)
   real*8 :: rhat(maxMCMCpar)
   
-  character :: varnames(nParDB)*8,infile*99,infiles(maxChs)*99,outputname*99,outputdir*99
+  character :: varnames(nParDB)*8,infiles(maxChs)*99,outputname*99,outputdir*99
   character :: pgunits(nParDB)*99,pgvarns(nParDB)*99,pgvarnss(nParDB)*99,pgorigvarns(nParDB)*99
   
   integer :: wrap(maxChs,maxMCMCpar)

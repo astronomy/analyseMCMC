@@ -61,7 +61,7 @@ subroutine read_settingsfile
      nburn(i) = nburn(1)
   end do
   read(u,*,iostat=io)nburnfrac
-  read(u,*,iostat=io)autoburnin
+  read(u,*,iostat=io)autoBurnin
   read(u,*,iostat=io)dblvar
   maxchlen = nint(dblvar)
   read(u,*,iostat=io)file
@@ -71,7 +71,7 @@ subroutine read_settingsfile
   read(u,*,iostat=io)update
   read(u,*,iostat=io)mergechains
   read(u,*,iostat=io)wrapdata
-  read(u,*,iostat=io)changevar
+  read(u,*,iostat=io)changeVar
   
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)prprogress
@@ -180,7 +180,7 @@ subroutine write_settingsfile
   write(u,11)thin, 'thin',   'If >1, "thin" the output; read every thin-th line '
   write(u,11)maxval(nburn), 'nburn',   'If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain'
   write(u,21)nburnfrac, 'nburnfrac',   'If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides nburn above'
-  write(u,21)autoburnin, 'autoburnin',   'If >0: Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoburnin. Overrides nburn and nburnfrac above'
+  write(u,21)autoBurnin, 'autoBurnin',   'If >0: Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin. Overrides nburn and nburnfrac above'
   write(u,31)dble(maxchlen), 'maxchlen',   'Maximum chain length to read in (number of iterations, not number of lines)'
   write(u,11)file, 'file',   'Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter "outputdir" below'
   write(u,11)colour, 'colour',   'Use colours: 0-no (grey scales), 1-yes'
@@ -189,7 +189,7 @@ subroutine write_settingsfile
   write(u,11)update, 'update',   'Update screen plot every 10 seconds: 0-no, 1-yes'
   write(u,11)mergechains, 'mergechains',   'Merge the data from different files into one chain: 0-no (treat separately), 1-yes'
   write(u,11)wrapdata, 'wrapdata',   'Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)'
-  write(u,11)changevar, 'changevar',   'Change variables (e.g. logd->d, kappa->theta_SL, rad->deg)'
+  write(u,11)changeVar, 'changeVar',   'Change variables (e.g. logd->d, kappa->theta_SL, rad->deg)'
   
   
   write(u,'(/,A)')' Select what output to print to screen and write to file:'
@@ -285,7 +285,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   thin = 10         !If >1, 'thin' the output; read every thin-th line 
   nburn = 1e5       !If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number, but it becomes the line number later on in the code.  Nburn > Nchain sets Nburn = 0.1*Nchain
   nburnfrac = 0.5   !If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
-  autoburnin = 1.   !Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoburnin
+  autoBurnin = 1.   !Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
   maxchlen = 1e8    !Maximum chain length
   file = 1          !Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter 'outputdir' below.
   colour = 1        !Use colours: 0-no (grey scales), 1-yes
@@ -294,7 +294,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   update = 0        !Update screen plot every 10 seconds: 0-no, 1-yes
   mergechains = 1   !Merge the data from different files into one chain: 0-no (treat separately), 1-yes
   wrapdata = 1      !Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
-  changevar = 1     !Change variables (e.g. logd->d, kappa->theta_SL, rad->deg)
+  changeVar = 1     !Change variables (e.g. logd->d, kappa->theta_SL, rad->deg)
   
   prprogress = 2    !Print general messages about the progress of the program: 0-no, 1-some, 2-more
   prruninfo = 0     !Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files
@@ -308,7 +308,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   
   plot = 1          !0: plot nothing at all, 1: plot the items selected below
   combinechainplots = 0  !Combine logL and chain plots into one multipage file
-  autoburnin = 1.   !Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoburnin
+  autoBurnin = 1.   !Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
   scloglpl = 1      !Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account
   scchainspl = 1    !Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account
   pllogl = 1        !Plot log L chains: 0-no, 1-yes
@@ -371,7 +371,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
   use chain_data
   implicit none
   integer :: i,tmpInt,io,ic,j,exitcode,readerror,p
-  character :: tmpStr*99,detname*14,firstLine*999
+  character :: tmpStr*99,detname*14,firstLine*999,infile*99
   real*8 :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar)
   real :: outputVersion
   !real*8 :: lon2ra
@@ -524,6 +524,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   integer :: i,ic,j,p,exitcode,maxLine
   real :: avgtotthin
   real*8 :: lon2ra,gmst
+  character :: infile*99
   
   exitcode = 0
   totiter = 0
@@ -540,8 +541,9 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      if(prruninfo.eq.2) write(6,'(/,A)')'  Run information:'
      do ic = 1,nchains0
         if((prruninfo.eq.1.and.ic.eq.1) .or. prruninfo.eq.2) then
-           write(6,'(4x,A7,A29,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
-           write(6,'(4x,I7,A29,A13,I10,I12,I8,I8)')ic,trim(infiles(ic)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),nburn0(ic),seed(ic),ndet(ic)
+           infile = infiles(ic)
+           write(6,'(4x,A7,A12,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
+           write(6,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),nburn0(ic),seed(ic),ndet(ic)
            write(6,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
            
            do i=1,ndet(ic)
@@ -606,7 +608,8 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   if(prruninfo.ge.1) then
      ic = icloglmax
      i = iloglmax
-     write(6,'(A,I4,2(A,I9),A,F10.3,A,F7.2,A)')'    Maximum likelihood point:   chain:',ic,' ('//trim(infiles(ic))//'),   line:',i*thin+7+ndet(ic), &
+     infile = infiles(ic)
+     write(6,'(A,I4,2(A,I9),A,F10.3,A,F7.2,A)')'    Maximum likelihood point:   chain:',ic,' ('//trim(infile(19:99))//'),   line:',i*thin+7+ndet(ic), &
           ',   iteration:',nint(is(ic,i)),',   max log(L):',loglmax,'  -> SNR:',sqrt(2*loglmax),'.'
      
      !Test: get parameter values for L=Lmax
@@ -619,13 +622,13 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   end if
   
   
-  !***Autoburnin: for each chain, get the first point where log(L) > log(L_max)-autoburnin
-  if(autoburnin.gt.1.e-10) then
+  !***AutoBurnin: for each chain, get the first point where log(L) > log(L_max)-autoBurnin
+  if(autoBurnin.gt.1.e-10) then
      loop1: do ic=1,nchains0
         isburn(ic) = is(ic,ntot(ic)) !Set burnin to last iteration, so that chain is completely excluded if condition is never fulfilled
         nburn(ic) = ntot(ic)
         do i=2,ntot(ic) !i=1 is true value?
-           if(post(ic,i).gt.real(loglmax)-autoburnin) then
+           if(post(ic,i).gt.real(loglmax)-autoBurnin) then
               isburn(ic) = is(ic,i)
               nburn(ic) = i
               cycle loop1
@@ -640,9 +643,20 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   !*** Print chain info to screen
   !Print info on number of iterations, burnin, thinning, etc.
   do ic=1,nchains0
-     if(prchaininfo.ge.2.and.update.ne.1) write(6,'(A9,I3,A2,A23,A12,A,ES7.1,A,ES7.1,A,ES7.1,A,ES7.1, A,F8.2, A,I3,A,I4,A,ES8.2,A1)') &
-          'Chain',ic,': ',trim(infiles(ic)),', '//colournames(colours(mod(ic-1,ncolours)+1))//'.', '  Lines/iter: ',real(n(ic)),'/',is(ic,n(ic)), &
-          '.  Burn-in: ',real(nburn(ic)),'/',isburn(ic),'.  Lmax:',loglmaxs(ic),'.  Thin: file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),', tot:',totthin(ic),'.  Data pts: ',real(n(ic)-nburn(ic)),'.'
+     infile = infiles(ic)
+     if(prchaininfo.ge.2.and.update.ne.1) then
+        if(n(ic)-nburn(ic).gt.0) then
+           write(6,'(A6,$)'),'    * '  !Flag contributing chains
+        else
+           write(6,'(A6,$)'),'      '
+        end if
+        write(6,'(A2,I3,A1,A10,A12,$)') 'Ch',ic,':',trim(infile(19:99)),', '//colournames(colours(mod(ic-1,ncolours)+1))//'.'
+        write(6,'(A,ES7.1,A,ES7.1,A1,$)') '  Lines/iter: ',real(n(ic)),'/',is(ic,n(ic)),'.'
+        write(6,'(A,ES7.1,A,ES7.1,A1,$)') '  Burn-in: ',real(nburn(ic)),'/',isburn(ic),'.'
+        write(6,'(A,F8.2,A,F4.1,A,F4.1,A1,$)') '  Lmx:',loglmaxs(ic),', dLmx:',abs(loglmax-loglmaxs(ic)),'/',autoBurnin,'.'
+        write(6,'(A,I3,A,I4,A1,$)') ' Thin: file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),', tot:',totthin(ic),'.'
+        write(6,'(A,ES8.2,A1)') '  Data pts: ',real(n(ic)-nburn(ic)),'.'
+     end if
   end do
   totiter = 0
   totpts  = 0
@@ -682,56 +696,59 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   
   
   !*** Change some MCMC parameters:
-  if(changevar.ge.1) then
+  if(changeVar.ge.1) then
      if(prprogress.ge.2.and.update.eq.0) write(6,'(A,$)')'  Changing some variables...   '
      
-     !If Mc and eta are know, compute M1,M2:
-     do ic=1,nchains0
-        if(revID(61).ne.0 .and. revID(62).ne.0 .and. revID(63).eq.0 .and. revID(64).eq.0) then  !Calculate the individual masses from Mch and eta:
-           if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(6,'(A)')'  Computing M1, M2 from Mc, eta'
-           parID(nMCMCpar+1) = 63  !M1
-           parID(nMCMCpar+2) = 64  !M2
-           revID(63) = nMCMCpar + 1  !M1
-           revID(64) = nMCMCpar + 2  !M2
-           nMCMCpar = nMCMCpar + 2
-           if(nMCMCpar.gt.maxMCMCpar) then
-              write(0,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar,' to at least',nMCMCpar,' in order to continue.  Aborting...'
-              stop
-           end if
+     if(revID(61)*revID(62).ne.0 .and. revID(63)+revID(64).eq.0) then  !Calculate the individual masses from Mch and eta:
+        if(prprogress.ge.2.and.update.eq.0) write(6,'(A)')'  Computing M1, M2 from Mc, eta'
+        parID(nMCMCpar+1) = 63  !M1
+        parID(nMCMCpar+2) = 64  !M2
+        revID(63) = nMCMCpar + 1  !M1
+        revID(64) = nMCMCpar + 2  !M2
+        nMCMCpar = nMCMCpar + 2
+        if(nMCMCpar.gt.maxMCMCpar) then
+           write(0,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar,' to at least',nMCMCpar,' in order to continue.  Aborting...'
+           stop
+        end if
+        do ic=1,nchains0
            do i=1,ntot(ic)
               call mc_eta_2_m1_m2r(allDat(ic,revID(61),i),allDat(ic,revID(62),i), allDat(ic,revID(63),i),allDat(ic,revID(64),i))
            end do
-        else if(revID(61).eq.0 .and. revID(62).eq.0 .and. revID(63).ne.0 .and. revID(64).ne.0) then  !Calculate Mc, eta from the individual masses:
-           !Calculate Mch and eta from the individual masses:
-           if(ic.eq.1.and.prprogress.ge.2.and.update.eq.0) write(6,'(A)')'  Computing Mc, eta from M1, M2'
-           parID(nMCMCpar+1) = 61  !Mc
-           parID(nMCMCpar+2) = 62  !eta
-           revID(61) = nMCMCpar + 1  !Mc
-           revID(62) = nMCMCpar + 2  !eta
-           nMCMCpar = nMCMCpar + 2
-           if(nMCMCpar.gt.maxMCMCpar) then
-              write(0,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar,' to at least',nMCMCpar,' in order to continue.  Aborting...'
-              stop
-           end if
+        end do
+     else if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) then  !Calculate Mc, eta from the individual masses:
+        if(prprogress.ge.2.and.update.eq.0) write(6,'(A)')'  Computing Mc, eta from M1, M2'
+        parID(nMCMCpar+1) = 61  !Mc
+        parID(nMCMCpar+2) = 62  !eta
+        revID(61) = nMCMCpar + 1  !Mc
+        revID(62) = nMCMCpar + 2  !eta
+        nMCMCpar = nMCMCpar + 2
+        if(nMCMCpar.gt.maxMCMCpar) then
+           write(0,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar,' to at least',nMCMCpar,' in order to continue.  Aborting...'
+           stop
+        end if
+        do ic=1,nchains0
            do i=1,ntot(ic)
               call m1_m2_2_mc_etar(allDat(ic,revID(63),i),allDat(ic,revID(64),i), allDat(ic,revID(61),i),allDat(ic,revID(62),i))
            end do
-        end if
-        
-        !Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
-        do i=1,ntot(ic)
-           !call compute_incli_polangr(allDat(ic,8,i), asin(allDat(ic,9,i)), real(lon2ra(dble(allDat(ic,12,i)), dble(allDat(ic,4,i)) + t0)), asin(allDat(ic,11,i)),   allDat(ic,11,i),allDat(ic,12,i))  !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad)
-           call compute_incli_polangr(allDat(ic,revID(31),i), asin(allDat(ic,revID(32),i)), real(lon2ra(dble(allDat(ic,revID(54),i)), dble(allDat(ic,revID(11),i)) + t0)), asin(allDat(ic,revID(53),i)),   allDat(ic,revID(53),i),allDat(ic,revID(54),i))  !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad)
-           allDat(ic,revID(53),i) = cos(allDat(ic,revID(53),i))    !i -> cos(i)
         end do
+     end if !if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0)
+     
+     !Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
+     if(revID(11)*revID(31)*revID(32)*revID(53)*revID(54).ne.0) then  !Then all of these parameters are defined
+        do ic=1,nchains0
+           do i=1,ntot(ic)
+              call compute_incli_polangr(allDat(ic,revID(31),i), asin(allDat(ic,revID(32),i)), real(lon2ra(dble(allDat(ic,revID(54),i)), dble(allDat(ic,revID(11),i)) + t0)), asin(allDat(ic,revID(53),i)),   allDat(ic,revID(53),i),allDat(ic,revID(54),i))  !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad)
+              allDat(ic,revID(53),i) = cos(allDat(ic,revID(53),i))    !i -> cos(i)
+           end do
+        end do !ic
         parID(revID(53)) = 51  !Was sin(thJ0), now cos(i)
         parID(revID(54)) = 52  !Was phi_J0, now psi
         revID(51) = revID(53)  !Now cos(i)
         revID(52) = revID(54)  !Now psi
         revID(53) = 0          !No longer exists
         revID(54) = 0          !No longer exists
-     end do
-  end if
+     end if
+  end if !if(changeVar.ge.1)
   
   
   !*** Put plot data in startval and jumps.  Print initial and starting values to screen.  Startval: 1: true value, 2: starting value, 3: Lmax value
@@ -741,7 +758,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      write(6,'(/,A)')'  True, starting and Lmax values for the chains:'
      write(6,'(5x,A10,$)')''
      do p=1,nMCMCpar
-        write(6,'(A10,$)')trim(varnames(parID(p)))
+        write(6,'(A9,$)')trim(varnames(parID(p)))
      end do
      write(6,*)
   end if
@@ -754,7 +771,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
         if(ic.eq.1) then
            write(6,'(5x,A10,$)')'True:  '
            do p=1,nMCMCpar
-              write(6,'(F10.5,$)')startval(1,p,1)
+              write(6,'(F9.4,$)')startval(1,p,1)
            end do
            write(6,'(/)')
         end if
@@ -762,12 +779,12 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
            offsetrun = 1
            write(6,'(I4,A1,A10,$)')ic,':','  Start: '
            do p=1,nMCMCpar
-              write(6,'(F10.5,$)')startval(ic,p,2)
+              write(6,'(F9.4,$)')startval(ic,p,2)
            end do
            write(6,*)
            write(6,'(5x,A10,$)')'Diff:  '
            do p=1,nMCMCpar
-              write(6,'(F10.5,$)')abs(startval(ic,p,1)-startval(ic,p,2))
+              write(6,'(F9.4,$)')abs(startval(ic,p,1)-startval(ic,p,2))
            end do
            write(6,'(/)')
         end if
@@ -776,12 +793,12 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   if(prinitial.ne.0) then
      write(6,'(5x,A10,$)')'Lmax:  '
      do p=1,nMCMCpar
-        write(6,'(F10.5,$)')startval(1,p,3)
+        write(6,'(F9.4,$)')startval(1,p,3)
      end do
      write(6,*)
      write(6,'(5x,A10,$)')'Diff:  '
      do p=1,nMCMCpar
-        write(6,'(F10.5,$)')abs(startval(1,p,1)-startval(1,p,3))
+        write(6,'(F9.4,$)')abs(startval(1,p,1)-startval(1,p,3))
      end do
      write(6,'(/)')
   end if
@@ -791,7 +808,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   if(prprogress.ge.2.and.update.eq.0) write(6,'(A,I12,A,F7.4)')'  t0:',nint(t0), '  GMST:',gmst(t0)
   
   
-  !Check which parameters were fixed during the MCMC run
+  !Check which parameters were fixed during the MCMC run:
   fixedpar = 0
   do ic=1,nchains
      do p=1,nMCMCpar
@@ -832,7 +849,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      j = 1
      do ic=1,nchains
         do i=nburn(ic)+1,n(ic)
-           selDat(1,1:nMCMCpar,j) = allDat(ic,1:nMCMCpar,i)  !SelDat has the same structure as allDat, but contains only info AFTER the burnin.
+           selDat(1,1:nMCMCpar,j) = allDat(ic,1:nMCMCpar,i)  !selDat has the same structure as allDat, but contains only data AFTER the burnin.
            j = j+1
         end do
      end do
@@ -847,7 +864,6 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      end do
      !if(prprogress.ge.1) write(6,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
   end if
-  
   
 end subroutine mcmcruninfo
 !************************************************************************************************************************************

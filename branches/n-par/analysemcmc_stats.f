@@ -156,12 +156,12 @@ subroutine statistics(exitcode)
         !Variances, etc:
         var1(p)=0.; var2(p)=0.; absvar1(p)=0.; absvar2(p)=0.; stdev1(p)=0.; stdev2(p)=0.
         do i=1,n(ic)
-           var1(p) = var1(p) + (selDat(ic,p,i) - medians(p))**2
-           var2(p) = var2(p) + (selDat(ic,p,i) - mean(p))**2
-           absvar1(p) = absvar1(p) + abs(selDat(ic,p,i) - medians(p))
-           absvar2(p) = absvar2(p) + abs(selDat(ic,p,i) - mean(p))
-           stdev1(p) = stdev1(p) + (selDat(ic,p,i) - medians(p))**2
-           stdev2(p) = stdev2(p) + (selDat(ic,p,i) - mean(p))**2
+           var1(p) = var1(p) + (selDat(ic,p,i) - medians(p))**2       !Based on median
+           var2(p) = var2(p) + (selDat(ic,p,i) - mean(p))**2          !Based on mean
+           absvar1(p) = absvar1(p) + abs(selDat(ic,p,i) - medians(p)) !Based on median
+           absvar2(p) = absvar2(p) + abs(selDat(ic,p,i) - mean(p))    !Based on mean
+           stdev1(p) = stdev1(p) + (selDat(ic,p,i) - medians(p))**2   !Based on median
+           stdev2(p) = stdev2(p) + (selDat(ic,p,i) - mean(p))**2      !Based on mean
         end do
         
         absvar1(p) = absvar1(p)/real(n(ic))
@@ -173,11 +173,12 @@ subroutine statistics(exitcode)
         nstat = 6
         stats(ic,p,1) = medians(p)
         stats(ic,p,2) = mean(p)
-        stats(ic,p,3) = absvar1(p)
-        stats(ic,p,4) = absvar2(p)
-        stats(ic,p,5) = stdev1(p)
-        stats(ic,p,6) = stdev2(p)
+        stats(ic,p,3) = absvar1(p)  !Based on median
+        stats(ic,p,4) = absvar2(p)  !Based on mean
+        stats(ic,p,5) = stdev1(p)   !Based on median
+        stats(ic,p,6) = stdev2(p)   !Based on mean
      end do
+     
      
      
      !Correlations:
@@ -215,11 +216,9 @@ subroutine statistics(exitcode)
                  acorrs(ic,p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - medians(p))*(allDat(ic,p,i+j*j1) - medians(p))
                  !acorrs(p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - mean(p))*(allDat(ic,p,i+j*j1) - mean(p))
               end do
-              !if(j.eq.0) write(6,'(3I6,A,4F9.3)')j1,j,j*j1,'  '//varnames(p),acorrs(ic,0,j),acorrs(ic,p,j),(stdev1(p)*stdev1(p)*(ntot(ic)-j*j1)),acorrs(ic,p,0)
               acorrs(ic,0,j) = real(j*j1)
               acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev1(p)*stdev1(p)*(ntot(ic)-j*j1))
               !acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev2(p)*stdev2(p)*(ntot(ic)-j*j1))
-              !if(j.eq.0) write(6,'(3I6,A,4F9.3)')j1,j,j*j1,'  '//varnames(p),acorrs(ic,0,j),acorrs(ic,p,j),(stdev1(p)*stdev1(p)*(ntot(ic)-j*j1)),acorrs(ic,p,0)
            end do !j
            !write(6,*)''
         end do !p
@@ -238,10 +237,8 @@ subroutine statistics(exitcode)
         
         if(prprogress.ge.1.and.ic.eq.1) write(6,'(F6.3,$)')ival
         do p=1,nMCMCpar
-        !do p=2,2
-           !print*,p,minval(selDat(ic,p,1:n(ic))),maxval(selDat(ic,p,1:n(ic)))
            minrange = 1.e30
-           !write(6,'(A8,4x,4F10.5,I4)')varnames(p),y1,y2,minrange,centre,wrap(ic,p)
+           !write(6,'(A8,4x,4F10.5,I4)')varnames(parID(p)),y1,y2,minrange,centre,wrap(ic,p)
            do i=1,floor(n(ic)*(1.-ival))
               x1 = selDat(ic,p,indexx(p,i))
               x2 = selDat(ic,p,indexx(p,i+floor(n(ic)*ival)))
@@ -255,7 +252,7 @@ subroutine statistics(exitcode)
               !write(6,'(I6,7F10.5)')i,x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
            end do
            centre = (y1+y2)/2.
-           !write(6,'(A8,4x,4F10.5,I4)')varnames(p),y1,y2,minrange,centre,wrap(ic,p)
+           !write(6,'(A8,4x,4F10.5,I4)')varnames(parID(p)),y1,y2,minrange,centre,wrap(ic,p)
            
            !Save ranges:
            nr = 4                  !Only ranges(:,:,:,1:nr) get converted later on
@@ -283,7 +280,7 @@ subroutine statistics(exitcode)
      total = 0
      maxlogl = -1.e30
      minlogl =  1.e30
-     do i=nburn(ic),n(ic)
+     do i=nburn(ic),ntot(ic)
         var = post(ic,i)          !Use quadruple precision
         total = total + exp(-var)
         maxlogl = max(post(ic,i),maxlogl)
@@ -312,7 +309,7 @@ subroutine statistics(exitcode)
      
      
      !Change variables
-     if(changevar.ge.1) then
+     if(changeVar.ge.1) then
         if(prprogress.ge.1.and.ic.eq.i.and.update.eq.0) write(6,'(A,$)')'.  Change vars. '
         do p=1,nMCMCpar
            !CHECK: need d^3!
@@ -371,7 +368,7 @@ subroutine statistics(exitcode)
         !Change the parameter names:
         call set_derivedParameterNames()
         
-     end if !if(changevar.ge.1)
+     end if !if(changeVar.ge.1)
      
      
      !Find 100% probability range
@@ -419,9 +416,9 @@ subroutine statistics(exitcode)
      
      
      if(prprogress+prstat+prival+prconv.gt.0.and.ic.eq.1) then
-        write(o,'(/,A,2(A,F6.2),$)')'  Bayes factor:   ','log_e(B_SN) =',logebayesfactor(ic),',  log_10(B_SN) =',log10bayesfactor(ic)
-        !write(o,'(8x,A,3(A,F6.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),',  log_10(Lmax) =',startval(ic,1,3)/log(10.),',  -> SNR =',sqrt(2*startval(ic,1,3)),'.'
-        write(o,'(8x,A,3(A,F6.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',loglmax,',  log_10(Lmax) =',loglmax/log(10.),',  -> SNR =',sqrt(2*loglmax),'.'
+        write(o,'(/,A,2(A,F7.2),$)')'  Bayes factor:   ','log_e(B_SN) =',logebayesfactor(ic),',  log_10(B_SN) =',log10bayesfactor(ic)
+        !write(o,'(8x,A,3(A,F7.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),',  log_10(Lmax) =',startval(ic,1,3)/log(10.),',  -> SNR =',sqrt(2*startval(ic,1,3)),'.'
+        write(o,'(8x,A,3(A,F7.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',loglmax,',  log_10(Lmax) =',loglmax/log(10.),',  -> SNR =',sqrt(2*loglmax),'.'
      end if
      
      
@@ -431,7 +428,7 @@ subroutine statistics(exitcode)
         do c=1,nival
            if(c.ne.c0.and.prstat.lt.2) cycle
            if(c.gt.1.and.prstat.ge.2) write(o,*)
-           write(o,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)')'param.','model','median','mean','Lmax','stdev1','stdev2','abvar1','abvar2',  &
+           write(o,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)')'Param.  ','model','median','mean','Lmax','stdev1','stdev2','abvar1','abvar2',  &
                 'rng_c','rng1','rng2','drng','d/drng','delta','ok?','result (',ivals(c)*100,'%)'
            do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle !Parameter was not fitted
@@ -458,7 +455,7 @@ subroutine statistics(exitcode)
         end do
         write(o,*)''
         
-        write(o,'(A10,2x,2A9,$)')'param.','model','median'
+        write(o,'(A10,2x,2A9,$)')'Param.  ','model','median'
         do c=1,nival
            !write(o,'(2x,2A9,A8,$)')'rng1','rng2','in rnge'
            write(o,'(2x,3A9,$)')'centre','delta','in rnge'
@@ -503,7 +500,7 @@ subroutine statistics(exitcode)
         write(o,*)''
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
-           write(o,'(A10,2x,4F10.3,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
+           write(o,'(A10,2x,4F10.3,$)')varnames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            do c=1,nival
               write(o,'(5x,F8.3,A4,F7.3$)')ranges(ic,c,p,3),' +- ',0.5d0*ranges(ic,c,p,4)
            end do
@@ -525,7 +522,7 @@ subroutine statistics(exitcode)
         write(o,*)''
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
-           write(o,'(A10,2x,4F10.3,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
+           write(o,'(A10,2x,4F10.3,$)')varnames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            do c=1,nival
               write(o,'(6x,F8.3,A3,F7.3$)')ranges(ic,c,p,1),' - ',ranges(ic,c,p,2)
            end do
@@ -548,8 +545,8 @@ subroutine statistics(exitcode)
         !write(o,*)''
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
-           !write(o,'(A10,2x,4F11.4,$)')varnames(p),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
-           write(o,'(A10,2x,$)')varnames(p)
+           !write(o,'(A10,2x,4F11.4,$)')varnames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
+           write(o,'(A10,2x,$)')varnames(parID(p))
            do c=1,nival
               write(o,'(5x,A1,F8.3,2(A,F7.3),A,$)')'$',stats(ic,p,1),'_{-',abs(stats(ic,p,1)-ranges(ic,c,p,1)),'}^{+',abs(stats(ic,p,1)-ranges(ic,c,p,2)),'}$'
            end do
@@ -617,12 +614,12 @@ subroutine statistics(exitcode)
   
   
   
-  !Compute convergence
+  !Compute and print convergence:
   if(nchains0.gt.1 .and. (prconv.ge.1.or.savestats.ge.1)) call compute_convergence()  !Need unwrapped data for this (?)
   
   
-  !Change the original chain data
-  if(changevar.ge.1) then
+  !Change the original chain data:
+  if(changeVar.ge.1) then
      do ic=1,nchains0
         do p=1,nMCMCpar
            if(parID(p).eq.21) allDat(ic,p,1:ntot(ic)) = allDat(ic,p,1:ntot(ic))**c3rd  !^(1/3)
@@ -633,7 +630,7 @@ subroutine statistics(exitcode)
            if(parID(p).eq.41.or.parID(p).eq.52.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) allDat(ic,p,1:ntot(ic)) = allDat(ic,p,1:ntot(ic))*r2d  !rad -> deg
         end do !p
      end do
-  end if !if(changevar.ge.1)
+  end if !if(changeVar.ge.1)
   
   
   
@@ -681,7 +678,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
   !Print statistics
   write(o,'(///,A,/)')'BASIC STATISTICS:'
   write(o,'(A,2I3)')'Npar,ncol:',nMCMCpar,7
-  write(o,'(A8,7A12)')'param.','model','median','mean','stdev1','stdev2','abvar1','abvar2'
+  write(o,'(A8,7A12)')'Param.  ','model','median','mean','stdev1','stdev2','abvar1','abvar2'
   
   do p=1,nMCMCpar
      if(fixedpar(p).eq.0) then
@@ -826,8 +823,8 @@ subroutine save_cbc_wiki_data(ic)
   
   
   
-  !True values:
-  write(o,'(///,A)')'== True values =='
+  !Injection values:
+  write(o,'(///,A)')'== Injection values =='
   write(o,'(A)')"|| '''Detectors'''  || '''M1'''     || '''M2'''     || '''Mc'''     || '''&eta;'''  || '''time'''      || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
   write(o,'(A)')"||                  ||  (Mo)        || (Mo)         || (Mo)         ||              ||  (s)            ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
   
@@ -843,7 +840,7 @@ subroutine save_cbc_wiki_data(ic)
   parr(1:14) = (/63,64,61,62,11,71,72,81,82,22,31,32,51,52/)
   do p=1,14
      p1 = parr(p)
-     x = stats(ic,revID(p1),1)
+     x = allDat(ic,revID(p1),1)
      if(p1.eq.31) x = rev2pi(x*rh2r)
      if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
      if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
@@ -1082,8 +1079,8 @@ subroutine save_cbc_wiki_data(ic)
   
   
   
-  !True values:
-  write(o,'(///,A)')'== True values =='
+  !Injection values:
+  write(o,'(///,A)')'== Injection values =='
   write(o,'(A)')"|| '''Detectors'''  || '''M1'''     || '''M2'''     || '''Mc'''     || '''&eta;'''  || '''time'''      || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
   write(o,'(A)')"||                  ||  (Mo)        || (Mo)         || (Mo)         ||              ||  (s)            ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
   
@@ -1099,7 +1096,7 @@ subroutine save_cbc_wiki_data(ic)
   parr(1:14) = (/63,64,61,62,11,71,72,81,82,22,31,32,51,52/)
   do p=1,14
      p1 = parr(p)
-     x = stats(ic,revID(p1),1)
+     x = allDat(ic,revID(p1),1)
      if(p1.eq.31) x = rev2pi(x*rh2r)
      if(p1.eq.52) x = rrevpi(x*rd2r)  !Polarisation angle
      if(p1.eq.41.or.p1.eq.54.or.p1.eq.73.or.p1.eq.83) x = rev2pi(x*rd2r)
@@ -1139,7 +1136,7 @@ end subroutine save_cbc_wiki_data
 !!    "General Methods for Monitoring Convergence of Iterative Simulations"
 !!    http://www.jstor.org/pss/1390675 (for purchase)
 !!    http://www.stat.columbia.edu/~gelman/research/published/brooksgelman.pdf (Author's website)
-!!    See Eq.1.1,  where:  B/n := totvar  and  W := chvar
+!!    See Eq.1.1,  where:  B/n := meanVar  and  W := chVar
 !!  \todo:  use only data selected after (auto)burnin
 !!  \todo:  do we need unwrapped data for this?
 !<
@@ -1154,153 +1151,176 @@ subroutine compute_convergence()
   
   implicit none
   integer :: i,ic,p
-  integer :: nn,lowvar(maxMCMCpar),nlowvar,highvar(maxMCMCpar),nhighvar,ntotrelvar,nrhat
+  integer :: nn,lowvar(maxMCMCpar),nLowPar,highvar(maxMCMCpar),nHighPar,nmeanRelVar,nrhat,IDs(maxMCMCpar),nUsedPar
   real :: dx
-  real*8 :: chmean(maxChs,maxMCMCpar),totmean(maxMCMCpar),chvar(maxMCMCpar),chvar1(maxChs,maxMCMCpar),totvar(maxMCMCpar),totrhat,totrelvar
+  real*8 :: chmean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar),totrhat,meanRelVar
   character :: ch
   
   
+  !Compute the means for each chain and for all chains:
   chmean = 1.d-30
-  totmean = 1.d-30
+  avgMean = 1.d-30
   nn = minval(ntot(1:nchains0))/2
-  
   do p=1,nMCMCpar
      do ic=1,nchains0
         do i=nn+1,2*nn
-           chmean(ic,p) = chmean(ic,p) + allDat(p,ic,i) !We used to take unwrapped data for this...
+           chmean(ic,p) = chmean(ic,p) + allDat(ic,p,i) !We used to take unwrapped data for this...
         end do
-        totmean(p) = totmean(p) + chmean(ic,p)
+        avgMean(p) = avgMean(p) + chmean(ic,p)
      end do
   end do
   chmean = chmean/dble(nn)
-  totmean = totmean/dble(nn*nchains0)
+  avgMean = avgMean/dble(nn*nchains0)
   
-  chvar = 1.d-30
-  chvar1 = 1.d-30
-  totvar = 1.d-30
+  
+  !Compute variances per chain, for all chains and Rhat:
+  chVar = 1.d-30
+  chVar1 = 1.d-30
+  meanVar = 1.d-30
   do p=1,nMCMCpar
      do ic=1,nchains0
         do i=nn+1,2*nn
-           dx = (allDat(p,ic,i) - chmean(ic,p))**2 !We used to take unwrapped data for this...
-           chvar(p) = chvar(p) + dx
-           chvar1(ic,p) = chvar1(ic,p) + dx !Keep track of the variance per chain
+           dx = (allDat(ic,p,i) - chmean(ic,p))**2 !We used to take unwrapped data for this...
+           chVar(p) = chVar(p) + dx
+           chVar1(ic,p) = chVar1(ic,p) + dx !Keep track of the variance per chain
         end do
-        totvar(p) = totvar(p) + (chmean(ic,p) - totmean(p))**2
-        chvar1(ic,p) = chvar1(ic,p)/dble(nn-1)
+        meanVar(p) = meanVar(p) + (chmean(ic,p) - avgMean(p))**2
+        chVar1(ic,p) = chVar1(ic,p)/dble(nn-1)
      end do
-     chvar(p) = chvar(p)/dble(nchains0*(nn-1))
-     totvar(p) = totvar(p)/dble(nchains0-1)
+     chVar(p) = chVar(p)/dble(nchains0*(nn-1))
+     meanVar(p) = meanVar(p)/dble(nchains0-1)
      
-     rhat(p) = min( dble(nn-1)/dble(nn)  +  totvar(p)/chvar(p) * (1.d0 + 1.d0/dble(nchains0)), 99.d0)
+     rhat(p) = min( dble(nn-1)/dble(nn)  +  meanVar(p)/chVar(p) * (1.d0 + 1.d0/dble(nchains0)), 99.d0)
   end do
   
+  
+  !Print means per chain:
   if(prconv.ge.1) then
      write(6,*)''
      if(prconv.ge.2) write(6,'(A,I7,A)')'  Convergence parameters for',nn,' iterations:'
-     write(6,'(A18,$)')''
+     write(6,'(A14,$)')''
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
-        write(6,'(A11,$)')trim(varnames(parID(p)))
+        write(6,'(A9,$)')trim(varnames(parID(p)))
      end do
-     write(6,'(A11)')'total'
+     write(6,'(A9)')'Mean'
      
      if(prconv.ge.3) then
         write(6,'(A)')'  Means:'
         do ic=1,nchains0
-           write(6,'(I16,A2,$)')ic,': '
+           write(6,'(I12,A2,$)')ic,': '
            do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle
-              write(6,'(F11.6,$)')chmean(ic,p)
+              write(6,'(F9.5,$)')chmean(ic,p)
            end do
            write(6,*)
         end do
-        write(6,'(A18,$)')'           Total: '
+        write(6,'(A14,$)')'        Mean: '
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
-           write(6,'(F11.6,$)')totmean(p)
+           write(6,'(F9.5,$)')avgMean(p)
         end do
         write(6,*)''
         
-        write(6,*)''
-        write(6,'(A)')'  Variances:'
      end if !if(prconv.ge.3)
   end if !if(prconv.ge.1)
   
+  
+  !Flag and print variances:
+  if(prconv.ge.3) then
+     write(6,*)''
+     write(6,'(A)')'  Variances:'
+  end if
   do ic=1,nchains0
-     !write(6,'(I16,A2,20F11.6)')ic,': ',chvar1(ic,1:nMCMCpar)
-     !if(chvar1(ic,2).lt.0.5*chvar(2).and.chvar1(ic,3).lt.0.5*chvar(3).and.chvar1(ic,2).lt.0.5*chvar(2).and.chvar1(ic,2).lt.0.5*chvar(2)) then
      lowvar = 0
      highvar = 0
-     totrelvar = 1.d0
-     ntotrelvar = 0
+     meanRelVar = 1.d0
+     nmeanRelVar = 0
      do p=1,nMCMCpar
-        !if(abs(chvar1(ic,p)).gt.1.e-30) then  !Take only the parameters that were fitted and have a variance > 0
-        if(fixedpar(p).eq.0 .and.abs(chvar1(ic,p)).gt.1.e-30) then  !Take only the parameters that were fitted and have a variance > 0
-           if(chvar1(ic,p).lt.0.5*chvar(p)) lowvar(p) = 1  !Too (?) low variance, mark it
-           if(chvar1(ic,p).gt.2*chvar(p))  highvar(p) = 1  !Too (?) high variance, mark it
-           totrelvar = totrelvar * chvar1(ic,p)/chvar(p) !Take geometric mean
-           ntotrelvar = ntotrelvar + 1
+        if(fixedpar(p).eq.0 .and.abs(chVar1(ic,p)).gt.1.e-30) then  !Take only the parameters that were fitted and have a variance > 0
+           if(chVar1(ic,p).lt.0.5*chVar(p)) lowvar(p) = 1  !Too (?) low variance, mark it
+           if(chVar1(ic,p).gt.2*chVar(p))  highvar(p) = 1  !Too (?) high variance, mark it
+           meanRelVar = meanRelVar * chVar1(ic,p)/chVar(p) !Take geometric mean
+           nmeanRelVar = nmeanRelVar + 1
         end if
      end do
-     nlowvar = lowvar(2)+lowvar(3)+lowvar(6)+lowvar(7)  !Sum of 2 masses and 2 spin parameters
-     nhighvar = highvar(2)+highvar(3)+highvar(6)+highvar(7)  !Sum of 2 masses and 2 spin parameters
-     totrelvar = totrelvar**(1.d0/dble(ntotrelvar)) !Take geometric mean of (the variance of each chain, relative to the total variance)
+     
+     !Find and flag extraordinarily low and high variances:
+     IDs(1:4) = (/61,62,71,81/)  !Mass and spin parameters
+     nLowPar = 0
+     nHighPar = 0
+     nUsedPar = 0
+     do p=1,4
+        if(revID(IDs(p)).ne.0) then
+           nLowpar  = nLowPar  + lowvar(revID(IDs(p)))
+           nHighpar = nHighPar + highvar(revID(IDs(p)))
+           nUsedPar = nUsedPar + 1
+        end if
+     end do
+     meanRelVar = meanRelVar**(1.d0/dble(nmeanRelVar)) !Take geometric mean of (the variance of each chain, relative to the total variance)
+     
+     !Print and flag mean variance and variances for each chain:
      if(prconv.ge.3) then
         ch = ' '
-        if(nlowvar.eq.4) ch = '*'
-        if(nhighvar.eq.4) ch = '#'
-        write(6,'(I7,A3,$)')ic,': '//ch
-        ch = ' '
-        if(totrelvar.lt.0.5) ch = '*'
-        if(totrelvar.gt.2.0) ch = '#'
-        write(6,'(F8.3,A1,$)')totrelvar,ch
+        if(nLowPar.eq.nUsedPar) ch = '*'
+        if(nHighPar.eq.nUsedPar) ch = '#'
+        write(6,'(I12,A2,$)')ic,':'//ch
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
            ch = ' '
            if(lowvar(p).eq.1) ch = '*'
            if(highvar(p).eq.1) ch = '#'
-           write(6,'(F10.5,A1,$)')chvar1(ic,p),ch
+           write(6,'(F8.4,A1,$)')chVar1(ic,p),ch
         end do
+        ch = ' '
+        if(meanRelVar.lt.0.5) ch = '*'
+        if(meanRelVar.gt.2.0) ch = '#'
+        write(6,'(F8.3,A1,$)')meanRelVar,ch
         write(6,*)''
      end if !if(prconv.ge.3)
   end do
+  
+  !Print mean variance for all parameters :
   if(prconv.ge.3) then
-     write(6,'(A18,$)')'  Total:          '
+     write(6,'(A13,$)')'   Mean:'
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
-        write(6,'(F11.5,$)')chvar(p)
+        write(6,'(F9.4,$)')chVar(p)
      end do
      write(6,*)''
      write(6,*)''
   end if !if(prconv.ge.3)
+  
+  !Print the variances within chains and between chains:
   if(prconv.ge.2) then
      write(6,'(A)')'  Variances:'
-     write(6,'(A18,$)')'   Within chains: '
+     write(6,'(A14,$)')'      In chs: '
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
-        write(6,'(ES11.3,$)')chvar(p)
+        write(6,'(ES9.1,$)')chVar(p)
      end do
      write(6,*)
-     write(6,'(A18,$)')'  Between chains: '
+     write(6,'(A14,$)')'   Betw. chs: '
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
-        write(6,'(ES11.3,$)')totvar(p)
+        write(6,'(ES9.1,$)')meanVar(p)
      end do
      write(6,*)
   end if
   
+  !Print R-hat:
   if(prconv.ge.1) then
-     write(6,'(A18,$)')'     Convergence: '
+     write(6,'(A14,$)')'       R-hat: '
      totrhat = 1.d0
      nrhat = 0
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
-        write(6,'(F11.5,$)')rhat(p)
+        write(6,'(F9.4,$)')rhat(p)
         totrhat = totrhat * rhat(p)
         nrhat = nrhat + 1
      end do
-     !write(6,'(F11.5)')totrhat/dble(nrhat)
-     write(6,'(F11.5)')totrhat**(1.d0/dble(nrhat))
+     !write(6,'(F9.4)')totrhat/dble(nrhat)
+     write(6,'(F9.4)')totrhat**(1.d0/dble(nrhat))
   end if
   
 end subroutine compute_convergence
