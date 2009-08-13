@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    88: sluys, 13/08/2009
+     - Added 'safety valve' in case Mollweide projection doesn't converge
+     - Use min(nPlPar,nMCMCpar) to determine lay out for chain, 1D PDF plots
+     
     87: sluys, 13/08/2009
      - Fix animations with new parameter definitions
      - Catch undefined parameters

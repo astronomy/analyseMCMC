@@ -89,31 +89,6 @@ program analyseMCMC
   
   
   !Sort out implicit options:
-  if(panels(1)*panels(2).lt.nPlPar) panels = 0
-  if(panels(1)*panels(2).lt.1) then
-     if(nPlPar.eq.1) panels = (/1,1/)
-     if(nPlPar.eq.2) panels = (/2,1/)
-     if(nPlPar.eq.3) panels = (/3,1/)
-     if(nPlPar.eq.4) panels = (/2,2/)
-     if(nPlPar.eq.5) panels = (/5,1/)
-     if(nPlPar.eq.6) panels = (/3,2/)
-     if(nPlPar.eq.7) panels = (/4,2/)
-     if(nPlPar.eq.8) panels = (/4,2/)
-     if(nPlPar.eq.9) panels = (/3,3/)
-     if(nPlPar.eq.10) panels = (/5,2/)
-     if(nPlPar.eq.11) panels = (/4,3/)
-     if(nPlPar.eq.12) panels = (/4,3/)
-     if(nPlPar.eq.12.and.quality.eq.3) panels = (/3,4/)
-     if(nPlPar.eq.13) panels = (/5,3/)
-     if(nPlPar.eq.14) panels = (/5,3/)
-     if(nPlPar.eq.15) panels = (/5,3/)
-     if(nPlPar.eq.16) panels = (/4,4/)
-     if(nPlPar.eq.17) panels = (/6,3/)
-     if(nPlPar.eq.18) panels = (/6,3/)
-     if(nPlPar.eq.19) panels = (/5,4/)
-     if(nPlPar.eq.20) panels = (/5,4/)
-  end if
-  
   !eps/pdf: colour and orientation
   psclr = '/cps'
   if(colour.eq.0) psclr = '/ps'
@@ -213,11 +188,35 @@ program analyseMCMC
   call read_mcmcfiles(exitcode)
   if(exitcode.ne.0) goto 9999
   
-  
   !Get and print some basic chain statistics:
   timestamps(2) = timestamp(os)
   call mcmcruninfo(exitcode)
   
+  !More implicit options:
+  if(panels(1)*panels(2).lt.min(nPlPar,nMCMCpar)) panels = 0
+  if(panels(1)*panels(2).lt.1) then
+     if(min(nPlPar,nMCMCpar).eq.1) panels = (/1,1/)
+     if(min(nPlPar,nMCMCpar).eq.2) panels = (/2,1/)
+     if(min(nPlPar,nMCMCpar).eq.3) panels = (/3,1/)
+     if(min(nPlPar,nMCMCpar).eq.4) panels = (/2,2/)
+     if(min(nPlPar,nMCMCpar).eq.5) panels = (/5,1/)
+     if(min(nPlPar,nMCMCpar).eq.6) panels = (/3,2/)
+     if(min(nPlPar,nMCMCpar).eq.7) panels = (/4,2/)
+     if(min(nPlPar,nMCMCpar).eq.8) panels = (/4,2/)
+     if(min(nPlPar,nMCMCpar).eq.9) panels = (/3,3/)
+     if(min(nPlPar,nMCMCpar).eq.10) panels = (/5,2/)
+     if(min(nPlPar,nMCMCpar).eq.11) panels = (/4,3/)
+     if(min(nPlPar,nMCMCpar).eq.12) panels = (/4,3/)
+     if(min(nPlPar,nMCMCpar).eq.12.and.quality.eq.3) panels = (/3,4/)
+     if(min(nPlPar,nMCMCpar).eq.13) panels = (/5,3/)
+     if(min(nPlPar,nMCMCpar).eq.14) panels = (/5,3/)
+     if(min(nPlPar,nMCMCpar).eq.15) panels = (/5,3/)
+     if(min(nPlPar,nMCMCpar).eq.16) panels = (/4,4/)
+     if(min(nPlPar,nMCMCpar).eq.17) panels = (/6,3/)
+     if(min(nPlPar,nMCMCpar).eq.18) panels = (/6,3/)
+     if(min(nPlPar,nMCMCpar).eq.19) panels = (/5,4/)
+     if(min(nPlPar,nMCMCpar).eq.20) panels = (/5,4/)
+  end if
   
   
   

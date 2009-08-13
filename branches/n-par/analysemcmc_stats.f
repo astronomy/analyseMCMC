@@ -232,7 +232,6 @@ subroutine statistics(exitcode)
      do c=1,Nival
         ival = ivals(c)
         c0 = ival0
-        !if(c.ne.c0.and.prIval.lt.2.and.saveStats.eq.0) cycle
         if(c.ne.c0 .and. prIval.eq.0 .and. prStat.lt.2 .and. saveStats.eq.0) cycle
         
         if(prProgress.ge.1.and.ic.eq.1) write(6,'(F6.3,$)')ival
@@ -531,29 +530,24 @@ subroutine statistics(exitcode)
         write(o,*)''
         
         
-        !Print intervals as x -dx1 +dx2:
-        write(o,'(A19,$)')'Interval:   '
-        do c=1,Nival
-           write(o,'(F27.3,A1,A9,$)')ivals(c)*100,'%',''
-        end do
-        write(o,*)''
-        
-        !write(o,'(A11,1x,4A11,$)')'Parameter','median','mean','Lmax','stdev'
-        !do c=1,Nival
-        !   write(o,'(5x,A9,4x,A8,$)')'x','dx'
-        !end do
-        !write(o,*)''
-        do p=1,nMCMCpar
-           if(fixedpar(p).eq.1) cycle
-           !write(o,'(A10,2x,4F11.4,$)')parNames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
-           write(o,'(A10,2x,$)')parNames(parID(p))
+        !Print intervals as x -dx1 +dx2 in LaTeX format:
+        if(1.eq.2) then
+           write(o,'(A19,$)')'Interval:   '
            do c=1,Nival
-              write(o,'(5x,A1,F8.3,2(A,F7.3),A,$)')'$',stats(ic,p,1),'_{-',abs(stats(ic,p,1)-ranges(ic,c,p,1)),'}^{+',abs(stats(ic,p,1)-ranges(ic,c,p,2)),'}$'
+              write(o,'(F27.3,A1,A9,$)')ivals(c)*100,'%',''
            end do
            write(o,*)''
-        end do
-        write(o,*)''
-        
+           
+           do p=1,nMCMCpar
+              if(fixedpar(p).eq.1) cycle
+              write(o,'(A10,2x,$)')parNames(parID(p))
+              do c=1,Nival
+                 write(o,'(5x,A1,F8.3,2(A,F7.3),A,$)')'$',stats(ic,p,1),'_{-',abs(stats(ic,p,1)-ranges(ic,c,p,1)),'}^{+',abs(stats(ic,p,1)-ranges(ic,c,p,2)),'}$'
+              end do
+              write(o,*)''
+           end do
+           write(o,*)''
+        end if
         
      end if
      

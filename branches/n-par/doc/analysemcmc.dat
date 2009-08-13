@@ -2,10 +2,10 @@
 
 
  Basic options:
-        10                thin     If >1, "thin" the output; read every thin-th line 
+         1                thin     If >1, "thin" the output; read every thin-th line 
     500000               Nburn     If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain
    0.50000           NburnFrac     If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides Nburn above
-   5.00000          autoBurnin     If >0: Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin. Overrides Nburn and NburnFrac above
+   2.00000          autoBurnin     If >0: Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin. Overrides Nburn and NburnFrac above
   1.00E+09            maxChLen     Maximum chain length to read in (number of iterations, not number of lines)
          1                file     Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter "outputdir" below
          1              colour     Use colours: 0-no (grey scales), 1-yes
@@ -29,7 +29,7 @@
          0             savePDF     Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
 
  Select which plots to make:
-         0                plot     0: plot nothing at all, 1: plot the items selected below
+         1                plot     0: plot nothing at all, 1: plot the items selected below
          0   combineChainPlots     Combine logL and chain plots into one multipage file
          1              plLogL     Plot log L chains: 0-no, 1-yes
          1             plChain     Plot parameter chains: 0-no, 1-yes

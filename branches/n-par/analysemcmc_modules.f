@@ -44,7 +44,7 @@ module general_data
   use analysemcmc_settings
   implicit none
   save
-  integer, parameter :: maxIter=1.01e5+2,nr1=5,nstat1=10,ndets=3
+  integer, parameter :: maxIter=2.0e5,nr1=5,nstat1=10,ndets=3
   integer :: n(maxChs),ntot(maxChs),iloglmax,icloglmax,c0,nchains,nchains0
   integer :: fixedpar(maxMCMCpar),nfixedpar,contrchains,contrchain(maxChs)
   real, allocatable :: selDat(:,:,:),allDat(:,:,:),post(:,:),prior(:,:)

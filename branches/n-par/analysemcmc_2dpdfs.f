@@ -238,7 +238,9 @@ subroutine pdfs2d(exitcode)
            if(normPDF2D.eq.1) z = max(0.,log10(z + 1.e-30))
            if(normPDF2D.eq.2) z = max(0.,sqrt(z + 1.e-30))
            if(normPDF2D.eq.4) then
+              if(prProgress.ge.3) write(6,'(A,$)')'  identifying 2D ranges...'
               call identify_2d_ranges(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr) !Get 2D probability ranges; identify to which range each bin belongs
+              if(prProgress.ge.3) write(6,'(A,$)')'  computing 2D areas...'
               call calc_2d_areas(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
               trueranges2d(p1,p2) = truerange2d(z,Nbin2Dx+1,Nbin2Dy+1,startval(1,p1,1),startval(1,p2,1),tr)
               !write(6,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
@@ -254,6 +256,7 @@ subroutine pdfs2d(exitcode)
            end if
         end if
         if(normPDF2D.eq.3) then
+           if(prProgress.ge.3) write(6,'(A,$)')'  binning 2D data...'
            call bindata2da(n(ic),xx(1:n(ic)),yy(1:n(ic)),zz(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin,xmax,ymin,ymax,z,tr)  !Measure amount of likelihood in each bin
         end if
         
@@ -381,8 +384,10 @@ subroutine pdfs2d(exitcode)
               
               !Plot the PDF
               if(project_map .and. plotSky.ge.2) then
+                 if(prProgress.ge.3) write(6,'(A,$)')'  plotting map projection...'
                  call pgimag_project(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr,map_projection)
               else
+                 if(prProgress.ge.3) write(6,'(A,$)')'  plotting 2D PDF...'
                  call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr)
               end if
            end if
@@ -1499,7 +1504,6 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)  !Clone
         end if
         xs(5) = xs(1)
         ys(5) = ys(1)
-        
         !Plot the pixel:
         call pgpoly(5,xs,ys)
         
@@ -1596,7 +1600,7 @@ end subroutine pgimag_project
 subroutine project_skymap(x,y,racentre,projection)  !Project a sky map, using projection 'projection'
   use constants
   implicit none
-  integer :: projection
+  integer :: projection,iter,maxIter
   real :: x,y,theta,siny,th2,dth2,delta,racentre
   
   if(projection.eq.1) then
@@ -1606,11 +1610,14 @@ subroutine project_skymap(x,y,racentre,projection)  !Project a sky map, using pr
      !Convergence is relatively fast, somewhat slower near poles
      
      delta = 1.e-6        !Radians
+     maxIter = 100        !3 iterations typically suffice, need safety hatch anyway (e.g. when very close (or even slightly beyond) pole)
      siny  = sin(y*rd2r)
      th2 = y*rd2r
      dth2 = 1.e30
+     iter = 0
      
-     do while(abs(dth2).gt.delta)
+     do while(abs(dth2).gt.delta .and. iter.lt.maxIter)
+        iter = iter + 1
         dth2 = -(th2 + sin(th2) - rpi*siny)/(1.+cos(th2))
         th2 = th2 + dth2
      end do
