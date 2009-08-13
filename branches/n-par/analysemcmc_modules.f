@@ -7,20 +7,20 @@
 module analysemcmc_settings
   implicit none
   save
-  integer, parameter :: nival1=9
+  integer, parameter :: Nival1=9
   integer, parameter :: maxChs=20     !< Maximum number of chains that can be read
-  integer, parameter :: maxMCMCpar=18 !< MaxMCMCpar: logL+MCMCpar+secondary variables, e.g. 1+12+2(M1M2) = 15 for 12 par; 18 for 15 par
+  integer, parameter :: maxMCMCpar=18 !< MaxMCMCpar: logL+MCMCpar+secondary parameters, e.g. 1+12+2(M1M2) = 15 for 12 par; 18 for 15 par
   integer, parameter :: nParDB=99     !< nParDB: size of the parameter database
-  integer :: plvars(maxMCMCpar),nplvar,nbin1d,nbin2dx,nbin2dy,npdf2d,pdf2dpairs(250,2),panels(2)
-  integer :: thin,nburn(maxChs),reverseread,update,mergechains,wrapdata,changevar,maxchlen
+  integer :: plPars(maxMCMCpar),nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D,PDF2Dpairs(250,2),panels(2)
+  integer :: thin,Nburn(maxChs),reverseRead,update,mergeChains,wrapData,changeVar,maxChLen
   integer :: file,colour,orientation,quality,fonttype
-  integer :: prprogress,prruninfo,prchaininfo,prinitial,prstat,prcorr,prival,prconv,savestats,savepdf       
-  integer :: plot,combinechainplots,pllogl,plchain,plparl,pljump,plpdf1d,plpdf2d,placorr,plotsky,plmovie       
-  integer :: chainsymbol,chainpli,pltrue,plstart,plmedian,plrange,plburn,pllmax,prvalues,smooth,fillpdf,normpdf1d,normpdf2d
-  integer :: scloglpl,scchainspl,bmpxsz,bmpysz,map_projection
-  integer :: nmovframes,moviescheme,whitebg,unsharp,nival,ival0,wikioutput
-  real :: nburnfrac,autoburnin,ivals(nival1)
-  real :: scrsz,scrrat,pssz,psrat,scfac,fontsize1d,fontsize2d
+  integer :: prProgress,prRunInfo,prChainInfo,prInitial,prStat,prCorr,prIval,prConv,saveStats,savePDF       
+  integer :: plot,combineChainPlots,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plACorr,plotSky,plAnim       
+  integer :: chainSymbol,chainPlI,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D,normPDF2D
+  integer :: scLogLpl,scChainsPl,bmpXSz,bmpYSz,map_projection
+  integer :: nAnimFrames,animScheme,whiteBG,unSharp,Nival,ival0,wikioutput
+  real :: NburnFrac,autoBurnin,ivals(Nival1)
+  real :: scrSz,scrRat,PSsz,PSrat,scFac,fontsize1d,fontsize2d
 end module analysemcmc_settings
 !***************************************************************************************************
 
@@ -49,11 +49,11 @@ module general_data
   integer :: fixedpar(maxMCMCpar),nfixedpar,contrchains,contrchain(maxChs)
   real, allocatable :: selDat(:,:,:),allDat(:,:,:),post(:,:),prior(:,:)
   real :: startval(maxChs,maxMCMCpar,3)
-  real :: ranges(maxChs,nival1,maxMCMCpar,nr1),stats(maxChs,maxMCMCpar,nstat1),log10bayesfactor(maxChs),logebayesfactor(maxChs)
+  real :: ranges(maxChs,Nival1,maxMCMCpar,nr1),stats(maxChs,maxMCMCpar,nstat1),log10bayesfactor(maxChs),logebayesfactor(maxChs)
   real*8 :: rhat(maxMCMCpar)
   
-  character :: varnames(nParDB)*8,infiles(maxChs)*99,outputname*99,outputdir*99
-  character :: pgunits(nParDB)*99,pgvarns(nParDB)*99,pgvarnss(nParDB)*99,pgorigvarns(nParDB)*99
+  character :: parNames(nParDB)*8,infiles(maxChs)*99,outputname*99,outputdir*99
+  character :: pgunits(nParDB)*99,pgParNs(nParDB)*99,pgParNss(nParDB)*99,pgOrigParns(nParDB)*99
   
   integer :: wrap(maxChs,maxMCMCpar)
   real :: rashift,racentre,shift(maxChs,maxMCMCpar)
@@ -68,7 +68,7 @@ module mcmcrun_data
   use general_data
   implicit none
   save
-  integer :: niter(maxChs),totiter,totlines,totpts,nburn0(maxChs),seed(maxChs),ndet(maxChs),totthin(maxChs)
+  integer :: niter(maxChs),totiter,totlines,totpts,Nburn0(maxChs),seed(maxChs),ndet(maxChs),totthin(maxChs)
   integer :: nCorr(maxChs),nTemps(maxChs),waveform,nMCMCpar,Tmax(maxChs)
   integer :: samplerate(maxChs,ndets),samplesize(maxChs,ndets),FTsize(maxChs,ndets),detnr(maxChs,ndets),offsetrun
   integer :: parID(maxMCMCpar),revID(nParDB),spinningRun
@@ -88,9 +88,9 @@ module stats_data
   use analysemcmc_settings
   implicit none
   save
-  real :: stdev1(maxMCMCpar),stdev2(maxMCMCpar),absvar1(maxMCMCpar),absvar2(maxMCMCpar)
+  real :: stdev1(maxMCMCpar),stdev2(maxMCMCpar),absVar1(maxMCMCpar),absVar2(maxMCMCpar)
   integer :: trueranges2d(maxMCMCpar,maxMCMCpar)
-  real :: probarea(nival1),probareas(maxMCMCpar,maxMCMCpar,nival1,3)
+  real :: probarea(Nival1),probareas(maxMCMCpar,maxMCMCpar,Nival1,3)
 end module stats_data
 !***************************************************************************************************
 
@@ -104,7 +104,7 @@ module plot_data
   save
   integer :: ncolours,colours(10),defcolour,nsymbols,symbols(10),maxdots
   real :: pltrat,bmpsz,bmprat
-  character :: bmpxpix*99,unsharplogl*99,unsharpchain*99,unsharppdf1d*99,unsharppdf2d*99
+  character :: bmpxpix*99,unSharplogl*99,unSharpchain*99,unSharppdf1d*99,unSharppdf2d*99
   character :: psclr*9,colournames(15)*20
 end module plot_data
 !***************************************************************************************************

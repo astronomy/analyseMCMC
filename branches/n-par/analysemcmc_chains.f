@@ -14,22 +14,22 @@ subroutine chains(exitcode)
   character :: string*99
   
   exitcode = 0
-  if(combinechainplots.eq.1.and.(pllogl.eq.1.or.plchain.eq.1)) then
+  if(combineChainPlots.eq.1.and.(plLogL.eq.1.or.plChain.eq.1)) then
      io = pgopen('chaininfo.eps'//trim(psclr))
-     call pginitl(colour,file,whitebg)
+     call pginitl(colour,file,whiteBG)
   end if
   
   
   
   !***********************************************************************************************************************************      
   !Plot posterior chain
-  if(pllogl.eq.1) then
-     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' chain posterior, '
+  if(plLogL.eq.1) then
+     if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')' chain posterior, '
      if(file.eq.0) then
         io = pgopen('12/xs')
         call pgsch(1.5)
      end if
-     if(file.ge.1.and.combinechainplots.eq.0) then
+     if(file.ge.1.and.combineChainPlots.eq.0) then
         if(file.eq.1) io = pgopen('posterior.ppm/ppm')
         if(file.ge.2) io = pgopen('posterior.eps'//trim(psclr))
         call pgsch(1.2)
@@ -39,14 +39,14 @@ subroutine chains(exitcode)
         exitcode = 1
         return
      end if
-     if(file.eq.0) call pgpap(scrsz,scrrat)
+     if(file.eq.0) call pgpap(scrSz,scrRat)
      if(file.eq.0) call pgsch(1.5)
      if(file.eq.1) call pgpap(bmpsz,bmprat)
      if(file.eq.1) call pgsch(1.5)
-     if(file.ge.2) call pgpap(pssz,psrat)
+     if(file.ge.2) call pgpap(PSsz,PSrat)
      if(file.ge.2) call pgscf(fonttype)
      !call pgscr(3,0.,0.5,0.)
-     call pginitl(colour,file,whitebg)
+     call pginitl(colour,file,whiteBG)
      !call pgsubp(1,2)
 
      if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.94) !To make room for title
@@ -61,13 +61,13 @@ subroutine chains(exitcode)
         xmin = 0.
         xmax = max(xmax,maxval(is(ic,1:ntot(ic))))
         imin = 10                                              !Take into account burn-in
-        if(scloglpl.eq.1) imin = nburn(ic)                   !Scale without taking into account burnin
+        if(scLogLpl.eq.1) imin = Nburn(ic)                   !Scale without taking into account burnin
         ymin = min(ymin,minval(post(ic,imin:ntot(ic)))) 
         ymax = max(ymax,maxval(post(ic,imin:ntot(ic))))
      end do
      ic = 1
      p = 1
-     if(scloglpl.eq.0) then                                 !Take into account 0, true and starting values
+     if(scLogLpl.eq.0) then                                 !Take into account 0, true and starting values
         ymin = min(ymin,post(ic,1),post(ic,2),0.)
         ymax = max(ymax,post(ic,1),post(ic,2),0.)
      else                                                     !Take into account true values only
@@ -91,18 +91,18 @@ subroutine chains(exitcode)
         !Give pre- and post-burnin different colour
         ci = defcolour
         if(nchains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
-        call pgscidark(ci,file,whitebg)
-        do i=ic,nburn(ic),chainpli !Start at ic to reduce overplotting
+        call pgscidark(ci,file,whiteBG)
+        do i=ic,Nburn(ic),chainPlI !Start at ic to reduce overplotting
            call pgpoint(1,is(ic,i),post(ic,i),1)
         end do
         call pgsci(ci)
-        do i=nburn(ic)+ic,ntot(ic),chainpli !Start at ic to reduce overplotting
+        do i=Nburn(ic)+ic,ntot(ic),chainPlI !Start at ic to reduce overplotting
            call pgpoint(1,is(ic,i),post(ic,i),1)
         end do
      end do
      
      !Plot max posterior
-     if(pllmax.ge.1) then
+     if(plLmax.ge.1) then
         ply = post(icloglmax,iloglmax)
         call pgsci(1)
         call pgpoint(1,is(icloglmax,iloglmax),ply,18)
@@ -116,7 +116,7 @@ subroutine chains(exitcode)
         call pgsls(2)
         if(abs(post(ic,1)).gt.1.e-4) call pgline(2,(/-1.e20,1.e20/),(/post(ic,1),post(ic,1)/))  !Plot injection value, only if injection was done
         call pgsci(colours(mod(ic-1,ncolours)+1))
-        if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/)) !Vertical line at burn-in
+        if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/)) !Vertical line at burn-in
         call pgsls(4)
         call pgline(2,(/-1.e20,1.e20/),(/post(ic,2),post(ic,2)/))  !Horizontal dotted line at starting value
      end do
@@ -130,8 +130,8 @@ subroutine chains(exitcode)
         !call pgsch(sch)
      end if
 
-     if(combinechainplots.eq.1) call pgpage
-     if(combinechainplots.eq.0) then
+     if(combineChainPlots.eq.1) call pgpage
+     if(combineChainPlots.eq.0) then
         call pgend
         if(file.ge.2) then
            if(file.eq.3) then
@@ -142,12 +142,12 @@ subroutine chains(exitcode)
         end if
      end if
      if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharplogl)//' posterior.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__posterior.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharplogl)//' posterior.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__posterior.png')
         if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f posterior.ppm')
         !if(i.ne.0) write(0,'(A)')'  Error removing file',i
      end if
-  end if !if(pllogl.eq.1) then
+  end if !if(plLogL.eq.1) then
   
   
   
@@ -167,27 +167,27 @@ subroutine chains(exitcode)
   
   !***********************************************************************************************************************************      
   !Plot chains for each parameter
-  if(plchain.eq.1) then
-     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' parameter chains, '
+  if(plChain.eq.1) then
+     if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')' parameter chains, '
      if(file.eq.0) then
         io = pgopen('13/xs')
         sch = 1.5
         lw = 1
      end if
-     if(file.ge.1.and.combinechainplots.eq.0) then
+     if(file.ge.1.and.combineChainPlots.eq.0) then
         if(file.eq.1) io = pgopen('chains.ppm/ppm')
         if(file.ge.2) io = pgopen('chains.eps'//trim(psclr))
         lw = 3
-        if(nplvar.ge.10) lw = 2
+        if(nPlPar.ge.10) lw = 2
         if(quality.lt.2) lw = max(lw-1,1)  !Draft/Paper
         sch = 1.2
-        if(nchains.eq.1.and.nplvar.gt.9) sch = 1.2
+        if(nchains.eq.1.and.nPlPar.gt.9) sch = 1.2
         if(quality.eq.0) then !Draft
            sch = sch*1.75
            lw = 2
         end if
         if(quality.eq.1) then !Paper
-           if(nplvar.le.12) then
+           if(nPlPar.le.12) then
               sch = sch*1.75
               lw = 2
            else
@@ -196,21 +196,21 @@ subroutine chains(exitcode)
            end if
         end if
         if(quality.eq.2) then !Talk
-           if(nplvar.gt.12) then
+           if(nPlPar.gt.12) then
               sch = sch*1.5
               lw = 1
            end if
-           if(nplvar.le.12) then
+           if(nPlPar.le.12) then
               sch = sch*2
               lw = 2
            end if
-           !if(nplvar.le.6) then
+           !if(nPlPar.le.6) then
            !   !sch = sch*4
            !   !lw = 4
            !end if
         end if
         if(quality.eq.3) then !Poster
-           if(nplvar.eq.12.and.file.ge.2) then
+           if(nPlPar.eq.12.and.file.ge.2) then
               sch = sch*2.7
               lw = 3
            else
@@ -229,9 +229,9 @@ subroutine chains(exitcode)
         exitcode = 1
         return
      end if
-     if(file.eq.0) call pgpap(scrsz,scrrat)
+     if(file.eq.0) call pgpap(scrSz,scrRat)
      if(file.eq.1) call pgpap(bmpsz,bmprat)
-     if(file.ge.2) call pgpap(pssz,psrat)
+     if(file.ge.2) call pgpap(PSsz,PSrat)
      if(file.ge.2) call pgscf(fonttype)
      !if(file.eq.1) call pgsch(1.5)
 
@@ -242,16 +242,16 @@ subroutine chains(exitcode)
      call pgsubp(panels(1),panels(2))
 
      ic = 1
-     do j=1,nplvar
-        p = plvars(j)
+     do j=1,nPlPar
+        p = plPars(j)
 
         call pgpage
 
 
-        if(j.eq.1) call pginitl(colour,file,whitebg)
-        if(file.eq.0.and.scrrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+        if(j.eq.1) call pginitl(colour,file,whiteBG)
+        if(file.eq.0.and.scrRat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
-        if(file.ge.2.and.psrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+        if(file.ge.2.and.PSrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
         if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
 
@@ -263,12 +263,12 @@ subroutine chains(exitcode)
         do ic=1,nchains0
            xmax = max(xmax,maxval(is(ic,1:ntot(ic))))
            imin = 1                                               !Take into account burn-in
-           if(scchainspl.eq.1) imin = nburn(ic)                   !Scale without taking into account burnin
+           if(scChainsPl.eq.1) imin = Nburn(ic)                   !Scale without taking into account burnin
            ymin = min(ymin,minval(allDat(ic,p,imin:ntot(ic))))
            ymax = max(ymax,maxval(allDat(ic,p,imin:ntot(ic))))
         end do
         
-        if(changevar.gt.0) then
+        if(changeVar.gt.0) then
            if(parID(p).eq.31) then  !RA
               if(ymin.lt.0..or.ymax.gt.24.) then
                  ymin = 0.
@@ -314,26 +314,26 @@ subroutine chains(exitcode)
 
         !Plot the actual chain values
         call pgsch(1.)
-        if(chainsymbol.ne.1) call pgsch(0.7)
+        if(chainSymbol.ne.1) call pgsch(0.7)
         call pgslw(1)
         !write(6,'(15I4)'),nsymbols,symbols(1:nsymbols)
         do ic=1,nchains0
            !call pgsci(mod(ic*2,10))
            !symbol = ic+1
-           symbol = chainsymbol
-           if(chainsymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
+           symbol = chainSymbol
+           if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
            call pgsci(defcolour)
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           if(chainsymbol.eq.0) then !Plot lines rather than symbols
+           if(chainSymbol.eq.0) then !Plot lines rather than symbols
               call pgline(ntot(ic),is(ic,1:ntot(ic)),allDat(ic,p,1:ntot(ic)))
            else
               !Give pre- and post-burnin different colour
               ci = defcolour
               if(nchains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
-              call pgscidark(ci,file,whitebg)
-              do i=ic,nburn(ic),chainpli !Start at ic to reduce overplotting
+              call pgscidark(ci,file,whiteBG)
+              do i=ic,Nburn(ic),chainPlI !Start at ic to reduce overplotting
                  ply = allDat(ic,p,i)
-                 if(changevar.gt.0) then
+                 if(changeVar.gt.0) then
                     if(parID(p).eq.31) ply = rev24(ply)  !RA
                     if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) ply = rev360(ply)
                     if(parID(p).eq.52) ply = rev180(ply)
@@ -341,9 +341,9 @@ subroutine chains(exitcode)
                  call pgpoint(1,is(ic,i),ply,symbol)
               end do
               call pgsci(ci)
-              do i=nburn(ic)+ic,ntot(ic),chainpli !Start at ic to reduce overplotting
+              do i=Nburn(ic)+ic,ntot(ic),chainPlI !Start at ic to reduce overplotting
                  ply = allDat(ic,p,i)
-                 if(changevar.gt.0) then
+                 if(changeVar.gt.0) then
                     if(parID(p).eq.31) ply = rev24(ply)  !RA
                     if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) ply = rev360(ply)
                     if(parID(p).eq.52) ply = rev180(ply)
@@ -358,9 +358,9 @@ subroutine chains(exitcode)
         call pgslw(lw)
 
         !Plot max posterior
-        if(pllmax.ge.1) then
+        if(plLmax.ge.1) then
            ply = allDat(icloglmax,p,iloglmax)
-           if(changevar.gt.0) then
+           if(changeVar.gt.0) then
               if(parID(p).eq.31) ply = rev24(ply)  !RA
               if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) ply = rev360(ply)
               if(parID(p).eq.52) ply = rev180(ply)
@@ -378,24 +378,24 @@ subroutine chains(exitcode)
 
            !Plot burn-in phase
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-           if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
            call pgsci(1)
 
 
            !Plot true values in chains
-           if(pltrue.ge.1) then
-              if(mergechains.ne.1.or.ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+           if(plInject.ge.1) then
+              if(mergeChains.ne.1.or.ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  !if(ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  plx = startval(ic,p,1) !True value
                  plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
-                 if(changevar.gt.0) then
+                 if(changeVar.gt.0) then
                     if(parID(p).eq.31) plx = rev24(plx)  !RA
                     if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) plx = rev360(plx)
                     if(parID(p).eq.52) plx = rev180(plx)
                  end if
                  call pgline(2,(/-1.e20,1.e20/),(/plx,plx/))
-                 if(changevar.gt.0) then
+                 if(changeVar.gt.0) then
                     if(parID(p).eq.31) then
                        call pgline(2,(/-1.e20,1.e20/),(/plx-24.,plx-24./))
                        call pgline(2,(/-1.e20,1.e20/),(/plx+24.,plx+24./))
@@ -414,17 +414,17 @@ subroutine chains(exitcode)
 
 
            !Plot starting values in chains
-           if(plstart.ge.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/startval(ic,p,1)) .gt. 1.e-10) then
+           if(plStart.ge.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/startval(ic,p,1)) .gt. 1.e-10) then
               call pgsls(4)
               if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               plx = startval(ic,p,2) !Initial value
-              if(changevar.gt.0) then
+              if(changeVar.gt.0) then
                  if(parID(p).eq.31) plx = rev24(plx)
                  if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) plx = rev360(plx)
                  if(parID(p).eq.52) plx = rev180(plx)
               end if
               call pgline(2,(/-1.e20,1.e20/),(/plx,plx/))
-              if(changevar.gt.0) then
+              if(changeVar.gt.0) then
                  if(parID(p).eq.31) then
                     call pgline(2,(/-1.e20,1.e20/),(/plx-24.,plx-24./))
                     call pgline(2,(/-1.e20,1.e20/),(/plx+24.,plx+24./))
@@ -444,9 +444,9 @@ subroutine chains(exitcode)
         call pgsci(1)
         call pgsls(1)
         write(string,'(F6.3)')rhat(p)
-        call pgmtxt('T',-1.,0.,0.,' '//trim(pgvarns(parID(p))))
-        if(nchains0.gt.1.and.prconv.ge.1) call pgmtxt('T',1.,1.,1.,'R-hat: '//trim(string))
-     end do !do j=1,nplvar
+        call pgmtxt('T',-1.,0.,0.,' '//trim(pgParNs(parID(p))))
+        if(nchains0.gt.1.and.prConv.ge.1) call pgmtxt('T',1.,1.,1.,'R-hat: '//trim(string))
+     end do !do j=1,nPlPar
 
      if(quality.eq.0) then
         call pgsubp(1,1)
@@ -458,8 +458,8 @@ subroutine chains(exitcode)
         call pgsch(sch)
      end if
 
-     if(combinechainplots.eq.1) call pgpage
-     if(combinechainplots.eq.0) then
+     if(combineChainPlots.eq.1) call pgpage
+     if(combineChainPlots.eq.0) then
         call pgend
         if(file.ge.2) then
            if(file.eq.3) then
@@ -470,11 +470,11 @@ subroutine chains(exitcode)
         end if
      end if
      if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' chains.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__chains.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' chains.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__chains.png')
         if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f chains.ppm')
      end if
-  end if !if(plchain.eq.1)
+  end if !if(plChain.eq.1)
   !***********************************************************************************************************************************      
   
   
@@ -500,28 +500,28 @@ subroutine chains(exitcode)
   
   !***********************************************************************************************************************************      
   !Plot L vs parameter value
-  if(plparl.eq.1) then
-     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting parameter-L plot...'
-     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' parameter-L, '
+  if(plParL.eq.1) then
+     !if(prProgress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting parameter-L plot...'
+     if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')' parameter-L, '
      if(file.eq.0) then
         io = pgopen('22/xs')
         sch = 1.5
         lw = 1
      end if
-     if(file.ge.1.and.combinechainplots.eq.0) then
+     if(file.ge.1.and.combineChainPlots.eq.0) then
         if(file.eq.1) io = pgopen('parlogl.ppm/ppm')
         if(file.ge.2) io = pgopen('parlogl.eps'//trim(psclr))
         lw = 3
-        if(nplvar.ge.10) lw = 2
+        if(nPlPar.ge.10) lw = 2
         if(quality.lt.2) lw = max(lw-1,1)  !Draft/Paper
         sch = 1.2
-        if(nchains.eq.1.and.nplvar.gt.9) sch = 1.2
+        if(nchains.eq.1.and.nPlPar.gt.9) sch = 1.2
         if(quality.eq.0) then !Draft
            sch = sch*1.75
            lw = 2
         end if
         if(quality.eq.1) then !Paper
-           if(nplvar.le.12) then
+           if(nPlPar.le.12) then
               sch = sch*1.75
               lw = 2
            else
@@ -530,21 +530,21 @@ subroutine chains(exitcode)
            end if
         end if
         if(quality.eq.2) then !Talk
-           if(nplvar.gt.12) then
+           if(nPlPar.gt.12) then
               sch = sch*1.5
               lw = 1
            end if
-           if(nplvar.le.12) then
+           if(nPlPar.le.12) then
               sch = sch*2
               lw = 2
            end if
-           !if(nplvar.le.6) then
+           !if(nPlPar.le.6) then
            !   !sch = sch*4
            !   !lw = 4
            !end if
         end if
         if(quality.eq.3) then !Poster
-           if(nplvar.eq.12.and.file.ge.2) then
+           if(nPlPar.eq.12.and.file.ge.2) then
               sch = sch*2.7
               lw = 3
            else
@@ -559,41 +559,41 @@ subroutine chains(exitcode)
         exitcode = 1
         return
      end if
-     if(file.eq.0) call pgpap(scrsz,scrrat)
+     if(file.eq.0) call pgpap(scrSz,scrRat)
      if(file.eq.1) call pgpap(bmpsz,bmprat)
-     if(file.ge.2) call pgpap(pssz,psrat)
+     if(file.ge.2) call pgpap(PSsz,PSrat)
      if(file.ge.2) call pgscf(fonttype)
      !if(file.eq.1) call pgsch(1.5)
 
      call pgsch(sch)
      call pgslw(lw)
 
-     if(file.eq.0.and.scrrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+     if(file.eq.0.and.scrRat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
      if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
-     if(file.ge.2.and.psrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+     if(file.ge.2.and.PSrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
      if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
 
      call pgsubp(panels(1),panels(2))
      
      ic = 1
-     do j=1,nplvar
-        p = plvars(j)
+     do j=1,nPlPar
+        p = plPars(j)
         call pgpage
-        if(j.eq.1) call pginitl(colour,file,whitebg)
+        if(j.eq.1) call pginitl(colour,file,whiteBG)
         xmin = 1.e30
         xmax = -1.e30
         ymin =  1.e30
         ymax = -1.e30
         do ic=1,nchains0
-           !xmin = min(xmin,minval(is(ic,nburn(ic):ntot(ic))))
-           !xmax = max(xmax,maxval(is(ic,nburn(ic):ntot(ic))))
-           xmin = min(xmin,minval(allDat(ic,p,nburn(ic):ntot(ic))))
-           xmax = max(xmax,maxval(allDat(ic,p,nburn(ic):ntot(ic))))
-           ymin = min(ymin,minval(post(ic,nburn(ic):ntot(ic))))
-           ymax = max(ymax,maxval(post(ic,nburn(ic):ntot(ic))))
+           !xmin = min(xmin,minval(is(ic,Nburn(ic):ntot(ic))))
+           !xmax = max(xmax,maxval(is(ic,Nburn(ic):ntot(ic))))
+           xmin = min(xmin,minval(allDat(ic,p,Nburn(ic):ntot(ic))))
+           xmax = max(xmax,maxval(allDat(ic,p,Nburn(ic):ntot(ic))))
+           ymin = min(ymin,minval(post(ic,Nburn(ic):ntot(ic))))
+           ymax = max(ymax,maxval(post(ic,Nburn(ic):ntot(ic))))
         end do
         
-        if(changevar.gt.0) then
+        if(changeVar.gt.0) then
            if(parID(p).eq.31) then
               if(ymin.lt.0..or.ymax.gt.24.) then
                  ymin = 0.
@@ -655,20 +655,20 @@ subroutine chains(exitcode)
 
         !Plot the actual chain values
         call pgsch(1.)
-        if(chainsymbol.ne.1) call pgsch(0.7)
+        if(chainSymbol.ne.1) call pgsch(0.7)
         call pgslw(1)
         !write(6,'(15I4)'),nsymbols,symbols(1:nsymbols)
         do ic=1,nchains0
            !call pgsci(mod(ic*2,10))
            !symbol = ic+1
-           symbol = chainsymbol
-           if(chainsymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
+           symbol = chainSymbol
+           if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
            call pgsci(defcolour)
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           do i=nburn(ic),ntot(ic),chainpli
+           do i=Nburn(ic),ntot(ic),chainPlI
               plx = allDat(ic,p,i)
               ply = post(ic,i)
-              if(changevar.gt.0) then
+              if(changeVar.gt.0) then
                  if(parID(p).eq.31) plx = rev24(plx)
                  if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) plx = rev360(plx)
                  if(parID(p).eq.52) plx = rev180(plx)
@@ -683,9 +683,9 @@ subroutine chains(exitcode)
         call pgslw(lw)
 
         !Plot max posterior
-        if(pllmax.ge.1) then
+        if(plLmax.ge.1) then
            plx = allDat(icloglmax,p,iloglmax)
-           if(changevar.gt.0) then
+           if(changeVar.gt.0) then
               if(parID(p).eq.31) plx = rev24(plx)
               if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) plx = rev360(plx)
               if(parID(p).eq.52) plx = rev180(plx)
@@ -704,18 +704,18 @@ subroutine chains(exitcode)
            call pgsci(1)
 
            !Plot true values
-           if(pltrue.ge.1) then
-              if(mergechains.ne.1.or.ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+           if(plInject.ge.1) then
+              if(mergeChains.ne.1.or.ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  !if(ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  plx = startval(ic,p,1) !True value
                  plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
-                 if(changevar.gt.0) then
+                 if(changeVar.gt.0) then
                     if(parID(p).eq.31) plx = rev24(plx)
                     if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) plx = rev360(plx)
                     if(parID(p).eq.52) plx = rev180(plx)
                  end if
                  call pgline(2,(/plx,plx/),(/-1.e20,1.e20/))
-                 if(changevar.gt.0) then
+                 if(changeVar.gt.0) then
                     if(parID(p).eq.31) then
                        call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/))
                        call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/))
@@ -735,7 +735,7 @@ subroutine chains(exitcode)
 
         call pgsci(1)
         call pgsls(1)
-     end do !do j=1,nplvar
+     end do !do j=1,nPlPar
 
      if(quality.eq.0) then
         call pgsubp(1,1)
@@ -747,8 +747,8 @@ subroutine chains(exitcode)
         call pgsch(sch)
      end if
 
-     if(combinechainplots.eq.1) call pgpage
-     if(combinechainplots.eq.0) then
+     if(combineChainPlots.eq.1) call pgpage
+     if(combineChainPlots.eq.0) then
         call pgend
         if(file.ge.2) then
            if(file.eq.3) then
@@ -759,11 +759,11 @@ subroutine chains(exitcode)
         end if
      end if
      if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' parlogl.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' parlogl.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.png')
         if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f parlogl.ppm')
      end if
-  end if !if(plparl.eq.1)
+  end if !if(plParL.eq.1)
   
   
   
@@ -774,14 +774,14 @@ subroutine chains(exitcode)
   
   !***********************************************************************************************************************************            
   !Plot jump sizes
-  if(pljump.ge.1) then
-     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting jump sizes...'
-     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' jump sizes, '
+  if(plJump.ge.1) then
+     !if(prProgress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting jump sizes...'
+     if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')' jump sizes, '
      if(file.eq.0) then
         io = pgopen('18/xs')
         sch=1.5
      end if
-     if(file.ge.1.and.combinechainplots.eq.0) then
+     if(file.ge.1.and.combineChainPlots.eq.0) then
         if(file.eq.1) io = pgopen('jumps.ppm/ppm')
         if(file.ge.2) io = pgopen('jumps.eps'//trim(psclr))
         sch=1.2
@@ -791,7 +791,7 @@ subroutine chains(exitcode)
         exitcode = 1
         return
      end if
-     if(file.eq.0) call pgpap(scrsz,scrrat)
+     if(file.eq.0) call pgpap(scrSz,scrRat)
      if(file.eq.0) sch=1.5
      if(file.eq.1) call pgpap(bmpsz,bmprat)
      if(file.eq.1) sch=1.5
@@ -807,10 +807,10 @@ subroutine chains(exitcode)
      call pgsubp(panels(1),panels(2))
 
      ic = 1
-     do j=1,nplvar
-        p = plvars(j)
+     do j=1,nPlPar
+        p = plPars(j)
         call pgpage
-        if(j.eq.1) call pginitl(colour,file,whitebg)
+        if(j.eq.1) call pginitl(colour,file,whiteBG)
         xmax = -1.e30
         ymin =  1.e30
         ymax = -1.e30
@@ -818,12 +818,12 @@ subroutine chains(exitcode)
            xmin = 0.
            xmax = max(xmax,maxval(is(ic,1:ntot(ic))))
            dx = abs(xmax-xmin)*0.01
-           if(pljump.eq.1) then
+           if(plJump.eq.1) then
               ymin = min(ymin,minval(jumps(ic,p,2:ntot(ic))))
               ymax = max(ymax,maxval(jumps(ic,p,2:ntot(ic))))
            end if
            do i=10,ntot(ic)
-              if(pljump.eq.2.and.jumps(ic,p,i).gt.1.e-20) then
+              if(plJump.eq.2.and.jumps(ic,p,i).gt.1.e-20) then
                  ymin = min(ymin,log10(abs(jumps(ic,p,i))))
                  ymax = max(ymax,log10(abs(jumps(ic,p,i))))
               end if
@@ -836,21 +836,21 @@ subroutine chains(exitcode)
         end do
 
         call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
-        if(pljump.eq.1) call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0) !lin
-        if(pljump.eq.2) call pgbox('BCNTS',0.0,0,'BCLNTS',0.0,0) !log
+        if(plJump.eq.1) call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0) !lin
+        if(plJump.eq.2) call pgbox('BCNTS',0.0,0,'BCLNTS',0.0,0) !log
 
         do ic=1,nchains0
            !call pgsci(mod(ic*2,10))
            call pgsci(defcolour)
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           if(pljump.eq.1) then
-              !do i=1,ntot(ic),chainpli
-              do i=ic,ntot(ic),chainpli !Start at ic to reduce overplotting
+           if(plJump.eq.1) then
+              !do i=1,ntot(ic),chainPlI
+              do i=ic,ntot(ic),chainPlI !Start at ic to reduce overplotting
                  call pgpoint(1,is(ic,i),jumps(ic,p,i),1)
               end do
            else
-              !do i=1,ntot(ic),chainpli
-              do i=ic,ntot(ic),chainpli !Start at ic to reduce overplotting
+              !do i=1,ntot(ic),chainPlI
+              do i=ic,ntot(ic),chainPlI !Start at ic to reduce overplotting
                  call pgpoint(1,is(ic,i),log10(abs(jumps(ic,p,i))+1.e-30),1)
               end do
            end if
@@ -859,15 +859,15 @@ subroutine chains(exitcode)
         call pgsls(2)
         call pgsci(6)
         do ic=1,nchains0
-           !call pgline(2,(/real(nburn(ic)),real(nburn(ic))/),(/-1.e20,1.e20/))
+           !call pgline(2,(/real(Nburn(ic)),real(Nburn(ic))/),(/-1.e20,1.e20/))
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !if(plburn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-           if(plburn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
         end do
         call pgsci(1)
         call pgsls(1)
-        !call pgmtxt('T',1.,0.5,0.5,'Jumps: '//trim(pgorigvarns(parID(p))))
-        call pgmtxt('T',-1.2,0.05,0.0,trim(pgorigvarns(parID(p))))
+        !call pgmtxt('T',1.,0.5,0.5,'Jumps: '//trim(pgOrigParns(parID(p))))
+        call pgmtxt('T',-1.2,0.05,0.0,trim(pgOrigParns(parID(p))))
      end do
      
      if(quality.eq.0) then
@@ -880,8 +880,8 @@ subroutine chains(exitcode)
         call pgsch(sch)
      end if
      
-     if(combinechainplots.eq.1) call pgpage
-     if(combinechainplots.eq.0) then
+     if(combineChainPlots.eq.1) call pgpage
+     if(combineChainPlots.eq.0) then
         call pgend
         if(file.ge.2) then
            if(file.eq.3) then
@@ -892,11 +892,11 @@ subroutine chains(exitcode)
         end if
      end if
      if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' jumps.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__jumps.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' jumps.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__jumps.png')
         if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f jumps.ppm')
      end if
-  end if !if(pljump.ge.1)
+  end if !if(plJump.ge.1)
 
 
 
@@ -908,9 +908,9 @@ subroutine chains(exitcode)
 
   !***********************************************************************************************************************************      
   !Plot autocorrelations for each parameter
-  if(placorr.gt.0) then
-     !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting autocorrelations...'
-     if(prprogress.ge.1.and.update.eq.0) write(6,'(A,$)')' autocorrelations, '
+  if(plACorr.gt.0) then
+     !if(prProgress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting autocorrelations...'
+     if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')' autocorrelations, '
      if(file.eq.0) then
         io = pgopen('19/xs')
         call pgsch(1.5)
@@ -925,7 +925,7 @@ subroutine chains(exitcode)
         exitcode = 1
         return
      end if
-     if(file.eq.0) call pgpap(scrsz,scrrat)
+     if(file.eq.0) call pgpap(scrSz,scrRat)
      if(file.eq.0) call pgsch(1.5)
      if(file.eq.1) call pgpap(bmpsz,bmprat)
      if(file.eq.1) call pgsch(1.5)
@@ -935,10 +935,10 @@ subroutine chains(exitcode)
      call pgsubp(panels(1),panels(2))
 
      ic = 1
-     do j=1,nplvar
-        p = plvars(j)
+     do j=1,nPlPar
+        p = plPars(j)
         call pgpage
-        if(j.eq.1) call pginitl(colour,file,whitebg)
+        if(j.eq.1) call pginitl(colour,file,whiteBG)
         xmin = 0.
         xmin = minval(acorrs(1,0,0:100))
         xmax = maxval(acorrs(1,0,0:100))
@@ -958,7 +958,7 @@ subroutine chains(exitcode)
         do ic=1,nchains0
            call pgsci(defcolour)
            if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           do i=1,100!placorr!ntot(ic),chainpli
+           do i=1,100!plACorr!ntot(ic),chainPlI
               call pgpoint(1,acorrs(ic,0,i),acorrs(ic,p,i),1)
            end do
         end do
@@ -968,7 +968,7 @@ subroutine chains(exitcode)
         call pgline(2,(/-1.e20,1.e20/),(/0.,0./))
         call pgsci(1)
         call pgsls(1)
-        call pgmtxt('T',1.,0.5,0.5,'Autocorrelation: '//trim(pgvarns(parID(p))))
+        call pgmtxt('T',1.,0.5,0.5,'Autocorrelation: '//trim(pgParNs(parID(p))))
      end do
 
      if(quality.eq.0) then
@@ -981,8 +981,8 @@ subroutine chains(exitcode)
         call pgsch(sch)
      end if
 
-     if(combinechainplots.eq.1) call pgpage
-     if(combinechainplots.eq.0) then
+     if(combineChainPlots.eq.1) call pgpage
+     if(combineChainPlots.eq.0) then
         call pgend
         if(file.ge.2) then
            if(file.eq.3) then
@@ -993,11 +993,11 @@ subroutine chains(exitcode)
         end if
      end if
      if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unsharpchain)//' acorrs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' acorrs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.png')
         if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f acorrs.ppm')
      end if
-  end if !if(placorrs.gt.0)
+  end if !if(plACorrs.gt.0)
   !***********************************************************************************************************************************      
 
 

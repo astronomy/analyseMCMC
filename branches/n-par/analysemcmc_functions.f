@@ -56,98 +56,98 @@ subroutine read_settingsfile
 
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)thin
-  read(u,*,iostat=io)nburn(1)
+  read(u,*,iostat=io)Nburn(1)
   do i=2,maxChs
-     nburn(i) = nburn(1)
+     Nburn(i) = Nburn(1)
   end do
-  read(u,*,iostat=io)nburnfrac
+  read(u,*,iostat=io)NburnFrac
   read(u,*,iostat=io)autoBurnin
   read(u,*,iostat=io)dblvar
-  maxchlen = nint(dblvar)
+  maxChLen = nint(dblvar)
   read(u,*,iostat=io)file
   read(u,*,iostat=io)colour
   read(u,*,iostat=io)quality
-  read(u,*,iostat=io)reverseread
+  read(u,*,iostat=io)reverseRead
   read(u,*,iostat=io)update
-  read(u,*,iostat=io)mergechains
-  read(u,*,iostat=io)wrapdata
+  read(u,*,iostat=io)mergeChains
+  read(u,*,iostat=io)wrapData
   read(u,*,iostat=io)changeVar
   
   read(u,*,iostat=io)bla
-  read(u,*,iostat=io)prprogress
-  read(u,*,iostat=io)prruninfo
-  read(u,*,iostat=io)prchaininfo
-  read(u,*,iostat=io)prinitial
-  read(u,*,iostat=io)prstat
-  read(u,*,iostat=io)prcorr
-  read(u,*,iostat=io)prival
-  read(u,*,iostat=io)prconv
-  read(u,*,iostat=io)savestats
-  read(u,*,iostat=io)savepdf
+  read(u,*,iostat=io)prProgress
+  read(u,*,iostat=io)prRunInfo
+  read(u,*,iostat=io)prChainInfo
+  read(u,*,iostat=io)prInitial
+  read(u,*,iostat=io)prStat
+  read(u,*,iostat=io)prCorr
+  read(u,*,iostat=io)prIval
+  read(u,*,iostat=io)prConv
+  read(u,*,iostat=io)saveStats
+  read(u,*,iostat=io)savePDF
   
   
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)plot
-  read(u,*,iostat=io)combinechainplots
-  read(u,*,iostat=io)pllogl
-  read(u,*,iostat=io)plchain
-  read(u,*,iostat=io)plparl
-  read(u,*,iostat=io)pljump
-  read(u,*,iostat=io)plpdf1d
-  read(u,*,iostat=io)plpdf2d
-  read(u,*,iostat=io)placorr
-  read(u,*,iostat=io)plotsky
-  read(u,*,iostat=io)plmovie
+  read(u,*,iostat=io)combineChainPlots
+  read(u,*,iostat=io)plLogL
+  read(u,*,iostat=io)plChain
+  read(u,*,iostat=io)plParL
+  read(u,*,iostat=io)plJump
+  read(u,*,iostat=io)plPDF1D
+  read(u,*,iostat=io)plPDF2D
+  read(u,*,iostat=io)plACorr
+  read(u,*,iostat=io)plotSky
+  read(u,*,iostat=io)plAnim
   
   
   read(u,*,iostat=io)bla
-  read(u,*,iostat=io)chainsymbol
-  read(u,*,iostat=io)chainpli
-  read(u,*,iostat=io)scloglpl
-  read(u,*,iostat=io)scchainspl
-  read(u,*,iostat=io)pltrue
-  read(u,*,iostat=io)plstart
-  read(u,*,iostat=io)plmedian
-  read(u,*,iostat=io)plrange
-  read(u,*,iostat=io)plburn
-  read(u,*,iostat=io)pllmax
-  read(u,*,iostat=io)prvalues
+  read(u,*,iostat=io)chainSymbol
+  read(u,*,iostat=io)chainPlI
+  read(u,*,iostat=io)scLogLpl
+  read(u,*,iostat=io)scChainsPl
+  read(u,*,iostat=io)plInject
+  read(u,*,iostat=io)plStart
+  read(u,*,iostat=io)plMedian
+  read(u,*,iostat=io)plRange
+  read(u,*,iostat=io)plBurn
+  read(u,*,iostat=io)plLmax
+  read(u,*,iostat=io)prValues
   read(u,*,iostat=io)smooth
-  read(u,*,iostat=io)fillpdf
-  read(u,*,iostat=io)normpdf1d
-  read(u,*,iostat=io)normpdf2d
-  read(u,*,iostat=io)nmovframes
-  read(u,*,iostat=io)moviescheme
-  read(u,*,iostat=io)nival,ival0
-  read(u,*,iostat=io1)(ivals(i),i=1,nival)
+  read(u,*,iostat=io)fillPDF
+  read(u,*,iostat=io)normPDF1D
+  read(u,*,iostat=io)normPDF2D
+  read(u,*,iostat=io)nAnimFrames
+  read(u,*,iostat=io)animScheme
+  read(u,*,iostat=io)Nival,ival0
+  read(u,*,iostat=io1)(ivals(i),i=1,Nival)
 
   read(u,*,iostat=io)bla
-  read(u,*,iostat=io)scrsz
-  read(u,*,iostat=io)scrrat
-  read(u,*,iostat=io)bmpxsz
-  read(u,*,iostat=io)bmpysz
-  read(u,*,iostat=io)pssz
-  read(u,*,iostat=io)psrat
-  read(u,*,iostat=io)whitebg
-  read(u,*,iostat=io)scfac
-  read(u,*,iostat=io)unsharp
+  read(u,*,iostat=io)scrSz
+  read(u,*,iostat=io)scrRat
+  read(u,*,iostat=io)bmpXSz
+  read(u,*,iostat=io)bmpYSz
+  read(u,*,iostat=io)PSsz
+  read(u,*,iostat=io)PSrat
+  read(u,*,iostat=io)whiteBG
+  read(u,*,iostat=io)scFac
+  read(u,*,iostat=io)unSharp
   
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)bla
-  read(u,*,iostat=io)nplvar
-  read(u,*,iostat=io1)(plvars(i),i=1,nplvar)
-  if(io1.ne.0) nplvar = i-1
+  read(u,*,iostat=io)nPlPar
+  read(u,*,iostat=io1)(plPars(i),i=1,nPlPar)
+  if(io1.ne.0) nPlPar = i-1
   io1 = 0
   read(u,*,iostat=io)panels(1:2)
-  read(u,*,iostat=io)nbin1d
-  read(u,*,iostat=io)nbin2dx
-  read(u,*,iostat=io)nbin2dy
-  read(u,*,iostat=io)npdf2d
-  do i=1,npdf2d
-     read(u,*,iostat=io1)pdf2dpairs(i,1:2)
+  read(u,*,iostat=io)Nbin1D
+  read(u,*,iostat=io)Nbin2Dx
+  read(u,*,iostat=io)Nbin2Dy
+  read(u,*,iostat=io)Npdf2D
+  do i=1,Npdf2D
+     read(u,*,iostat=io1)PDF2Dpairs(i,1:2)
      if(io1.ne.0) exit
   end do
-  if(io1.ne.0) npdf2d = i-1
+  if(io1.ne.0) Npdf2D = i-1
   close(u)
   
   if(io.ne.0) then
@@ -178,97 +178,97 @@ subroutine write_settingsfile
   
   write(u,'(/,A)')' Basic options:'
   write(u,11)thin, 'thin',   'If >1, "thin" the output; read every thin-th line '
-  write(u,11)maxval(nburn), 'nburn',   'If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain'
-  write(u,21)nburnfrac, 'nburnfrac',   'If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides nburn above'
-  write(u,21)autoBurnin, 'autoBurnin',   'If >0: Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin. Overrides nburn and nburnfrac above'
-  write(u,31)dble(maxchlen), 'maxchlen',   'Maximum chain length to read in (number of iterations, not number of lines)'
+  write(u,11)maxval(Nburn), 'Nburn',   'If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain'
+  write(u,21)NburnFrac, 'NburnFrac',   'If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides Nburn above'
+  write(u,21)autoBurnin, 'autoBurnin',   'If >0: Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin. Overrides Nburn and NburnFrac above'
+  write(u,31)dble(maxChLen), 'maxChLen',   'Maximum chain length to read in (number of iterations, not number of lines)'
   write(u,11)file, 'file',   'Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter "outputdir" below'
   write(u,11)colour, 'colour',   'Use colours: 0-no (grey scales), 1-yes'
   write(u,11)quality, 'quality',   '"Quality" of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster'
-  write(u,11)reverseread, 'reverseread',   'Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too'
+  write(u,11)reverseRead, 'reverseRead',   'Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too'
   write(u,11)update, 'update',   'Update screen plot every 10 seconds: 0-no, 1-yes'
-  write(u,11)mergechains, 'mergechains',   'Merge the data from different files into one chain: 0-no (treat separately), 1-yes'
-  write(u,11)wrapdata, 'wrapdata',   'Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)'
-  write(u,11)changeVar, 'changeVar',   'Change variables (e.g. logd->d, kappa->theta_SL, rad->deg)'
+  write(u,11)mergeChains, 'mergeChains',   'Merge the data from different files into one chain: 0-no (treat separately), 1-yes'
+  write(u,11)wrapData, 'wrapData',   'Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)'
+  write(u,11)changeVar, 'changeVar',   'Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)'
   
   
   write(u,'(/,A)')' Select what output to print to screen and write to file:'
-  write(u,11)prprogress, 'prprogress',   'Print general messages about the progress of the program: 0-no, 1-some, 2-more, 3-debug output'
-  write(u,11)prruninfo, 'prruninfo',   'Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files'
-  write(u,11)prchaininfo, 'prchaininfo',   'Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per chain (file name, plot colour, # iterations, burnin, Lmax, # data points)'
-  write(u,11)prinitial, 'prinitial',   'Print true values, starting values and their difference'
-  write(u,11)prstat, 'prstat',   'Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals'
-  write(u,11)prcorr, 'prcorr',   'Print correlations: 0-no, 1-yes'
-  write(u,11)prival, 'prival',   'Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both'
-  write(u,11)prconv, 'prconv',   'Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain'
-  write(u,11)savestats, 'savestats',   'Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS'
-  write(u,11)savepdf, 'savepdf',   'Save the binned data for 1d and/or 2d pdfs (depending on plpdf1d and plpdf2d).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying'
+  write(u,11)prProgress, 'prProgress',   'Print general messages about the progress of the program: 0-no, 1-some, 2-more, 3-debug output'
+  write(u,11)prRunInfo, 'prRunInfo',   'Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files'
+  write(u,11)prChainInfo, 'prChainInfo',   'Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per chain (file name, plot colour, # iterations, burnin, Lmax, # data points)'
+  write(u,11)prInitial, 'prInitial',   'Print true values, starting values and their difference'
+  write(u,11)prStat, 'prStat',   'Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals'
+  write(u,11)prCorr, 'prCorr',   'Print correlations: 0-no, 1-yes'
+  write(u,11)prIval, 'prIval',   'Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both'
+  write(u,11)prConv, 'prConv',   'Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain'
+  write(u,11)saveStats, 'saveStats',   'Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS'
+  write(u,11)savePDF, 'savePDF',   'Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying'
   
   
   write(u,'(/,A)')' Select which plots to make:'
   write(u,11)plot, 'plot',   '0: plot nothing at all, 1: plot the items selected below'
-  write(u,11)combinechainplots, 'combinechainplots',   'Combine logL and chain plots into one multipage file'
-  write(u,11)pllogl, 'pllogl',   'Plot log L chains: 0-no, 1-yes'
-  write(u,11)plchain, 'plchain',   'Plot parameter chains: 0-no, 1-yes'
-  write(u,11)plparl, 'plparl',   'Plot L vs. parameter value: 0-no, 1-yes'
-  write(u,11)pljump, 'pljump',   'Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log'
-  write(u,11)plpdf1d, 'plpdf1d',   'Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.'
-  write(u,11)plpdf2d, 'plpdf2d',   'Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).'
-  write(u,11)placorr, 'placorr',   'Plot autocorrelations: 0-no, >0-yes: plot placorr steps'
-  write(u,11)plotsky, 'plotsky',   'Plot 2d pdf with stars, implies plpdf2d>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
-  write(u,11)plmovie, 'plmovie',   'Create movie frames'
+  write(u,11)combineChainPlots, 'combineChainPlots',   'Combine logL and chain plots into one multipage file'
+  write(u,11)plLogL, 'plLogL',   'Plot log L chains: 0-no, 1-yes'
+  write(u,11)plChain, 'plChain',   'Plot parameter chains: 0-no, 1-yes'
+  write(u,11)plParL, 'plParL',   'Plot L vs. parameter value: 0-no, 1-yes'
+  write(u,11)plJump, 'plJump',   'Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log'
+  write(u,11)plPDF1D, 'plPDF1D',   'Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.'
+  write(u,11)plPDF2D, 'plPDF2D',   'Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) or not (=0).'
+  write(u,11)plACorr, 'plACorr',   'Plot autocorrelations: 0-no, >0-yes: plot plACorr steps'
+  write(u,11)plotSky, 'plotSky',   'Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
+  write(u,11)plAnim, 'plAnim',   'Create movie frames'
   
   
   write(u,'(/,A)')' Detailed plot settings:'
-  write(u,11)chainsymbol, 'chainsymbol',   'Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols'
-  write(u,11)chainpli, 'chainpli',   'Plot every chainpli-th point in chains, logL, jump plots:  chainpli=0: autodetermine, chainpli>0: use this chainpli.  All states in between *are* used for statistics, pdf generation, etc.'
-  write(u,11)scloglpl, 'scloglpl',   'Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account'
-  write(u,11)scchainspl, 'scchainspl',   'Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account'
-  write(u,11)pltrue, 'pltrue',   'Plot true values in the chains and pdfs: 0: no,  1: yes (all pars),  2: yes (selected pars), 3-4: as 1-2 + print value in PDF panel'
-  write(u,11)plstart, 'plstart',   'Plot starting values in the chains and pdfs'
-  write(u,11)plmedian, 'plmedian',   'Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel'
-  write(u,11)plrange, 'plrange',   'Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel'
-  write(u,11)plburn, 'plburn',   'Plot the burnin in logL, the chains, etc.'
-  write(u,11)pllmax, 'pllmax',   'Plot the position of the max logL, in the chains and pdfs'
-  write(u,11)prvalues, 'prvalues',   'Print values (true, median, range) in pdfs'
+  write(u,11)chainSymbol, 'chainSymbol',   'Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols'
+  write(u,11)chainPlI, 'chainPlI',   'Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine, chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.'
+  write(u,11)scLogLpl, 'scLogLpl',   'Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account'
+  write(u,11)scChainsPl, 'scChainsPl',   'Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account'
+  write(u,11)plInject, 'plInject',   'Plot true values in the chains and pdfs: 0: no,  1: yes (all pars),  2: yes (selected pars), 3-4: as 1-2 + print value in PDF panel'
+  write(u,11)plStart, 'plStart',   'Plot starting values in the chains and pdfs'
+  write(u,11)plMedian, 'plMedian',   'Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel'
+  write(u,11)plRange, 'plRange',   'Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel'
+  write(u,11)plBurn, 'plBurn',   'Plot the burnin in logL, the chains, etc.'
+  write(u,11)plLmax, 'plLmax',   'Plot the position of the max logL, in the chains and pdfs'
+  write(u,11)prValues, 'prValues',   'Print values (true, median, range) in pdfs'
   write(u,11)smooth, 'smooth',   'Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!'
-  write(u,11)fillpdf, 'fillpdf',   'Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched'
-  write(u,11)normpdf1d, 'normpdf1d',   'Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains'
-  write(u,11)normpdf2d, 'normpdf2d',   "'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value,  4-2D probability intervals"
-  write(u,11)nmovframes, 'nmovframes',   'Number of frames for the movie'
-  write(u,11)moviescheme, 'moviescheme',   'Moviescheme (1-3): determines what panels to show in a movie frame; see source code'
-  write(u,12)nival,ival0, 'nival ival0',   'Number of probability intervals,  number of the default probability interval (ival0<=nival)'
-  do i=1,nival
+  write(u,11)fillPDF, 'fillPDF',   'Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched'
+  write(u,11)normPDF1D, 'normPDF1D',   'Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains'
+  write(u,11)normPDF2D, 'normPDF2D',   "'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value,  4-2D probability intervals"
+  write(u,11)nAnimFrames, 'nAnimFrames',   'Number of frames for the movie'
+  write(u,11)animScheme, 'animScheme',   'AnimScheme (1-3): determines what panels to show in a movie frame; see source code'
+  write(u,12)Nival,ival0, 'Nival ival0',   'Number of probability intervals,  number of the default probability interval (ival0<=Nival)'
+  do i=1,Nival
      write(u,'(F9.5,$)')ivals(i)
   end do
   write(u,*)'       Probability intervals (ivals()). Values > 0.9999 will be treated as 100%'
   
   write(u,'(/,A)')' Output format:'
-  write(u,21)scrsz, 'scrsz',   'Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8'
-  write(u,21)scrrat, 'scrrat',   'Screen ratio for X11 windows (PGPlot units), MacBook: 0.57'
-  write(u,11)bmpxsz, 'bmpxsz',   'X-size for bitmap (pixels):  1000  !!! Too large values give incomplete 2D PDFs somehow !!!'
-  write(u,11)bmpysz, 'bmpysz',   'Y-size for bitmap (pixels):  700'
-  write(u,21)pssz, 'pssz',   'Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap'
-  write(u,21)psrat, 'psrat',   'Ratio for PS/PDF (PGPlot units). Default: 0.742  /'
-  write(u,11)whitebg, 'whitebg',   'Create white background for screen and .png plots: 0-no (black, default), 1-yes'
-  write(u,21)scfac, 'scfac',   '!!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot'
-  write(u,11)unsharp, 'unsharp',   'Apply unsharp mask when creating .png plots. Default: 10.'
+  write(u,21)scrSz, 'scrSz',   'Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8'
+  write(u,21)scrRat, 'scrRat',   'Screen ratio for X11 windows (PGPlot units), MacBook: 0.57'
+  write(u,11)bmpXSz, 'bmpXSz',   'X-size for bitmap (pixels):  1000  !!! Too large values give incomplete 2D PDFs somehow !!!'
+  write(u,11)bmpYSz, 'bmpYSz',   'Y-size for bitmap (pixels):  700'
+  write(u,21)PSsz, 'PSsz',   'Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap'
+  write(u,21)PSrat, 'PSrat',   'Ratio for PS/PDF (PGPlot units). Default: 0.742  /'
+  write(u,11)whiteBG, 'whiteBG',   'Create white background for screen and .png plots: 0-no (black, default), 1-yes'
+  write(u,21)scFac, 'scFac',   '!!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot'
+  write(u,11)unSharp, 'unSharp',   'Apply unSharp mask when creating .png plots. Default: 10.'
   
   write(u,'(/,A)')' Data settings:'
-  write(u,'(A)')' Plot variables:  1:logL, 2:Mc, 3:eta, 4:tc, 5:dL, 6:a, 7:th, 8:RA, 9:dec, 10:phi, 11:thJ, 12:phiJ, 13:alpha, 14:M1, 15:M2'
-  write(u,11)nplvar, 'nplvar',   'Number of plot variables for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savepdf=1. Put the variables in the line below:'
-  do i=1,nplvar
-     write(u,'(I3,$)')plvars(i)
+  write(u,'(A)')' Plot MCMC parameters:  1:logL, 2:Mc, 3:eta, 4:tc, 5:dL, 6:a, 7:th, 8:RA, 9:dec, 10:phi, 11:thJ, 12:phiJ, 13:alpha, 14:M1, 15:M2'
+  write(u,11)nPlPar, 'nPlPar',   'Number of plot parameters for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savePDF=1. Put the MCMC parameters in the line below:'
+  do i=1,nPlPar
+     write(u,'(I3,$)')plPars(i)
   end do
   write(u,*)''
-  !write(u,'(5x,A,5x,A)')'plvars','The actual plot variables (1-nplvar)'
+  !write(u,'(5x,A,5x,A)')'plPars','The actual plot parameters (1-nPlPar)'
   write(u,12)panels(1:2), 'panels',   'Number of for 1D plots in x,y direction:  0: autodetermine'
-  write(u,11)nbin1d, 'nbin1d',   'Number of bins for 1D PDFs:  0: autodetermine'
-  write(u,11)nbin2dx, 'nbin2dx',   'Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)'
-  write(u,11)nbin2dy, 'nbin2dy',   'Number of bins in y-direction for 2D PDFs and 2D probability ranges:  0: use nbin2dx, -1: use nbin2dx*(scr/bmp/ps)rat'
-  write(u,11)npdf2d, 'npdf2d',     'Number of 2D-PDF plots to make:  -1: all plots (91 for 12+2 parameters),  >0: read parameters from the lines below'
-  do i=1,npdf2d
-     write(u,12)pdf2dpairs(i,1:2), 'pdf2dpairs', 'Pairs of parameters to plot a 2D PDF for'
+  write(u,11)Nbin1D, 'Nbin1D',   'Number of bins for 1D PDFs:  0: autodetermine'
+  write(u,11)Nbin2Dx, 'Nbin2Dx',   'Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)'
+  write(u,11)Nbin2Dy, 'Nbin2Dy',   'Number of bins in y-direction for 2D PDFs and 2D probability ranges:  0: use Nbin2Dx, -1: use Nbin2Dx*(scr/bmp/ps)rat'
+  write(u,11)Npdf2D, 'Npdf2D',     'Number of 2D-PDF plots to make:  -1: all plots (91 for 12+2 parameters),  >0: read parameters from the lines below'
+  do i=1,Npdf2D
+     write(u,12)PDF2Dpairs(i,1:2), 'PDF2Dpairs', 'Pairs of parameters to plot a 2D PDF for'
   end do
   close(u)
 end subroutine write_settingsfile
@@ -283,81 +283,81 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   implicit none
   
   thin = 10         !If >1, 'thin' the output; read every thin-th line 
-  nburn = 1e5       !If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number, but it becomes the line number later on in the code.  Nburn > Nchain sets Nburn = 0.1*Nchain
-  nburnfrac = 0.5   !If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
+  Nburn = 1e5       !If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number, but it becomes the line number later on in the code.  Nburn > Nchain sets Nburn = 0.1*Nchain
+  NburnFrac = 0.5   !If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
   autoBurnin = 1.   !Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
-  maxchlen = 1e8    !Maximum chain length
+  maxChLen = 1e8    !Maximum chain length
   file = 1          !Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter 'outputdir' below.
   colour = 1        !Use colours: 0-no (grey scales), 1-yes
   quality = 0       !'Quality' of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
-  reverseread = 0   !Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too
+  reverseRead = 0   !Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too
   update = 0        !Update screen plot every 10 seconds: 0-no, 1-yes
-  mergechains = 1   !Merge the data from different files into one chain: 0-no (treat separately), 1-yes
-  wrapdata = 1      !Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
-  changeVar = 1     !Change variables (e.g. logd->d, kappa->theta_SL, rad->deg)
+  mergeChains = 1   !Merge the data from different files into one chain: 0-no (treat separately), 1-yes
+  wrapData = 1      !Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
+  changeVar = 1     !Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)
   
-  prprogress = 2    !Print general messages about the progress of the program: 0-no, 1-some, 2-more
-  prruninfo = 0     !Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files
-  prinitial = 0     !Print true values, starting values and their difference
-  prstat = 1        !Print statistics: 0-no, 1-yes
-  prcorr = 0        !Print correlations: 0-no, 1-yes
-  prival = 0        !Print interval info: 0-no, 1-yes
-  prconv = 1        !Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-medians, stdevs, etc. too.
-  savestats = 0     !Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
-  savepdf = 0       !Save the binned data for 1d and/or 2d pdfs (depending on plpdf1d and plpdf2d).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
+  prProgress = 2    !Print general messages about the progress of the program: 0-no, 1-some, 2-more
+  prRunInfo = 0     !Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files
+  prInitial = 0     !Print true values, starting values and their difference
+  prStat = 1        !Print statistics: 0-no, 1-yes
+  prCorr = 0        !Print correlations: 0-no, 1-yes
+  prIval = 0        !Print interval info: 0-no, 1-yes
+  prConv = 1        !Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-medians, stdevs, etc. too.
+  saveStats = 0     !Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
+  savePDF = 0       !Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
   
   plot = 1          !0: plot nothing at all, 1: plot the items selected below
-  combinechainplots = 0  !Combine logL and chain plots into one multipage file
+  combineChainPlots = 0  !Combine logL and chain plots into one multipage file
   autoBurnin = 1.   !Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
-  scloglpl = 1      !Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account
-  scchainspl = 1    !Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account
-  pllogl = 1        !Plot log L chains: 0-no, 1-yes
-  plchain = 1       !Plot parameter chains: 0-no, 1-yes
-  plparl = 1        !Plot L vs. parameter value: 0-no, 1-yes
-  pljump = 1        !Plot actual jump sizes
-  plpdf1d = 1       !Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savepdf=1, this determines whether to write the pdfs to file or not.
-  plpdf2d = 2       !Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savepdf=1, this determines whether to write the pdfs to file (>0) or not (=0).
-  placorr = 0e4     !Plot autocorrelations: 0-no, >0-yes: plot placorr steps
-  plotsky = 0       !Plot 2d pdf with stars, implies plpdf2d>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
-  plmovie = 0       !Plot movie frames
+  scLogLpl = 1      !Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account
+  scChainsPl = 1    !Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account
+  plLogL = 1        !Plot log L chains: 0-no, 1-yes
+  plChain = 1       !Plot parameter chains: 0-no, 1-yes
+  plParL = 1        !Plot L vs. parameter value: 0-no, 1-yes
+  plJump = 1        !Plot actual jump sizes
+  plPDF1D = 1       !Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.
+  plPDF2D = 2       !Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) or not (=0).
+  plACorr = 0e4     !Plot autocorrelations: 0-no, >0-yes: plot plACorr steps
+  plotSky = 0       !Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
+  plAnim = 0       !Plot movie frames
   
-  chainsymbol = 1   !Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle
-  chainpli = 0      !Plot every chainpli-th point in chains, logL, jump plots:  chainpli=0: autodetermine, chainpli>0: use this chainpli.  All states in between *are* used for statistics, pdf generation, etc.
-  pltrue = 1        !Plot true values in the chains and pdfs
-  plstart = 1       !Plot starting values in the chains and pdfs
-  plmedian = 1      !Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
-  plrange = 1       !Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
-  plburn = 1        !Plot the burnin in logL, the chains, etc.
-  pllmax = 0        !Plot the position of the max of logL in chains and pdfs
-  prvalues = 1      !Print values (true, median, range) in pdfs
+  chainSymbol = 1   !Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle
+  chainPlI = 0      !Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine, chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.
+  plInject = 1        !Plot true values in the chains and pdfs
+  plStart = 1       !Plot starting values in the chains and pdfs
+  plMedian = 1      !Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
+  plRange = 1       !Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
+  plBurn = 1        !Plot the burnin in logL, the chains, etc.
+  plLmax = 0        !Plot the position of the max of logL in chains and pdfs
+  prValues = 1      !Print values (true, median, range) in pdfs
   smooth = 3        !Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!
-  fillpdf = 1       !Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
-  normpdf1d = 1     !Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains
-  normpdf2d = 0     !'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value
-  nmovframes = 1    !Number of frames for the movie
-  moviescheme = 3   !Movie scheme: determines what panels to show in a movie frame 
-  nival = 3         !Number of probability intervals
-  ival0 = 1         !Standard probability interval, e.g. 1 or 2, < nival
+  fillPDF = 1       !Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
+  normPDF1D = 1     !Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains
+  normPDF2D = 0     !'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value
+  nAnimFrames = 1    !Number of frames for the movie
+  animScheme = 3   !Movie scheme: determines what panels to show in a movie frame 
+  Nival = 3         !Number of probability intervals
+  ival0 = 1         !Standard probability interval, e.g. 1 or 2, < Nival
   ivals(1:3) = (/0.6827,0.9545,0.9973/)  !Probability intervals
   
-  scrsz  = 10.8     !Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8
-  scrrat = 0.57     !Screen ratio for X11 windows (PGPlot units), MacBook: 0.57
-  bmpxsz = 1000     !X-size for bitmap (pixels):  1000
-  bmpysz = 700      !Y-size for bitmap (pixels):  700
-  pssz   = 10.5     !Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap
-  psrat  = 0.742    !Ratio for PS/PDF (PGPlot units). Default: 0.742  /
-  whitebg = 0       !White background for screen and .png plots: 0-no, 1-yes
-  scfac = 1.2       !Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot
-  unsharp = 10      !Apply unsharp mask when creating .png plots. Default: 10
+  scrSz  = 10.8     !Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8
+  scrRat = 0.57     !Screen ratio for X11 windows (PGPlot units), MacBook: 0.57
+  bmpXSz = 1000     !X-size for bitmap (pixels):  1000
+  bmpYSz = 700      !Y-size for bitmap (pixels):  700
+  PSsz   = 10.5     !Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap
+  PSrat  = 0.742    !Ratio for PS/PDF (PGPlot units). Default: 0.742  /
+  whiteBG = 0       !White background for screen and .png plots: 0-no, 1-yes
+  scFac = 1.2       !Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot
+  unSharp = 10      !Apply unsharp mask when creating .png plots. Default: 10
   
-  nplvar = 15       !Number of plot variables for 1D plots
-  plvars(1:nplvar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !The nplvar plot variables
+  nPlPar = 15       !Number of plot parameters for 1D plots
+  plPars(1:nPlPar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !The nPlPar plot parameters
   panels(1:2) = (/0,0/) !Number of panels for 1D plots in x,y direction
-  nbin1d = 100      !Number of bins for 1D PDFs
-  nbin2dx = 60      !Number of bins in horizontal direction for 2D PDFs
-  nbin2dy = 40      !Number of bins in vertical direction for 2D PDFs
-  npdf2d  = 1       !Number of 2D PDFs to make
-  pdf2dpairs(1,1:2) = (/8,9/)  !2D PDFs to plot: RA,Dec
+  Nbin1D = 100      !Number of bins for 1D PDFs
+  Nbin2Dx = 60      !Number of bins in horizontal direction for 2D PDFs
+  Nbin2Dy = 40      !Number of bins in vertical direction for 2D PDFs
+  Npdf2D  = 1       !Number of 2D PDFs to make
+  PDF2Dpairs(1,1:2) = (/8,9/)  !2D PDFs to plot: RA,Dec
 end subroutine set_plotsettings
 !***************************************************************************************************
 
@@ -383,7 +383,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
   
   
   do ic = 1,nchains0
-     if(reverseread.eq.0) then
+     if(reverseRead.eq.0) then
         call getarg(ic,infile) !Read file name from the command-line arguments
      else
         call getarg(nchains0-ic+1,infile) !Read file name from the command-line arguments in reverse order
@@ -398,7 +398,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      end if
      rewind(10)
      
-     !if(prprogress.ge.2) write(6,'(A,I3,A,I3,A20,$)')'    File',ic,':  '//trim(infile)//'    Using colour',colours(mod(ic-1,ncolours)+1),': '//colournames(colours(mod(ic-1,ncolours)+1))
+     !if(prProgress.ge.2) write(6,'(A,I3,A,I3,A20,$)')'    File',ic,':  '//trim(infile)//'    Using colour',colours(mod(ic-1,ncolours)+1),': '//colournames(colours(mod(ic-1,ncolours)+1))
      
      !Read the headers
      !Determine from the length of the first line whether this is output from before of after July 2009
@@ -410,7 +410,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      if(len_trim(firstLine).lt.80) read(firstLine,'(A21,F8.2)')tmpStr,outputVersion  !Use new format
 
      if(outputVersion > 0.5) read(10,*,end=199,err=199)tmpStr  !Read empty line between version number and first header
-     read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') niter(ic),nburn0(ic),seed(ic),nullh,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform,pnOrder,nMCMCpar
+     read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') niter(ic),Nburn0(ic),seed(ic),nullh,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform,pnOrder,nMCMCpar
      
      read(10,*,end=199,err=199)tmpStr !Read empty line above detector info
      do i=1,ndet(ic)
@@ -490,7 +490,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
         end if
         
         i = i+1
-        if(tmpInt.ge.maxchlen) exit
+        if(tmpInt.ge.maxChLen) exit
      end do !i
      
      if(i.ge.maxIter-2) write(0,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
@@ -498,7 +498,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
 199  close(10)
      ntot(ic) = i-1
      n(ic) = ntot(ic) !n can be changed in rearranging chains, ntot won't be changed
-     !if(prprogress.ge.2.and.update.ne.1) write(6,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',nburn(ic),'.'
+     !if(prProgress.ge.2.and.update.ne.1) write(6,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',Nburn(ic),'.'
   end do !do ic = 1,nchains0
   
 
@@ -531,19 +531,19 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   do ic = 1,nchains0
      totiter = totiter + nint(is(ic,ntot(ic)))
   end do
-  !if(prprogress.ge.2.and.update.ne.1) write(6,'(A10,65x,2(A,I9),A1)')'Total:',' Lines:',sum(ntot(1:nchains0)),', iterations:',totiter
+  !if(prProgress.ge.2.and.update.ne.1) write(6,'(A10,65x,2(A,I9),A1)')'Total:',' Lines:',sum(ntot(1:nchains0)),', iterations:',totiter
   
   
   
   !Print run info (detectors, SNR, amount of data, FFT, etc)
-  if(prruninfo.gt.0.and.update.eq.0) then
-     if(prruninfo.eq.1) write(6,'(/,A)')'  Run information for chain 1:'
-     if(prruninfo.eq.2) write(6,'(/,A)')'  Run information:'
+  if(prRunInfo.gt.0.and.update.eq.0) then
+     if(prRunInfo.eq.1) write(6,'(/,A)')'  Run information for chain 1:'
+     if(prRunInfo.eq.2) write(6,'(/,A)')'  Run information:'
      do ic = 1,nchains0
-        if((prruninfo.eq.1.and.ic.eq.1) .or. prruninfo.eq.2) then
+        if((prRunInfo.eq.1.and.ic.eq.1) .or. prRunInfo.eq.2) then
            infile = infiles(ic)
            write(6,'(4x,A7,A12,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
-           write(6,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),nburn0(ic),seed(ic),ndet(ic)
+           write(6,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
            write(6,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
            
            do i=1,ndet(ic)
@@ -552,39 +552,39 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
            write(6,*)
         end if
      end do !do ic = 1,nchains0
-  end if  !prruninfo.gt.0
+  end if  !prRunInfo.gt.0
   
   maxLine = maxval(n(1:nchains0))
   
   
   
-  !*** Until now, nburn is the iteration number.
-  !*** From here on, nburn is the line number, while isburn is the iteration number
+  !*** Until now, Nburn is the iteration number.
+  !*** From here on, Nburn is the line number, while isburn is the iteration number
   do ic=1,nchains0
-     if(nburn(ic).le.0) nburn(ic) = nburn0(ic)
-     if(abs(nburnfrac).gt.1.e-4.and.abs(nburnfrac).lt.1.) then
-        nburn(ic) = is(ic,n(ic)) * abs(nburnfrac)
+     if(Nburn(ic).le.0) Nburn(ic) = Nburn0(ic)
+     if(abs(NburnFrac).gt.1.e-4.and.abs(NburnFrac).lt.1.) then
+        Nburn(ic) = is(ic,n(ic)) * abs(NburnFrac)
      else
-        if(nburn(ic).ge.nint(is(ic,n(ic)))) then
-           !print*,nburn(ic),nint(is(ic,n(ic)))
-           if(nburn0(ic).ge.nint(is(ic,n(ic)))) then
-              write(0,'(A,I3)')'   *** WARNING ***  Nburn larger than Nchain, setting nburn to 10% for chain',ic
-              nburn(ic) = nint(is(ic,n(ic))*0.1)
+        if(Nburn(ic).ge.nint(is(ic,n(ic)))) then
+           !print*,Nburn(ic),nint(is(ic,n(ic)))
+           if(Nburn0(ic).ge.nint(is(ic,n(ic)))) then
+              write(0,'(A,I3)')'   *** WARNING ***  Nburn larger than Nchain, setting Nburn to 10% for chain',ic
+              Nburn(ic) = nint(is(ic,n(ic))*0.1)
            else
-              nburn(ic) = nburn0(ic)
+              Nburn(ic) = Nburn0(ic)
            end if
         end if
      end if
   end do
   
   do ic=1,nchains0
-     isburn(ic) = real(nburn(ic))
+     isburn(ic) = real(Nburn(ic))
      do i=1,ntot(ic)
-        if(is(ic,i).le.isburn(ic)) nburn(ic) = i   !isburn is the true iteration number at which the burnin ends
-        totthin(ic) = nint(isburn(ic)/real(nburn(ic)))
+        if(is(ic,i).le.isburn(ic)) Nburn(ic) = i   !isburn is the true iteration number at which the burnin ends
+        totthin(ic) = nint(isburn(ic)/real(Nburn(ic)))
      end do
   end do
-  avgtotthin = sum(isburn(1:nchains0))/real(sum(nburn(1:nchains0))) !Total thinning, averaged over all chains
+  avgtotthin = sum(isburn(1:nchains0))/real(sum(Nburn(1:nchains0))) !Total thinning, averaged over all chains
   
   
   
@@ -605,7 +605,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      end do
   end do
   
-  if(prruninfo.ge.1) then
+  if(prRunInfo.ge.1) then
      ic = icloglmax
      i = iloglmax
      infile = infiles(ic)
@@ -613,12 +613,12 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
           ',   iteration:',nint(is(ic,i)),',   max log(L):',loglmax,'  -> SNR:',sqrt(2*loglmax),'.'
      
      !Test: get parameter values for L=Lmax
-     !if(prprogress.ge.3) then
+     !if(prProgress.ge.3) then
      !   write(6,'(I10,F14.6,1x,2F12.7,F20.8,9F12.7)')nint(is(ic,i)),loglmax,allDat(ic,2:3,i),allDat(ic,4,i)+t0,allDat(ic,5:13,i)
      !   call mc_eta_2_m1_m2r(allDat(ic,2,i),allDat(ic,3,i), m1,m2)
      !   write(6,'(F9.4,F10.4,F21.6,F11.4,F10.4,F12.4,2F11.4,F12.4,3F11.4)')m1,m2,allDat(ic,4,i)+t0,exp(allDat(ic,5,i)),allDat(ic,6,i),acos(allDat(ic,7,i))*r2d,allDat(ic,8,i)*r2h,asin(allDat(ic,9,i))*r2d,allDat(ic,10,i)*r2d,asin(allDat(ic,11,i))*r2d,allDat(ic,12,i)*r2d,allDat(ic,13,i)*r2d
      !end if
-     if(prruninfo.ge.1) write(6,*)
+     if(prRunInfo.ge.1) write(6,*)
   end if
   
   
@@ -626,11 +626,11 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   if(autoBurnin.gt.1.e-10) then
      loop1: do ic=1,nchains0
         isburn(ic) = is(ic,ntot(ic)) !Set burnin to last iteration, so that chain is completely excluded if condition is never fulfilled
-        nburn(ic) = ntot(ic)
+        Nburn(ic) = ntot(ic)
         do i=2,ntot(ic) !i=1 is true value?
            if(post(ic,i).gt.real(loglmax)-autoBurnin) then
               isburn(ic) = is(ic,i)
-              nburn(ic) = i
+              Nburn(ic) = i
               cycle loop1
            end if
         end do
@@ -644,18 +644,18 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   !Print info on number of iterations, burnin, thinning, etc.
   do ic=1,nchains0
      infile = infiles(ic)
-     if(prchaininfo.ge.2.and.update.ne.1) then
-        if(n(ic)-nburn(ic).gt.0) then
+     if(prChainInfo.ge.2.and.update.ne.1) then
+        if(n(ic)-Nburn(ic).gt.0) then
            write(6,'(A6,$)'),'    * '  !Flag contributing chains
         else
            write(6,'(A6,$)'),'      '
         end if
         write(6,'(A2,I3,A1,A10,A12,$)') 'Ch',ic,':',trim(infile(19:99)),', '//colournames(colours(mod(ic-1,ncolours)+1))//'.'
         write(6,'(A,ES7.1,A,ES7.1,A1,$)') '  Lines/iter: ',real(n(ic)),'/',is(ic,n(ic)),'.'
-        write(6,'(A,ES7.1,A,ES7.1,A1,$)') '  Burn-in: ',real(nburn(ic)),'/',isburn(ic),'.'
+        write(6,'(A,ES7.1,A,ES7.1,A1,$)') '  Burn-in: ',real(Nburn(ic)),'/',isburn(ic),'.'
         write(6,'(A,F8.2,A,F4.1,A,F4.1,A1,$)') '  Lmx:',loglmaxs(ic),', dLmx:',abs(loglmax-loglmaxs(ic)),'/',autoBurnin,'.'
         write(6,'(A,I3,A,I4,A1,$)') ' Thin: file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),', tot:',totthin(ic),'.'
-        write(6,'(A,ES8.2,A1)') '  Data pts: ',real(n(ic)-nburn(ic)),'.'
+        write(6,'(A,ES8.2,A1)') '  Data pts: ',real(n(ic)-Nburn(ic)),'.'
      end if
   end do
   totiter = 0
@@ -664,43 +664,43 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   contrchain = 0
   do ic=1,nchains0
      totiter = totiter + nint(is(ic,ntot(ic)))
-     totpts = totpts + n(ic)-nburn(ic)
-     if(n(ic).gt.nburn(ic)) then
+     totpts = totpts + n(ic)-Nburn(ic)
+     if(n(ic).gt.Nburn(ic)) then
         contrchains = contrchains + 1
         contrchain(ic) = 1
      end if
   end do
   totlines = sum(ntot(1:nchains0))
-  if(prchaininfo.ge.1.and.update.ne.1) write(6,'(4x,A, A,ES10.4, A,ES10.4, A,I4, A,ES10.4,  A2,F5.1, A,I3,A1,I2,A1)') 'In all chains:','  # lines: ',real(totlines), &
+  if(prChainInfo.ge.1.and.update.ne.1) write(6,'(4x,A, A,ES10.4, A,ES10.4, A,I4, A,ES10.4,  A2,F5.1, A,I3,A1,I2,A1)') 'In all chains:','  # lines: ',real(totlines), &
        ',  # iterations: ',real(totiter),',  total thinning:',nint(avgtotthin),'x, # data points after burnin: ',real(totpts),' (',real(totpts)/real(totlines)*100,'%), contributing chains:',contrchains,'/',nchains0,'.'
   
   
   
   
   !*** Determine extra thinning for logL, chain, jump plots
-  if(chainpli.le.0) then
+  if(chainPlI.le.0) then
      !if(sum(ntot(1:nchains0)).gt.maxdots) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
-     chainpli = max(1,nint(real(sum(ntot(1:nchains0)))/real(maxdots)))  !Use ntot and nchains0, since n is low if many points are in the burnin
-     if(prchaininfo.ge.1.and.update.eq.0) then
-        if(chainpli.gt.1) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
-           write(6,'(A,I4,A,I5,A,I5,A)')'    Plotting every',chainpli,'-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*chainpli),'x.'
+     chainPlI = max(1,nint(real(sum(ntot(1:nchains0)))/real(maxdots)))  !Use ntot and nchains0, since n is low if many points are in the burnin
+     if(prChainInfo.ge.1.and.update.eq.0) then
+        if(chainPlI.gt.1) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
+           write(6,'(A,I4,A,I5,A,I5,A)')'    Plotting every',chainPlI,'-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*chainPlI),'x.'
         else
            write(6,'(A,I4,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.  Average total thinning remains',nint(avgtotthin),'x for these plots.'
         end if
      end if
      write(6,*)
   end if
-  !if(prruninfo.gt.0) write(6,*)
+  !if(prRunInfo.gt.0) write(6,*)
   
   
   
   
   !*** Change some MCMC parameters:
   if(changeVar.ge.1) then
-     if(prprogress.ge.2.and.update.eq.0) write(6,'(A,$)')'  Changing some variables...   '
+     if(prProgress.ge.2.and.update.eq.0) write(6,'(A,$)')'  Changing some parameters...   '
      
      if(revID(61)*revID(62).ne.0 .and. revID(63)+revID(64).eq.0) then  !Calculate the individual masses from Mch and eta:
-        if(prprogress.ge.2.and.update.eq.0) write(6,'(A)')'  Computing M1, M2 from Mc, eta'
+        if(prProgress.ge.2.and.update.eq.0) write(6,'(A)')'  Computing M1, M2 from Mc, eta'
         parID(nMCMCpar+1) = 63  !M1
         parID(nMCMCpar+2) = 64  !M2
         revID(63) = nMCMCpar + 1  !M1
@@ -716,7 +716,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
            end do
         end do
      else if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) then  !Calculate Mc, eta from the individual masses:
-        if(prprogress.ge.2.and.update.eq.0) write(6,'(A)')'  Computing Mc, eta from M1, M2'
+        if(prProgress.ge.2.and.update.eq.0) write(6,'(A)')'  Computing Mc, eta from M1, M2'
         parID(nMCMCpar+1) = 61  !Mc
         parID(nMCMCpar+2) = 62  !eta
         revID(61) = nMCMCpar + 1  !Mc
@@ -754,11 +754,11 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   !*** Put plot data in startval and jumps.  Print initial and starting values to screen.  Startval: 1: true value, 2: starting value, 3: Lmax value
   jumps = 0.
   offsetrun = 0
-  if(prinitial.ne.0) then
+  if(prInitial.ne.0) then
      write(6,'(/,A)')'  True, starting and Lmax values for the chains:'
      write(6,'(5x,A10,$)')''
      do p=1,nMCMCpar
-        write(6,'(A9,$)')trim(varnames(parID(p)))
+        write(6,'(A9,$)')trim(parNames(parID(p)))
      end do
      write(6,*)
   end if
@@ -767,7 +767,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      startval(ic,1:nMCMCpar,1:2)  = allDat(ic,1:nMCMCpar,1:2) !True value and starting value
      startval(ic,1:nMCMCpar,3)    = allDat(icloglmax,1:nMCMCpar,iloglmax) !Lmax value
      jumps(ic,1:nMCMCpar,2:n(ic)) = allDat(ic,1:nMCMCpar,2:n(ic)) -  allDat(ic,1:nMCMCpar,1:n(ic)-1)
-     if(prinitial.ne.0) then 
+     if(prInitial.ne.0) then 
         if(ic.eq.1) then
            write(6,'(5x,A10,$)')'True:  '
            do p=1,nMCMCpar
@@ -790,7 +790,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
         end if
      end if
   end do
-  if(prinitial.ne.0) then
+  if(prInitial.ne.0) then
      write(6,'(5x,A10,$)')'Lmax:  '
      do p=1,nMCMCpar
         write(6,'(F9.4,$)')startval(1,p,3)
@@ -804,8 +804,8 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   end if
   
   
-  !if(prprogress.ge.1.and.update.eq.0) write(6,'(A)')'  Done.'
-  if(prprogress.ge.2.and.update.eq.0) write(6,'(A,I12,A,F7.4)')'  t0:',nint(t0), '  GMST:',gmst(t0)
+  !if(prProgress.ge.1.and.update.eq.0) write(6,'(A)')'  Done.'
+  if(prProgress.ge.2.and.update.eq.0) write(6,'(A,I12,A,F7.4)')'  t0:',nint(t0), '  GMST:',gmst(t0)
   
   
   !Check which parameters were fixed during the MCMC run:
@@ -844,25 +844,25 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   
   
   !*** Put data in selDat
-  if(mergechains.eq.1) then  !Merge chains, leave out burnin (then nchains = 1)
+  if(mergeChains.eq.1) then  !Merge chains, leave out burnin (then nchains = 1)
      allocate(selDat(1,maxMCMCpar,nchains*maxLine))
      j = 1
      do ic=1,nchains
-        do i=nburn(ic)+1,n(ic)
+        do i=Nburn(ic)+1,n(ic)
            selDat(1,1:nMCMCpar,j) = allDat(ic,1:nMCMCpar,i)  !selDat has the same structure as allDat, but contains only data AFTER the burnin.
            j = j+1
         end do
      end do
      nchains = 1
      n(1) = j-1
-     !if(prprogress.ge.1) write(6,'(A,I8,A,ES7.1,A)')'  Data points in combined chains: ',n(1),'  (',real(n(1)),')'
+     !if(prProgress.ge.1) write(6,'(A,I8,A,ES7.1,A)')'  Data points in combined chains: ',n(1),'  (',real(n(1)),')'
   else
      allocate(selDat(nchains,maxMCMCpar,maxLine))
      do ic=1,nchains
-        selDat(ic,1:nMCMCpar,1:n(ic)-nburn(ic)) = allDat(ic,1:nMCMCpar,nburn(ic)+1:n(ic))  !SelDat has the same structure as allDat, but contains only info AFTER the burnin.
-        n(ic) = n(ic)-nburn(ic) !n(ic)=0 if a chain is not contributing (in which case contrchain(ic)=0)!
+        selDat(ic,1:nMCMCpar,1:n(ic)-Nburn(ic)) = allDat(ic,1:nMCMCpar,Nburn(ic)+1:n(ic))  !SelDat has the same structure as allDat, but contains only info AFTER the burnin.
+        n(ic) = n(ic)-Nburn(ic) !n(ic)=0 if a chain is not contributing (in which case contrchain(ic)=0)!
      end do
-     !if(prprogress.ge.1) write(6,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
+     !if(prProgress.ge.1) write(6,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
   end if
   
 end subroutine mcmcruninfo
@@ -880,70 +880,70 @@ subroutine set_originalParameterNames()
   use general_data
   implicit none
   
-  varnames = ''
-  pgvarns = ''
-  pgvarnss = ''
+  parNames = ''
+  pgParNs = ''
+  pgParNss = ''
   pgunits = ''
   
   !Short ASCII names for text output:
-  varnames(11:19) = (/'tc','t40','','','','','','',''/)
-  varnames(21:29) = (/'dl^3','log_dl','','','','','','',''/)
-  varnames(31:39) = (/'RA','sin_dec','','','','','','',''/)
-  varnames(41:49) = (/'phase','','','','','','','',''/)
-  varnames(51:59) = (/'cos_i','psi','sin_thJo','ph_Jo','','','','',''/)
-  varnames(61:69) = (/'Mc','eta','M1','M2','','','','',''/)
-  varnames(71:79) = (/'spin1','cos_th1','phi1','','','','','',''/)
-  varnames(81:89) = (/'spin2','cos_th2','phi2','','','','','',''/)
-  !varnames(1:9) = (/'','','','','','','','',''/)
+  parNames(11:19) = (/'tc','t40','','','','','','',''/)
+  parNames(21:29) = (/'dl^3','log_dl','','','','','','',''/)
+  parNames(31:39) = (/'RA','sin_dec','','','','','','',''/)
+  parNames(41:49) = (/'phase','','','','','','','',''/)
+  parNames(51:59) = (/'cos_i','psi','sin_thJo','ph_Jo','','','','',''/)
+  parNames(61:69) = (/'Mc','eta','M1','M2','','','','',''/)
+  parNames(71:79) = (/'spin1','cos_th1','phi1','','','','','',''/)
+  parNames(81:89) = (/'spin2','cos_th2','phi2','','','','','',''/)
+  !parNames(1:9) = (/'','','','','','','','',''/)
   
   
   if(fonttype.eq.2) then  !Use 'roman-like' Greek font in PGPlot
      
      !Long PGPlot names (symbol + unit)
-     pgvarns(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
-     pgvarns(21:29) = (/'d\dL\u\u3\d (Mpc)','logd\dL\u (Mpc)','','','','','','',''/)
-     pgvarns(31:39) = (/'\(2127) (rad)','sin \(2130)','','','','','','',''/)
-     pgvarns(41:49) = (/'\(2147)\dc\u (rad)','','','','','','','',''/)
-     pgvarns(51:59) = (/'cos \(2135)','\(2149) (rad)','sin \(2185)\dJ0\u','\(2147)\dJ0\u (rad)','','','','',''/)
-     pgvarns(61:69) = (/'\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
-     pgvarns(71:79) = (/'a\dspin1\u','cos \(2185)\dspin1\u','\(2147)\dspin1\u (rad)','','','','','',''/)
-     pgvarns(81:89) = (/'a\dspin2\u','cos \(2185)\dspin2\u','\(2147)\dspin2\u (rad)','','','','','',''/)
-     !pgvarns(1:9) = (/'','','','','','','','',''/)
+     pgParNs(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
+     pgParNs(21:29) = (/'d\dL\u\u3\d (Mpc)','logd\dL\u (Mpc)','','','','','','',''/)
+     pgParNs(31:39) = (/'\(2127) (rad)','sin \(2130)','','','','','','',''/)
+     pgParNs(41:49) = (/'\(2147)\dc\u (rad)','','','','','','','',''/)
+     pgParNs(51:59) = (/'cos \(2135)','\(2149) (rad)','sin \(2185)\dJ0\u','\(2147)\dJ0\u (rad)','','','','',''/)
+     pgParNs(61:69) = (/'\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
+     pgParNs(71:79) = (/'a\dspin1\u','cos \(2185)\dspin1\u','\(2147)\dspin1\u (rad)','','','','','',''/)
+     pgParNs(81:89) = (/'a\dspin2\u','cos \(2185)\dspin2\u','\(2147)\dspin2\u (rad)','','','','','',''/)
+     !pgParNs(1:9) = (/'','','','','','','','',''/)
      
      !Short PGPlot symbols (no unit)
-     pgvarnss(11:19) = (/'t\dc\u','t\d40\u','','','','','','',''/)
-     pgvarnss(21:29) = (/'d\dL\u\u3\d','logd\dL\u','','','','','','',''/)
-     pgvarnss(31:39) = (/'\(2127)','sin \(2130)','','','','','','',''/)
-     pgvarnss(41:49) = (/'\(2147)\dc\u','','','','','','','',''/)
-     pgvarnss(51:59) = (/'cos \(2135)','\(2149)','sin \(2185)\dJ0\u','\(2147)\dJ0\u','','','','',''/)
-     pgvarnss(61:69) = (/'\(2563)','\(2133)','M\d1\u','M\d2\u','','','','',''/)
-     pgvarnss(71:79) = (/'a\dspin1\u','cos \(2185)\dspin1\u','\(2147)\dspin1\u','','','','','',''/)
-     pgvarnss(81:89) = (/'a\dspin2\u','cos \(2185)\dspin2\u','\(2147)\dspin2\u','','','','','',''/)
-     !pgvarnss(1:9) = (/'','','','','','','','',''/)
+     pgParNss(11:19) = (/'t\dc\u','t\d40\u','','','','','','',''/)
+     pgParNss(21:29) = (/'d\dL\u\u3\d','logd\dL\u','','','','','','',''/)
+     pgParNss(31:39) = (/'\(2127)','sin \(2130)','','','','','','',''/)
+     pgParNss(41:49) = (/'\(2147)\dc\u','','','','','','','',''/)
+     pgParNss(51:59) = (/'cos \(2135)','\(2149)','sin \(2185)\dJ0\u','\(2147)\dJ0\u','','','','',''/)
+     pgParNss(61:69) = (/'\(2563)','\(2133)','M\d1\u','M\d2\u','','','','',''/)
+     pgParNss(71:79) = (/'a\dspin1\u','cos \(2185)\dspin1\u','\(2147)\dspin1\u','','','','','',''/)
+     pgParNss(81:89) = (/'a\dspin2\u','cos \(2185)\dspin2\u','\(2147)\dspin2\u','','','','','',''/)
+     !pgParNss(1:9) = (/'','','','','','','','',''/)
      
   else  !Same, but replace '\(21' with \(06' for arial-like Greek font
      
      !Long PGPlot names (symbol + unit)
-     pgvarns(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
-     pgvarns(21:29) = (/'d\dL\u\u3\d (Mpc)','logd\dL\u (Mpc)','','','','','','',''/)
-     pgvarns(31:39) = (/'\(0627) (rad)','sin \(0630)','','','','','','',''/)
-     pgvarns(41:49) = (/'\(0647)\dc\u (rad)','','','','','','','',''/)
-     pgvarns(51:59) = (/'cos \(0635)','\(0649) (rad)','sin \(0685)\dJ0\u','\(0647)\dJ0\u (rad)','','','','',''/)
-     pgvarns(61:69) = (/'\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
-     pgvarns(71:79) = (/'a\dspin1\u','cos \(0685)\dspin1\u','\(0647)\dspin1\u (rad)','','','','','',''/)
-     pgvarns(81:89) = (/'a\dspin2\u','cos \(0685)\dspin2\u','\(0647)\dspin2\u (rad)','','','','','',''/)
-     !pgvarns(1:9) = (/'','','','','','','','',''/)
+     pgParNs(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
+     pgParNs(21:29) = (/'d\dL\u\u3\d (Mpc)','logd\dL\u (Mpc)','','','','','','',''/)
+     pgParNs(31:39) = (/'\(0627) (rad)','sin \(0630)','','','','','','',''/)
+     pgParNs(41:49) = (/'\(0647)\dc\u (rad)','','','','','','','',''/)
+     pgParNs(51:59) = (/'cos \(0635)','\(0649) (rad)','sin \(0685)\dJ0\u','\(0647)\dJ0\u (rad)','','','','',''/)
+     pgParNs(61:69) = (/'\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
+     pgParNs(71:79) = (/'a\dspin1\u','cos \(0685)\dspin1\u','\(0647)\dspin1\u (rad)','','','','','',''/)
+     pgParNs(81:89) = (/'a\dspin2\u','cos \(0685)\dspin2\u','\(0647)\dspin2\u (rad)','','','','','',''/)
+     !pgParNs(1:9) = (/'','','','','','','','',''/)
      
      !Short PGPlot symbols (no unit)
-     pgvarnss(11:19) = (/'t\dc\u','t\d40\u','','','','','','',''/)
-     pgvarnss(21:29) = (/'d\dL\u\u3\d','logd\dL\u','','','','','','',''/)
-     pgvarnss(31:39) = (/'\(0627)','sin \(0630)','','','','','','',''/)
-     pgvarnss(41:49) = (/'\(0647)\dc\u','','','','','','','',''/)
-     pgvarnss(51:59) = (/'cos \(0635)','\(0649)','sin \(0685)\dJ0\u','\(0647)\dJ0\u','','','','',''/)
-     pgvarnss(61:69) = (/'\(2563)','\(0633)','M\d1\u','M\d2\u','','','','',''/)
-     pgvarnss(71:79) = (/'a\dspin1\u','cos \(0685)\dspin1\u','\(0647)\dspin1\u','','','','','',''/)
-     pgvarnss(81:89) = (/'a\dspin2\u','cos \(0685)\dspin2\u','\(0647)\dspin2\u','','','','','',''/)
-     !pgvarnss(1:9) = (/'','','','','','','','',''/)
+     pgParNss(11:19) = (/'t\dc\u','t\d40\u','','','','','','',''/)
+     pgParNss(21:29) = (/'d\dL\u\u3\d','logd\dL\u','','','','','','',''/)
+     pgParNss(31:39) = (/'\(0627)','sin \(0630)','','','','','','',''/)
+     pgParNss(41:49) = (/'\(0647)\dc\u','','','','','','','',''/)
+     pgParNss(51:59) = (/'cos \(0635)','\(0649)','sin \(0685)\dJ0\u','\(0647)\dJ0\u','','','','',''/)
+     pgParNss(61:69) = (/'\(2563)','\(0633)','M\d1\u','M\d2\u','','','','',''/)
+     pgParNss(71:79) = (/'a\dspin1\u','cos \(0685)\dspin1\u','\(0647)\dspin1\u','','','','','',''/)
+     pgParNss(81:89) = (/'a\dspin2\u','cos \(0685)\dspin2\u','\(0647)\dspin2\u','','','','','',''/)
+     !pgParNss(1:9) = (/'','','','','','','','',''/)
      
   end if
   
@@ -960,7 +960,7 @@ subroutine set_originalParameterNames()
   
      
   !Save the original parameter names for use after they get changed
-  pgorigvarns = pgvarns
+  pgOrigParns = pgParNs
   
   
   
@@ -982,70 +982,70 @@ subroutine set_derivedParameterNames()
   use general_data
   implicit none
   
-  varnames = ''
-  pgvarns = ''
-  pgvarnss = ''
+  parNames = ''
+  pgParNs = ''
+  pgParNss = ''
   pgunits = ''
   
   !Short ASCII names for text output:
-  varnames(11:19) = (/'tc','t40','','','','','','',''/)
-  varnames(21:29) = (/'dl','dl','','','','','','',''/)
-  varnames(31:39) = (/'RA','dec','','','','','','',''/)
-  varnames(41:49) = (/'phase','','','','','','','',''/)
-  varnames(51:59) = (/'incl','psi','th_Jo','ph_Jo','','','','',''/)
-  varnames(61:69) = (/'Mc','eta','M1','M2','','','','',''/)
-  varnames(71:79) = (/'spin1','th1','phi1','','','','','',''/)
-  varnames(81:89) = (/'spin2','th2','phi2','','','','','',''/)
-  !varnames(1:9) = (/'','','','','','','','',''/)
+  parNames(11:19) = (/'tc','t40','','','','','','',''/)
+  parNames(21:29) = (/'dl','dl','','','','','','',''/)
+  parNames(31:39) = (/'RA','dec','','','','','','',''/)
+  parNames(41:49) = (/'phase','','','','','','','',''/)
+  parNames(51:59) = (/'incl','psi','th_Jo','ph_Jo','','','','',''/)
+  parNames(61:69) = (/'Mc','eta','M1','M2','','','','',''/)
+  parNames(71:79) = (/'spin1','th1','phi1','','','','','',''/)
+  parNames(81:89) = (/'spin2','th2','phi2','','','','','',''/)
+  !parNames(1:9) = (/'','','','','','','','',''/)
   
   
   if(fonttype.eq.2) then  !Use 'roman-like' Greek font in PGPlot
      
      !Long PGPlot names (symbol + unit)
-     pgvarns(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
-     pgvarns(21:29) = (/'d\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','',''/)
-     pgvarns(31:39) = (/'\(2127) (h)','\(2130) (\(2218))','','','','','','',''/)
-     pgvarns(41:49) = (/'\(2147)\dc\u (\(2218))','','','','','','','',''/)
-     pgvarns(51:59) = (/'\(2135) (\(2218))','\(2149) (\(2218))','\(2185)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','','','','',''/)
-     pgvarns(61:69) = (/'\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
-     pgvarns(71:79) = (/'a\dspin1\u','\(2185)\dspin1\u (\(2218))','\(2147)\dspin1\u (\(2218))','','','','','',''/)
-     pgvarns(81:89) = (/'a\dspin2\u','\(2185)\dspin2\u (\(2218))','\(2147)\dspin2\u (\(2218))','','','','','',''/)
-     !pgvarns(1:9) = (/'','','','','','','','',''/)
+     pgParNs(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
+     pgParNs(21:29) = (/'d\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','',''/)
+     pgParNs(31:39) = (/'\(2127) (h)','\(2130) (\(2218))','','','','','','',''/)
+     pgParNs(41:49) = (/'\(2147)\dc\u (\(2218))','','','','','','','',''/)
+     pgParNs(51:59) = (/'\(2135) (\(2218))','\(2149) (\(2218))','\(2185)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','','','','',''/)
+     pgParNs(61:69) = (/'\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
+     pgParNs(71:79) = (/'a\dspin1\u','\(2185)\dspin1\u (\(2218))','\(2147)\dspin1\u (\(2218))','','','','','',''/)
+     pgParNs(81:89) = (/'a\dspin2\u','\(2185)\dspin2\u (\(2218))','\(2147)\dspin2\u (\(2218))','','','','','',''/)
+     !pgParNs(1:9) = (/'','','','','','','','',''/)
      
      !Short PGPlot symbols (no unit)
-     pgvarnss(11:19) = (/'t\dc\u','t\d40\u','','','','','','',''/)
-     pgvarnss(21:29) = (/'d\dL\u\u3\d','logd\dL\u','','','','','','',''/)
-     pgvarnss(31:39) = (/'\(2127)','\(2130)','','','','','','',''/)
-     pgvarnss(41:49) = (/'\(2147)\dc\u','','','','','','','',''/)
-     pgvarnss(51:59) = (/'\(2135)','\(2149)','\(2185)\dJ0\u','\(2147)\dJ0\u','','','','',''/)
-     pgvarnss(61:69) = (/'\(2563)','\(2133)','M\d1\u','M\d2\u','','','','',''/)
-     pgvarnss(71:79) = (/'a\dspin1\u','\(2185)\dspin1\u','\(2147)\dspin1\u','','','','','',''/)
-     pgvarnss(81:89) = (/'a\dspin2\u','\(2185)\dspin2\u','\(2147)\dspin2\u','','','','','',''/)
-     !pgvarnss(1:9) = (/'','','','','','','','',''/)
+     pgParNss(11:19) = (/'t\dc\u','t\d40\u','','','','','','',''/)
+     pgParNss(21:29) = (/'d\dL\u\u3\d','logd\dL\u','','','','','','',''/)
+     pgParNss(31:39) = (/'\(2127)','\(2130)','','','','','','',''/)
+     pgParNss(41:49) = (/'\(2147)\dc\u','','','','','','','',''/)
+     pgParNss(51:59) = (/'\(2135)','\(2149)','\(2185)\dJ0\u','\(2147)\dJ0\u','','','','',''/)
+     pgParNss(61:69) = (/'\(2563)','\(2133)','M\d1\u','M\d2\u','','','','',''/)
+     pgParNss(71:79) = (/'a\dspin1\u','\(2185)\dspin1\u','\(2147)\dspin1\u','','','','','',''/)
+     pgParNss(81:89) = (/'a\dspin2\u','\(2185)\dspin2\u','\(2147)\dspin2\u','','','','','',''/)
+     !pgParNss(1:9) = (/'','','','','','','','',''/)
      
   else  !Same, but replace '\(21' with \(06' for arial-like Greek font
      
      !Long PGPlot names (symbol + unit)
-     pgvarns(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
-     pgvarns(21:29) = (/'d\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','',''/)
-     pgvarns(31:39) = (/'\(0627) (h)','\(0630) (\(2218))','','','','','','',''/)
-     pgvarns(41:49) = (/'\(0647)\dc\u (\(2218))','','','','','','','',''/)
-     pgvarns(51:59) = (/'\(0635) (\(2218))','\(0649) (\(2218))','\(0685)\dJ0\u (\(2218))','\(0647)\dJ0\u (\(2218))','','','','',''/)
-     pgvarns(61:69) = (/'\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
-     pgvarns(71:79) = (/'a\dspin1\u','\(0685)\dspin1\u (\(2218))','\(0647)\dspin1\u (\(2218))','','','','','',''/)
-     pgvarns(81:89) = (/'a\dspin2\u','\(0685)\dspin2\u (\(2218))','\(0647)\dspin2\u (\(2218))','','','','','',''/)
-     !pgvarns(1:9) = (/'','','','','','','','',''/)
+     pgParNs(11:19) = (/'t\dc\u (s)','t\d40\u (s)','','','','','','',''/)
+     pgParNs(21:29) = (/'d\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','',''/)
+     pgParNs(31:39) = (/'\(0627) (h)','\(0630) (\(2218))','','','','','','',''/)
+     pgParNs(41:49) = (/'\(0647)\dc\u (\(2218))','','','','','','','',''/)
+     pgParNs(51:59) = (/'\(0635) (\(2218))','\(0649) (\(2218))','\(0685)\dJ0\u (\(2218))','\(0647)\dJ0\u (\(2218))','','','','',''/)
+     pgParNs(61:69) = (/'\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','',''/)
+     pgParNs(71:79) = (/'a\dspin1\u','\(0685)\dspin1\u (\(2218))','\(0647)\dspin1\u (\(2218))','','','','','',''/)
+     pgParNs(81:89) = (/'a\dspin2\u','\(0685)\dspin2\u (\(2218))','\(0647)\dspin2\u (\(2218))','','','','','',''/)
+     !pgParNs(1:9) = (/'','','','','','','','',''/)
      
      !Short PGPlot symbols (no unit)
-     pgvarnss(11:19) = (/'t\dc\u','t\d40\u','','','','','','',''/)
-     pgvarnss(21:29) = (/'d\dL\u','d\dL\u','','','','','','',''/)
-     pgvarnss(31:39) = (/'\(0627)','\(0630)','','','','','','',''/)
-     pgvarnss(41:49) = (/'\(0647)\dc\u','','','','','','','',''/)
-     pgvarnss(51:59) = (/'\(0635)','\(0649)','\(0685)\dJ0\u','\(0647)\dJ0\u','','','','',''/)
-     pgvarnss(61:69) = (/'\(2563)','\(0633)','M\d1\u','M\d2\u','','','','',''/)
-     pgvarnss(71:79) = (/'a\dspin1\u','\(0685)\dspin1\u','\(0647)\dspin1\u','','','','','',''/)
-     pgvarnss(81:89) = (/'a\dspin2\u','\(0685)\dspin2\u','\(0647)\dspin2\u','','','','','',''/)
-     !pgvarnss(1:9) = (/'','','','','','','','',''/)
+     pgParNss(11:19) = (/'t\dc\u','t\d40\u','','','','','','',''/)
+     pgParNss(21:29) = (/'d\dL\u','d\dL\u','','','','','','',''/)
+     pgParNss(31:39) = (/'\(0627)','\(0630)','','','','','','',''/)
+     pgParNss(41:49) = (/'\(0647)\dc\u','','','','','','','',''/)
+     pgParNss(51:59) = (/'\(0635)','\(0649)','\(0685)\dJ0\u','\(0647)\dJ0\u','','','','',''/)
+     pgParNss(61:69) = (/'\(2563)','\(0633)','M\d1\u','M\d2\u','','','','',''/)
+     pgParNss(71:79) = (/'a\dspin1\u','\(0685)\dspin1\u','\(0647)\dspin1\u','','','','','',''/)
+     pgParNss(81:89) = (/'a\dspin2\u','\(0685)\dspin2\u','\(0647)\dspin2\u','','','','','',''/)
+     !pgParNss(1:9) = (/'','','','','','','','',''/)
      
   end if
   
@@ -1697,16 +1697,16 @@ end function timestamp
 
 
 !************************************************************************
-subroutine pgscidark(ci0,file,whitebg)  !Set the colour to ci, but use a darker shade if the background is black or a lighter shade if it is white
+subroutine pgscidark(ci0,file,whiteBG)  !Set the colour to ci, but use a darker shade if the background is black or a lighter shade if it is white
   implicit none
-  integer :: ci0,ci,file,whitebg
+  integer :: ci0,ci,file,whiteBG
   real :: r,g,b,weight
   ci = ci0
   call pgqcr(ci,r,g,b)
   call pgscr(99,r*0.5,g*0.5,b*0.5) !Use half the RGB value to create a darker shade
-  !if(file.ge.2.or.whitebg.ge.1) call pgscr(99,(r+1)/2.,(g+1)/2.,(b+1)/2.) !Use the mean of the RGB value and 1. to create a lighter shade
+  !if(file.ge.2.or.whiteBG.ge.1) call pgscr(99,(r+1)/2.,(g+1)/2.,(b+1)/2.) !Use the mean of the RGB value and 1. to create a lighter shade
   weight = 3.
-  if(file.ge.2.or.whitebg.ge.1) call pgscr(99,(r+weight)/(weight+1.),(g+weight)/(weight+1.),(b+weight)/(weight+1.)) !Use the weighted mean of the RGB value and 1. to create a lighter shade
+  if(file.ge.2.or.whiteBG.ge.1) call pgscr(99,(r+weight)/(weight+1.),(g+weight)/(weight+1.),(b+weight)/(weight+1.)) !Use the weighted mean of the RGB value and 1. to create a lighter shade
   call pgsci(99)
 end subroutine pgscidark
 !************************************************************************

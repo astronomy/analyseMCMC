@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    85: sluys, 13/08/2009
+     - Make parameter names better readable
+     
     84: sluys, 12/08/2009
      - Removed bug at Bayes-factor computation: use data up to ntot(ic), not n(ic)
      - Removed bug at injection values Wiki: use allDat(), not stats()
