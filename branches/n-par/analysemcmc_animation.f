@@ -21,7 +21,8 @@ subroutine animation(exitcode)
   
   ts1 = timestamp(os)
   write(6,*)
-  p = 2 !Parameter to plot: 2-Mc
+  !p = 1 !Parameter to plot: 1-Mc
+  p = plAnim
   small_anim = 1  !Make small animation (e.g. gif) rather than ~screen size
   
   !Autodetermine number of bins:
@@ -219,7 +220,7 @@ subroutine animation(exitcode)
         call pgsci(6)
         if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
         !if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-        if(plBurn.ge.1.and.isburn(ic).lt.is(ic,min(nplt,ntot(ic)))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+        if(plBurn.ge.1.and.isburn(ic).lt.is(ic,max(min(nplt,ntot(ic)),1) )) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
         call pgsci(2)
         call pgsls(4)
         if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
@@ -248,7 +249,6 @@ subroutine animation(exitcode)
      
      if(animScheme.eq.3) then
         
-        p = 1
         !if(prProgress.ge.1.and.update.eq.0) write(6,'(A)')'  - logL'
         call pgslw(lw)
         if(animScheme.eq.3) call pgsvp(0.20,0.95,0.05,0.20)
@@ -261,8 +261,8 @@ subroutine animation(exitcode)
         ymin =  1.e30
         ymax = -1.e30
         do ic=1,nchains0
-           ymin = min(ymin,minval(allDat(ic,p,1:ntot(ic))))
-           ymax = max(ymax,maxval(allDat(ic,p,1:ntot(ic))))
+           ymin = min(ymin,minval(post(ic,1:ntot(ic))))
+           ymax = max(ymax,maxval(post(ic,1:ntot(ic))))
         end do
         ymin = 0.
         dy = abs(ymax-ymin)*0.05
@@ -280,13 +280,13 @@ subroutine animation(exitcode)
            !do i=1,ntot(ic),chainPlI
            if(chainSymbol.eq.0) then !Plot lines rather than symbols
               call pgsls(1)
-              call pgline(nplt-1,is(ic,2:nplt),allDat(ic,p,2:nplt))
+              call pgline(nplt-1,is(ic,2:nplt),post(ic,2:nplt))
            else
               !call pgpoint(1,0.,startval(ic,p,2),chainSymbol)       !Starting value
               call pgsls(4)
               call pgline(2,(/-is(ic,ntot(ic)),2*is(ic,ntot(ic))/),(/startval(ic,p,2),startval(ic,p,2)/))       !Starting value
               do i=1,nplt,chainPlI
-                 call pgpoint(1,is(ic,i),allDat(ic,p,i),chainSymbol)
+                 call pgpoint(1,is(ic,i),post(ic,i),chainSymbol)
               end do
            end if
            call pgsls(1)
@@ -304,9 +304,9 @@ subroutine animation(exitcode)
            !call pgline(2,(/real(Nburn(ic)),real(Nburn(ic))/),(/-1.e20,1.e20/))
            !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))              !Burn-in
            !if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,min(nplt,ntot(ic)))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,max(min(nplt,ntot(ic)),1) )) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
            
-           !print*,ic,nplt,isburn(ic),is(ic,nplt),is(ic,min(nplt,ntot(ic)))
+           !print*,ic,nplt,isburn(ic),is(ic,nplt),is(ic,max(min(nplt,ntot(ic)),1) )
            
            !   call pgsci(2)
            !   call pgsls(4)
@@ -343,7 +343,6 @@ subroutine animation(exitcode)
      !Set x-ranges, bin the data and get y-ranges
      xmin = 1.e30
      xmax = -1.e30
-     p = 2 !Mc
      do ic=1,nchains0
         xmin = min(xmin,minval(allDat(ic,p,1:ntot(ic))))
         xmax = max(xmax,maxval(allDat(ic,p,1:ntot(ic))))

@@ -762,7 +762,8 @@ subroutine save_stats(exitcode)  !Save statistics to file
      p1 = PDF2Dpairs(p,1)
      p2 = PDF2Dpairs(p,2)
      if(parID(p1)*parID(p2).eq.0) then
-        write(0,'(/,A,I4,A,I4,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter',p1,' or',p2,' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
+        if(parID(p1).eq.0) write(0,'(/,A,I4,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter',p1,' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
+        if(parID(p2).eq.0) write(0,'(/,A,I4,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter',p2,' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
         stop
      end if
      write(o,'(2I4,2(2x,A8),2x,$)')p1,p2,trim(parNames(parID(p1))),trim(parNames(parID(p2)))

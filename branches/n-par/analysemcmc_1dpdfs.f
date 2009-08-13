@@ -125,6 +125,11 @@ subroutine pdfs1d(exitcode)
   
   do j=1,nPlPar
      p = plPars(j)
+     if(parID(p).eq.0) then
+        write(0,'(/,A,I4,A)')'  * Warning:  pdfs1d():  parameter',p,' is not defined, check plPars() in the input file.  Skipping...'
+        cycle
+     end if
+     
      if(plot.eq.1) then
         call pgpage
         if(j.eq.1) call pginitl(colour,file,whiteBG)

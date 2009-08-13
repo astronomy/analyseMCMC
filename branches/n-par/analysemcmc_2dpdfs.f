@@ -37,7 +37,11 @@ subroutine pdfs2d(exitcode)
   end if
   
   
-  
+  !Check consistency of PDF2Dpairs():
+  do i=1,Npdf2D
+     if(parID(PDF2Dpairs(i,1)).eq.0) write(0,'(/,A,I4,A)')'  * Warning:  pdfs2d():  parameter',PDF2Dpairs(i,1),' is not defined, check plPars() in the input file.  Skipping...'
+     if(parID(PDF2Dpairs(i,2)).eq.0) write(0,'(/,A,I4,A)')'  * Warning:  pdfs2d():  parameter',PDF2Dpairs(i,2),' is not defined, check plPars() in the input file.  Skipping...'
+  end do
   
   !Autodetermine number of bins for 2D PDFs:
   if(Nbin2Dx.le.0) then
@@ -105,7 +109,7 @@ subroutine pdfs2d(exitcode)
         if(Npdf2D.ge.0) then
            plotthis = 0  !Determine to plot or save this combination of j1/j2 or p1/p2
            do i=1,Npdf2D
-              if(p1.eq.PDF2Dpairs(i,1).and.p2.eq.PDF2Dpairs(i,2)) plotthis = 1  !Use the data from the input file
+              if(p1.eq.PDF2Dpairs(i,1).and.p2.eq.PDF2Dpairs(i,2)) plotthis = 1  !Use PDF2Dpairs from the input file
            end do
            if(plotthis.eq.0) cycle
            if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//' '

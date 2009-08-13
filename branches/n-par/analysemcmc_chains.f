@@ -24,7 +24,7 @@ subroutine chains(exitcode)
   !***********************************************************************************************************************************      
   !Plot posterior chain
   if(plLogL.eq.1) then
-     if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')' chain posterior, '
+     if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')' posterior chain, '
      if(file.eq.0) then
         io = pgopen('12/xs')
         call pgsch(1.5)
@@ -48,9 +48,9 @@ subroutine chains(exitcode)
      !call pgscr(3,0.,0.5,0.)
      call pginitl(colour,file,whiteBG)
      !call pgsubp(1,2)
-
+     
      if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.94) !To make room for title
-
+     
      ic = 1
      p=1
      !call pgpage
@@ -123,13 +123,13 @@ subroutine chains(exitcode)
      call pgsci(1)
      call pgsls(1)
      call pgmtxt('T',0.5,0.1,0.1,'log Posterior')
-
+     
      if(quality.eq.0) then
         !call pgsch(sch*0.8)
         call pgmtxt('T',0.5,0.9,0.9,trim(outputname))  !Print title
         !call pgsch(sch)
      end if
-
+     
      if(combineChainPlots.eq.1) call pgpage
      if(combineChainPlots.eq.0) then
         call pgend
@@ -234,27 +234,31 @@ subroutine chains(exitcode)
      if(file.ge.2) call pgpap(PSsz,PSrat)
      if(file.ge.2) call pgscf(fonttype)
      !if(file.eq.1) call pgsch(1.5)
-
+     
      call pgsch(sch)
      call pgslw(lw)
-
-
+     
+     
      call pgsubp(panels(1),panels(2))
-
+     
      ic = 1
      do j=1,nPlPar
         p = plPars(j)
-
+        if(parID(p).eq.0) then
+           write(0,'(/,A,I4,A)')'  * Warning:  chains():  parameter',p,' is not defined, check plPars() in the input file.  Skipping...'
+           cycle
+        end if
+        
         call pgpage
-
-
+        
+        
         if(j.eq.1) call pginitl(colour,file,whiteBG)
         if(file.eq.0.and.scrRat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.ge.2.and.PSrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
         if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
-
+        
         xmin = 0.
         !xmax = real(maxval(ntot(1:nchains0)))
         xmax = -1.e30
@@ -307,11 +311,11 @@ subroutine chains(exitcode)
               ymax = 1.
            end if
         end if
-
+        
         call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
         if(quality.eq.1) call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy*2)
         call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-
+        
         !Plot the actual chain values
         call pgsch(1.)
         if(chainSymbol.ne.1) call pgsch(0.7)
@@ -350,13 +354,13 @@ subroutine chains(exitcode)
                  end if
                  call pgpoint(1,is(ic,i),ply,symbol)
               end do
-
-
+              
+              
            end if
         end do
         call pgsch(sch)
         call pgslw(lw)
-
+        
         !Plot max posterior
         if(plLmax.ge.1) then
            ply = allDat(icloglmax,p,iloglmax)
@@ -370,19 +374,19 @@ subroutine chains(exitcode)
            call pgsls(5)
            call pgline(2,(/-1.e20,1.e20/),(/ply,ply/))
         end if
-
+        
         !Plot burn-in, true and starting values
         do ic=1,nchains0
            call pgsls(2)
            call pgsci(6)
-
+           
            !Plot burn-in phase
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
            !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
            if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
            call pgsci(1)
-
-
+           
+           
            !Plot true values in chains
            if(plInject.ge.1) then
               if(mergeChains.ne.1.or.ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
@@ -411,8 +415,8 @@ subroutine chains(exitcode)
                  end if
               end if
            end if
-
-
+           
+           
            !Plot starting values in chains
            if(plStart.ge.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/startval(ic,p,1)) .gt. 1.e-10) then
               call pgsls(4)
@@ -440,24 +444,24 @@ subroutine chains(exitcode)
               end if
            end if
         end do !ic=1,nchains0
-
+        
         call pgsci(1)
         call pgsls(1)
         write(string,'(F6.3)')rhat(p)
         call pgmtxt('T',-1.,0.,0.,' '//trim(pgParNs(parID(p))))
         if(nchains0.gt.1.and.prConv.ge.1) call pgmtxt('T',1.,1.,1.,'R-hat: '//trim(string))
      end do !do j=1,nPlPar
-
+     
      if(quality.eq.0) then
         call pgsubp(1,1)
         call pgsvp(0.,1.,0.,1.)
         call pgswin(-1.,1.,-1.,1.)
-
+        
         call pgsch(sch*0.8)
         call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  !Print title
         call pgsch(sch)
      end if
-
+     
      if(combineChainPlots.eq.1) call pgpage
      if(combineChainPlots.eq.0) then
         call pgend
@@ -564,20 +568,25 @@ subroutine chains(exitcode)
      if(file.ge.2) call pgpap(PSsz,PSrat)
      if(file.ge.2) call pgscf(fonttype)
      !if(file.eq.1) call pgsch(1.5)
-
+     
      call pgsch(sch)
      call pgslw(lw)
-
+     
      if(file.eq.0.and.scrRat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
      if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
      if(file.ge.2.and.PSrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
      if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
-
+     
      call pgsubp(panels(1),panels(2))
      
      ic = 1
      do j=1,nPlPar
         p = plPars(j)
+        if(parID(p).eq.0) then
+           write(0,'(/,A,I4,A)')'  * Warning:  chains():  parameter',p,' is not defined, check plPars() in the input file.  Skipping...'
+           cycle
+        end if
+        
         call pgpage
         if(j.eq.1) call pginitl(colour,file,whiteBG)
         xmin = 1.e30
@@ -641,18 +650,18 @@ subroutine chains(exitcode)
         xmax = xmax + dx
         !ymin = ymin - dy
         !ymax = ymax + dy
-
+        
         !Plot L iso log(L)
         ymax = exp(ymax - ymin)
         !ymin = 0.
-
-
-
+        
+        
+        
         call pgswin(xmin,xmax,ymin,ymax)
         if(quality.eq.1) call pgswin(xmin,xmax,ymin,ymax+dy) !An extra dy
         call pgswin(xmin,xmax,0.,ymax*1.1) !Test
         call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-
+        
         !Plot the actual chain values
         call pgsch(1.)
         if(chainSymbol.ne.1) call pgsch(0.7)
@@ -681,7 +690,7 @@ subroutine chains(exitcode)
         end do
         call pgsch(sch)
         call pgslw(lw)
-
+        
         !Plot max posterior
         if(plLmax.ge.1) then
            plx = allDat(icloglmax,p,iloglmax)
@@ -696,13 +705,13 @@ subroutine chains(exitcode)
            call pgsls(5)
            call pgline(2,(/plx,plx/),(/-1.e20,1.e20/))
         end if
-
-
+        
+        
         !Plot true values
         do ic=1,nchains0
            call pgsls(2)
            call pgsci(1)
-
+           
            !Plot true values
            if(plInject.ge.1) then
               if(mergeChains.ne.1.or.ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
@@ -732,21 +741,21 @@ subroutine chains(exitcode)
               end if
            end if
         end do !ic=1,nchains0
-
+        
         call pgsci(1)
         call pgsls(1)
      end do !do j=1,nPlPar
-
+     
      if(quality.eq.0) then
         call pgsubp(1,1)
         call pgsvp(0.,1.,0.,1.)
         call pgswin(-1.,1.,-1.,1.)
-
+        
         call pgsch(sch*0.8)
         call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  !Print title
         call pgsch(sch)
      end if
-
+     
      if(combineChainPlots.eq.1) call pgpage
      if(combineChainPlots.eq.0) then
         call pgend
@@ -801,14 +810,19 @@ subroutine chains(exitcode)
         lw = 2
         call pgsvp(0.1,0.95,0.06,0.87) !To make room for title
      end if
-
+     
      call pgsch(sch)
-
+     
      call pgsubp(panels(1),panels(2))
-
+     
      ic = 1
      do j=1,nPlPar
         p = plPars(j)
+        if(parID(p).eq.0) then
+           write(0,'(/,A,I4,A)')'  * Warning:  chains():  parameter',p,' is not defined, check plPars() in the input file.  Skipping...'
+           cycle
+        end if
+        
         call pgpage
         if(j.eq.1) call pginitl(colour,file,whiteBG)
         xmax = -1.e30
@@ -834,11 +848,11 @@ subroutine chains(exitcode)
            dy = abs(ymax-ymin)*0.05
            if(dy.lt.1.e-10) dy = ymin*0.1
         end do
-
+        
         call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
         if(plJump.eq.1) call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0) !lin
         if(plJump.eq.2) call pgbox('BCNTS',0.0,0,'BCLNTS',0.0,0) !log
-
+        
         do ic=1,nchains0
            !call pgsci(mod(ic*2,10))
            call pgsci(defcolour)
@@ -855,7 +869,7 @@ subroutine chains(exitcode)
               end do
            end if
         end do
-
+        
         call pgsls(2)
         call pgsci(6)
         do ic=1,nchains0
@@ -874,7 +888,7 @@ subroutine chains(exitcode)
         call pgsubp(1,1)
         call pgsvp(0.,1.,0.,1.)
         call pgswin(-1.,1.,-1.,1.)
-
+        
         call pgsch(sch*0.8)
         call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  !Print title
         call pgsch(sch)
@@ -897,15 +911,15 @@ subroutine chains(exitcode)
         i = system('rm -f jumps.ppm')
      end if
   end if !if(plJump.ge.1)
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
   !***********************************************************************************************************************************      
   !Plot autocorrelations for each parameter
   if(plACorr.gt.0) then
@@ -929,14 +943,19 @@ subroutine chains(exitcode)
      if(file.eq.0) call pgsch(1.5)
      if(file.eq.1) call pgpap(bmpsz,bmprat)
      if(file.eq.1) call pgsch(1.5)
-
+     
      if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
-
+     
      call pgsubp(panels(1),panels(2))
-
+     
      ic = 1
      do j=1,nPlPar
         p = plPars(j)
+        if(parID(p).eq.0) then
+           write(0,'(/,A,I4,A)')'  * Warning:  chains():  parameter',p,' is not defined, check plPars() in the input file.  Skipping...'
+           cycle
+        end if
+        
         call pgpage
         if(j.eq.1) call pginitl(colour,file,whiteBG)
         xmin = 0.
@@ -951,10 +970,10 @@ subroutine chains(exitcode)
         end do
         dy = abs(ymax-ymin)*0.05
         !write(6,'(I3,5F10.2)')p,xmin,xmax,ymin,ymax,acorrs(1,0,100)
-
+        
         call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
         call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-
+        
         do ic=1,nchains0
            call pgsci(defcolour)
            if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
@@ -962,7 +981,7 @@ subroutine chains(exitcode)
               call pgpoint(1,acorrs(ic,0,i),acorrs(ic,p,i),1)
            end do
         end do
-
+        
         call pgsci(1)
         call pgsls(2)
         call pgline(2,(/-1.e20,1.e20/),(/0.,0./))
@@ -970,17 +989,17 @@ subroutine chains(exitcode)
         call pgsls(1)
         call pgmtxt('T',1.,0.5,0.5,'Autocorrelation: '//trim(pgParNs(parID(p))))
      end do
-
+     
      if(quality.eq.0) then
         call pgsubp(1,1)
         call pgsvp(0.,1.,0.,1.)
         call pgswin(-1.,1.,-1.,1.)
-
+        
         call pgsch(sch*0.8)
         call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  !Print title
         call pgsch(sch)
      end if
-
+     
      if(combineChainPlots.eq.1) call pgpage
      if(combineChainPlots.eq.0) then
         call pgend
@@ -998,7 +1017,7 @@ subroutine chains(exitcode)
         i = system('rm -f acorrs.ppm')
      end if
   end if !if(plACorrs.gt.0)
-  !***********************************************************************************************************************************      
-
-
+  
+  
 end subroutine chains
+!***********************************************************************************************************************************      
