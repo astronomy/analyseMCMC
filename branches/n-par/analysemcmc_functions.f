@@ -5,23 +5,23 @@
 subroutine setconstants
   use constants
   implicit none
-  pi = 4*datan(1.d0)
-  tpi = 2*pi
-  pi2 = 0.5d0*pi
-  r2d = 180.d0/pi
-  d2r = pi/180.d0
-  r2h = 12.d0/pi
-  h2r = pi/12.d0
-  c3rd = 1.d0/3.d0
+  pi =  4*atan(1.d0)  !pi
+  tpi = 2*pi          !2pi
+  pi2 = 0.5d0*pi      !pi/2
+  r2d = 180.d0/pi     !rad->deg
+  d2r = pi/180.d0     !deg->rad
+  r2h = 12.d0/pi      !rad->hr
+  h2r = pi/12.d0      !hr->rad
+  c3rd = 1.d0/3.d0    !1/3     
   
-  rpi = 4*atan(1.)
-  rtpi = 2*rpi
-  rpi2 = 0.5*rpi
-  rr2d = 180./rpi
-  rd2r = rpi/180.
-  rr2h = 12./rpi
-  rh2r = rpi/12.
-  rc3rd = 1./3.
+  rpi = 4*atan(1.)    !pi      
+  rtpi = 2*rpi        !2pi     
+  rpi2 = 0.5*rpi      !pi/2    
+  rr2d = 180./rpi     !rad->deg
+  rd2r = rpi/180.     !deg->rad
+  rr2h = 12./rpi      !rad->hr 
+  rh2r = rpi/12.      !hr->rad 
+  rc3rd = 1./3.       !1/3     
   
   
   detabbrs = (/'H1','L1','V ','H2'/)
@@ -88,7 +88,6 @@ subroutine read_settingsfile
   
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)plot
-  read(u,*,iostat=io)combineChainPlots
   read(u,*,iostat=io)plLogL
   read(u,*,iostat=io)plChain
   read(u,*,iostat=io)plParL
@@ -128,7 +127,6 @@ subroutine read_settingsfile
   read(u,*,iostat=io)bmpYSz
   read(u,*,iostat=io)PSsz
   read(u,*,iostat=io)PSrat
-  read(u,*,iostat=io)whiteBG
   read(u,*,iostat=io)scFac
   read(u,*,iostat=io)unSharp
   
@@ -207,7 +205,6 @@ subroutine write_settingsfile
   
   write(u,'(/,A)')' Select which plots to make:'
   write(u,11)plot, 'plot',   '0: plot nothing at all, 1: plot the items selected below'
-  write(u,11)combineChainPlots, 'combineChainPlots',   'Combine logL and chain plots into one multipage file'
   write(u,11)plLogL, 'plLogL',   'Plot log L chains: 0-no, 1-yes'
   write(u,11)plChain, 'plChain',   'Plot parameter chains: 0-no, 1-yes'
   write(u,11)plParL, 'plParL',   'Plot L vs. parameter value: 0-no, 1-yes'
@@ -248,14 +245,13 @@ subroutine write_settingsfile
   write(u,21)scrRat, 'scrRat',   'Screen ratio for X11 windows (PGPlot units), MacBook: 0.57'
   write(u,11)bmpXSz, 'bmpXSz',   'X-size for bitmap (pixels):  1000  !!! Too large values give incomplete 2D PDFs somehow !!!'
   write(u,11)bmpYSz, 'bmpYSz',   'Y-size for bitmap (pixels):  700'
-  write(u,21)PSsz, 'PSsz',   'Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap'
-  write(u,21)PSrat, 'PSrat',   'Ratio for PS/PDF (PGPlot units). Default: 0.742  /'
-  write(u,11)whiteBG, 'whiteBG',   'Create white background for screen and .png plots: 0-no (black, default), 1-yes'
+  write(u,21)PSsz,  'PSsz',    'Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap'
+  write(u,21)PSrat, 'PSrat',   'Ratio for PS/PDF (PGPlot units). Default: 0.742  /   '
   write(u,21)scFac, 'scFac',   '!!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot'
   write(u,11)unSharp, 'unSharp',   'Apply unsharp mask when creating .png plots. Default: 10.'
   
   write(u,'(/,A)')' Data settings:'
-  write(u,'(A)')' Plot MCMC parameters:  1:logL, 2:Mc, 3:eta, 4:tc, 5:dL, 6:a, 7:th, 8:RA, 9:dec, 10:phi, 11:thJ, 12:phiJ, 13:alpha, 14:M1, 15:M2'
+  write(u,'(A)')' Plot MCMC parameters (plPar()):  11-2:tc/t40, 21-2:d^3/logd, 31-2:RA/dec, 41:phase, 51-4:i/psi/thJo/phJo, 61-4:Mc/eta/M1/M2, 71-3:a/th/phi for spin1, 81-3: spin2'
   write(u,11)nPlPar, 'nPlPar',   'Number of plot parameters for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savePDF=1. Put the MCMC parameters in the line below (plPars()):'
   do i=1,nPlPar
      write(u,'(I3,$)')plPars(i)
@@ -306,7 +302,6 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   savePDF = 0       !Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
   
   plot = 1          !0: plot nothing at all, 1: plot the items selected below
-  combineChainPlots = 0  !Combine logL and chain plots into one multipage file
   autoBurnin = 1.   !Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
   scLogLpl = 1      !Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account
   scChainsPl = 1    !Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account
@@ -345,7 +340,6 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   bmpYSz = 700      !Y-size for bitmap (pixels):  700
   PSsz   = 10.5     !Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap
   PSrat  = 0.742    !Ratio for PS/PDF (PGPlot units). Default: 0.742  /
-  whiteBG = 0       !White background for screen and .png plots: 0-no, 1-yes
   scFac = 1.2       !Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot
   unSharp = 10      !Apply unsharp mask when creating .png plots. Default: 10
   
@@ -1521,7 +1515,7 @@ subroutine kstwo(data1,n1,data2,n2,d,prob)  !Needs probks(), sort()
         fn2=j2/en2
         j2=j2+1
      end if
-     dt=dabs(fn2-fn1)
+     dt=abs(fn2-fn1)
      if(dt.gt.d)d=dt
      goto 1
   end if
@@ -1545,9 +1539,9 @@ function probks(alam)
   do j=1,100
      term=fac*dexp(a2*j**2)
      probks=probks+term
-     if(dabs(term).le.eps1*termbf.or.dabs(term).le.eps2*probks) return
+     if(abs(term).le.eps1*termbf.or.abs(term).le.eps2*probks) return
      fac=-fac
-     termbf=dabs(term)
+     termbf=abs(term)
   end do
   probks=1.d0
   return
@@ -1686,9 +1680,7 @@ function timestamp(os)  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
      i = system('date +%s >& '//trim(fname)) !%N for fractional seconds doesn't work on MacOS!!! (But it does with GNU date)
   end if
   open(unit=9,status='old',file=trim(fname))
-  !read(9,'(F20.9)')timestamp
   read(9,*)timestamp
-  !print*,timestamp
   close(9)
   i = system('rm -f '//trim(fname))
 end function timestamp
@@ -1704,7 +1696,6 @@ subroutine pgscidark(ci0,file,whiteBG)  !Set the colour to ci, but use a darker 
   ci = ci0
   call pgqcr(ci,r,g,b)
   call pgscr(99,r*0.5,g*0.5,b*0.5) !Use half the RGB value to create a darker shade
-  !if(file.ge.2.or.whiteBG.ge.1) call pgscr(99,(r+1)/2.,(g+1)/2.,(b+1)/2.) !Use the mean of the RGB value and 1. to create a lighter shade
   weight = 3.
   if(file.ge.2.or.whiteBG.ge.1) call pgscr(99,(r+weight)/(weight+1.),(g+weight)/(weight+1.),(b+weight)/(weight+1.)) !Use the weighted mean of the RGB value and 1. to create a lighter shade
   call pgsci(99)
@@ -1718,10 +1709,10 @@ subroutine lbr2vec(l,b,r,vec)
   !Transforms longitude l, latitude b and radius r into a vector with length r.  Use r=1 for a unit vector
   implicit none
   real*8 :: l,b,r,sinb,cosb,vec(3)
-  sinb = dsin(b)
+  sinb = sin(b)
   cosb = dsqrt(1.d0-sinb*sinb)
-  vec(1) = dcos(l) * cosb;  !`Greenwich'
-  vec(2) = dsin(l) * cosb;  !`Ganges'
+  vec(1) = cos(l) * cosb;  !`Greenwich'
+  vec(2) = sin(l) * cosb;  !`Ganges'
   vec(3) = sinb;            !`North Pole'
   vec = vec*r
 end subroutine lbr2vec
@@ -1808,10 +1799,10 @@ subroutine ang2vec(l,b,vec)  !Convert longitude, latitude (rad) to a 3D normal v
   !l in [0,2pi[; b in [-pi,pi]
   implicit none
   real*8 :: l,b,vec(3),cosb
-  cosb = dcos(b)
-  vec(1) = dcos(l)*cosb
-  vec(2) = dsin(l)*cosb
-  vec(3) = dsin(b)
+  cosb = cos(b)
+  vec(1) = cos(l)*cosb
+  vec(2) = sin(l)*cosb
+  vec(3) = sin(b)
 end subroutine  ang2vec
 !************************************************************************
 
@@ -1822,8 +1813,8 @@ subroutine vec2ang(vec,l,b)  !Convert a 3D normal vector to longitude, latitude 
   real*8 :: l,b,vec(3),vec1(3)
   vec1 = vec
   call normvec(vec1) !Make sure vec1 is normalised
-  l = datan2(vec1(2),vec1(1))
-  b = dasin(vec1(3))
+  l = atan2(vec1(2),vec1(1))
+  b = asin(vec1(3))
 end subroutine  vec2ang
 !************************************************************************
 
@@ -1842,7 +1833,6 @@ subroutine crossproduct(vec1,vec2,crpr) !Compute the cross (outer) product of tw
   crpr(1) = vec1(2)*vec2(3) - vec1(3)*vec2(2)
   crpr(2) = vec1(3)*vec2(1) - vec1(1)*vec2(3)
   crpr(3) = vec1(1)*vec2(2) - vec1(2)*vec2(1)
-  !write(6,'(3ES13.3)')veclen(vec1),veclen(vec2),veclen(crpr)
 end subroutine crossproduct
 !************************************************************************
 
@@ -1858,8 +1848,7 @@ function polangle(p,o)  !Compute the polarisation angle of a source with positio
   call crossproduct(o,z,ocz)
   numer = dotproduct(p,ocz) !Numerator
   
-  !polangle = datan2(denom,numer)
-  polangle = datan(denom/(numer+1.d-30))  !Take into account the degeneracy in psi
+  polangle = atan(denom/(numer+1.d-30))  !Take into account the degeneracy in psi, hence no atan2
 end function polangle
 !************************************************************************
 
@@ -1868,9 +1857,6 @@ function posangle(p,o)  !Compute the position angle of a source with position no
   implicit none
   real*8 :: posangle,p(3),o(3)
   real*8 :: x1(3),o1(3),z(3),z1(3),dotproduct
-  
-  !write(6,'(3ES13.3)')p
-  !write(6,'(3ES13.3)')o
   
   call crossproduct(p,o,x1)
   call crossproduct(x1,p,o1) !o1: projection of o in the plane of the sky
@@ -1881,12 +1867,8 @@ function posangle(p,o)  !Compute the position angle of a source with position no
   
   call normvec(o1)
   call normvec(z1)
-  posangle = dacos(dotproduct(o1,z1))
-  !write(6,'(3ES13.3)')p
-  !write(6,'(3ES13.3)')o
-  !write(6,'(3ES13.3)')o1
-  !write(6,'(3ES13.3)')z1
-  !write(6,'(3ES13.3)')dotproduct(o1,z1),dacos(dotproduct(o1,z1))
+  
+  posangle = acos(dotproduct(o1,z1))
 end function posangle
 !************************************************************************
 
@@ -1899,17 +1881,17 @@ end function posangle
 subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) 
   use constants
   implicit none
-  !pl,ol in [0,2pi[;  pb,ob in ([-pi/2,pi/2]) now [0,pi], conf John & Christian
+  !pl,ol in [0,2pi[;  pb,ob in ([-pi/2,pi/2]) now [0,pi], conf John V. & Christian R.
   real*8 :: pl,pb,ol,ob
   real*8 :: p(3),o(3),i,dotproduct,psi,polangle,drevpi
   
   call ang2vec(pl,pb,p)       !Position normal vector
   call ang2vec(ol,ob,o)       !Orientation normal vector
   
-  !i = pi2 - dacos(dotproduct(p,o))  !Compute inclination angle: <0: points towards us, >0 points away from us
+  !i = pi2 - acos(dotproduct(p,o))  !Compute inclination angle: <0: points towards us, >0 points away from us
   !psi = polangle(p,o)         !Compute polarisation angle [-pi/2,pi/2]
   
-  i = dacos(dotproduct(p,o))   !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky
+  i = acos(dotproduct(p,o))   !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky
   psi = drevpi(polangle(p,o))  !Compute polarisation angle [0,pi]
   
 end subroutine compute_incli_polang
@@ -1946,10 +1928,12 @@ subroutine compute_incli_posang(pl,pb,ol,ob, i,psi) !Compute the inclination and
   
   call ang2vec(pl,pb,p)       !Position normal vector
   call ang2vec(ol,ob,o)       !Orientation normal vector
-  !i = pi2 - dacos(dotproduct(p,o))  !Compute inclination angle: <0: points towards us, >0 points away from us
-  i = dacos(dotproduct(p,o))  !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky
+  
+  !i = pi2 - acos(dotproduct(p,o))  !Compute inclination angle: <0: points towards us, >0 points away from us
+  !psi = drevpi(posangle(p,o))       !Compute position angle
+  
+  i = acos(dotproduct(p,o))  !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky
   psi = posangle(p,o)         !Compute position angle
-  !psi = drevpi(posangle(p,o))  !Compute position angle
   
 end subroutine compute_incli_posang
 !************************************************************************

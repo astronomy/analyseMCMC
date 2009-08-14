@@ -7,19 +7,19 @@
 module analysemcmc_settings
   implicit none
   save
-  integer, parameter :: Nival1=9
-  integer, parameter :: maxChs=20     !< Maximum number of chains that can be read
-  integer, parameter :: maxMCMCpar=18 !< MaxMCMCpar: logL+MCMCpar+secondary parameters, e.g. 1+12+2(M1M2) = 15 for 12 par; 18 for 15 par
+  integer, parameter :: maxNival=5    !< maxNival: Maximum number of probability intervals that can be used
+  integer, parameter :: maxChs=20     !< macChs: Maximum number of chains that can be read
+  integer, parameter :: maxMCMCpar=17 !< MaxMCMCpar: MCMCpar+secondary parameters, e.g. 12+2(M1M2) = 14 for 12 par; 17 for 15 par
   integer, parameter :: nParDB=99     !< nParDB: size of the parameter database
   integer :: plPars(maxMCMCpar),nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D,PDF2Dpairs(250,2),panels(2)
   integer :: thin,Nburn(maxChs),reverseRead,update,mergeChains,wrapData,changeVar,maxChLen
   integer :: file,colour,orientation,quality,fonttype
   integer :: prProgress,prRunInfo,prChainInfo,prInitial,prStat,prCorr,prIval,prConv,saveStats,savePDF       
-  integer :: plot,combineChainPlots,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plACorr,plotSky,plAnim       
+  integer :: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plACorr,plotSky,plAnim       
   integer :: chainSymbol,chainPlI,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D,normPDF2D
   integer :: scLogLpl,scChainsPl,bmpXSz,bmpYSz,map_projection
   integer :: nAnimFrames,animScheme,whiteBG,unSharp,Nival,ival0,wikioutput
-  real :: NburnFrac,autoBurnin,ivals(Nival1)
+  real :: NburnFrac,autoBurnin,ivals(maxNival)
   real :: scrSz,scrRat,PSsz,PSrat,scFac,fontsize1d,fontsize2d
 end module analysemcmc_settings
 !***************************************************************************************************
@@ -44,12 +44,13 @@ module general_data
   use analysemcmc_settings
   implicit none
   save
-  integer, parameter :: maxIter=2.0e5,nr1=5,nstat1=10,ndets=3
+  integer, parameter :: maxIter=1.5e5                                     !< maxIter: Maximum number of iterations (output lines) that can be stored
+  integer, parameter :: nr1=5,nstat1=10,ndets=3
   integer :: n(maxChs),ntot(maxChs),iloglmax,icloglmax,c0,nchains,nchains0
   integer :: fixedpar(maxMCMCpar),nfixedpar,contrchains,contrchain(maxChs)
   real, allocatable :: selDat(:,:,:),allDat(:,:,:),post(:,:),prior(:,:)
   real :: startval(maxChs,maxMCMCpar,3)
-  real :: ranges(maxChs,Nival1,maxMCMCpar,nr1),stats(maxChs,maxMCMCpar,nstat1),log10bayesfactor(maxChs),logebayesfactor(maxChs)
+  real :: ranges(maxChs,maxNival,maxMCMCpar,nr1),stats(maxChs,maxMCMCpar,nstat1),log10bayesfactor(maxChs),logebayesfactor(maxChs)
   real*8 :: rhat(maxMCMCpar)
   
   character :: parNames(nParDB)*8,infiles(maxChs)*99,outputname*99,outputdir*99
@@ -90,7 +91,7 @@ module stats_data
   save
   real :: stdev1(maxMCMCpar),stdev2(maxMCMCpar),absVar1(maxMCMCpar),absVar2(maxMCMCpar)
   integer :: trueranges2d(maxMCMCpar,maxMCMCpar)
-  real :: probarea(Nival1),probareas(maxMCMCpar,maxMCMCpar,Nival1,3)
+  real :: probarea(maxNival),probareas(maxMCMCpar,maxMCMCpar,maxNival,3)
 end module stats_data
 !***************************************************************************************************
 

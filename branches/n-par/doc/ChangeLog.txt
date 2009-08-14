@@ -2,6 +2,14 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    89: sluys, 14/08/2009
+     - analysemcmc.dat changed:
+       - removed combineChainPlots, whiteBG
+       - plPar() and PDF2Dpairs now take the parameter IDs from SPINspiral 
+         (e.g. Mc=61), see the SPINspiral manual
+     - implemented use of parameter IDs rather than column number
+     - some cleaning up and commenting
+       
     88: sluys, 13/08/2009
      - Added 'safety valve' in case Mollweide projection doesn't converge
      - Use min(nPlPar,nMCMCpar) to determine lay out for chain, 1D PDF plots

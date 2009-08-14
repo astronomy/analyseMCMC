@@ -124,9 +124,9 @@ subroutine pdfs1d(exitcode)
   end if
   
   do j=1,nPlPar
-     p = plPars(j)
-     if(parID(p).eq.0) then
-        write(0,'(/,A,I4,A)')'  * Warning:  pdfs1d():  parameter',p,' is not defined, check plPars() in the input file.  Skipping...'
+     p = revID(plPars(j))
+     if(p.eq.0) then
+        write(0,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(parID(p)))//' is not defined, check plPars() in the input file.  Skipping...'
         cycle
      end if
      

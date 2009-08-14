@@ -30,7 +30,6 @@
 
  Select which plots to make:
          1                plot     0: plot nothing at all, 1: plot the items selected below
-         0   combineChainPlots     Combine logL and chain plots into one multipage file
          1              plLogL     Plot log L chains: 0-no, 1-yes
          1             plChain     Plot parameter chains: 0-no, 1-yes
          0              plParL     Plot L vs. parameter value: 0-no, 1-yes
@@ -68,19 +67,19 @@
       1000              bmpXSz     X-size for bitmap (pixels):  1000  !!! Too large values give incomplete 2D PDFs somehow !!!
        700              bmpYSz     Y-size for bitmap (pixels):  700
   10.50000                PSsz     Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap
-   0.74200               PSrat     Ratio for PS/PDF (PGPlot units). Default: 0.742  /
-         1             whiteBG     Create white background for screen and .png plots: 0-no (black, default), 1-yes
+   0.74200               PSrat     Ratio for PS/PDF (PGPlot units). Default: 0.742  /   
    1.20000               scFac     !!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot
         10             unSharp     Apply unsharp mask when creating .png plots. Default: 10.
 
  Data settings:
- Plot MCMC parameters:  1:logL, 2:Mc, 3:eta, 4:tc, 5:dL, 6:a, 7:th, 8:RA, 9:dec, 10:phi, 11:thJ, 12:phiJ, 13:alpha, 14:M1, 15:M2
+ Plot MCMC parameters:  11-2:tc/t40, 21-2:d^3/logd, 31-2:RA/dec, 41:phase, 51-4:i/psi/thJo/phJo, 61-4:Mc/eta/M1/M2, 71-3:a/th/phi for spin1, 81-3: spin2
         14              nPlPar     Number of plot parameters for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savePDF=1. Put the MCMC parameters in the line below (plPars()):
-  1  2  4  3  9  7  8  5  6 12 10 11 13 14 
+ 61 62 22 11 41 31 32 71 72 73 51 52 63 64 
     0    0              panels     Number of for 1D plots in x,y direction:  0: autodetermine
          0              Nbin1D     Number of bins for 1D PDFs:  0: autodetermine
          0             Nbin2Dx     Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)
          0             Nbin2Dy     Number of bins in y-direction for 2D PDFs and 2D probability ranges:  0: use Nbin2Dx, -1: use Nbin2Dx*(scr/bmp/ps)rat
-         2              Npdf2D     Number of 2D-PDF plots to make:  -1: all plots (91 for 12+2 parameters),  >0: read parameters from the lines below
-    1    2          PDF2Dpairs     Pairs of parameters to plot a 2D PDF for
-    7    8          PDF2Dpairs     Pairs of parameters to plot a 2D PDF for
+         3              Npdf2D     Number of 2D-PDF plots to make:  -1: all plots (91 for 12+2 parameters),  >0: read parameters from the lines below
+   61   62          PDF2Dpairs     Pairs of parameters to plot a 2D PDF for
+   31   32          PDF2Dpairs     Pairs of parameters to plot a 2D PDF for
+   52   51          PDF2Dpairs     Pairs of parameters to plot a 2D PDF for

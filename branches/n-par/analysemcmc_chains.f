@@ -14,10 +14,6 @@ subroutine chains(exitcode)
   character :: string*99
   
   exitcode = 0
-  if(combineChainPlots.eq.1.and.(plLogL.eq.1.or.plChain.eq.1)) then
-     io = pgopen('chaininfo.eps'//trim(psclr))
-     call pginitl(colour,file,whiteBG)
-  end if
   
   
   
@@ -29,7 +25,7 @@ subroutine chains(exitcode)
         io = pgopen('12/xs')
         call pgsch(1.5)
      end if
-     if(file.ge.1.and.combineChainPlots.eq.0) then
+     if(file.ge.1) then
         if(file.eq.1) io = pgopen('posterior.ppm/ppm')
         if(file.ge.2) io = pgopen('posterior.eps'//trim(psclr))
         call pgsch(1.2)
@@ -130,16 +126,13 @@ subroutine chains(exitcode)
         !call pgsch(sch)
      end if
      
-     if(combineChainPlots.eq.1) call pgpage
-     if(combineChainPlots.eq.0) then
-        call pgend
-        if(file.ge.2) then
-           if(file.eq.3) then
-              i = system('eps2pdf posterior.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__posterior.pdf   >& /dev/null')
-              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
-           end if
-           i = system('mv -f posterior.eps '//trim(outputdir)//'/'//trim(outputname)//'__posterior.eps')
+     call pgend
+     if(file.ge.2) then
+        if(file.eq.3) then
+           i = system('eps2pdf posterior.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__posterior.pdf   >& /dev/null')
+           if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         end if
+        i = system('mv -f posterior.eps '//trim(outputdir)//'/'//trim(outputname)//'__posterior.eps')
      end if
      if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharplogl)//' posterior.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__posterior.png')
@@ -174,7 +167,7 @@ subroutine chains(exitcode)
         sch = 1.5
         lw = 1
      end if
-     if(file.ge.1.and.combineChainPlots.eq.0) then
+     if(file.ge.1) then
         if(file.eq.1) io = pgopen('chains.ppm/ppm')
         if(file.ge.2) io = pgopen('chains.eps'//trim(psclr))
         lw = 3
@@ -243,9 +236,9 @@ subroutine chains(exitcode)
      
      ic = 1
      do j=1,nPlPar
-        p = plPars(j)
-        if(parID(p).eq.0) then
-           write(0,'(/,A,I4,A)')'  * Warning:  chains():  parameter',p,' is not defined, check plPars() in the input file.  Skipping...'
+        p = revID(plPars(j))
+        if(p.eq.0) then
+           write(0,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(parID(p)))//' is not defined, check plPars() in the input file.  Skipping...'
            cycle
         end if
         
@@ -462,16 +455,13 @@ subroutine chains(exitcode)
         call pgsch(sch)
      end if
      
-     if(combineChainPlots.eq.1) call pgpage
-     if(combineChainPlots.eq.0) then
-        call pgend
-        if(file.ge.2) then
-           if(file.eq.3) then
-              i = system('eps2pdf chains.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__chains.pdf   >& /dev/null')
-              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
-           end if
-           i = system('mv -f chains.eps '//trim(outputdir)//'/'//trim(outputname)//'__chains.eps')
+     call pgend
+     if(file.ge.2) then
+        if(file.eq.3) then
+           i = system('eps2pdf chains.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__chains.pdf   >& /dev/null')
+           if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         end if
+        i = system('mv -f chains.eps '//trim(outputdir)//'/'//trim(outputname)//'__chains.eps')
      end if
      if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' chains.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__chains.png')
@@ -512,7 +502,7 @@ subroutine chains(exitcode)
         sch = 1.5
         lw = 1
      end if
-     if(file.ge.1.and.combineChainPlots.eq.0) then
+     if(file.ge.1) then
         if(file.eq.1) io = pgopen('parlogl.ppm/ppm')
         if(file.ge.2) io = pgopen('parlogl.eps'//trim(psclr))
         lw = 3
@@ -581,9 +571,9 @@ subroutine chains(exitcode)
      
      ic = 1
      do j=1,nPlPar
-        p = plPars(j)
-        if(parID(p).eq.0) then
-           write(0,'(/,A,I4,A)')'  * Warning:  chains():  parameter',p,' is not defined, check plPars() in the input file.  Skipping...'
+        p = revID(plPars(j))
+        if(p.eq.0) then
+           write(0,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(parID(p)))//' is not defined, check plPars() in the input file.  Skipping...'
            cycle
         end if
         
@@ -756,16 +746,13 @@ subroutine chains(exitcode)
         call pgsch(sch)
      end if
      
-     if(combineChainPlots.eq.1) call pgpage
-     if(combineChainPlots.eq.0) then
-        call pgend
-        if(file.ge.2) then
-           if(file.eq.3) then
-              i = system('eps2pdf parlogl.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.pdf   >& /dev/null')
-              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
-           end if
-           i = system('mv -f parlogl.eps '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.eps')
+     call pgend
+     if(file.ge.2) then
+        if(file.eq.3) then
+           i = system('eps2pdf parlogl.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.pdf   >& /dev/null')
+           if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         end if
+        i = system('mv -f parlogl.eps '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.eps')
      end if
      if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' parlogl.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.png')
@@ -790,7 +777,7 @@ subroutine chains(exitcode)
         io = pgopen('18/xs')
         sch=1.5
      end if
-     if(file.ge.1.and.combineChainPlots.eq.0) then
+     if(file.ge.1) then
         if(file.eq.1) io = pgopen('jumps.ppm/ppm')
         if(file.ge.2) io = pgopen('jumps.eps'//trim(psclr))
         sch=1.2
@@ -817,9 +804,9 @@ subroutine chains(exitcode)
      
      ic = 1
      do j=1,nPlPar
-        p = plPars(j)
-        if(parID(p).eq.0) then
-           write(0,'(/,A,I4,A)')'  * Warning:  chains():  parameter',p,' is not defined, check plPars() in the input file.  Skipping...'
+        p = revID(plPars(j))
+        if(p.eq.0) then
+           write(0,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(parID(p)))//' is not defined, check plPars() in the input file.  Skipping...'
            cycle
         end if
         
@@ -894,16 +881,13 @@ subroutine chains(exitcode)
         call pgsch(sch)
      end if
      
-     if(combineChainPlots.eq.1) call pgpage
-     if(combineChainPlots.eq.0) then
-        call pgend
-        if(file.ge.2) then
-           if(file.eq.3) then
-              i = system('eps2pdf jumps.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__jumps.pdf   >& /dev/null')
-              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
-           end if
-           i = system('mv -f jumps.eps '//trim(outputdir)//'/'//trim(outputname)//'__jumps.eps')
+     call pgend
+     if(file.ge.2) then
+        if(file.eq.3) then
+           i = system('eps2pdf jumps.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__jumps.pdf   >& /dev/null')
+           if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         end if
+        i = system('mv -f jumps.eps '//trim(outputdir)//'/'//trim(outputname)//'__jumps.eps')
      end if
      if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' jumps.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__jumps.png')
@@ -950,9 +934,9 @@ subroutine chains(exitcode)
      
      ic = 1
      do j=1,nPlPar
-        p = plPars(j)
-        if(parID(p).eq.0) then
-           write(0,'(/,A,I4,A)')'  * Warning:  chains():  parameter',p,' is not defined, check plPars() in the input file.  Skipping...'
+        p = revID(plPars(j))
+        if(p.eq.0) then
+           write(0,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(parID(p)))//' is not defined, check plPars() in the input file.  Skipping...'
            cycle
         end if
         
@@ -1000,16 +984,13 @@ subroutine chains(exitcode)
         call pgsch(sch)
      end if
      
-     if(combineChainPlots.eq.1) call pgpage
-     if(combineChainPlots.eq.0) then
-        call pgend
-        if(file.ge.2) then
-           if(file.eq.3) then
-              i = system('eps2pdf acorrs.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.pdf   >& /dev/null')
-              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
-           end if
-           i = system('mv -f acorrs.eps '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.eps')
+     call pgend
+     if(file.ge.2) then
+        if(file.eq.3) then
+           i = system('eps2pdf acorrs.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.pdf   >& /dev/null')
+           if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         end if
+        i = system('mv -f acorrs.eps '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.eps')
      end if
      if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' acorrs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.png')

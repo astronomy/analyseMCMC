@@ -28,16 +28,17 @@ program analyseMCMC
   wikioutput = 1  !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
   map_projection = 1  !Choose map projection: 1-Mollweide
   
+  os = getos() !1-Linux, 2-MacOS
   timestamps(1) = timestamp(os)
   write(6,*)
   
-  os = getos() !1-Linux, 2-MacOS
   
   call setconstants           !Define mathematical constants
   call set_plotsettings()     !Set plot settings to 'default' values
   call read_settingsfile()    !Read the plot settings (overwrite the defaults)
   call write_settingsfile()   !Write the input file back to disc
   
+  whiteBG = 1                 !Use a white background in screen and bitmap plots: 0-no (black), 1-yes.  Used to be in input file, redundant I'd say.
   fontsize1d = 1.             !Set plot scale for 1D plots, needs to be implemented fully
   fontsize2d = 1.             !Set plot scale for 2D plots, needs to be implemented fully. Typically, take ~1.2*fontsize1d
   if(quality.eq.91) then !NINJA
@@ -154,7 +155,6 @@ program analyseMCMC
      !nPlPar = 15; plPars(1:nPlPar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !All 12 + m1,m2
      wrapData = 0
   end if
-  if(file.eq.1) combineChainPlots = 0
   if(file.ge.1) update = 0
   if(plAnim.ge.1) update = 0
   
@@ -339,21 +339,21 @@ program analyseMCMC
   
   if(prProgress.ge.1) then
      write(6,'(A,$)')'  Run time: '
-     write(6,'(A,F5.1,A,$)')'   input:',min(dabs(timestamps(2)-timestamps(1)),999.9),'s,'
-     !write(6,'(A,F5.1,A,$)')'   info:',min(dabs(timestamps(3)-timestamps(2)),999.9),'s,'
-     !write(6,'(A,F5.1,A,$)')'   stats:',min(dabs(timestamps(4)-timestamps(3)),999.9),'s,'
-     write(6,'(A,F5.1,A,$)')'   stats:',min(dabs(timestamps(4)-timestamps(2)),999.9),'s,'
+     write(6,'(A,F5.1,A,$)')'   input:',min(abs(timestamps(2)-timestamps(1)),999.9),'s,'
+     !write(6,'(A,F5.1,A,$)')'   info:',min(abs(timestamps(3)-timestamps(2)),999.9),'s,'
+     !write(6,'(A,F5.1,A,$)')'   stats:',min(abs(timestamps(4)-timestamps(3)),999.9),'s,'
+     write(6,'(A,F5.1,A,$)')'   stats:',min(abs(timestamps(4)-timestamps(2)),999.9),'s,'
      if(plot.eq.1.and.plLogL+plChain+plJump+plACorr.gt.0) then
-        write(6,'(A,F5.1,A,$)')'   chains:',min(dabs(timestamps(5)-timestamps(4)),999.9),'s,'
+        write(6,'(A,F5.1,A,$)')'   chains:',min(abs(timestamps(5)-timestamps(4)),999.9),'s,'
      end if
      if(plot.eq.1.or.savePDF.ge.1) then
-        if(plPDF1D.ge.1) write(6,'(A,F5.1,A,$)')'   1d pdfs:',min(dabs(timestamps(6)-timestamps(5)),999.9),'s,'
-        if(plPDF2D.ge.1) write(6,'(A,F6.1,A,$)')'   2d pdfs:',min(dabs(timestamps(7)-timestamps(6)),999.9),'s,'
+        if(plPDF1D.ge.1) write(6,'(A,F5.1,A,$)')'   1d pdfs:',min(abs(timestamps(6)-timestamps(5)),999.9),'s,'
+        if(plPDF2D.ge.1) write(6,'(A,F6.1,A,$)')'   2d pdfs:',min(abs(timestamps(7)-timestamps(6)),999.9),'s,'
      end if
-     !write(6,'(A,F6.1,A,$)')'   plots:',min(dabs(timestamps(7)-timestamps(4)),999.9),'s,'
-     !write(6,'(A,F5.1,A,$)')'   save stats:',min(dabs(timestamps(8)-timestamps(7)),999.9),'s,'
-     if(plAnim.ge.1) write(6,'(A,F5.1,A,$)')'   movie:',min(dabs(timestamps(9)-timestamps(8)),999.9),'s,'
-     write(6,'(A,F6.1,A)')'   total:',min(dabs(timestamps(9)-timestamps(1)),999.9),'s.'
+     !write(6,'(A,F6.1,A,$)')'   plots:',min(abs(timestamps(7)-timestamps(4)),999.9),'s,'
+     !write(6,'(A,F5.1,A,$)')'   save stats:',min(abs(timestamps(8)-timestamps(7)),999.9),'s,'
+     if(plAnim.ge.1) write(6,'(A,F5.1,A,$)')'   movie:',min(abs(timestamps(9)-timestamps(8)),999.9),'s,'
+     write(6,'(A,F6.1,A)')'   total:',min(abs(timestamps(9)-timestamps(1)),999.9),'s.'
   end if
   
   write(6,*)''

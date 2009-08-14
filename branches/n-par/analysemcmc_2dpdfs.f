@@ -39,8 +39,8 @@ subroutine pdfs2d(exitcode)
   
   !Check consistency of PDF2Dpairs():
   do i=1,Npdf2D
-     if(parID(PDF2Dpairs(i,1)).eq.0) write(0,'(/,A,I4,A)')'  * Warning:  pdfs2d():  parameter',PDF2Dpairs(i,1),' is not defined, check plPars() in the input file.  Skipping...'
-     if(parID(PDF2Dpairs(i,2)).eq.0) write(0,'(/,A,I4,A)')'  * Warning:  pdfs2d():  parameter',PDF2Dpairs(i,2),' is not defined, check plPars() in the input file.  Skipping...'
+     if(revID(PDF2Dpairs(i,1)).eq.0) write(0,'(/,A)')'  * Warning:  pdfs2d():  parameter '//trim(parNames(PDF2Dpairs(i,1)))//' is not defined, check plPars() in the input file.  Skipping...'
+     if(revID(PDF2Dpairs(i,2)).eq.0) write(0,'(/,A)')'  * Warning:  pdfs2d():  parameter '//trim(parNames(PDF2Dpairs(i,2)))//' is not defined, check plPars() in the input file.  Skipping...'
   end do
   
   !Autodetermine number of bins for 2D PDFs:
@@ -109,7 +109,7 @@ subroutine pdfs2d(exitcode)
         if(Npdf2D.ge.0) then
            plotthis = 0  !Determine to plot or save this combination of j1/j2 or p1/p2
            do i=1,Npdf2D
-              if(p1.eq.PDF2Dpairs(i,1).and.p2.eq.PDF2Dpairs(i,2)) plotthis = 1  !Use PDF2Dpairs from the input file
+              if(p1.eq.revID(PDF2Dpairs(i,1)).and.p2.eq.revID(PDF2Dpairs(i,2))) plotthis = 1  !Use PDF2Dpairs from the input file
            end do
            if(plotthis.eq.0) cycle
            if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//' '
@@ -209,14 +209,14 @@ subroutine pdfs2d(exitcode)
               a = (xmin+xmax)*0.5
               xmin = a - 0.5*dx
               xmax = a + 0.5*dx
-              if(prProgress.ge.1) write(6,'(A,F6.1,A3,F6.1,A,$)')'  Changing RA range to ',xmin,' - ',xmax,' h.'
+              if(prProgress.ge.2) write(6,'(A,F6.1,A3,F6.1,A,$)')'  Changing RA range to ',xmin,' - ',xmax,' h.'
            end if
            if(abs(dx)*15.gt.dy/rat) then !Expand y
               dy = abs(dx)*rat*15
               a = (ymin+ymax)*0.5
               ymin = a - 0.5*dy
               ymax = a + 0.5*dy
-              if(prProgress.ge.1) write(6,'(A,F6.1,A3,F6.1,A,$)')'  Changing declination range to ',ymin,' - ',ymax,' deg.'
+              if(prProgress.ge.2) write(6,'(A,F6.1,A3,F6.1,A,$)')'  Changing declination range to ',ymin,' - ',ymax,' deg.'
            end if
         end if !if(plot.eq.1 .and. project_map)
         
@@ -330,22 +330,22 @@ subroutine pdfs2d(exitcode)
                        call pgscr(32,0.,0.,0.) !Black
                     end if
                     if(Nival.eq.3) then
-                       call pgscr(31,0.7,0.7,0.7) !
-                       call pgscr(32,0.4,0.4,0.4) !
-                       call pgscr(33,0.0,0.0,0.0) !
+                       call pgscr(31,0.7,0.7,0.7) !Licht grey
+                       call pgscr(32,0.4,0.4,0.4) !Dark grey
+                       call pgscr(33,0.0,0.0,0.0) !Black
                     end if
                     if(Nival.eq.4) then
-                       call pgscr(31,0.75,0.75,0.75) !
+                       call pgscr(31,0.75,0.75,0.75) !Licht grey
                        call pgscr(32,0.50,0.50,0.50) !
-                       call pgscr(33,0.25,0.25,0.25) !
-                       call pgscr(34,0.00,0.00,0.00) !
+                       call pgscr(33,0.25,0.25,0.25) !Dark grey
+                       call pgscr(34,0.00,0.00,0.00) !Black
                     end if
                     if(Nival.eq.5) then
-                       call pgscr(31,0.8,0.8,0.8) !
+                       call pgscr(31,0.8,0.8,0.8) !Licht grey
                        call pgscr(32,0.6,0.6,0.6) !
                        call pgscr(33,0.4,0.4,0.4) !
-                       call pgscr(34,0.2,0.2,0.2) !
-                       call pgscr(35,0.0,0.0,0.0) !
+                       call pgscr(34,0.2,0.2,0.2) !Dark grey
+                       call pgscr(35,0.0,0.0,0.0) !Black
                     end if
                  end if
                  if(colour.ge.1) then
@@ -759,7 +759,7 @@ subroutine pdfs2d(exitcode)
               if(Npdf2D.ge.0) then
                  plotthis = 0  !Determine to plot or save this combination of j1/j2 or p1/p2
                  do i=1,Npdf2D
-                    if(p1.eq.PDF2Dpairs(i,1).and.p2.eq.PDF2Dpairs(i,2)) plotthis = 1  !Use the data from the input file
+                    if(p1.eq.revID(PDF2Dpairs(i,1)).and.p2.eq.revID(PDF2Dpairs(i,2))) plotthis = 1  !Use PDF2Dpairs from the input file
                  end do
                  if(plotthis.eq.0) cycle
               else
@@ -1201,7 +1201,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
   call pgscr(1,1.,1.,1.) !'White' (for stars)
   call pgscr(4,x,x,1.) !Blue (for constellations)
   
-  pi = 4*datan(1.d0)
+  pi = 4*atan(1.d0)
   tpi = 2*pi
   d2r = pi/180.d0
   r2d = 180.d0/pi
@@ -1241,13 +1241,13 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
      dx2 = 0.d0
      dy = 0.d0
      do j=2,c(i,1)
-        dx1 = dx1 + dsin(ra(c(i,j)))
-        dx2 = dx2 + dcos(ra(c(i,j)))
+        dx1 = dx1 + sin(ra(c(i,j)))
+        dx2 = dx2 + cos(ra(c(i,j)))
         dy = dy + dec(c(i,j))
      end do
-     dx1 = (dx1 + dsin(ra(c(i,j))))/real(c(i,1))
-     dx2 = (dx2 + dcos(ra(c(i,j))))/real(c(i,1))
-     ra1 = drev2pi(datan2(dx1,dx2))
+     dx1 = (dx1 + sin(ra(c(i,j))))/real(c(i,1))
+     dx2 = (dx2 + cos(ra(c(i,j))))/real(c(i,1))
+     ra1 = drev2pi(atan2(dx1,dx2))
      dec1 = (dy + dec(c(i,j)))/real(c(i,1))
      !call eq2xy(ra1,dec1,l0,b0,x1,y1)
      !constx(i) = x1
