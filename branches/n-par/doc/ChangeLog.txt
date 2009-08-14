@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    90: sluys, 14/08/2009
+     - Fixed reporting of undefined parameters
+     
     89: sluys, 14/08/2009
      - analysemcmc.dat changed:
        - removed combineChainPlots, whiteBG

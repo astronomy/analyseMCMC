@@ -367,7 +367,6 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
   character :: tmpStr*99,detname*14,firstLine*999,infile*99
   real*8 :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar)
   real :: outputVersion
-  !real*8 :: lon2ra
   
   exitcode = 0
   readerror = 0
