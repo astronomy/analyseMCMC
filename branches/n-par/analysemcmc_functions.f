@@ -365,7 +365,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
   implicit none
   integer :: i,tmpInt,io,ic,j,exitcode,readerror,p
   character :: tmpStr*99,detname*14,firstLine*999,infile*99
-  real*8 :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar)
+  real*8 :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar)!,lon2ra,ra2lon
   real :: outputVersion
   
   exitcode = 0
@@ -400,7 +400,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      outputVersion = 0.0  !Use old format
      read(10,'(A999)',end=199,err=199)firstLine
      if(len_trim(firstLine).lt.80) read(firstLine,'(A21,F8.2)')tmpStr,outputVersion  !Use new format
-
+     
      if(outputVersion > 0.5) read(10,*,end=199,err=199)tmpStr  !Read empty line between version number and first header
      read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') niter(ic),Nburn0(ic),seed(ic),nullh,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform,pnOrder,nMCMCpar
      
@@ -480,6 +480,11 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
               if(io.lt.0) exit !EOF
            end do
         end if
+        
+        !allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))  !In case you ran with lon rather than RA
+        !if(i.eq.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))  !In case only the true value is lon rather than RA
+        !if(i.ne.1) allDat(ic,revID(31),i) = real(ra2lon(dble(allDat(ic,revID(31),i)),t0))  !In case only the true value is lon rather than RA
+        !if(i.ne.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))  !In case all but the true value is lon rather than RA
         
         i = i+1
         if(tmpInt.ge.maxChLen) exit
@@ -1066,13 +1071,25 @@ end subroutine set_derivedParameterNames
 function lon2ra(lon, GPSsec)
   ! Compute right ascension (in radians) from longitude (radians) and GPS time (seconds). 
   ! Declination == latitude for equatorial coordinates.
-  
   use constants
   implicit none
   real*8 :: lon2ra,lon,GPSsec,gmst
   
   lon2ra = mod(lon + gmst(GPSsec) + 10*tpi,tpi)
 end function lon2ra
+!************************************************************************************************************************************
+
+
+!************************************************************************************************************************************
+function ra2lon(ra, GPSsec)
+  ! Compute longitude (in radians) from right ascension (radians) and GPS time (seconds). 
+  ! Declination == latitude for equatorial coordinates.
+  use constants
+  implicit none
+  real*8 :: ra2lon,ra,GPSsec,gmst
+  
+  ra2lon = mod(ra - gmst(GPSsec) + 10*tpi,tpi)
+end function ra2lon
 !************************************************************************************************************************************
 
 

@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    91: sluys, 21/08/2009
+     - Added routine ra2lon()
+     
     90: sluys, 14/08/2009
      - Fixed reporting of undefined parameters
      
