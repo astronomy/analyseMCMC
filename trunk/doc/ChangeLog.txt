@@ -2,7 +2,83 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
-    73: sluys, 29/07/2009
+    91: sluys, 21/08/2009
+     - Added routine ra2lon()
+     
+    90: sluys, 14/08/2009
+     - Fixed reporting of undefined parameters
+     
+    89: sluys, 14/08/2009
+     - analysemcmc.dat changed:
+       - removed combineChainPlots, whiteBG
+       - plPar() and PDF2Dpairs now take the parameter IDs from SPINspiral 
+         (e.g. Mc=61), see the SPINspiral manual
+     - implemented use of parameter IDs rather than column number
+     - some cleaning up and commenting
+       
+    88: sluys, 13/08/2009
+     - Added 'safety valve' in case Mollweide projection doesn't converge
+     - Use min(nPlPar,nMCMCpar) to determine lay out for chain, 1D PDF plots
+     
+    87: sluys, 13/08/2009
+     - Fix animations with new parameter definitions
+     - Catch undefined parameters
+     
+    86: sluys, 13/08/2009
+     - Fix Wiki output for singly/nonspinning runs
+     - Update analysemcmc.dat
+     
+    85: sluys, 13/08/2009
+     - Make parameter names better readable
+     
+    84: sluys, 12/08/2009
+     - Removed bug at Bayes-factor computation: use data up to ntot(ic), not n(ic)
+     - Removed bug at injection values Wiki: use allDat(), not stats()
+     - Removed bug with wrong order of indices for allDat() in compute_convergence()
+     - Changed screen output to fit more parameters in
+    
+    82: sluys, 07/08/2009
+     - 2D PDFs now waveform independent
+     - Changed output filenames, using GPS time, detectors and waveform
+     - Wiki output now waveform independent
+     
+    81: sluys, 05/08/2009
+     - Bugfix at data wrapping (_stats.f)
+     - More optimisation of 1D plots
+     
+    80: sluys, 05/08/2009
+     - Removed version everywhere
+     - Partly optimised 1D plots	
+          
+    79: sluys, 05/08/2009
+     - Removed version in functions (except reading from file) and stats
+     - Removed par1,par2 everywhere
+     - logL no longer treated as parameter 1 in functions and stats
+     
+    78: sluys, 04/08/2009
+     - Rename pldat -> allDat, since it contains all MCMC data
+     - Rename alldat -> selDat, since it contains data after burn-in
+     - Remove original dat() array, since it's no longer double, hence 
+       identical to allDat - should save some memory
+     - Set parameter names, symbols and units using new parameter DB
+     - Do parameter conversion using parameter DB
+          
+    77: sluys, 02/08/2009
+     - remove support for sigma and acceptance-rate output:  analysemcmc.dat changed !!!
+     - rename nchs -> maxChs,  npar1 -> maxMCMCpar, narr1 -> maxIter
+     - remove npar0
+     
+    76: sluys, 02/08/2009
+     - read data and determine GPS time
+     
+    75: sluys, 02/08/2009
+     - branch off n-par development
+    
+    
+    **************************************************************************************
+    
+    
+    74: sluys, 29/07/2009
      - Put temporary timestamp file in ~
      - Update wiki output
      

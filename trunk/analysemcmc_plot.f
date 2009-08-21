@@ -2,10 +2,10 @@
 
 
 !************************************************************************************************************************************
-subroutine pginitl(colour,file,whitebg)  !Initialise pgplot
+subroutine pginitl(colour,file,whiteBG)  !Initialise pgplot
   implicit none
-  integer :: colour,file,i,whitebg
-  if(whitebg.ge.1) then
+  integer :: colour,file,i,whiteBG
+  if(whiteBG.ge.1) then
      call pgscr(0,1.,1.,1.) !Background colour always white (also on screen, bitmap)
      call pgscr(1,0.,0.,0.) !Default foreground colour always black
      if(file.le.1) then !png: create white background
