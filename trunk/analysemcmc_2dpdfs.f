@@ -915,18 +915,21 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Comp
   do i=1,n
      bx = floor((x(i) - xmin)/dx) + 1 
      by = floor((y(i) - ymin)/dy) + 1
-     if(bx.lt.1.or.bx.gt.nxbin.or.by.lt.1.or.by.gt.nybin) then
-        if(bx.lt.0.or.bx.gt.nxbin+1.or.by.lt.0.or.by.gt.nybin+1) then  !Treat an error of 1 bin as round-off
-           bx = max(min(bx,nxbin),1)
-           by = max(min(by,nybin),1)
-           z(bx,by) = z(bx,by) + 1.
-        else
-           if(bx.lt.0.or.bx.gt.nxbin+1) write(0,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for X data point',i,' (',x(i),').  I found bin',bx,', but it should lie between 1 and',nxbin,'.'
-           if(by.lt.0.or.by.gt.nybin+1) write(0,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for Y data point',i,' (',y(i),').  I found bin',by,', but it should lie between 1 and',nybin,'.'
-        end if
-     else
-        z(bx,by) = z(bx,by) + 1.
-     end if
+     !if(bx.lt.1.or.bx.gt.nxbin.or.by.lt.1.or.by.gt.nybin) then
+     !   if(bx.eq.0.or.bx.eq.nxbin+1) bx = max(min(bx,nxbin),1)  !Treat an error of 1 x bin as round-off
+     !   if(by.eq.0.or.by.eq.nybin+1) by = max(min(by,nybin),1)  !Treat an error of 1 y bin as round-off
+     !   
+     !   if(bx.lt.0.or.bx.gt.nxbin+1) then
+     !      !write(0,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for X data point',i,' (',x(i),').  I found bin',bx,', but it should lie between 1 and',nxbin,'.'
+     !   else if(by.lt.0.or.by.gt.nybin+1) then
+     !      !write(0,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for Y data point',i,' (',y(i),').  I found bin',by,', but it should lie between 1 and',nybin,'.'
+     !   else
+     !      z(bx,by) = z(bx,by) + 1.
+     !   end if
+     !else
+     !   z(bx,by) = z(bx,by) + 1.
+     !end if
+     if(bx.ge.1.and.bx.le.nxbin.and.by.ge.1.and.by.le.nybin) z(bx,by) = z(bx,by) + 1.  !Don't treat 1-bin errors as round-off
   end do
   
   !if(norm.eq.1) z = z/(ztot+1.e-30)

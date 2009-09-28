@@ -25,7 +25,7 @@ subroutine setconstants
   
   
   detabbrs = (/'H1','L1','V ','H2'/)
-  waveforms = (/'Apostolatos','SpinTaylor12','SpinTaylor15','PPN'/)
+  waveforms = (/'Unknown','Apostolatos','SpinTaylor12','SpinTaylor15','PPN'/) !0-4
   
   upline = char(27)//'[2A'  !Printing this makes the cursor move up one line (actually two lines, since a hard return is included)
 end subroutine setconstants

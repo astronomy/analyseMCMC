@@ -2,6 +2,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    94: sluys, 28/09/2009
+     - Fixed treatment of boundary bin in 2D binning
+          
+    93: sluys, 21/08/2009
+     - Merged n-par branch back into trunk
+     
     91: sluys, 21/08/2009
      - Added routine ra2lon()
      
