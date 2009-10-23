@@ -2,8 +2,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    95: sluys, 23/10/2009
+     - Use own routine iso pgimage for non-projected 2D PDFs
+     - Files to plot starry sky should go to ~/usr/lib/
+               
     94: sluys, 28/09/2009
-     - Fixed treatment of boundary bin in 2D binning
+     - Fixed treatment of boundary bins in 2D binning
           
     93: sluys, 21/08/2009
      - Merged n-par branch back into trunk

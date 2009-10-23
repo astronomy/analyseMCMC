@@ -388,7 +388,8 @@ subroutine pdfs2d(exitcode)
                  call pgimag_project(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr,map_projection)
               else
                  if(prProgress.ge.3) write(6,'(A,$)')'  plotting 2D PDF...'
-                 call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr)
+                 !call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr) !Gives seg.fault (on amd64) - but why?
+                 call pgimag_project(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr,0)  !0-no projection
               end if
            end if
            
@@ -1183,7 +1184,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
   real*8 :: ra(ns),dec(ns),d2r,r2d,r2h,pi,tpi,dx1,dx2,dy,ra1,dec1,drev2pi,par
   real :: pma,pmd,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
   real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,bx1,bx2,by1,by2,x,y,mlim,rashift
-  character :: cn(100)*3,con(100)*20,name*10,vsopdir*99,sn(ns)*10,snam(nsn)*10,sni*10,getsname*10,mult,var*9
+  character :: cn(100)*3,con(100)*20,name*10,sn(ns)*10,snam(nsn)*10,sni*10,getsname*10,mult,var*9
   
   mlim = 6.            !Magnitude limit for stars
   sllim = 2.5          !Limit for labels
@@ -1218,9 +1219,8 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
      bx2 = x
   end if
   
-  !Read BSC
-  vsopdir = '/home/sluys/diverse/popular/TheSky/'           !Linux pc
-  open(unit=20,form='formatted',status='old',file=trim(vsopdir)//'data/bsc.dat')
+  !Read bright-star catalogue (BSC)
+  open(unit=20,form='formatted',status='old',file=trim(homedir)//'/bsc.dat')
   rewind(20)
   do i=1,ns
      read(20,320)name,ra(i),dec(i),pma,pmd,rv,vm(i),par,mult,var
@@ -1231,8 +1231,8 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
   close(20)
 
 
-  !Read Constellation figure data
-  open(unit=40,form='formatted',status='old',file=trim(vsopdir)//'data/bsc_const.dat')
+  !Read Constellation figure data for BSC
+  open(unit=40,form='formatted',status='old',file=trim(homedir)//'/bsc_const.dat')
   do i=1,ns
      read(40,'(I4)',end=340,advance='no')c(i,1)
      do j=1,c(i,1)
@@ -1262,8 +1262,8 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
 340 close(40)
   nc = i-1
   
-  !Read Star names
-  open(unit=50,form='formatted',status='old',file=trim(vsopdir)//'data/bsc_names.dat')
+  !Read star names
+  open(unit=50,form='formatted',status='old',file=trim(homedir)//'/bsc_names.dat')
   do i=1,nsn
      read(50,'(I4,2x,A10)',end=350)snr(i),snam(i)
   end do
@@ -1273,7 +1273,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
   !!Read Milky Way data
   !do f=1,5
   !   write(mwfname,'(A10,I1,A4)')'milkyway_s',f,'.dat'
-  !   open(unit=60,form='formatted',status='old',file=trim(vsopdir)//'data/'//mwfname)
+  !   open(unit=60,form='formatted',status='old',file=trim(homedir)//'data/'//mwfname)
   !   do i=1,mwn(f)
   !      read(60,'(F7.5,F9.5)')mwa(f,i),mwd(f,i)
   !      if(maptype.eq.1) call eq2az(mwa(f,i),mwd(f,i),agst)
@@ -1308,6 +1308,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
      call pgsch(schfac)
      call pgscf(fonttype)
   end if !if(plcst.gt.0) then
+  
   
   !Plot stars: BSC
   spld = 0
@@ -1453,7 +1454,7 @@ end function getmag
 
 
 !*****************************************************************************************************************************************************
-subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)  !Clone of pgimag, use projection
+subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)  !Clone of pgimag, use projection if projection > 0
   use constants
   use general_data
   implicit none
