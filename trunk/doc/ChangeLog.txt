@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    96: sluys, 23/10/2009
+     - Make sure variable homedir gets everywhere it needs to be
+                    
     95: sluys, 23/10/2009
      - Use own routine iso pgimage for non-projected 2D PDFs
      - Files to plot starry sky should go to ~/usr/lib/

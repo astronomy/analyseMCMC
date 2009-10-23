@@ -28,6 +28,8 @@ subroutine setconstants
   waveforms = (/'Unknown','Apostolatos','SpinTaylor12','SpinTaylor15','PPN'/) !0-4
   
   upline = char(27)//'[2A'  !Printing this makes the cursor move up one line (actually two lines, since a hard return is included)
+  
+  call getenv('HOME',homedir)  !Get the current user's home directory
 end subroutine setconstants
 !***************************************************************************************************
 
@@ -1681,13 +1683,12 @@ end function getos
 
 
 !************************************************************************
-function timestamp(os)  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
+function timestamp  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
+  use constants
   implicit none
   real*8 :: timestamp
-  integer :: os,i,system
-  character :: fname*99,homedir*99
-  
-  call getenv('HOME',homedir)
+  integer :: i,system
+  character :: fname*99
   
   fname = trim(homedir)//'/.analysemcmc_timestamp'
   if(os.eq.1) then !Linux

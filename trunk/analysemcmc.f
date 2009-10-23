@@ -28,12 +28,12 @@ program analyseMCMC
   wikioutput = 1  !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
   map_projection = 1  !Choose map projection: 1-Mollweide
   
+  call setconstants           !Define mathematical constants
   os = getos() !1-Linux, 2-MacOS
-  timestamps(1) = timestamp(os)
+  timestamps(1) = timestamp()
   write(6,*)
   
   
-  call setconstants           !Define mathematical constants
   call set_plotsettings()     !Set plot settings to 'default' values
   call read_settingsfile()    !Read the plot settings (overwrite the defaults)
   call write_settingsfile()   !Write the input file back to disc
@@ -189,7 +189,7 @@ program analyseMCMC
   if(exitcode.ne.0) goto 9999
   
   !Get and print some basic chain statistics:
-  timestamps(2) = timestamp(os)
+  timestamps(2) = timestamp()
   call mcmcruninfo(exitcode)
   
   !More implicit options:
@@ -225,7 +225,7 @@ program analyseMCMC
   ! ***  DO STATISTICS   *************************************************************************************************************
   ! **********************************************************************************************************************************
   
-  timestamps(3) = timestamp(os)
+  timestamps(3) = timestamp()
   
   call statistics(exitcode)
   if(exitcode.ne.0) goto 9999
@@ -238,7 +238,7 @@ program analyseMCMC
   ! ***  CREATE PLOTS   **************************************************************************************************************
   ! **********************************************************************************************************************************
   
-  timestamps(4) = timestamp(os)
+  timestamps(4) = timestamp()
   
   if(prProgress.ge.2) write(6,*)''
   if(plot.eq.1.and.prProgress.ge.1.and.update.eq.0) then
@@ -257,7 +257,7 @@ program analyseMCMC
      call chains(exitcode)
      if(exitcode.ne.0) goto 9999
   end if
-  timestamps(5) = timestamp(os)
+  timestamps(5) = timestamp()
   
   
   
@@ -268,7 +268,7 @@ program analyseMCMC
      call pdfs1d(exitcode)
      if(exitcode.ne.0) goto 9999
   end if !if(plPDF1D.ge.1)
-  timestamps(6) = timestamp(os)
+  timestamps(6) = timestamp()
   
   
   
@@ -290,7 +290,7 @@ program analyseMCMC
      if(prProgress.ge.1.and.update.eq.0.and.plot.gt.0) write(6,'(A,/)')' done.  '
   end if
   
-  timestamps(7) = timestamp(os)  
+  timestamps(7) = timestamp()  
   
   
   
@@ -310,7 +310,7 @@ program analyseMCMC
   
   !***********************************************************************************************************************************      
   
-  timestamps(8) = timestamp(os)
+  timestamps(8) = timestamp()
   
   if(plAnim.ge.1) then
      call animation(exitcode)
@@ -335,7 +335,7 @@ program analyseMCMC
   deallocate(allDat,selDat,post,prior)
   !if(prProgress.ge.1) write(6,*)''
   
-  timestamps(9) = timestamp(os)
+  timestamps(9) = timestamp()
   
   if(prProgress.ge.1) then
      write(6,'(A,$)')'  Run time: '

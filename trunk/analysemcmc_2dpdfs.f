@@ -1177,11 +1177,12 @@ end function truerange2d
 
 !************************************************************************************************************************************
 subroutine plotthesky(bx1,bx2,by1,by2,rashift)
+  use constants
   use plot_data
   implicit none
   integer, parameter :: ns=9110, nsn=80
   integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,spld,n,prslbl,rv
-  real*8 :: ra(ns),dec(ns),d2r,r2d,r2h,pi,tpi,dx1,dx2,dy,ra1,dec1,drev2pi,par
+  real*8 :: ra(ns),dec(ns),dx1,dx2,dy,ra1,dec1,drev2pi,par
   real :: pma,pmd,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
   real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,bx1,bx2,by1,by2,x,y,mlim,rashift
   character :: cn(100)*3,con(100)*20,name*10,sn(ns)*10,snam(nsn)*10,sni*10,getsname*10,mult,var*9
@@ -1204,14 +1205,6 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
   call pgqcr(4,r4,g4,b4)
   call pgscr(1,1.,1.,1.) !'White' (for stars)
   call pgscr(4,x,x,1.) !Blue (for constellations)
-  
-  pi = 4*atan(1.d0)
-  tpi = 2*pi
-  d2r = pi/180.d0
-  r2d = 180.d0/pi
-  r2h = 12.d0/pi
-  r2h = r2d
-  
   
   if(bx1.gt.bx2) then
      x = bx1
@@ -1255,8 +1248,8 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
      !call eq2xy(ra1,dec1,l0,b0,x1,y1)
      !constx(i) = x1
      !consty(i) = y1
-     !constx(i) = real(ra1*r2h)
-     constx(i) = real((mod(ra1+rashift,tpi)-rashift)*r2h)
+     !constx(i) = real(ra1*r2d)
+     constx(i) = real((mod(ra1+rashift,tpi)-rashift)*r2d)
      consty(i) = real(dec1*r2d)
   end do
 340 close(40)
@@ -1294,9 +1287,9 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
         do j=2,c(i,1)
            !call eq2xy(ra(c(i,j)),dec(c(i,j)),l0,b0,x1,y1)
            !call eq2xy(ra(c(i,j+1)),dec(c(i,j+1)),l0,b0,x2,y2)
-           x1 = real(ra(c(i,j))*r2h)
+           x1 = real(ra(c(i,j))*r2d)
            y1 = real(dec(c(i,j))*r2d)
-           x2 = real(ra(c(i,j+1))*r2h)
+           x2 = real(ra(c(i,j+1))*r2d)
            y2 = real(dec(c(i,j+1))*r2d)
            !if((x1*x1+y1*y1.le.prinf.or.x2*x2+y2*y2.le.prinf).and.(x2-x1)**2+(y2-y1)**2.le.90.**2) & !Not too far from centre and each other 
            if((x2-x1)**2+(y2-y1)**2.le.90.**2)  call pgline(2,(/x1,x2/),(/y1,y2/))  !Not too far from centre and each other 
@@ -1317,7 +1310,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
      do i=1,ns
         if(vm(i).lt.mlim.and.vm(i).ne.0.) then
            !call eq2xy(ra(i),dec(i),l0,b0,x,y)
-           x = real(ra(i)*r2h)
+           x = real(ra(i)*r2d)
            y = real(dec(i)*r2d)
            if(x.lt.bx1.or.x.gt.bx2.or.y.lt.by1.or.y.gt.by2) cycle
            call pgsci(1)
@@ -1349,7 +1342,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
         do i=1,nsn
            if(vm(snr(i)).lt.max(snlim,1.4)) then  !Regulus (1.35) will still be plotted, for conjunction maps
               !call eq2xy(ra(snr(i)),dec(snr(i)),l0,b0,x,y)
-              x = real(ra(snr(i))*r2h)
+              x = real(ra(snr(i))*r2d)
               y = real(dec(snr(i))*r2d)
               if(x.lt.bx1.or.x.gt.bx2.or.y.lt.by1.or.y.gt.by2) cycle
               call pgtext(x+0.02*sz1,y-0.02*sz1,snam(i))
