@@ -246,7 +246,7 @@ subroutine pdfs2d(exitcode)
               !write(6,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
               do i=1,Nival
                  if(prIval.ge.1.and.prProgress.ge.2 .and. (sky_position .or. binary_orientation)) then  !For sky position and orientation only
-                    if(i.eq.1) write(6,*)
+                    if(i.eq.1) write(6,'(/,1x,A10,A13,3A23)')'Nr.','Ival frac.','Area (sq.deg) ','Circ. area rad. (deg) ','Fraction of sky '
                     write(6,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probarea(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
                  end if
                  probareas(p1,p2,i,1) = probarea(i)*(pi/180.)**2/(4*pi)  !Fraction of the sky

@@ -196,7 +196,7 @@ subroutine write_settingsfile
   write(u,11)prProgress, 'prProgress',   'Print general messages about the progress of the program: 0-no, 1-some, 2-more, 3-debug output'
   write(u,11)prRunInfo, 'prRunInfo',   'Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files'
   write(u,11)prChainInfo, 'prChainInfo',   'Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per chain (file name, plot colour, # iterations, burnin, Lmax, # data points)'
-  write(u,11)prInitial, 'prInitial',   'Print true values, starting values and their difference'
+  write(u,11)prInitial, 'prInitial',   'Print starting values for each chain: 0-no, 1-yes, 2-add injection value, 3-add Lmax value, 4-add differences (~triples number of output lines for this part)'
   write(u,11)prStat, 'prStat',   'Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals'
   write(u,11)prCorr, 'prCorr',   'Print correlations: 0-no, 1-yes'
   write(u,11)prIval, 'prIval',   'Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both'
@@ -755,7 +755,9 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   jumps = 0.
   offsetrun = 0
   if(prInitial.ne.0) then
-     write(6,'(/,A)')'  True, starting and Lmax values for the chains:'
+     if(prInitial.eq.1) write(6,'(/,A)')'  Starting values for the chains:'
+     if(prInitial.eq.2) write(6,'(/,A)')'  Injection and starting values for the chains:'
+     if(prInitial.ge.3) write(6,'(/,A)')'  Injection, starting and Lmax values for the chains:'
      write(6,'(5x,A10,$)')''
      do p=1,nMCMCpar
         write(6,'(A9,$)')trim(parNames(parID(p)))
@@ -768,12 +770,13 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      startval(ic,1:nMCMCpar,3)    = allDat(icloglmax,1:nMCMCpar,iloglmax) !Lmax value
      jumps(ic,1:nMCMCpar,2:n(ic)) = allDat(ic,1:nMCMCpar,2:n(ic)) -  allDat(ic,1:nMCMCpar,1:n(ic)-1)
      if(prInitial.ne.0) then 
-        if(ic.eq.1) then
-           write(6,'(5x,A10,$)')'True:  '
+        if(ic.eq.1.and.prInitial.ge.2) then
+           write(6,'(4x,A11,$)')'Injection:  '
            do p=1,nMCMCpar
               write(6,'(F9.4,$)')startval(1,p,1)
            end do
-           write(6,'(/)')
+           write(6,*)
+           if(prInitial.ge.4) write(6,*)
         end if
         if(abs((sum(startval(ic,1:nMCMCpar,1))-sum(startval(ic,1:nMCMCpar,2)))/sum(startval(ic,1:nMCMCpar,1))).gt.1.e-10) then
            offsetrun = 1
@@ -782,25 +785,30 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
               write(6,'(F9.4,$)')startval(ic,p,2)
            end do
            write(6,*)
-           write(6,'(5x,A10,$)')'Diff:  '
-           do p=1,nMCMCpar
-              write(6,'(F9.4,$)')abs(startval(ic,p,1)-startval(ic,p,2))
-           end do
-           write(6,'(/)')
+           if(prInitial.ge.4) then
+              write(6,'(5x,A10,$)')'Diff:  '
+              do p=1,nMCMCpar
+                 write(6,'(F9.4,$)')abs(startval(ic,p,1)-startval(ic,p,2))
+              end do
+              write(6,'(/)')
+           end if
         end if
      end if
   end do
-  if(prInitial.ne.0) then
+  if(prInitial.ge.3) then
      write(6,'(5x,A10,$)')'Lmax:  '
      do p=1,nMCMCpar
         write(6,'(F9.4,$)')startval(1,p,3)
      end do
      write(6,*)
-     write(6,'(5x,A10,$)')'Diff:  '
-     do p=1,nMCMCpar
-        write(6,'(F9.4,$)')abs(startval(1,p,1)-startval(1,p,3))
-     end do
-     write(6,'(/)')
+     if(prInitial.ge.4) then
+        write(6,'(5x,A10,$)')'Diff:  '
+        do p=1,nMCMCpar
+           write(6,'(F9.4,$)')abs(startval(1,p,1)-startval(1,p,3))
+        end do
+        write(6,*)
+     end if
+     write(6,*)
   end if
   
   
@@ -1683,7 +1691,7 @@ end function getos
 
 
 !************************************************************************
-function timestamp  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
+function timestamp()  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
   use constants
   implicit none
   real*8 :: timestamp

@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    97: sluys, 27/10/2009
+     - Added doc/analysemcmc_default.dat
+     - More flexibility in printing initial/injection/Lmax parameters to screen
+                    
     96: sluys, 23/10/2009
      - Make sure variable homedir gets everywhere it needs to be
                     
