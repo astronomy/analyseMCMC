@@ -2,8 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+    99: sluys, 09/11/2009
+     - changed character arrays in comp_pdfs and mcmcstat to comply with gfortran-4.4.2
+     
     98: sluys, 09/11/2009
-     - changed character arrays to comply with gfortran-4.4.2
+     - changed character arrays in analysemcmc to comply with gfortran-4.4.2
      - solved minor bug of deallocated unallocated arrays when no input file found
      
     97: sluys, 27/10/2009

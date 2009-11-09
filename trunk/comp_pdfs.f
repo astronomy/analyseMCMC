@@ -56,8 +56,8 @@ program comp_pdfs
   
   
   
-  !varnss(1:15)  = (/'logL','Mc','eta','t_c','d_L','a_spin','theta_SL','RA','Dec','phi_c','theta_J0','phi_J0','alpha_c','M1','M2'/)
-  varnss(1:15)  = (/'logL','Mc','eta','t_c','d_L','a_spin','theta_SL','RA','Dec','phi_c','incl','polang','alpha_c','M1','M2'/)
+  !varnss(1:15)  = [character(len=8) :: 'logL','Mc','eta','t_c','d_L','a_spin','theta_SL','RA','Dec','phi_c','theta_J0','phi_J0','alpha_c','M1','M2']
+  varnss(1:15)  = [character(len=8) :: 'logL','Mc','eta','t_c','d_L','a_spin','theta_SL','RA','Dec','phi_c','incl','polang','alpha_c','M1','M2']
   do f=1,nf
      if(dim.eq.2) then
         write(fnames(f),'(A)')trim(dirnames(f))//'/'//trim(fnames(f))//'__pdf2d.dat'
@@ -161,7 +161,7 @@ program comp_pdfs
   end do  !fry
   call pgend
   
-  exts = (/'    ','.png','.eps','.pdf'/) !Extensions for the different file types
+  exts = [character(len=4) :: '    ','.png','.eps','.pdf'] !Extensions for the different file types
   if(dim.eq.1) write(outname,'(A,I1,A)')trim(outnamebase)//'__',dim,'d'//exts(file)
   if(dim.eq.2) write(outname,'(A,I1,A)')trim(outnamebase)//'__',dim,'d__'//trim(varnss(plpars2d(1)))//'-'//trim(varnss(plpars2d(2)))//exts(file)
   if(file.eq.1) then
