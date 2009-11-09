@@ -158,7 +158,7 @@ program analyseMCMC
   if(file.ge.1) update = 0
   if(plAnim.ge.1) update = 0
   
-  colournames(1:15) = (/'white','red','dark green','dark blue','cyan','magenta','yellow','orange','light green','brown','dark red','purple','red-purple','dark grey','light grey'/)
+  colournames(1:15) = [character(len=20) :: 'white','red','dark green','dark blue','cyan','magenta','yellow','orange','light green','brown','dark red','purple','red-purple','dark grey','light grey']
   if(file.ge.2) colournames(1) = 'black'
   
   call set_originalParameterNames()  !Set the names and symbols of the original MCMC parameters in the database
@@ -186,7 +186,7 @@ program analyseMCMC
 101 continue
   !Read the input files:
   call read_mcmcfiles(exitcode)
-  if(exitcode.ne.0) goto 9999
+  if(exitcode.ne.0) goto 9998
   
   !Get and print some basic chain statistics:
   timestamps(2) = timestamp()
@@ -332,12 +332,14 @@ program analyseMCMC
   !pause
   
 9999 continue
-  deallocate(allDat,selDat,post,prior)
+  deallocate(selDat)
+9998 continue
+  deallocate(allDat,post,prior)
   !if(prProgress.ge.1) write(6,*)''
   
   timestamps(9) = timestamp()
   
-  if(prProgress.ge.1) then
+  if(prProgress.ge.1.and.exitcode.eq.0) then
      write(6,'(A,$)')'  Run time: '
      write(6,'(A,F5.1,A,$)')'   input:',min(abs(timestamps(2)-timestamps(1)),999.9),'s,'
      !write(6,'(A,F5.1,A,$)')'   info:',min(abs(timestamps(3)-timestamps(2)),999.9),'s,'

@@ -1197,6 +1197,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
   schcon = 1.
   plstar = 1  !0-no, 1-yes no label, 2-symbol, 3-name, 4-name or symbol, 5-name and symbol
   plcst = 2   !0-no, 1-figures, 2-figures+abbreviations, 3-figures+names
+  sz1 = 1.    !CHECK Get rid of this variable?
   
   prinf = 150.**2
   
