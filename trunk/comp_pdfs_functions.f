@@ -25,17 +25,17 @@ subroutine plotpdf1d(pp,lbl)
   integer :: pp,b,p1,io,f,nplvar,nchains,nbin(nf),p(np),pp1,ic,wrap(nf,np),lw,detnan(nf,np),identical
   real :: x,startval(nf,np,2),stats(nf,np,6),ranges(nf,np,5),xmin1(nf,np),xmax1(nf,np),plshift
   real :: xbin1(nf,np,nbin1),ybin1(nf,np,nbin1),xbin(nbin1),ybin(nbin1),xmin,xmax,ymin,ymax,dx,yrange(2),xpeak
-  character :: fname*99,varnss(np)*99,pgvarnss(np)*99,pgunits(np)*99,lbl*99,str*99
+  character :: fname*99,varnss(np)*99,pgvarnss(np)*99,pgunits(np)*99,lbl*99,str*99,tmpstr
   
   
   !varnss(1:15)  = [character(len=99) :: 'log L','Mc','eta','t_c','d_L','a_spin','theta_SL','R.A.','Dec.','phi_c','theta_J0','phi_J0','alpha_c','M1','M2']
-  varnss(1:15)  = [character(len=99) :: 'log L','Mc','eta','t_c','d_L','a_spin','theta_SL','R.A.','Dec.','phi_c','incl','polang','alpha_c','M1','M2']
-  pgvarnss(1:15)  = [character(len=99) :: 'log L','M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.','\(2147)\dc\u','acos(J\(2236)N)','\(2149)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u']
+  varnss(1:14)  = [character(len=99) :: 'Mc','eta','t_c','d_L','a_spin','theta_SL','R.A.','Dec.','phi_c','incl','polang','alpha_c','M1','M2']
+  pgvarnss(1:14)  = [character(len=99) :: 'M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.','\(2147)\dc\u','acos(J\(2236)N)','\(2149)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u']
   !Include units
-  pgvarnss(1:15)  = [character(len=99) :: 'log L','M\dc\u (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2134)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
+  pgvarnss(1:14)  = [character(len=99) :: 'M\dc\u (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2134)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
        'acos(J\(2236)N) (\(2218))','\(2149)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)']
   !Units only
-  pgunits(1:15)  = [character(len=99) :: '','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u']
+  pgunits(1:14)  = [character(len=99) :: 'M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u']
   
   
   detnan = 0 !Used to detect NaNs
@@ -54,6 +54,7 @@ subroutine plotpdf1d(pp,lbl)
      read(10,'(3I6)')nplvar,nchains,nbin(f) !'Total number of plot variables, total number of chains, number of bins'
      !print*,nplvar,nchains,nbin
      do p1=1,nplvar
+        read(10,*)tmpstr  !Read empty line
         read(10,'(3I6)')ic,p(p1),wrap(f,p1) !'Chain number, variable number, and wrap'
         read(10,'(2E15.7)')startval(f,p1,1:2) !'True and starting value'
         read(10,'(6E15.7)')stats(f,p1,1:6) !'Stats: median, mean, absvar1, absvar2, stdev1, stdev2'
@@ -74,17 +75,22 @@ subroutine plotpdf1d(pp,lbl)
               ybin1(f,p1,b) = 0.
            end if
         end do
-        if(p(p1).eq.pp) pp1 = p1
+        if(p(p1).eq.pp) then
+           pp1 = p1
+           print*,p(p1),pp,pp1,p1
+        end if
      end do !p1
      
      close(10)
   end do !f
   
+  
   !print*,pp1
   if(sum(detnan).gt.0) write(*,'(A)')'  Warning:  I think I detected NaNs and set them to zero in the PDF for '//trim(varnss(pp))//'.'
   
-  xmin = minval(xmin1(1:nf,pp1))
-  xmax = maxval(xmax1(1:nf,pp1))
+  xmin = minval(xmin1(1:nf,p(pp1)))
+  xmax = maxval(xmax1(1:nf,p(pp1)))
+  print*,pp1,p(pp1),xmin,xmax
   dx = abs(xmax-xmin)
   if(dx.lt.1.e-30) dx = xmin !xmin=xmax
   if(dx.lt.1.e-30) dx = 0.1  !If it's still zero (i.e. xmin=xmax=0)
@@ -101,7 +107,7 @@ subroutine plotpdf1d(pp,lbl)
         end if
      end do
   end do
-  !print*,f,pp1,xpeak
+  !print*,f,pp1!,xpeak
   
   ymax = ymax*1.1
   if(nf.eq.1) ymax = ymax*1.2 !Make room for numbers
@@ -307,13 +313,13 @@ subroutine plotpdf2d(pp1,pp2,lbl)
   character :: fname*99,pgvarnss(np)*99,pgunits(np)*99,lbl*99,str*99
   
   
-  pgvarnss(1:15)  = [character(len=99) :: 'log L','M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.','\(2147)\dc\u','acos(J\(2236)N)','\(2149)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u']
+  pgvarnss(1:14)  = [character(len=99) :: 'M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.','\(2147)\dc\u','acos(J\(2236)N)','\(2149)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u']
   !Include units
-  pgvarnss(1:15)  = [character(len=99) :: 'log L','M\dc\u (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2134)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
+  pgvarnss(1:14)  = [character(len=99) :: 'M\dc\u (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2134)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
        'acos(J\(2236)N) (\(2218))','\(2149)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)']
   
   !Units only
-  pgunits(1:15)  = [character(len=99) :: '','M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u']
+  pgunits(1:14)  = [character(len=99) :: 'M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u']
 
   
   

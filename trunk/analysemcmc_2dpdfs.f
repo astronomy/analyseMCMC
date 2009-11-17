@@ -807,12 +807,12 @@ subroutine bindata2dold(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !C
   ymin = ymin1
   ymax = ymax1
   
-  if(abs(xmin-xmax)/(xmax+1.e-30).lt.1.e-20) then !Autodetermine
+  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then !Autodetermine
      xmin = minval(x(1:n))
      xmax = maxval(x(1:n))
   end if
   dx = abs(xmax - xmin)/real(nxbin)
-  if(abs(ymin-ymax)/(ymax+1.e-30).lt.1.e-20) then !Autodetermine
+  if(abs((ymin-ymax)/(ymax+1.e-30)).lt.1.e-20) then !Autodetermine
      ymin = minval(y(1:n))
      ymax = maxval(y(1:n))
   end if
@@ -853,11 +853,11 @@ subroutine bindata2dold(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !C
   !if(norm.eq.1) z = z/(ztot+1.e-30)
   if(norm.eq.1) z = z/maxval(z+1.e-30)
   
-  if(abs(xmin1-xmax1)/(xmax1+1.e-30).lt.1.e-20) then
+  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  !Autodetermine
      xmin1 = xmin
      xmax1 = xmax
   end if
-  if(abs(ymin1-ymax1)/(ymax1+1.e-30).lt.1.e-20) then
+  if(abs((ymin1-ymax1)/(ymax1+1.e-30)).lt.1.e-20) then  !Autodetermine
      ymin1 = ymin
      ymax1 = ymax
   end if
@@ -891,12 +891,12 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Comp
   ymin = ymin1
   ymax = ymax1
   
-  if(abs(xmin-xmax)/(xmax+1.e-30).lt.1.e-20) then !Autodetermine
+  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then !Autodetermine
      xmin = minval(x(1:n))
      xmax = maxval(x(1:n))
   end if
   dx = abs(xmax - xmin)/real(nxbin)
-  if(abs(ymin-ymax)/(ymax+1.e-30).lt.1.e-20) then !Autodetermine
+  if(abs((ymin-ymax)/(ymax+1.e-30)).lt.1.e-20) then !Autodetermine
      ymin = minval(y(1:n))
      ymax = maxval(y(1:n))
   end if
@@ -936,11 +936,11 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Comp
   !if(norm.eq.1) z = z/(ztot+1.e-30)
   if(norm.eq.1) z = z/maxval(z+1.e-30)
   
-  if(abs(xmin1-xmax1)/(xmax1+1.e-30).lt.1.e-20) then
+  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  !Autodetermine
      xmin1 = xmin
      xmax1 = xmax
   end if
-  if(abs(ymin1-ymax1)/(ymax1+1.e-30).lt.1.e-20) then
+  if(abs((ymin1-ymax1)/(ymax1+1.e-30)).lt.1.e-20) then  !Autodetermine
      ymin1 = ymin
      ymax1 = ymax
   end if
@@ -975,12 +975,12 @@ subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)  !
   ymax = ymax1
   zmin = minval(z)
   
-  if(abs(xmin-xmax)/(xmax+1.e-30).lt.1.e-20) then !Autodetermine
+  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then !Autodetermine
      xmin = minval(x(1:n))
      xmax = maxval(x(1:n))
   end if
   dx = abs(xmax - xmin)/real(nxbin)
-  if(abs(ymin-ymax)/(ymax+1.e-30).lt.1.e-20) then !Autodetermine
+  if(abs((ymin-ymax)/(ymax+1.e-30)).lt.1.e-20) then !Autodetermine
      ymin = minval(y(1:n))
      ymax = maxval(y(1:n))
   end if
@@ -1017,11 +1017,11 @@ subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)  !
   !if(norm.eq.1) z = z/(zztot+1.e-30)
   if(norm.eq.1) z = z/maxval(z+1.e-30)
   
-  if(abs(xmin1-xmax1)/(xmax1+1.e-30).lt.1.e-20) then
+  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  !Autodetermine
      xmin1 = xmin
      xmax1 = xmax
   end if
-  if(abs(ymin1-ymax1)/(ymax1+1.e-30).lt.1.e-20) then
+  if(abs((ymin1-ymax1)/(ymax1+1.e-30)).lt.1.e-20) then  !Autodetermine
      ymin1 = ymin
      ymax1 = ymax
   end if

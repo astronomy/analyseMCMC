@@ -119,8 +119,8 @@ subroutine pdfs1d(exitcode)
   !Save 1D PDF data
   if(savePDF.eq.1) then
      open(unit=30,action='write',form='formatted',status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__pdf1d.dat')
-     write(30,'(3I6,T100,A)')nPlPar,nchains,Nbin1D,'Total number of plot parameters, total number of chains, number of bins'
-     !write(30,'(3I6,T100,A)')nPlPar-nfixedpar,nchains,Nbin1D,'Total number of plot parameters, total number of chains, number of bins'
+     write(30,'(3I6,T101,A)')nPlPar,nchains,Nbin1D,'Total number of plot parameters, total number of chains, number of bins'
+     !write(30,'(3I6,T101,A)')nPlPar-nfixedpar,nchains,Nbin1D,'Total number of plot parameters, total number of chains, number of bins'
   end if
   
   do j=1,nPlPar
@@ -207,12 +207,16 @@ subroutine pdfs1d(exitcode)
         if(savePDF.eq.1) then
            !if(savePDF.eq.1.and.fixedpar(p).eq.0) then
            if(fixedpar(p).eq.1) ybin1 = 0.  !Prevent NaNs
-           write(30,'(3I6,T100,A)')ic,p,wrap(ic,p),'Chain number, parameter number, and wrap'
-           write(30,'(2ES15.7,T100,A)')startval(ic,p,1:2),'True and starting value'
-           write(30,'(6ES15.7,T100,A)')stats(ic,p,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2'
-           write(30,'(5ES15.7,T100,A)')ranges(ic,c0,p,1:5),'Ranges: lower,upper limit, centre, width, relative width'
-           write(30,'(2ES15.7,T100,A)')xmin1,xmax1,'Xmin and Xmax of PDF'
-           do i=1,Nbin1D+1
+           write(30,'(A)')'--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------'
+           write(30,'(3I6,T31,A10,T101,A)')ic,parID(p),wrap(ic,p),parNames(parID(p)),'Chain number, parameter ID, wrap (1/0 = y/n) and parameter name  (ic, parID(), wrap(), parNames())'
+           write(30,'(2ES15.7,T101,A)')startval(ic,p,1:2),'True and starting value  (startval(1:2)'
+           write(30,'(6ES15.7,T101,A)')stats(ic,p,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2  (stats(1:6))'
+           write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p,1:5),'Ranges: lower,upper limit, centre, width, relative width  (ranges(1:5))'
+           write(30,'(2ES15.7,T101,A)')xmin1,xmax1,'Xmin and Xmax of PDF  (xmin1,xmax1)'
+           
+           !Bin contents:
+           write(30,'(2ES15.7,T101,A,I4,A)')xbin1(1),ybin1(1),'The X and Y values of the',Nbin1D,' bins  (xbin1,ybin1)'
+           do i=2,Nbin1D+1
               write(30,'(2ES15.7)')xbin1(i),ybin1(i)
            end do
         end if
@@ -681,7 +685,7 @@ subroutine bindata1da(n,x,y,norm,nbin,xmin1,xmax1,xbin,ybin)  !Measure the amoun
   !print*,n,nbin,xmin1,xmax1
   !print*,minval(y),maxval(y)
   
-  if(abs(xmin-xmax)/(xmax+1.e-30).lt.1.e-20) then !Autodetermine
+  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then !Autodetermine
      xmin = minval(x(1:n))
      xmax = maxval(x(1:n))
   end if
@@ -702,7 +706,7 @@ subroutine bindata1da(n,x,y,norm,nbin,xmin1,xmax1,xbin,ybin)  !Measure the amoun
   end do
   if(norm.eq.1) ybin = ybin/(ybintot+1.e-30)
 
-  if(abs(xmin1-xmax1)/(xmax1+1.e-30).lt.1.e-20) then
+  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  !Autodetermine
      xmin1 = xmin
      xmax1 = xmax
   end if
