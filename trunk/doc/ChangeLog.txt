@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+   102: sluys, 16/11/2009
+     - analyseMCMC: update 2D PDF ASCII output to new parameter index system
+     - comp_pdfs: update of 2D PDF input (*__pdf2d.dat) to new parameter index system
+          
    101: sluys, 16/11/2009
      - comp_pdfs: quick update of 1D PDF input (*__pdf1d.dat) to new parameter index system
      - comp_pdfs.dat changed (see doc/)

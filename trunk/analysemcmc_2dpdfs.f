@@ -99,7 +99,7 @@ subroutine pdfs2d(exitcode)
   
   if(savePDF.eq.1) then
      open(unit=30,action='write',form='formatted',status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__pdf2d.dat')
-     write(30,'(5I6,T100,A)')j1,j2,1,Nbin2Dx,Nbin2Dy,'Plot parameter 1,2, total number of chains, number of bins x,y'
+     write(30,'(5I6,T101,A)')j1,j2,1,Nbin2Dx,Nbin2Dy,'Plot parameter 1,2, total number of chains, number of bins x,y  (j1,j2,(1),Nbin2Dx,Nbin2Dy)'
   end if
   
   npdf=0 !Count iterations to open windows with different numbers
@@ -437,15 +437,17 @@ subroutine pdfs2d(exitcode)
         
         !Save binned 2D PDF data
         if(savePDF.eq.1) then
-           write(30,'(3I6,T100,A)')ic,p1,p2,'Chain number and parameter number 1,2'
-           write(30,'(2ES15.7,T100,A)')startval(ic,p1,1:2),'True and starting value p1'
-           write(30,'(2ES15.7,T100,A)')startval(ic,p2,1:2),'True and starting value p2'
-           write(30,'(6ES15.7,T100,A)')stats(ic,p1,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p1'
-           write(30,'(6ES15.7,T100,A)')stats(ic,p2,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p2'
-           write(30,'(5ES15.7,T100,A)')ranges(ic,c0,p1,1:5),'Ranges: lower,upper limit, centre, width, relative width for p1'
-           write(30,'(5ES15.7,T100,A)')ranges(ic,c0,p2,1:5),'Ranges: lower,upper limit, centre, width, relative width for p2'
-           write(30,'(4ES15.7,T100,A)')xmin,xmax,ymin,ymax,'Xmin,Xmax,Ymin,Ymax of PDF'
-           write(30,'(6ES15.7,T100,A)')tr,'Tr'              
+           write(30,'(A)')'--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------'
+           write(30,'(3I6,T26,2A15,T101,A)')ic,parID(p1),parID(p2),parNames(parID(p1)),parNames(parID(p2)),'Chain number, parameter ID 1,2 and parameter names  (ic,parID(1:2),parNames(1:2))'
+           write(30,'(2ES15.7,T101,A)')startval(ic,p1,1:2),'True and starting value p1  (startval(1,1:2))'
+           write(30,'(2ES15.7,T101,A)')startval(ic,p2,1:2),'True and starting value p2  (startval(2,1:2))'
+           write(30,'(6ES15.7,T101,A)')stats(ic,p1,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p1  (stats(1,1:6))'
+           write(30,'(6ES15.7,T101,A)')stats(ic,p2,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p2  (stats(2,1:6))'
+           write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p1,1:5),'Ranges: lower,upper limit, centre, width, relative width for p1  (ranges(1,1:5))'
+           write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p2,1:5),'Ranges: lower,upper limit, centre, width, relative width for p2  (ranges(1,1:5))'
+           write(30,'(4ES15.7,T101,A)')xmin,xmax,ymin,ymax,'Xmin,Xmax,Ymin,Ymax of PDF  (xmin,xmax,ymin,ymax)'
+           write(30,'(6ES15.7,T101,A)')tr,'Tr; transformation matrix used by PGPlot to project data  (tr)'
+           write(30,'(A)')'  2D bins:'
            do i=1,Nbin2Dx+1
               do j=1,Nbin2Dy+1
                  write(30,'(ES15.7,$)')z(i,j)

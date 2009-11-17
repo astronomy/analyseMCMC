@@ -1,11 +1,12 @@
-!Compare 1d pdfs, use pdf output produced by plotspins
+!Compare 1d pdfs, use pdf output produced by analyseMCMC
 
 
 program comp_pdfs
   use comp_pdfs_settings
+  use comp_pdfs_data
   integer :: nfrx,nfry,frx,fry,fr,fr1,f,i,system
   real :: size,rat,xwinmin,xwinmax,ywinmin,ywinmax,dxwin,dywin,xfrmin,xfrmax,yfrmin,yfrmax,dxfr,dyfr,space
-  character :: lbl*99,varnss(15)*99,outname*99,exts(0:3)*4
+  character :: lbl*99,outname*99,exts(0:3)*4
   
   write(*,*)
   if(iargc().eq.1) then
@@ -58,9 +59,6 @@ program comp_pdfs
   
   
   
-  !varnss(1:15)  = [character(len=8) :: 'logL','Mc','eta','t_c','d_L','a_spin','theta_SL','RA','Dec','phi_c','theta_J0','phi_J0','alpha_c','M1','M2']
-  !varnss(1:15)  = [character(len=8) :: 'logL','Mc','eta','t_c','d_L','a_spin','theta_SL','RA','Dec','phi_c','incl','polang','alpha_c','M1','M2']
-  varnss(1:14)  = [character(len=8) :: 'Mc','eta','t_c','d_L','a_spin','theta_SL','RA','Dec','phi_c','incl','polang','alpha_c','M1','M2']  !Apo
   do f=1,nf
      if(dim.eq.2) then
         write(fnames(f),'(A)')trim(dirnames(f))//'/'//trim(fnames(f))//'__pdf2d.dat'
@@ -165,10 +163,10 @@ program comp_pdfs
   
   exts = [character(len=4) :: '    ','.png','.eps','.pdf'] !Extensions for the different file types
   if(dim.eq.1) write(outname,'(A,I1,A)')trim(outnamebase)//'__',dim,'d'//exts(file)
-  if(dim.eq.2) write(outname,'(A,I1,A)')trim(outnamebase)//'__',dim,'d__'//trim(varnss(plpars2d(1)))//'-'//trim(varnss(plpars2d(2)))//exts(file)
+  if(dim.eq.2) write(outname,'(A,I1,A)')trim(outnamebase)//'__',dim,'d__'//trim(parNames(plpars2d(1)))//'-'//trim(parNames(plpars2d(2)))//exts(file)
   if(file.eq.1) then
      !if(dim.eq.1) i = system('convert -depth 8 plot.ppm comp_pdfs1d.png')
-     !if(dim.eq.2) i = system('convert -depth 8 plot.ppm comp_pdfs2d__'//trim(varnss(plpars2d(1)))//'-'//trim(varnss(plpars2d(2)))//'.png')
+     !if(dim.eq.2) i = system('convert -depth 8 plot.ppm comp_pdfs2d__'//trim(parNames(plpars2d(1)))//'-'//trim(parNames(plpars2d(2)))//'.png')
      i = system('convert -depth 8 plot.ppm '//trim(outname))
      i = system('rm -f plot.ppm')
   end if

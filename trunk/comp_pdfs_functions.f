@@ -1,4 +1,5 @@
 !Plot functions for comp_pdfs.f (1d, 2d PDFs and waveforms)
+!To do: put file reading in separate routines
 
 
 !***************************************************************************************************
@@ -310,66 +311,51 @@ end subroutine plotpdf1d
 
 
 !***************************************************************************************************
-subroutine plotpdf2d(pp1,pp2,lbl)
+subroutine plotpdf2d(pID1,pID2,lbl)
   use comp_pdfs_settings
+  use comp_pdfs_data
   implicit none
   integer, parameter :: np=15,nbinx1=500,nbiny1=500
-  integer :: pp1,pp2,bx,by,p1,p2,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2,nchains,nbinx(nf),nbiny(nf),ic,lw,c,foundit
-  integer :: identical,pID1
-  real :: startval(nf,np,2),stats(nf,np,6),ranges(nf,np,5),xmin1(nf,np),xmax1(nf,np),ymin1(nf,np),ymax1(nf,np),x
+  integer :: pID1,pID2,bx,by,pID1a,pID2a,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2,nchains,nbinx(nf),nbiny(nf),ic,lw,c,foundit
+  integer :: identical
+  real :: startval(nf,np,2,2),stats(nf,np,2,6),ranges(nf,np,2,5),xmin1(nf,np,2),xmax1(nf,np,2),ymin1(nf,np,2),ymax1(nf,np,2),x
   real :: xmin,xmax,ymin,ymax,dx,dy,z(nf,nbinx1,nbiny1),z1(nbinx1,nbiny1),tr(nf,np*np,6),cont(11)
-  character :: fname*99,pgParNss(np)*99,pgUnits(np)*99,lbl*99,str*99
+  character :: fname*99,lbl*99,str*99,tmpstr
   
   
-  pgParNss(1:14)  = [character(len=99) :: 'M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.','\(2147)\dc\u','acos(J\(2236)N)','\(2149)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u']
-  !Include units
-  pgParNss(1:14)  = [character(len=99) :: 'M\dc\u (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u','\(2134)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
-       'acos(J\(2236)N) (\(2218))','\(2149)\dJ0\u (\(2218))','\(2127)\dc\u (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)']
-  
-  !Units only
-  pgUnits(1:14)  = [character(len=99) :: 'M\d\(2281)\u ','','s','Mpc','','\(2218)','\uh\d','\(2218)','\(2218)','\(2218)','\(2218)','\(2218)','M\d\(2281)\u','M\d\(2281)\u']
-
-  
-  
-  do f=1,nf
+  pp12 = 0
+  dof: do f=1,nf
      foundit = 0
      fname = fnames(f)
      if(fname(1:3).eq.'   ') cycle
-     !print*,f,trim(fname)
      open(unit=10,action='read',form='formatted',status='old',position='rewind',file=trim(fname),iostat=io)
-     !print*,io
      if(io.ne.0) then
-        write(*,'(A,I5)')'  Error reading file '//trim(fname)//', error:',io
+        write(*,'(A,I5)')'  Error opening file '//trim(fname)//'.'
         cycle
      end if
      read(10,'(5I6)')nplvar1,nplvar2,nchains,nbinx(f),nbiny(f) !Plot parameter 1,2, total number of chains, number of bins x,y
      nplvar = nplvar2-nplvar1+1
-     !print*,nplvar1,nplvar2,nchains,nbinx(f),nbiny(f)
      p12 = 0
-     !print*,nplvar1,nplvar2-1,p11,nplvar2
-     do p11=nplvar1,nplvar2-1
+     
+     dop11: do p11=nplvar1,nplvar2-1
         do p22=p11+1,nplvar2
-           if(foundit.eq.1) cycle
            p12 = p12+1
-           !print*,p11,p22
-           read(10,'(3I6)')ic,p1,p2 !'Chain number and parameter number 1,2'
-           !print*,p1,p2
-           !read(10,'(2E15.7)')startval(f,p11,1:2) !'True and starting value p1'
-           !read(10,'(2E15.7)')startval(f,p22,1:2) !True and starting value p2'
-           !read(10,'(6E15.7)')stats(f,p11,1:6) !Stats: median, mean, absvar1, absvar2, stdev1, stdev2 for p1'
-           !read(10,'(6E15.7)')stats(f,p22,1:6) !Stats: median, mean, absvar1, absvar2, stdev1, stdev2 for p2'
-           !read(10,'(5E15.7)')ranges(f,p11,1:5) !Ranges: lower,upper limit, centre, width, relative width for p1'
-           !read(10,'(5E15.7)')ranges(f,p22,1:5) !Ranges: lower,upper limit, centre, width, relative width for p2'
-           !read(10,'(4E15.7)')xmin1(f,p11),xmax1(f,p11),ymin1(f,p22),ymax1(f,p22) !'Xmin,Xmax,Ymin,Ymax of PDF'
-           read(10,'(2E15.7)')startval(f,p1,1:2) !'True and starting value p1'
-           read(10,'(2E15.7)')startval(f,p2,1:2) !True and starting value p2'
-           read(10,'(6E15.7)')stats(f,p1,1:6) !Stats: median, mean, absvar1, absvar2, stdev1, stdev2 for p1'
-           read(10,'(6E15.7)')stats(f,p2,1:6) !Stats: median, mean, absvar1, absvar2, stdev1, stdev2 for p2'
-           read(10,'(5E15.7)')ranges(f,p1,1:5) !Ranges: lower,upper limit, centre, width, relative width for p1' The limits are NOT used as plot limits!!!
-           read(10,'(5E15.7)')ranges(f,p2,1:5) !Ranges: lower,upper limit, centre, width, relative width for p2'
-           read(10,'(4E15.7)')xmin1(f,p1),xmax1(f,p1),ymin1(f,p2),ymax1(f,p2) !'Xmin,Xmax,Ymin,Ymax of PDF'
+           read(10,*,iostat=io)tmpstr
+           if(io.ne.0) then
+              write(0,'(A)')'  End of file '//trim(fname)//' reached, parameter combination '//trim(parNames(pID1))//'-'//trim(parNames(pID2))//' not found,  skipping...'
+              cycle dof
+           end if
+           read(10,'(3I6)')ic,pID1a,pID2a !'Chain number and parameter ID 1,2'
+           read(10,'(2E15.7)')startval(f,p12,1,1:2) !'True and starting value p1'
+           read(10,'(2E15.7)')startval(f,p12,2,1:2) !True and starting value p2'
+           read(10,'(6E15.7)')stats(f,p12,1,1:6) !Stats: median, mean, absvar1, absvar2, stdev1, stdev2 for p1'
+           read(10,'(6E15.7)')stats(f,p12,2,1:6) !Stats: median, mean, absvar1, absvar2, stdev1, stdev2 for p2'
+           read(10,'(5E15.7)')ranges(f,p12,1,1:5) !Ranges: lower,upper limit, centre, width, relative width for p1' The limits are NOT used as plot limits!!!
+           read(10,'(5E15.7)')ranges(f,p12,2,1:5) !Ranges: lower,upper limit, centre, width, relative width for p2'
+           read(10,'(4E15.7)')xmin1(f,p12,1),xmax1(f,p12,1),ymin1(f,p12,2),ymax1(f,p12,2) !'Xmin,Xmax,Ymin,Ymax of PDF'
            read(10,'(6E15.7)')tr(f,p12,1:6) !'Tr'              
            !print*,tr
+           read(10,*)tmpstr
            do bx=1,nbinx(f)+1
               do by=1,nbiny(f)
                  read(10,'(E15.7)',advance='no')z1(bx,by)
@@ -377,52 +363,39 @@ subroutine plotpdf2d(pp1,pp2,lbl)
               read(10,'(E15.7)')z1(bx,by)
            end do
            
-           !print*,p1,p2
-           !print*,pp1,pp2
-           
-           !if(p11.eq.pp1.and.p22.eq.pp2) then !This only works if you print the whole set of pdfs to file
-           if(p1.eq.pp1.and.p2.eq.pp2) then
+           if(pID1a.eq.pID1.and.pID2a.eq.pID2) then  !Found the desired parameter combination
               pp12 = p12
-              !pp11 = p11
-              !pp22 = p22
-              pp11 = p1
-              pp22 = p2
+              pp11 = pID1a
+              pp22 = pID2a
               z(f,:,:) = z1(:,:)
-              !print*,pp1,pp2,p11,p22
-              !print*,f,xmin1(f,p11),xmax1(f,p11),ymin1(f,p22),ymax1(f,p22)
-              !write(6,'(6F10.4)')tr(f,p12,1:6)
-              foundit = 1 !Found it!
-              !print*,'  Found it !',f
+              cycle dop11
            end if
-           !print*,foundit
            
-           !end do !while foundit.eq.0
-        end do !p11
-     end do !p22
+        end do !p22
+     end do dop11 !p11
      
      close(10)
-  end do !f
-  
-  !print*,p12
+  end do dof !f
   
   
-  xmin = minval(xmin1(1:nf,pp11))
-  xmax = maxval(xmax1(1:nf,pp11))
-  ymin = minval(ymin1(1:nf,pp22))
-  ymax = maxval(ymax1(1:nf,pp22))
-  
-  !print*,xmin,xmin1(1:nf,pp11)
-  !print*,xmax,xmax1(1:nf,pp11)
-  !print*,ymin,ymin1(1:nf,pp22)
-  !print*,ymax,ymax1(1:nf,pp22)
-  !print*,''
-  
-  if(pp1.eq.8) then
-     xmin = maxval(xmin1(1:nf,pp11))
-     xmax = minval(xmax1(1:nf,pp11))
+  if(pp12.eq.0) then
+     write(0,'(/,A,/)')'  No parameter combinations found,  aborting...'
+     stop
   end if
   
-  if(1.eq.2.and.pp1.eq.8.and.pp2.eq.9) then !Get whole sky for sky plot
+  
+  
+  xmin = minval(xmin1(1:nf,pp12,1))
+  xmax = maxval(xmax1(1:nf,pp12,1))
+  ymin = minval(ymin1(1:nf,pp12,2))
+  ymax = maxval(ymax1(1:nf,pp12,2))
+  
+  if(pID1.eq.31) then  !RA
+     xmin = maxval(xmin1(1:nf,pp12,1))
+     xmax = minval(xmax1(1:nf,pp12,1))
+  end if
+  
+  if(1.eq.2.and.pID1.eq.31.and.pID2.eq.31) then !Get whole sky for sky plot (done in analysemcmc?)
      xmin = 24.
      xmax = 0.
      ymin = -90.
@@ -443,8 +416,8 @@ subroutine plotpdf2d(pp1,pp2,lbl)
   call pgsch(fontsize)
   call pgswin(xmin,xmax,ymin,ymax)
   call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-  call pgmtxt('B',2.4,0.5,0.5,trim(pgParNss(pp1)))  !Cheat a bit
-  call pgmtxt('L',2.2,0.5,0.5,trim(pgParNss(pp2)))  !Cheat a bit
+  call pgmtxt('B',2.4,0.5,0.5,trim(pgParNss(pID1)))  !Cheat a bit
+  call pgmtxt('L',2.2,0.5,0.5,trim(pgParNss(pID2)))  !Cheat a bit
   
   !select contours
   do c=1,11
@@ -483,15 +456,15 @@ subroutine plotpdf2d(pp1,pp2,lbl)
         if(clr.eq.1) call pgsci(2)
         call pgsci(clrs(f))
         x = 0.05+f*0.02
-        call pgarro(ranges(f,pp1,3),ymin+dy*x,ranges(f,pp1,1),ymin+dy*x)
-        call pgarro(ranges(f,pp1,3),ymin+dy*x,ranges(f,pp1,2),ymin+dy*x)
-        call pgarro(xmin+dx*x*0.7,ranges(f,pp2,3),xmin+dx*x*0.7,ranges(f,pp2,1))
-        call pgarro(xmin+dx*x*0.7,ranges(f,pp2,3),xmin+dx*x*0.7,ranges(f,pp2,2))
+        call pgarro(ranges(f,pp12,1,3),ymin+dy*x,ranges(f,pp12,1,1),ymin+dy*x)
+        call pgarro(ranges(f,pp12,1,3),ymin+dy*x,ranges(f,pp12,1,2),ymin+dy*x)
+        call pgarro(xmin+dx*x*0.7,ranges(f,pp12,2,3),xmin+dx*x*0.7,ranges(f,pp12,2,1))
+        call pgarro(xmin+dx*x*0.7,ranges(f,pp12,2,3),xmin+dx*x*0.7,ranges(f,pp12,2,2))
         
         !Print number
         !if(nf.eq.1) then
         if(plrange.ge.2.and.nf.eq.1) then
-           x = ranges(f,pp1,5)
+           x = ranges(f,pp12,1,5)
            if(pId1.eq.61.or.pId1.eq.63.or.pId1.eq.64.or.pId1.eq.21.or.pId1.eq.22.or.pId1.eq.71.or.pId1.eq.81) x = x*100
            write(str,'(F10.3)')x
            if(pId1.eq.61.or.pId1.eq.63.or.pId1.eq.64.or.pId1.eq.21.or.pId1.eq.22.or.pId1.eq.71.or.pId1.eq.81) write(str,'(A)')trim(str)//'%'
@@ -506,11 +479,11 @@ subroutine plotpdf2d(pp1,pp2,lbl)
            if(pId1.eq.61.or.pId1.eq.63.or.pId1.eq.64.or.pId1.eq.21.or.pId1.eq.22.or.pId1.eq.71.or.pId1.eq.81) then
               write(str,'(A)')trim(str)//'%'
            else
-              write(str,'(A)')trim(str)//trim(pgUnits(pp1))
+              write(str,'(A)')trim(str)//trim(pgUnits(pID1))
            end if
-           !call pgptxt(ranges(f,pp1,3),yrange(2)*1.05,0.,0.5,trim(str))
+           !call pgptxt(ranges(f,pp12,1,3),yrange(2)*1.05,0.,0.5,trim(str))
            call pgsls(1)
-           !call pgline(2,(/ranges(f,pp1,1),ranges(f,pp1,2)/),(/yrange(2),yrange(2)/))
+           !call pgline(2,(/ranges(f,pp12,1,1),ranges(f,pp12,1,2)/),(/yrange(2),yrange(2)/))
         end if
      end if !if(plrange.ge.1.and.nf.eq.1)
      call pgsls(1)
@@ -520,42 +493,39 @@ subroutine plotpdf2d(pp1,pp2,lbl)
   
   !Plot true values 
   if(pltrue.ge.1) then
-     !call pgline(2,(/startval(1,pp11,1),startval(1,pp11,1)/),(/-1.e20,1.e20/))
-     !call pgline(2,(/-1.e20,1.e20/),(/startval(1,pp22,1),startval(1,pp22,1)/))
-     
      identical = 1
      if(nf.gt.1) then
         do f=2,nf
-           if(abs(startval(f,pp11,1)-startval(1,pp11,1)).gt.1.e-10) identical = 0
+           if(abs(startval(f,pp12,1,1)-startval(1,pp12,1,1)).gt.1.e-10) identical = 0
         end do
      end if
-     !if(abs((startval(1,pp11,1) - sum(startval(1:nf,pp11,1))/(real(nf)))/startval(1,pp11,1)).lt.0.001) then !Then all have the same value
+     !if(abs((startval(1,pp12,1,1) - sum(startval(1:nf,pp12,1,1))/(real(nf)))/startval(1,pp12,1,1)).lt.0.001) then !Then all have the same value
      if(identical.eq.1) then
         call pgslw(lw);call pgsls(2); call pgsci(1)
-        call pgline(2,(/startval(1,pp11,1),startval(1,pp11,1)/),(/-1.e20,1.e20/))
+        call pgline(2,(/startval(1,pp12,1,1),startval(1,pp12,1,1)/),(/-1.e20,1.e20/))
      else
         do f=1,nf
            call pgslw(lw);call pgsls(2)
            call pgsci(1)
            !call pgsci(clrs(f))  !it seems clearer when all true values are white
-           call pgline(2,(/startval(f,pp11,1),startval(f,pp11,1)/),(/-1.e20,1.e20/))
+           call pgline(2,(/startval(f,pp12,1,1),startval(f,pp12,1,1)/),(/-1.e20,1.e20/))
         end do
      end if
      
      identical = 1
      do f=2,nf
-        if(abs(startval(f,pp22,1)-startval(1,pp22,1)).gt.1.e-10) identical = 0
+        if(abs(startval(f,pp12,2,1)-startval(1,pp12,2,1)).gt.1.e-10) identical = 0
      end do
-     !if(abs((startval(1,pp22,1) - sum(startval(1:nf,pp22,1))/(real(nf)))/startval(1,pp22,1)).lt.0.001) then !Then all have the same value
+     !if(abs((startval(1,pp12,2,1) - sum(startval(1:nf,pp12,2,1))/(real(nf)))/startval(1,pp12,2,1)).lt.0.001) then !Then all have the same value
      if(identical.eq.1) then
         call pgslw(lw);call pgsls(2); call pgsci(1)
-        call pgline(2,(/-1.e20,1.e20/),(/startval(1,pp22,1),startval(1,pp22,1)/))
+        call pgline(2,(/-1.e20,1.e20/),(/startval(1,pp12,2,1),startval(1,pp12,2,1)/))
      else
         do f=1,nf
            call pgslw(lw);call pgsls(2)
            call pgsci(1)
            !call pgsci(clrs(f))  !it seems clearer when all true values are white
-           call pgline(2,(/-1.e20,1.e20/),(/startval(f,pp22,1),startval(f,pp22,1)/))
+           call pgline(2,(/-1.e20,1.e20/),(/startval(f,pp12,2,1),startval(f,pp12,2,1)/))
         end do
      end if
   end if !if(pltrue.ge.1)
@@ -564,8 +534,8 @@ subroutine plotpdf2d(pp1,pp2,lbl)
   !Plot median (if one file)
   if(plmedian.eq.1.and.nf.eq.1) then
      if(clr.eq.1) call pgsci(2); call pgslw(lw);call pgsls(2)  !; if(clr.eq.0) call pgsci(1)
-     call pgline(2,(/stats(1,pp1,1),stats(1,pp1,1)/),(/-1.e20,1.e20/))
-     call pgline(2,(/(/-1.e20,1.e20/),stats(1,pp2,1),stats(1,pp2,1)/))
+     call pgline(2,(/stats(1,pp12,1,1),stats(1,pp12,1,1)/),(/-1.e20,1.e20/))
+     call pgline(2,(/(/-1.e20,1.e20/),stats(1,pp12,2,1),stats(1,pp12,2,1)/))
   end if !if(plmedian.eq.1.and.nf.eq.1)
   
   
