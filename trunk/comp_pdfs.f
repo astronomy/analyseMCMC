@@ -19,10 +19,12 @@ program comp_pdfs
   type = 1 !1: default, 2: poster, 3: talk
   dim = 1  !Dimension: 1 or 2 for 1d or 2d pdfs
   clr = 1  !Use colour: 0-no (grey), 1-yes
-  fs  = 3  !Fill style for PDFs: 1-solid, 2-outline, 3-hatched, 4-cross-hatched
+  fillstyle = 3  !Fill style for PDFs: 1-solid, 2-outline, 3-hatched, 4-cross-hatched
+  fonttype = 1  !1: 'Arial', 2: 'Roman'
   
-  sch = 2. !Scale of font etc.
+  fontsize = 2. !Scale of font etc.
   
+  call set_derivedParameterNames()
   call read_inputfile()  !Read plot settings from file
   call write_inputfile() !Write plot settings back to file
   
@@ -77,13 +79,12 @@ program comp_pdfs
      call pgbegin(1,'plot.ppm/ppm',1,1)
      call pgpap(size,rat)
      call pgsch(1.)
-     !call pgscf(2)
   end if
   if(file.ge.2) then
      call pgbegin(1,'plot.eps/cps',1,1)
      call pgpap(size,rat)
-     call pgscf(2)
   end if
+  call pgscf(fonttype)
   
   call pgscr(15,0.8,0.8,0.8)  !Default: 0.7
   call pgscr(14,0.45,0.45,0.45) !Default: 0.33
@@ -130,7 +131,7 @@ program comp_pdfs
            xfrmax = 0.9
            yfrmin = 0.1
            yfrmax = 0.9
-           if(sch.gt.1.5) then
+           if(fontsize.gt.1.5) then
               xfrmin = 0.15
               yfrmin = 0.15
            end if
@@ -148,10 +149,10 @@ program comp_pdfs
 
         
         if(dim.eq.1) then
-           !call plotpdf1d(nf,fnames,fr1,lbl,clr,sch)
+           !call plotpdf1d(nf,fnames,fr1,lbl,clr,fontsize)
            if(plpars(fr).gt.0) call plotpdf1d(fr1,lbl)  !Skip panel if plpars.eq.0
         else
-           !call plotpdf2d(nf,fnames,plpars2d(1),plpars2d(2),lbl,clr,sch)
+           !call plotpdf2d(nf,fnames,plpars2d(1),plpars2d(2),lbl,clr,fontsize)
            call plotpdf2d(plpars2d(1),plpars2d(2),lbl)
         end if
         

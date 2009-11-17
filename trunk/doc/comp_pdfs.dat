@@ -10,15 +10,16 @@
          0  plmedian     Plot medians for 1D or 2D plots, only if reading 1 file
          2   plrange     Plot ranges  for 1D or 2D plots, only if reading 1 file: 0-no, 1:plot lines, 2:plot numbers too
          1       clr     Use colour: 0-B/W, 1-colour, 2-grey scales
-         3        fs     Fill style for PDFs: 1-solid, 2-outline, 3-hatched, 4-cross-hatched
-   2.00000       sch     Scale of font, etc.  Default: 2.
+         3 fillstyle     Fill style for PDFs: 1-solid, 2-outline, 3-hatched, 4-cross-hatched
+         1  fonttype     Font type: 1: arial, 2: woman... no no, rrrroman, 3: italic, 4: script
+   2.00000  fontsize     Scale of font, etc.  Default: 2.
 
 
  1D plot options:
    Number of frames in 1D plot: (w, h  or  x, y)  (frames):
-     4    3
+     5    3
    Labels of the plot parameters for the 1d frames (plpars)  (need at least one for each frame.  0-don't plot panel):  
-     2  3  4  5  6  7  8  9 11 12 10 13
+    61 62 11 22 41 31 32 71 72 73 51 52 81 82 83  0  0  0  0  0
 
 
  2D plot options:
@@ -28,10 +29,10 @@
 
  Input files:
    Base of input files names (without extension) (fnames):
-     1d1_0.50_020   2d12_0.50_020   2d12_0.50_020   2d12_0.80_020
+     filea   fileb
 
    Directories of the input files (dirnames):
-     .   .   ../dat  ../dat
+     .   .    
 
    Base of the output file name (without extention, can start with dir) (outnamebase)
-     comp_pdfs__example
+     comp_pdfs__example 
