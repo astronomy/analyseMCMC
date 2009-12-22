@@ -221,15 +221,15 @@ subroutine write_settingsfile
   write(u,'(/,A)')' Detailed plot settings:'
   write(u,11)chainSymbol, 'chainSymbol',   'Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols'
   write(u,11)chainPlI, 'chainPlI',   'Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine, chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.'
-  write(u,11)scLogLpl, 'scLogLpl',   'Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account'
-  write(u,11)scChainsPl, 'scChainsPl',   'Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account'
-  write(u,11)plInject, 'plInject',   'Plot true values in the chains and pdfs: 0: no,  1: yes (all pars),  2: yes (selected pars), 3-4: as 1-2 + print value in PDF panel'
+  write(u,11)scLogLpl, 'scLogLpl',   'Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and injection values into account'
+  write(u,11)scChainsPl, 'scChainsPl',   'Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and injection values into account'
+  write(u,11)plInject, 'plInject',   'Plot injection values in the chains and pdfs: 0: no,  1: yes (all pars),  2: yes (selected pars), 3-4: as 1-2 + print value in PDF panel'
   write(u,11)plStart, 'plStart',   'Plot starting values in the chains and pdfs'
   write(u,11)plMedian, 'plMedian',   'Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel'
   write(u,11)plRange, 'plRange',   'Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel'
   write(u,11)plBurn, 'plBurn',   'Plot the burnin in logL, the chains, etc.'
   write(u,11)plLmax, 'plLmax',   'Plot the position of the max logL, in the chains and pdfs'
-  write(u,11)prValues, 'prValues',   'Print values (true, median, range) in pdfs'
+  write(u,11)prValues, 'prValues',   'Print values (injection, median, range) in pdfs'
   write(u,11)smooth, 'smooth',   'Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!'
   write(u,11)fillPDF, 'fillPDF',   'Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched'
   write(u,11)normPDF1D, 'normPDF1D',   'Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains'
@@ -295,7 +295,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   
   prProgress = 2    !Print general messages about the progress of the program: 0-no, 1-some, 2-more
   prRunInfo = 0     !Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files
-  prInitial = 0     !Print true values, starting values and their difference
+  prInitial = 0     !Print injection values, starting values and their difference
   prStat = 1        !Print statistics: 0-no, 1-yes
   prCorr = 0        !Print correlations: 0-no, 1-yes
   prIval = 0        !Print interval info: 0-no, 1-yes
@@ -305,8 +305,8 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   
   plot = 1          !0: plot nothing at all, 1: plot the items selected below
   autoBurnin = 1.   !Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
-  scLogLpl = 1      !Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and true values into account
-  scChainsPl = 1    !Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and true values into account
+  scLogLpl = 1      !Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and injection values into account
+  scChainsPl = 1    !Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and injection values into account
   plLogL = 1        !Plot log L chains: 0-no, 1-yes
   plChain = 1       !Plot parameter chains: 0-no, 1-yes
   plParL = 1        !Plot L vs. parameter value: 0-no, 1-yes
@@ -319,13 +319,13 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   
   chainSymbol = 1   !Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle
   chainPlI = 0      !Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine, chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.
-  plInject = 1        !Plot true values in the chains and pdfs
+  plInject = 1        !Plot injection values in the chains and pdfs
   plStart = 1       !Plot starting values in the chains and pdfs
   plMedian = 1      !Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
   plRange = 1       !Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
   plBurn = 1        !Plot the burnin in logL, the chains, etc.
   plLmax = 0        !Plot the position of the max of logL in chains and pdfs
-  prValues = 1      !Print values (true, median, range) in pdfs
+  prValues = 1      !Print values (injection, median, range) in pdfs
   smooth = 3        !Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!
   fillPDF = 1       !Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
   normPDF1D = 1     !Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains
@@ -484,9 +484,9 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
         end if
         
         !allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))  !In case you ran with lon rather than RA
-        !if(i.eq.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))  !In case only the true value is lon rather than RA
-        !if(i.ne.1) allDat(ic,revID(31),i) = real(ra2lon(dble(allDat(ic,revID(31),i)),t0))  !In case only the true value is lon rather than RA
-        !if(i.ne.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))  !In case all but the true value is lon rather than RA
+        !if(i.eq.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))  !In case only the injection value is lon rather than RA
+        !if(i.ne.1) allDat(ic,revID(31),i) = real(ra2lon(dble(allDat(ic,revID(31),i)),t0))  !In case only the injection value is lon rather than RA
+        !if(i.ne.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))  !In case all but the injection value is lon rather than RA
         
         i = i+1
         if(tmpInt.ge.maxChLen) exit
@@ -513,7 +513,7 @@ end subroutine read_mcmcfiles
 !************************************************************************************************************************************
 subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some of it to screen:
   !  print MCMC run info,  determine Lmax, burnin,  print chain info,  determine thinning for chains plots,  change/add MCMC parameters, 
-  !  determine true, start, Lmax values of chains,  compute jumps,  construct output file name,  store data in selDat (from dat)
+  !  determine injection, start, Lmax values of chains,  compute jumps,  construct output file name,  store data in selDat (from dat)
   use constants
   use analysemcmc_settings
   use general_data
@@ -593,7 +593,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   loglmax = -1.d99
   loglmaxs = -1.d99
   do ic=1,nchains0
-     do i=3,ntot(ic)  !3: exclude true and starting values
+     do i=3,ntot(ic)  !3: exclude injection and starting values
         if(post(ic,i).gt.loglmaxs(ic)) then
            loglmaxs(ic) = post(ic,i)
            if(post(ic,i).gt.loglmax) then
@@ -627,7 +627,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      loop1: do ic=1,nchains0
         isburn(ic) = is(ic,ntot(ic)) !Set burnin to last iteration, so that chain is completely excluded if condition is never fulfilled
         Nburn(ic) = ntot(ic)
-        do i=2,ntot(ic) !i=1 is true value?
+        do i=2,ntot(ic) !i=1 is injection value?
            if(post(ic,i).gt.real(loglmax)-autoBurnin) then
               isburn(ic) = is(ic,i)
               Nburn(ic) = i
@@ -751,7 +751,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   end if !if(changeVar.ge.1)
   
   
-  !*** Put plot data in startval and jumps.  Print initial and starting values to screen.  Startval: 1: true value, 2: starting value, 3: Lmax value
+  !*** Put plot data in startval and jumps.  Print initial and starting values to screen.  Startval: 1: injection value, 2: starting value, 3: Lmax value
   jumps = 0.
   offsetrun = 0
   if(prInitial.ne.0) then
@@ -766,7 +766,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   end if
   
   do ic=1,nchains
-     startval(ic,1:nMCMCpar,1:2)  = allDat(ic,1:nMCMCpar,1:2) !True value and starting value
+     startval(ic,1:nMCMCpar,1:2)  = allDat(ic,1:nMCMCpar,1:2) !Injection value and starting value
      startval(ic,1:nMCMCpar,3)    = allDat(icloglmax,1:nMCMCpar,iloglmax) !Lmax value
      jumps(ic,1:nMCMCpar,2:n(ic)) = allDat(ic,1:nMCMCpar,2:n(ic)) -  allDat(ic,1:nMCMCpar,1:n(ic)-1)
      if(prInitial.ne.0) then 
@@ -2009,3 +2009,34 @@ subroutine determine_nbin_1d(npoints,nbin)
   nbin = max(nbin,5)
 end subroutine determine_nbin_1d
 !***************************************************************************************************
+
+!************************************************************************************************************************************
+function compute_median(data,ni)
+  implicit none
+  integer :: ni,indexx(ni)
+  real*8 :: compute_median,data(ni)
+  
+  !Sort the array:
+  call dindexx(ni,data,indexx)
+  
+  !Determine the median:
+  if(mod(ni,2).eq.0) compute_median = 0.5*(data(indexx(ni/2)) + data(indexx(ni/2+1)))  !ni is even
+  if(mod(ni,2).eq.1) compute_median = data(indexx((ni+1)/2))                           !ni is odd
+  
+end function compute_median
+!************************************************************************************************************************************
+
+!************************************************************************************************************************************
+function compute_median_real(datar,ni)
+  implicit none
+  integer :: ni
+  real :: compute_median_real,datar(ni)
+  real*8 :: datad(ni),mediand,compute_median
+  
+  datad = dble(datar)
+  mediand = compute_median(datad,ni)
+  compute_median_real = real(mediand)
+end function compute_median_real
+!************************************************************************************************************************************
+
+

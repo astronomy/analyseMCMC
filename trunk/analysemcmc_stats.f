@@ -124,7 +124,7 @@ subroutine statistics(exitcode)
         !Do the actual wrapping:
         allDat(ic,p,1:ntot(ic))  = mod(allDat(ic,p,1:ntot(ic))  + shift(ic,p), shival) - shift(ic,p)   !Original data
         selDat(ic,p,1:n(ic))     = mod(selDat(ic,p,1:n(ic))     + shift(ic,p), shival) - shift(ic,p)
-        startval(ic,p,1:3)       = mod(startval(ic,p,1:3)       + shift(ic,p), shival) - shift(ic,p)   !True, starting and Lmax values
+        startval(ic,p,1:3)       = mod(startval(ic,p,1:3)       + shift(ic,p), shival) - shift(ic,p)   !Injection, starting and Lmax values
         y1 = mod(y1 + shift(ic,p), shival) - shift(ic,p)
         y2 = mod(y2 + shift(ic,p), shival) - shift(ic,p)
         
@@ -763,7 +763,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
      write(o,'(2I4,2(2x,A8),2x,$)')p1,p2,trim(parNames(parID(p1))),trim(parNames(parID(p2)))
      do c=1,Nival
         write(o,'(2x,F14.8,$)')probareas(p1,p2,c,1)
-        if(c.ge.Nival+1-trueranges2d(p1,p2) .and. trueranges2d(p1,p2).ne.0) then
+        if(c.ge.Nival+1-injectionranges2d(p1,p2) .and. injectionranges2d(p1,p2).ne.0) then
            write(o,'(A3,$)')'y'
         else
            write(o,'(A3,$)')'n'
@@ -1175,7 +1175,7 @@ subroutine compute_convergence()
   integer :: i,ic,p
   integer :: nn,lowVar(maxMCMCpar),nLowVar,highVar(maxMCMCpar),nHighVar,nmeanRelVar,nRhat,IDs(maxMCMCpar),nUsedPar
   real :: dx
-  real*8 :: chmean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar),totRhat,meanRelVar
+  real*8 :: chmean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar),totRhat,meanRelVar,compute_median
   character :: ch
   
   
@@ -1195,7 +1195,7 @@ subroutine compute_convergence()
   avgMean = avgMean/dble(nn*nchains0)
   
   
-  !Compute variances per chain, for all chains and Rhat:
+  !Compute variances per chain, for all chains
   chVar = 1.d-30
   chVar1 = 1.d-30
   meanVar = 1.d-30
@@ -1212,6 +1212,7 @@ subroutine compute_convergence()
      chVar(p) = chVar(p)/dble(nchains0*(nn-1))
      meanVar(p) = meanVar(p)/dble(nchains0-1)
      
+     !Compute Rhat:
      Rhat(p) = min( dble(nn-1)/dble(nn)  +  meanVar(p)/chVar(p) * (1.d0 + 1.d0/dble(nchains0)), 99.d0)
   end do
   
@@ -1338,11 +1339,16 @@ subroutine compute_convergence()
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
         write(6,'(F9.4,$)')Rhat(p)
-        totRhat = totRhat * Rhat(p)
-        nRhat = nRhat + 1
+        !print*,parID(p)
+        if(parID(p).ne.63.and.parID(p).ne.64) then !If not one of M1,M2
+           !totRhat = totRhat + Rhat(p)   !Arithmetic mean
+           !totRhat = totRhat * Rhat(p)   !Geometric mean
+           nRhat = nRhat + 1
+        end if
      end do
-     !write(6,'(F9.4)')totRhat/dble(nRhat)
-     write(6,'(F9.4)')totRhat**(1.d0/dble(nRhat))
+     !write(6,'(F9.4)')totRhat/dble(nRhat)          !Arithmetic mean
+     !write(6,'(F9.4)')totRhat**(1.d0/dble(nRhat))  !Geometric mean
+     write(6,'(F9.4,A)')compute_median(Rhat(1:nMCMCpar),nMCMCpar),' (med)'  !Median
   end if
   
 end subroutine compute_convergence

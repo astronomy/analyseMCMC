@@ -10,7 +10,7 @@ subroutine pdfs2d(exitcode)
   use stats_data
   implicit none
   integer :: i,j,j1,j2,p1,p2,ic,lw,io,exitcode,c,system,pgopen,clr,maxclr
-  integer :: npdf,ncont,lw2,plotthis,truerange2d,countplots,totplots
+  integer :: npdf,ncont,lw2,plotthis,injectionrange2d,countplots,totplots
   real :: rev360,rev180,rev24
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)
@@ -242,7 +242,7 @@ subroutine pdfs2d(exitcode)
               call identify_2d_ranges(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr) !Get 2D probability ranges; identify to which range each bin belongs
               if(prProgress.ge.3) write(6,'(A,$)')'  computing 2D areas...'
               call calc_2d_areas(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
-              trueranges2d(p1,p2) = truerange2d(z,Nbin2Dx+1,Nbin2Dy+1,startval(1,p1,1),startval(1,p2,1),tr)
+              injectionranges2d(p1,p2) = injectionrange2d(z,Nbin2Dx+1,Nbin2Dy+1,startval(1,p1,1),startval(1,p2,1),tr)
               !write(6,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
               do i=1,Nival
                  if(prIval.ge.1.and.prProgress.ge.2 .and. (sky_position .or. binary_orientation)) then  !For sky position and orientation only
@@ -295,6 +295,7 @@ subroutine pdfs2d(exitcode)
            end if
            
            call pgsch(sch)
+           
            if(project_map .and. plotSky.ge.2) then
               call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.05*sch)  !Make room for title and +90deg label
            else
@@ -306,7 +307,6 @@ subroutine pdfs2d(exitcode)
               call pgsci(1)
               call pgrect(xmin,xmax,ymin,ymax)
            end if
-           
            
            !Plot the actual 2D PDF (grey scales or colour)
            if(plPDF2D.eq.1.or.plPDF2D.eq.2) then
@@ -381,7 +381,6 @@ subroutine pdfs2d(exitcode)
               end if  !if(normPDF2D.eq.4)
               
               
-              
               !Plot the PDF
               if(project_map .and. plotSky.ge.2) then
                  if(prProgress.ge.3) write(6,'(A,$)')'  plotting map projection...'
@@ -402,6 +401,7 @@ subroutine pdfs2d(exitcode)
            end if
            call pgsci(1)
         end if !if(plot.eq.1)
+        
         
         
         !Plot contours in 2D PDF
@@ -439,8 +439,8 @@ subroutine pdfs2d(exitcode)
         if(savePDF.eq.1) then
            write(30,'(A)')'--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------'
            write(30,'(3I6,T26,2A15,T101,A)')ic,parID(p1),parID(p2),parNames(parID(p1)),parNames(parID(p2)),'Chain number, parameter ID 1,2 and parameter names  (ic,parID(1:2),parNames(1:2))'
-           write(30,'(2ES15.7,T101,A)')startval(ic,p1,1:2),'True and starting value p1  (startval(1,1:2))'
-           write(30,'(2ES15.7,T101,A)')startval(ic,p2,1:2),'True and starting value p2  (startval(2,1:2))'
+           write(30,'(2ES15.7,T101,A)')startval(ic,p1,1:2),'Injection and starting value p1  (startval(1,1:2))'
+           write(30,'(2ES15.7,T101,A)')startval(ic,p2,1:2),'Injection and starting value p2  (startval(2,1:2))'
            write(30,'(6ES15.7,T101,A)')stats(ic,p1,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p1  (stats(1,1:6))'
            write(30,'(6ES15.7,T101,A)')stats(ic,p2,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p2  (stats(2,1:6))'
            write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p1,1:5),'Ranges: lower,upper limit, centre, width, relative width for p1  (ranges(1,1:5))'
@@ -458,7 +458,7 @@ subroutine pdfs2d(exitcode)
         
         
         
-        !Plot true value, median, ranges, etc. in 2D PDF
+        !Plot injection value, median, ranges, etc. in 2D PDF
         if(plot.eq.1) then
            if(.not.project_map.or.plotSky.eq.1) then
               call pgsci(1)
@@ -510,58 +510,59 @@ subroutine pdfs2d(exitcode)
               if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) call pgsci(0)
               call pgsls(2)
               
-              !Plot true value in 2D PDF
+              !Plot injection value in 2D PDF
               if((plInject.eq.1.or.plInject.eq.3).and.(.not.project_map) .or. &
                    ((plInject.eq.2.or.plInject.eq.4) .and. (parID(p1).eq.61.and.parID(p2).eq.62).or.(parID(p1).eq.63.and.parID(p2).eq.64)) ) then
                  !call pgline(2,(/startval(ic,p1,1),startval(ic,p1,1)/),(/-1.e20,1.e20/))
                  !call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p2,1),startval(ic,p2,1)/))
                  
-                 if(mergeChains.ne.1.or.ic.le.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+                 if(mergeChains.ne.1.or.ic.le.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                     !x
                     call pgsls(2); call pgsci(1)
-                    if(plLmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
+                    if(plLmax.eq.0) call pgsls(3)  !Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?)
                     plx = startval(ic,p1,1)
                     if(parID(p1).eq.31) plx = rev24(plx)
                     if(parID(p1).eq.41.or.parID(p1).eq.73.or.parID(p1).eq.83) plx = rev360(plx)
                     if(parID(p1).eq.52) plx = rev180(plx)
-                    call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !True value
+                    call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Injection value
                     if(parID(p1).eq.31) then
-                       call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !True value
-                       call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !True value
+                       call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !Injection value
+                       call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !Injection value
                     end if
                     if(parID(p1).eq.41.or.parID(p1).eq.73.or.parID(p1).eq.83) then
-                       call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !True value
-                       call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !True value
+                       call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !Injection value
+                       call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !Injection value
                     end if
                     if(parID(p1).eq.52) then
-                       call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !True value
-                       call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !True value
+                       call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !Injection value
+                       call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !Injection value
                     end if
                     
                     !y
                     call pgsls(2); call pgsci(1)
-                    if(plLmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
+                    if(plLmax.eq.0) call pgsls(3)  !Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?)
                     ply = startval(ic,p2,1)
                     if(parID(p2).eq.31) ply = rev24(ply)
                     if(parID(p2).eq.41.or.parID(p2).eq.73.or.parID(p2).eq.83) ply = rev360(ply)
                     if(parID(p2).eq.52) ply = rev180(ply)
-                    call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !True value
+                    call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !Injection value
                     if(parID(p2).eq.31) then
-                       call pgline(2,(/-1.e20,1.e20/),(/ply-24.,ply-24./)) !True value
-                       call pgline(2,(/-1.e20,1.e20/),(/ply+24.,ply+24./)) !True value
+                       call pgline(2,(/-1.e20,1.e20/),(/ply-24.,ply-24./)) !Injection value
+                       call pgline(2,(/-1.e20,1.e20/),(/ply+24.,ply+24./)) !Injection value
                     end if
                     if(parID(p2).eq.41.or.parID(p2).eq.73.or.parID(p2).eq.83) then
-                       call pgline(2,(/-1.e20,1.e20/),(/ply-360.,ply-360./)) !True value
-                       call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !True value
+                       call pgline(2,(/-1.e20,1.e20/),(/ply-360.,ply-360./)) !Injection value
+                       call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !Injection value
                     end if
                     if(parID(p2).eq.52) then
-                       call pgline(2,(/-1.e20,1.e20/),(/ply-180.,ply-180./)) !True value
-                       call pgline(2,(/-1.e20,1.e20/),(/ply+180.,ply+180./)) !True value
+                       call pgline(2,(/-1.e20,1.e20/),(/ply-180.,ply-180./)) !Injection value
+                       call pgline(2,(/-1.e20,1.e20/),(/ply+180.,ply+180./)) !Injection value
                     end if
                     
+                    call pgsls(1); call pgsci(1)
                     call pgpoint(1,plx,ply,18)
                  end if
-              end if
+              end if  !If plotting injection values in 2D plot
               call pgsci(1)
               call pgsls(4)
               
@@ -605,7 +606,8 @@ subroutine pdfs2d(exitcode)
               
            end if  !if(.not.project_map.or.plotSky.eq.1)
            
-           !Plot big symbol at true position in sky map
+           
+           !Plot big symbol at injection position in sky map
            if(project_map .and. (plInject.eq.1.or.plInject.eq.3)) then
               call pgsch(sch*1.5) !Use 1.5 for plsym=8, 2 for plsym=18
               call pgslw(lw*2)
@@ -1152,22 +1154,22 @@ end subroutine calc_2d_areas
 
 
 !************************************************************************
-function truerange2d(z,nx,ny,truex,truey,tr)
-  !Get the smallest probability area in which the true values lie
+function injectionrange2d(z,nx,ny,injectionx,injectiony,tr)
+  !Get the smallest probability area in which the injection values lie
   implicit none
-  integer :: nx,ny,ix,iy,truerange2d
-  real :: truex,truey,z(nx,ny),tr(6)
+  integer :: nx,ny,ix,iy,injectionrange2d
+  real :: injectionx,injectiony,z(nx,ny),tr(6)
   
   !x = tr(1) + tr(2)*ix + tr(3)*iy
   !y = tr(4) + tr(5)*ix + tr(6)*iy
-  ix = floor((truex - tr(1))/tr(2))
-  iy = floor((truey - tr(4))/tr(6))
+  ix = floor((injectionx - tr(1))/tr(2))
+  iy = floor((injectiony - tr(4))/tr(6))
   if(ix.lt.1.or.ix.gt.nx.or.iy.lt.1.or.iy.gt.ny) then
-     truerange2d = 0
+     injectionrange2d = 0
   else
-     truerange2d = nint(z(ix,iy))
+     injectionrange2d = nint(z(ix,iy))
   end if
-end function truerange2d
+end function injectionrange2d
 !************************************************************************
 
 
@@ -1461,6 +1463,9 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)  !Clone
   integer :: i,ix,iy,clr1,clr2,dc,ci,projection,lw
   character :: str*99
   
+  call pgqch(sch) !Save current character height
+  call pgsch(0.5*sch)
+  
   call pgqcir(clr1,clr2)
   dz = z2-z1
   dc = clr2-clr1
@@ -1510,11 +1515,8 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)  !Clone
      end do
   end do
   
-  
   !Draw lines on map:
   if(projection.eq.1) then
-     call pgqch(sch) !Save current character height
-     call pgsch(0.5*sch)
      
      !Get data to plot ellipses:
      do i=1,nell

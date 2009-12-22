@@ -209,7 +209,7 @@ subroutine pdfs1d(exitcode)
            if(fixedpar(p).eq.1) ybin1 = 0.  !Prevent NaNs
            write(30,'(A)')'--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------'
            write(30,'(3I6,T31,A10,T101,A)')ic,parID(p),wrap(ic,p),parNames(parID(p)),'Chain number, parameter ID, wrap (1/0 = y/n) and parameter name  (ic, parID(), wrap(), parNames())'
-           write(30,'(2ES15.7,T101,A)')startval(ic,p,1:2),'True and starting value  (startval(1:2)'
+           write(30,'(2ES15.7,T101,A)')startval(ic,p,1:2),'Injection and starting value  (startval(1:2)'
            write(30,'(6ES15.7,T101,A)')stats(ic,p,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2  (stats(1:6))'
            write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p,1:5),'Ranges: lower,upper limit, centre, width, relative width  (ranges(1:5))'
            write(30,'(2ES15.7,T101,A)')xmin1,xmax1,'Xmin and Xmax of PDF  (xmin1,xmax1)'
@@ -392,9 +392,9 @@ subroutine pdfs1d(exitcode)
            if(nchains.gt.1) then
               call pgslw(lw)
               call pgsls(1); call pgsci(0)
-              if(plInject.eq.1.or.plInject.eq.3) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !True value
+              if(plInject.eq.1.or.plInject.eq.3) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !Injection value
               if((plInject.eq.2.or.plInject.eq.4).and.(parID(p).eq.11.or.parID(p).eq.12.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or. &
-                   parID(p).eq.71.or.parID(p).eq.81)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))  !True value - mass, t_c and spin only (?) - CHECK put in input file?
+                   parID(p).eq.71.or.parID(p).eq.81)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))  !Injection value - mass, t_c and spin only (?) - CHECK put in input file?
               !if(plStart.ge.1) call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))                   !Starting value
               if(plMedian.eq.1.or.plMedian.eq.3.or.plMedian.eq.4.or.plMedian.eq.6) call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))                          !Median
               if(plRange.eq.1.or.plRange.eq.3.or.plRange.eq.4.or.plRange.eq.6) then
@@ -420,28 +420,28 @@ subroutine pdfs1d(exitcode)
               !if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/-1.e20,1.e20/)) !Centre of 90% interval
            end if
            
-           !Plot true value in PDF
-           !if(plInject.ge.1) then !Plot true values
+           !Plot injection value in PDF
+           !if(plInject.ge.1) then !Plot injection values
            if(plInject.eq.1.or.plInject.eq.3.or.((plInject.eq.2.or.plInject.eq.4).and.(parID(p).eq.11.or.parID(p).eq.12.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or.parID(p).eq.71.or.parID(p).eq.81))) then
-              if(mergeChains.ne.1.or.ic.le.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+              if(mergeChains.ne.1.or.ic.le.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  call pgsls(2); call pgsci(1)
-                 if(plLmax.eq.0) call pgsls(3)  !Dash-dotted line for true value when Lmax line isn't plotted (should we do this always?)
+                 if(plLmax.eq.0) call pgsls(3)  !Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?)
                  plx = startval(ic,p,1)
                  if(parID(p).eq.31) plx = rev24(plx)
                  if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) ply = rev360(ply)
                  if(parID(p).eq.52) ply = rev180(ply)
-                 call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !True value
+                 call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Injection value
                  if(parID(p).eq.31) then
-                    call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !True value
-                    call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !True value
+                    call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !Injection value
+                    call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !Injection value
                  end if
                  if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) then
-                    call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !True value
-                    call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !True value
+                    call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !Injection value
+                    call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !Injection value
                  end if
                  if(parID(p).eq.52) then
-                    call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !True value
-                    call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !True value
+                    call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !Injection value
+                    call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !Injection value
                  end if
               end if
            end if
@@ -510,7 +510,7 @@ subroutine pdfs1d(exitcode)
               else
                  write(str,'(A)')trim(str)//trim(pgunits(parID(p)))
               end if
-           else if(plInject.eq.2.or.plInject.eq.4) then  !If not plotting ranges, but do plot true values
+           else if(plInject.eq.2.or.plInject.eq.4) then  !If not plotting ranges, but do plot injection values
               x0 = startval(ic,p,1)
               !print*,p,x0,nint(x0)
               if(x0.lt.0.01) write(str,'(F7.4)')x0
@@ -519,7 +519,7 @@ subroutine pdfs1d(exitcode)
               if(x0.ge.1.and.x0.lt.9.995) write(str,'(F6.3)')x0
               if(x0.ge.9.995.and.x0.lt.99.9) write(str,'(F5.1)')x0
               if(x0.ge.99.9) write(str,'(F6.1)')x0
-              write(str,'(A)')'true: '//trim(str)//trim(pgunits(parID(p)))
+              write(str,'(A)')'inj: '//trim(str)//trim(pgunits(parID(p)))
            end if
            
            

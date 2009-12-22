@@ -90,7 +90,7 @@ module stats_data
   implicit none
   save
   real :: stdev1(maxMCMCpar),stdev2(maxMCMCpar),absVar1(maxMCMCpar),absVar2(maxMCMCpar)
-  integer :: trueranges2d(maxMCMCpar,maxMCMCpar)
+  integer :: injectionranges2d(maxMCMCpar,maxMCMCpar)
   real :: probarea(maxNival),probareas(maxMCMCpar,maxMCMCpar,maxNival,3)
 end module stats_data
 !***************************************************************************************************

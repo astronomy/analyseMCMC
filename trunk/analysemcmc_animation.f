@@ -216,7 +216,7 @@ subroutine animation(exitcode)
         call pgsci(2)
         call pgsls(2)
         if(nchains0.gt.1) call pgsci(1)
-        call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p,1),startval(ic,p,1)/)) !True value
+        call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p,1),startval(ic,p,1)/)) !Injection value
         call pgsci(6)
         if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
         !if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
@@ -297,7 +297,7 @@ subroutine animation(exitcode)
            if(plInject.ge.1) then
               call pgsci(2)
               if(nchains0.gt.1) call pgsci(1)
-              call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p,1),startval(ic,p,1)/))  !True value
+              call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p,1),startval(ic,p,1)/))  !Injection value
            end if
            call pgsci(6)
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
@@ -496,7 +496,7 @@ subroutine animation(exitcode)
            call pgline(2,(/range1,range1/),(/-1.e20,1.e20/)) !Left limit of 90% interval
            call pgline(2,(/range2,range2/),(/-1.e20,1.e20/)) !Right limit of 90% interval
            
-           !True value
+           !Injection value
            call pgsls(2); call pgsci(1); if(nchains.gt.1) call pgsci(1)
            call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))
            

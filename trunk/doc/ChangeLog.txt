@@ -2,6 +2,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+   103: sluys, 22/12/2009
+     - analyseMCMC: 
+       - removed minor bug that affected scale of star at injection and Lmax values
+       - report median of all R-hat values rather than mean
+       - "true" -> "injection"
+     
    102: sluys, 16/11/2009
      - analyseMCMC: update 2D PDF ASCII output to new parameter index system
      - comp_pdfs: update of 2D PDF input (*__pdf2d.dat) to new parameter index system

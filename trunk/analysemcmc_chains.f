@@ -63,10 +63,10 @@ subroutine chains(exitcode)
      end do
      ic = 1
      p = 1
-     if(scLogLpl.eq.0) then                                 !Take into account 0, true and starting values
+     if(scLogLpl.eq.0) then                                 !Take into account 0, injection and starting values
         ymin = min(ymin,post(ic,1),post(ic,2),0.)
         ymax = max(ymax,post(ic,1),post(ic,2),0.)
-     else                                                     !Take into account true values only
+     else                                                     !Take into account injection values only
         ymin = min(ymin,post(ic,1))
         ymax = max(ymax,post(ic,1))
      end if
@@ -368,7 +368,7 @@ subroutine chains(exitcode)
            call pgline(2,(/-1.e20,1.e20/),(/ply,ply/))
         end if
         
-        !Plot burn-in, true and starting values
+        !Plot burn-in, injection and starting values
         do ic=1,nchains0
            call pgsls(2)
            call pgsci(6)
@@ -380,11 +380,11 @@ subroutine chains(exitcode)
            call pgsci(1)
            
            
-           !Plot true values in chains
+           !Plot injection values in chains
            if(plInject.ge.1) then
-              if(mergeChains.ne.1.or.ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
-                 !if(ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
-                 plx = startval(ic,p,1) !True value
+              if(mergeChains.ne.1.or.ic.eq.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+                 !if(ic.eq.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+                 plx = startval(ic,p,1) !Injection value
                  plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
                  if(changeVar.gt.0) then
                     if(parID(p).eq.31) plx = rev24(plx)  !RA
@@ -697,16 +697,16 @@ subroutine chains(exitcode)
         end if
         
         
-        !Plot true values
+        !Plot injection values
         do ic=1,nchains0
            call pgsls(2)
            call pgsci(1)
            
-           !Plot true values
+           !Plot injection values
            if(plInject.ge.1) then
-              if(mergeChains.ne.1.or.ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
-                 !if(ic.eq.1) then !The units of the true values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
-                 plx = startval(ic,p,1) !True value
+              if(mergeChains.ne.1.or.ic.eq.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+                 !if(ic.eq.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+                 plx = startval(ic,p,1) !Injection value
                  plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
                  if(changeVar.gt.0) then
                     if(parID(p).eq.31) plx = rev24(plx)
