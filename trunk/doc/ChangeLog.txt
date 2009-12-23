@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+   104: sluys, 22/12/2009
+     - AnalyseMCMC:
+       - plot injection and Lmax values for wrapped parameters properly
+   
    103: sluys, 22/12/2009
      - analyseMCMC: 
        - removed minor bug that affected scale of star at injection and Lmax values

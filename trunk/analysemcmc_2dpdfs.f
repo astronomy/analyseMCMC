@@ -11,7 +11,6 @@ subroutine pdfs2d(exitcode)
   implicit none
   integer :: i,j,j1,j2,p1,p2,ic,lw,io,exitcode,c,system,pgopen,clr,maxclr
   integer :: npdf,ncont,lw2,plotthis,injectionrange2d,countplots,totplots
-  real :: rev360,rev180,rev24
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
@@ -279,9 +278,9 @@ subroutine pdfs2d(exitcode)
            
            !Set plot ranges for whole-sky map.  Does not affect binning
            if(project_map .and. plotSky.ge.2) then
-              racentre = racentre*r2h
-              xmin = racentre + 12.  !Must be the larger of the two
-              xmax = racentre - 12.
+              raCentre = raCentre
+              xmin = raCentre + 12.  !Must be the larger of the two
+              xmax = raCentre - 12.
               ymin = -90.
               ymax = 90.
            end if
@@ -396,7 +395,7 @@ subroutine pdfs2d(exitcode)
            !Plot stars in 2D PDF (over the grey scales, but underneath contours, lines, etc)
            if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) then
               call pgswin(xmin*15,xmax*15,ymin,ymax) !Map works in degrees
-              call plotthesky(xmin*15,xmax*15,ymin,ymax,rashift)
+              call plotthesky(xmin*15,xmax*15,ymin,ymax,raShift*rh2r)
               call pgswin(xmin,xmax,ymin,ymax)
            end if
            call pgsci(1)
@@ -468,40 +467,12 @@ subroutine pdfs2d(exitcode)
                  call pgsci(1); call pgsls(5)
                  
                  plx = allDat(icloglmax,p1,iloglmax)
-                 if(parID(p1).eq.31) plx = rev24(plx)
-                 if(parID(p1).eq.41.or.parID(p1).eq.73.or.parID(p1).eq.83) plx = rev360(plx)
-                 if(parID(p1).eq.52) plx = rev180(plx)
+                 if(wrap(ic,p1).ne.0) plx = mod(plx + shifts(ic,p1), shIvals(ic,p1)) - shifts(ic,p1)
                  call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Max logL
-                 if(parID(p1).eq.31) then
-                    call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !Max logL
-                    call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !Max logL
-                 end if
-                 if(parID(p1).eq.41.or.parID(p1).eq.73.or.parID(p1).eq.83) then
-                    call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !Max logL
-                    call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !Max logL
-                 end if
-                 if(parID(p1).eq.52) then
-                    call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !Max logL
-                    call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !Max logL
-                 end if
                  
                  ply = allDat(icloglmax,p2,iloglmax)
-                 if(parID(p2).eq.31) ply = rev24(ply)
-                 if(parID(p2).eq.41.or.parID(p2).eq.73.or.parID(p2).eq.83) ply = rev360(ply)
-                 if(parID(p2).eq.52) ply = rev180(ply)
+                 if(wrap(ic,p2).ne.0) ply = mod(ply + shifts(ic,p2), shIvals(ic,p2)) - shifts(ic,p2)
                  call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !Max logL
-                 if(parID(p2).eq.31) then
-                    call pgline(2,(/-1.e20,1.e20/),(/ply-24.,ply-24./)) !Max logL
-                    call pgline(2,(/-1.e20,1.e20/),(/ply+24.,ply+24./)) !Max logL
-                 end if
-                 if(parID(p2).eq.41.or.parID(p2).eq.73.or.parID(p2).eq.83) then
-                    call pgline(2,(/-1.e20,1.e20/),(/ply-360.,ply-360./)) !Max logL
-                    call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !Max logL
-                 end if
-                 if(parID(p2).eq.52) then
-                    call pgline(2,(/-1.e20,1.e20/),(/ply-180.,ply-180./)) !Max logL
-                    call pgline(2,(/-1.e20,1.e20/),(/ply+180.,ply+180./)) !Max logL
-                 end if
                  
                  call pgpoint(1,plx,ply,12)
               end if
@@ -513,53 +484,22 @@ subroutine pdfs2d(exitcode)
               !Plot injection value in 2D PDF
               if((plInject.eq.1.or.plInject.eq.3).and.(.not.project_map) .or. &
                    ((plInject.eq.2.or.plInject.eq.4) .and. (parID(p1).eq.61.and.parID(p2).eq.62).or.(parID(p1).eq.63.and.parID(p2).eq.64)) ) then
-                 !call pgline(2,(/startval(ic,p1,1),startval(ic,p1,1)/),(/-1.e20,1.e20/))
-                 !call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p2,1),startval(ic,p2,1)/))
                  
                  if(mergeChains.ne.1.or.ic.le.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                     !x
                     call pgsls(2); call pgsci(1)
                     if(plLmax.eq.0) call pgsls(3)  !Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?)
                     plx = startval(ic,p1,1)
-                    if(parID(p1).eq.31) plx = rev24(plx)
-                    if(parID(p1).eq.41.or.parID(p1).eq.73.or.parID(p1).eq.83) plx = rev360(plx)
-                    if(parID(p1).eq.52) plx = rev180(plx)
+                    if(wrap(ic,p1).ne.0) plx = mod(plx + shifts(ic,p1), shIvals(ic,p1)) - shifts(ic,p1)
                     call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Injection value
-                    if(parID(p1).eq.31) then
-                       call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !Injection value
-                       call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !Injection value
-                    end if
-                    if(parID(p1).eq.41.or.parID(p1).eq.73.or.parID(p1).eq.83) then
-                       call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !Injection value
-                       call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !Injection value
-                    end if
-                    if(parID(p1).eq.52) then
-                       call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !Injection value
-                       call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !Injection value
-                    end if
                     
                     !y
                     call pgsls(2); call pgsci(1)
                     if(plLmax.eq.0) call pgsls(3)  !Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?)
                     ply = startval(ic,p2,1)
-                    if(parID(p2).eq.31) ply = rev24(ply)
-                    if(parID(p2).eq.41.or.parID(p2).eq.73.or.parID(p2).eq.83) ply = rev360(ply)
-                    if(parID(p2).eq.52) ply = rev180(ply)
+                    if(wrap(ic,p2).ne.0) ply = mod(ply + shifts(ic,p2), shIvals(ic,p2)) - shifts(ic,p2)
                     call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !Injection value
-                    if(parID(p2).eq.31) then
-                       call pgline(2,(/-1.e20,1.e20/),(/ply-24.,ply-24./)) !Injection value
-                       call pgline(2,(/-1.e20,1.e20/),(/ply+24.,ply+24./)) !Injection value
-                    end if
-                    if(parID(p2).eq.41.or.parID(p2).eq.73.or.parID(p2).eq.83) then
-                       call pgline(2,(/-1.e20,1.e20/),(/ply-360.,ply-360./)) !Injection value
-                       call pgline(2,(/-1.e20,1.e20/),(/ply+360.,ply+360./)) !Injection value
-                    end if
-                    if(parID(p2).eq.52) then
-                       call pgline(2,(/-1.e20,1.e20/),(/ply-180.,ply-180./)) !Injection value
-                       call pgline(2,(/-1.e20,1.e20/),(/ply+180.,ply+180./)) !Injection value
-                    end if
                     
-                    call pgsls(1); call pgsci(1)
                     call pgpoint(1,plx,ply,18)
                  end if
               end if  !If plotting injection values in 2D plot
@@ -615,7 +555,7 @@ subroutine pdfs2d(exitcode)
               if(normPDF2D.eq.4) call pgsci(1)  !Black
               plx = startval(ic,p1,1)
               ply = startval(ic,p2,1)
-              if(plotSky.eq.2.or.plotSky.eq.4) call project_skymap(plx,ply,racentre,map_projection)
+              if(plotSky.eq.2.or.plotSky.eq.4) call project_skymap(plx,ply,raCentre,map_projection)
               call pgpoint(1,plx,ply,8)
               call pgsch(sch)
               call pgslw(lw)
@@ -1180,7 +1120,7 @@ end function injectionrange2d
 
 
 !************************************************************************************************************************************
-subroutine plotthesky(bx1,bx2,by1,by2,rashift)
+subroutine plotthesky(bx1,bx2,by1,by2,raShift)
   use constants
   use plot_data
   implicit none
@@ -1188,7 +1128,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
   integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,spld,n,prslbl,rv
   real*8 :: ra(ns),dec(ns),dx1,dx2,dy,ra1,dec1,drev2pi,par
   real :: pma,pmd,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
-  real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,bx1,bx2,by1,by2,x,y,mlim,rashift
+  real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,bx1,bx2,by1,by2,x,y,mlim,raShift
   character :: cn(100)*3,con(100)*20,name*10,sn(ns)*10,snam(nsn)*10,sni*10,getsname*10,mult,var*9
   
   mlim = 6.            !Magnitude limit for stars
@@ -1224,7 +1164,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
      read(20,320)name,ra(i),dec(i),pma,pmd,rv,vm(i),par,mult,var
 320  format(A10,1x,2F10.6,1x,2F7.3,I5,F6.2,F6.3,A2,A10)
      sn(i) = getsname(name)
-     ra(i) = mod(ra(i)+rashift,tpi)-rashift
+     ra(i) = mod(ra(i)+raShift,tpi)-raShift
   end do
   close(20)
 
@@ -1254,7 +1194,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,rashift)
      !constx(i) = x1
      !consty(i) = y1
      !constx(i) = real(ra1*r2d)
-     constx(i) = real((mod(ra1+rashift,tpi)-rashift)*r2d)
+     constx(i) = real((mod(ra1+raShift,tpi)-raShift)*r2d)
      consty(i) = real(dec1*r2d)
   end do
 340 close(40)
@@ -1504,7 +1444,7 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)  !Clone
         !Do the projection:
         if(projection.ge.1) then
            do i=1,4
-              call project_skymap(xs(i),ys(i),racentre,projection)
+              call project_skymap(xs(i),ys(i),raCentre,projection)
            end do
         end if
         xs(5) = xs(1)
@@ -1530,15 +1470,15 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)  !Clone
      do i=-24,24,3  !In hours
         call pgsci(14)
         if(i.eq.0.or.abs(i).eq.24) call pgsci(1) !Null-meridian in black
-        if(real(i).gt.-racentre-12.and.real(i).lt.-racentre+12) then
+        if(real(i).gt.-raCentre-12.and.real(i).lt.-raCentre+12) then
            !Plot line:
-           x = -(racentre+real(i))
-           call pgline(nell/2+1,xell*x+racentre,yell*90.)
+           x = -(raCentre+real(i))
+           call pgline(nell/2+1,xell*x+raCentre,yell*90.)
            
            !Print label:
            write(str,'(I2,A)')mod(48-i,24),'\uh\d'
            if(mod(48-i,24).lt.10) write(str,'(I1,A)')mod(48-i,24),'\uh\d'
-           call pgptext(x+racentre-0.1,2.,0.,0.,trim(str))
+           call pgptext(x+raCentre-0.1,2.,0.,0.,trim(str))
         end if
      end do
      
@@ -1549,12 +1489,12 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)  !Clone
         if(i.eq.0) call pgsci(1) !Equator in black
         
         !Get start and end point on line and project them:
-        xs(1) = racentre-12.
-        xs(2) = racentre+12.
+        xs(1) = raCentre-12.
+        xs(2) = raCentre+12.
         ys(1) = real(i)
         ys(2) = real(i)
-        call project_skymap(xs(1),ys(1),racentre,projection)
-        call project_skymap(xs(2),ys(2),racentre,projection)
+        call project_skymap(xs(1),ys(1),raCentre,projection)
+        call project_skymap(xs(2),ys(2),raCentre,projection)
         
         !Plot line:
         call pgline(2,xs(1:2),ys(1:2))
@@ -1571,18 +1511,18 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)  !Clone
      
      !Overplot main lines:
      call pgsci(1)
-     call pgptext(racentre,92.,0.,0.5,'+90\(2218)')           !NP
-     call pgptext(racentre,-95.,0.,0.5,'-90\(2218)')          !SP
-     call pgline(2,(/racentre-12.,racentre+12./),(/0.,0./))   !Equator
+     call pgptext(raCentre,92.,0.,0.5,'+90\(2218)')           !NP
+     call pgptext(raCentre,-95.,0.,0.5,'-90\(2218)')          !SP
+     call pgline(2,(/raCentre-12.,raCentre+12./),(/0.,0./))   !Equator
      
      !Plot null-meridian:
      do i=-24,24,24
-        if(real(i).gt.-racentre-12.and.real(i).lt.-racentre+12) call pgline(nell/2+1,-(racentre+real(i))*xell+racentre,yell*90.)
+        if(real(i).gt.-raCentre-12.and.real(i).lt.-raCentre+12) call pgline(nell/2+1,-(raCentre+real(i))*xell+raCentre,yell*90.)
      end do
      
      call pgqlw(lw)     !Save current line width
      call pgslw(lw*2)
-     call pgline(nell,xell*12.+racentre,yell*90.)             !Outline
+     call pgline(nell,xell*12.+raCentre,yell*90.)             !Outline
      call pgslw(lw)     !Restore line width
      
      
@@ -1599,11 +1539,11 @@ end subroutine pgimag_project
 
 
 !*****************************************************************************************************************************************************
-subroutine project_skymap(x,y,racentre,projection)  !Project a sky map, using projection 'projection'
+subroutine project_skymap(x,y,raCentre,projection)  !Project a sky map, using projection 'projection'
   use constants
   implicit none
   integer :: projection,iter,maxIter
-  real :: x,y,theta,siny,th2,dth2,delta,racentre
+  real :: x,y,theta,siny,th2,dth2,delta,raCentre
   
   if(projection.eq.1) then
      !Mollweide projection:
@@ -1631,7 +1571,7 @@ subroutine project_skymap(x,y,racentre,projection)  !Project a sky map, using pr
      !y = sqrt(2) * sin(theta) * r2d
      
      !Map it back to a 24hx180d plot:
-     x = (x-racentre) * cos(theta) + racentre
+     x = (x-raCentre) * cos(theta) + raCentre
      y = sin(theta)*90.
   else
      write(0,'(A,I3)')'  ERROR:  Projection not defined:',projection

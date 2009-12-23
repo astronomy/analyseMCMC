@@ -427,22 +427,8 @@ subroutine pdfs1d(exitcode)
                  call pgsls(2); call pgsci(1)
                  if(plLmax.eq.0) call pgsls(3)  !Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?)
                  plx = startval(ic,p,1)
-                 if(parID(p).eq.31) plx = rev24(plx)
-                 if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) ply = rev360(ply)
-                 if(parID(p).eq.52) ply = rev180(ply)
+                 if(wrap(ic,p).ne.0) plx = mod(plx + shifts(ic,p), shIvals(ic,p)) - shifts(ic,p)
                  call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Injection value
-                 if(parID(p).eq.31) then
-                    call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/)) !Injection value
-                    call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/)) !Injection value
-                 end if
-                 if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) then
-                    call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/)) !Injection value
-                    call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/)) !Injection value
-                 end if
-                 if(parID(p).eq.52) then
-                    call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/)) !Injection value
-                    call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/)) !Injection value
-                 end if
               end if
            end if
 

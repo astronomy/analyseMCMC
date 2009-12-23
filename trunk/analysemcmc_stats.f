@@ -11,7 +11,7 @@ subroutine statistics(exitcode)
   integer :: c,i,ic,i0,j,j1,o,p,p1,p2,nr,nstat,exitcode,wraptype
   integer :: indexx(maxMCMCpar,maxChs*maxIter),index1(maxChs*maxIter)
   real :: rev2pi,x0,x1,x2,y1,y2,rrevpi
-  real :: range1,minrange,maxgap,ival,wrapival,centre,maxlogl,minlogl,shival,shival2
+  real :: range1,minrange,maxgap,ival,wrapival,centre,maxlogl,minlogl,shift,shIval,shIval2
   real :: medians(maxMCMCpar),mean(maxMCMCpar),var1(maxMCMCpar),var2(maxMCMCpar),corr,corr1,corr2
   
   !Need extra accuracy to compute Bayes factor
@@ -28,7 +28,7 @@ subroutine statistics(exitcode)
   if(prProgress.ge.2) write(6,*)''
   shift = 0.
   wrap = 0
-  rashift = 0.
+  raShift = 0.
   do ic=1,nchains
      if(mergeChains.eq.0.and.contrchain(ic).eq.0) cycle
      !wrapival = ivals(Nival) !Use the largest range
@@ -41,7 +41,7 @@ subroutine statistics(exitcode)
              (parID(p).ne.31.and.parID(p).ne.41.and.parID(p).ne.52.and.parID(p).ne.54.and.parID(p).ne.73.and.parID(p).ne.83) ) then  !Not RA, phi_c, psi, phi_Jo, phi_1,2
            call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
-           if(parID(p).eq.31) racentre = rpi !Plot 0-24h when not wrapping -> centre = 12h = pi
+           if(parID(p).eq.31) raCentre = rpi !Plot 0-24h when not wrapping -> centre = 12h = pi
            cycle !No wrapping
         end if
         
@@ -75,16 +75,17 @@ subroutine statistics(exitcode)
         centre = (y1+y2)/2.
         
         !Define shift interval:
-        shival = rtpi   !Shift interval
-        shival2 = rpi   !Shift interval/2
+        shIval = rtpi   !Shift interval
+        shIval2 = rpi   !Shift interval/2
         if(wraptype.eq.2) then
-           shival = rpi   !Shift interval
-           shival2 = rpi2 !Shift interval/2
+           shIval = rpi   !Shift interval
+           shIval2 = rpi2 !Shift interval/2
         end if
+        shIvals(ic,p) = shIval
         
         if(y1.gt.y2) then
            wrap(ic,p) = wraptype
-           centre = mod(centre + shival2, shival) !Then distribution peaks close to 0/shival, shift centre by shival/2
+           centre = mod(centre + shIval2, shIval) !Then distribution peaks close to 0/shIval, shift centre by shIval/2
         end if
         
         
@@ -115,27 +116,28 @@ subroutine statistics(exitcode)
         
         
         !Now, wrap around anticentre
-        shift(ic,p) = 0.
+        shift = 0.
         
-        !For the general case of shival (= pi or 2pi)
-        if(wrap(ic,p).gt.0) shift(ic,p) = shival - mod(centre + shival2, shival)
-        if(parID(p).eq.31.and.ic.eq.1) rashift = shift(ic,p)                         !Save RA shift to plot sky map
+        !For the general case of shIval (= pi or 2pi)
+        if(wrap(ic,p).gt.0) shift = shIval - mod(centre + shIval2, shIval)
+        shifts(ic,p) = shift
+        if(parID(p).eq.31.and.ic.eq.1) raShift = shift                         !Save RA shift to plot sky map
         
         !Do the actual wrapping:
-        allDat(ic,p,1:ntot(ic))  = mod(allDat(ic,p,1:ntot(ic))  + shift(ic,p), shival) - shift(ic,p)   !Original data
-        selDat(ic,p,1:n(ic))     = mod(selDat(ic,p,1:n(ic))     + shift(ic,p), shival) - shift(ic,p)
-        startval(ic,p,1:3)       = mod(startval(ic,p,1:3)       + shift(ic,p), shival) - shift(ic,p)   !Injection, starting and Lmax values
-        y1 = mod(y1 + shift(ic,p), shival) - shift(ic,p)
-        y2 = mod(y2 + shift(ic,p), shival) - shift(ic,p)
+        allDat(ic,p,1:ntot(ic))  = mod(allDat(ic,p,1:ntot(ic))  + shift, shIval) - shift   !Original data
+        selDat(ic,p,1:n(ic))     = mod(selDat(ic,p,1:n(ic))     + shift, shIval) - shift
+        startval(ic,p,1:3)       = mod(startval(ic,p,1:3)       + shift, shIval) - shift   !Injection, starting and Lmax values
+        y1 = mod(y1 + shift, shIval) - shift
+        y2 = mod(y2 + shift, shIval) - shift
         
-        centre = mod(centre + shift(ic,p), shival) - shift(ic,p)
-        if(parID(p).eq.31.and.ic.eq.1) racentre = centre                             !Save RA centre to plot sky map
+        centre = mod(centre + shift, shIval) - shift
+        if(parID(p).eq.31.and.ic.eq.1) raCentre = centre                             !Save RA centre to plot sky map
         
         minrange = y2-y1
         call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))  !Re-sort
         indexx(p,1:n(ic)) = index1(1:n(ic))
         
-        if(abs( abs( minval(selDat(ic,p,1:n(ic))) - maxval(selDat(ic,p,1:n(ic))) ) - shival) .lt. 1.e-3)  wrap(ic,p) = 1   !If centre is around shival2, still needs to be flagged 'wrap' to plot PDF
+        if(abs( abs( minval(selDat(ic,p,1:n(ic))) - maxval(selDat(ic,p,1:n(ic))) ) - shIval) .lt. 1.e-3)  wrap(ic,p) = 1   !If centre is around shIval2, still needs to be flagged 'wrap' to plot PDF
      end do !p
      ! End wrapping data
      
@@ -340,6 +342,10 @@ subroutine statistics(exitcode)
               if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*rr2h
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2h
               ranges(ic,1:Nival,p,1:nr) = ranges(ic,1:Nival,p,1:nr)*rr2h
+              shifts(ic,p) = shifts(ic,p)*rr2h
+              shIvals(ic,p) = shIvals(ic,p)*rr2h
+              raShift = raShift*rr2h
+              raCentre = raCentre*rr2h
            end if
            if(parID(p).eq.32.or.parID(p).eq.53) then !sin -> deg
               stdev1(p) = abs(1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
@@ -356,6 +362,8 @@ subroutine statistics(exitcode)
               if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*rr2d
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2d
               ranges(ic,1:Nival,p,1:nr) = ranges(ic,1:Nival,p,1:nr)*rr2d
+              shifts(ic,p) = shifts(ic,p)*rr2d
+              shIvals(ic,p) = shIvals(ic,p)*rr2d
            end if
            
            ranges(ic,1:Nival,p,3) = 0.5*(ranges(ic,1:Nival,p,1) + ranges(ic,1:Nival,p,2))

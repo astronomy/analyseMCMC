@@ -57,7 +57,7 @@ module general_data
   character :: pgunits(nParDB)*99,pgParNs(nParDB)*99,pgParNss(nParDB)*99,pgOrigParns(nParDB)*99
   
   integer :: wrap(maxChs,maxMCMCpar)
-  real :: rashift,racentre,shift(maxChs,maxMCMCpar)
+  real :: raShift,raCentre,shifts(maxChs,maxMCMCpar),shIvals(maxChs,maxMCMCpar)
 end module general_data
 !***************************************************************************************************
 
