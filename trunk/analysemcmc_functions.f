@@ -24,12 +24,16 @@ subroutine setconstants
   rc3rd = 1./3.       !1/3     
   
   
+  !Define detector abbreviations here (don't forget to change detabbrs() in the module constants in analysemcmc_modules.f):
   detabbrs = [character(len=2) :: 'H1','L1','V ','H2']
-  waveforms = [character(len=99) :: 'Unknown','Apostolatos','SpinTaylor12','SpinTaylor15','PPN'] !0-4
+  
+  !Define waveforms here (don't forget to change waveforms() in the module constants in analysemcmc_modules.f):
+  waveforms = [character(len=99) :: 'Unknown','Apostolatos','SpinTaylor12','SpinTaylor15','PPN','','','','','Ana.L'] !0-4,9
   
   upline = char(27)//'[2A'  !Printing this makes the cursor move up one line (actually two lines, since a hard return is included)
   
   call getenv('HOME',homedir)  !Get the current user's home directory
+  
 end subroutine setconstants
 !***************************************************************************************************
 
@@ -880,7 +884,7 @@ end subroutine mcmcruninfo
 
 
 
-!> \brief Set the names and symbols of the original MCMC parameters
+!> \brief Define the names and symbols of the original MCMC parameters
 !<
 !************************************************************************************************************************************
 subroutine set_originalParameterNames()
@@ -891,7 +895,7 @@ subroutine set_originalParameterNames()
   parNames = ''
   pgParNs = ''
   pgParNss = ''
-  pgunits = ''
+  pgUnits = ''
   
   !Short ASCII names for text output:
   parNames(11:19) = [character(len=8) :: 'tc','t40','','','','','','','']
@@ -902,6 +906,7 @@ subroutine set_originalParameterNames()
   parNames(61:69) = [character(len=8) :: 'Mc','eta','M1','M2','','','','','']
   parNames(71:79) = [character(len=8) :: 'spin1','cos_th1','phi1','','','','','','']
   parNames(81:89) = [character(len=8) :: 'spin2','cos_th2','phi2','','','','','','']
+  parNames(91:99) = [character(len=8) :: '','','','','','','','','ana_l']
   !parNames(1:9) = [character(len=8) :: '','','','','','','','','']
   
   
@@ -916,6 +921,7 @@ subroutine set_originalParameterNames()
      pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
      pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','cos \(2185)\dspin1\u','\(2147)\dspin1\u (rad)','','','','','','']
      pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','cos \(2185)\dspin2\u','\(2147)\dspin2\u (rad)','','','','','','']
+     pgParNs(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
      !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
      
      !Short PGPlot symbols (no unit)
@@ -927,6 +933,7 @@ subroutine set_originalParameterNames()
      pgParNss(61:69) = [character(len=99) :: '\(2563)','\(2133)','M\d1\u','M\d2\u','','','','','']
      pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','cos \(2185)\dspin1\u','\(2147)\dspin1\u','','','','','','']
      pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','cos \(2185)\dspin2\u','\(2147)\dspin2\u','','','','','','']
+     pgParNss(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
      !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
      
   else  !Same, but replace '\(21' with \(06' for arial-like Greek font
@@ -940,6 +947,7 @@ subroutine set_originalParameterNames()
      pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
      pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','cos \(0685)\dspin1\u','\(0647)\dspin1\u (rad)','','','','','','']
      pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','cos \(0685)\dspin2\u','\(0647)\dspin2\u (rad)','','','','','','']
+     pgParNs(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
      !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
      
      !Short PGPlot symbols (no unit)
@@ -951,20 +959,22 @@ subroutine set_originalParameterNames()
      pgParNss(61:69) = [character(len=99) :: '\(2563)','\(0633)','M\d1\u','M\d2\u','','','','','']
      pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','cos \(0685)\dspin1\u','\(0647)\dspin1\u','','','','','','']
      pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','cos \(0685)\dspin2\u','\(0647)\dspin2\u','','','','','','']
+     pgParNss(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
      !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
      
   end if
   
   !PGPlot units (no names)
-  pgunits(11:19) = [character(len=99) :: 's','s','','','','','','','']
-  pgunits(21:29) = [character(len=99) :: 'Mpc','Mpc','','','','','','','']
-  pgunits(31:39) = [character(len=99) :: 'rad','','','','','','','','']
-  pgunits(41:49) = [character(len=99) :: 'rad','','','','','','','','']
-  pgunits(51:59) = [character(len=99) :: '','rad','','rad','','','','','']
-  pgunits(61:69) = [character(len=99) :: 'M\d\(2281)\u','','M\d\(2281)\u','M\d\(2281)\u','','','','','']
-  pgunits(71:79) = [character(len=99) :: '','','rad','','','','','','']
-  pgunits(81:89) = [character(len=99) :: '','','rad','','','','','','']
-  !pgunits(1:9) = [character(len=99) :: '','','','','','','','','']
+  pgUnits(11:19) = [character(len=99) :: 's','s','','','','','','','']
+  pgUnits(21:29) = [character(len=99) :: 'Mpc','Mpc','','','','','','','']
+  pgUnits(31:39) = [character(len=99) :: 'rad','','','','','','','','']
+  pgUnits(41:49) = [character(len=99) :: 'rad','','','','','','','','']
+  pgUnits(51:59) = [character(len=99) :: '','rad','','rad','','','','','']
+  pgUnits(61:69) = [character(len=99) :: 'M\d\(2281)\u','','M\d\(2281)\u','M\d\(2281)\u','','','','','']
+  pgUnits(71:79) = [character(len=99) :: '','','rad','','','','','','']
+  pgUnits(81:89) = [character(len=99) :: '','','rad','','','','','','']
+  pgUnits(91:99) = [character(len=99) :: '','','','','','','','','']
+  !pgUnits(1:9) = [character(len=99) :: '','','','','','','','','']
   
      
   !Save the original parameter names for use after they get changed
@@ -981,7 +991,7 @@ end subroutine set_originalParameterNames
 
 
 
-!> \brief Set the names and symbols of the derived MCMC parameters
+!> \brief Define the names and symbols of the derived MCMC parameters
 !! e.g. d_L rather than d_L^3 or log(d_L), i rather than cos(i), etc.
 !<
 !************************************************************************************************************************************
@@ -993,7 +1003,7 @@ subroutine set_derivedParameterNames()
   parNames = ''
   pgParNs = ''
   pgParNss = ''
-  pgunits = ''
+  pgUnits = ''
   
   !Short ASCII names for text output:
   parNames(11:19) = [character(len=8) :: 'tc','t40','','','','','','','']
@@ -1004,6 +1014,7 @@ subroutine set_derivedParameterNames()
   parNames(61:69) = [character(len=8) :: 'Mc','eta','M1','M2','','','','','']
   parNames(71:79) = [character(len=8) :: 'spin1','th1','phi1','','','','','','']
   parNames(81:89) = [character(len=8) :: 'spin2','th2','phi2','','','','','','']
+  parNames(91:99) = [character(len=8) :: '','','','','','','','','ana_l']
   !parNames(1:9) = [character(len=8) :: '','','','','','','','','']
   
   
@@ -1018,6 +1029,7 @@ subroutine set_derivedParameterNames()
      pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
      pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','\(2185)\dspin1\u (\(2218))','\(2147)\dspin1\u (\(2218))','','','','','','']
      pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','\(2185)\dspin2\u (\(2218))','\(2147)\dspin2\u (\(2218))','','','','','','']
+     pgParNs(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
      !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
      
      !Short PGPlot symbols (no unit)
@@ -1029,6 +1041,7 @@ subroutine set_derivedParameterNames()
      pgParNss(61:69) = [character(len=99) :: '\(2563)','\(2133)','M\d1\u','M\d2\u','','','','','']
      pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','\(2185)\dspin1\u','\(2147)\dspin1\u','','','','','','']
      pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','\(2185)\dspin2\u','\(2147)\dspin2\u','','','','','','']
+     pgParNss(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
      !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
      
   else  !Same, but replace '\(21' with \(06' for arial-like Greek font
@@ -1042,6 +1055,7 @@ subroutine set_derivedParameterNames()
      pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
      pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','\(0685)\dspin1\u (\(2218))','\(0647)\dspin1\u (\(2218))','','','','','','']
      pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','\(0685)\dspin2\u (\(2218))','\(0647)\dspin2\u (\(2218))','','','','','','']
+     pgParNs(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
      !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
      
      !Short PGPlot symbols (no unit)
@@ -1053,20 +1067,22 @@ subroutine set_derivedParameterNames()
      pgParNss(61:69) = [character(len=99) :: '\(2563)','\(0633)','M\d1\u','M\d2\u','','','','','']
      pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','\(0685)\dspin1\u','\(0647)\dspin1\u','','','','','','']
      pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','\(0685)\dspin2\u','\(0647)\dspin2\u','','','','','','']
+     pgParNss(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
      !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
      
   end if
   
   !PGPlot units (no names)
-  pgunits(11:19) = [character(len=99) :: 's','s','','','','','','','']
-  pgunits(21:29) = [character(len=99) :: 'Mpc','Mpc','','','','','','','']
-  pgunits(31:39) = [character(len=99) :: '\uh\d','\(2218)','','','','','','','']
-  pgunits(41:49) = [character(len=99) :: '\(2218)','','','','','','','','']
-  pgunits(51:59) = [character(len=99) :: '\(2218)','\(2218)','\(2218)','\(2218)','','','','','']
-  pgunits(61:69) = [character(len=99) :: 'M\d\(2281)\u','','M\d\(2281)\u','M\d\(2281)\u','','','','','']
-  pgunits(71:79) = [character(len=99) :: '','\(2218)','\(2218)','','','','','','']
-  pgunits(81:89) = [character(len=99) :: '','\(2218)','\(2218)','','','','','','']
-  !pgunits(1:9) = [character(len=99) :: '','','','','','','','','']
+  pgUnits(11:19) = [character(len=99) :: 's','s','','','','','','','']
+  pgUnits(21:29) = [character(len=99) :: 'Mpc','Mpc','','','','','','','']
+  pgUnits(31:39) = [character(len=99) :: '\uh\d','\(2218)','','','','','','','']
+  pgUnits(41:49) = [character(len=99) :: '\(2218)','','','','','','','','']
+  pgUnits(51:59) = [character(len=99) :: '\(2218)','\(2218)','\(2218)','\(2218)','','','','','']
+  pgUnits(61:69) = [character(len=99) :: 'M\d\(2281)\u','','M\d\(2281)\u','M\d\(2281)\u','','','','','']
+  pgUnits(71:79) = [character(len=99) :: '','\(2218)','\(2218)','','','','','','']
+  pgUnits(81:89) = [character(len=99) :: '','\(2218)','\(2218)','','','','','','']
+  pgUnits(91:99) = [character(len=99) :: '','','','','','','','','']
+  !pgUnits(1:9) = [character(len=99) :: '','','','','','','','','']
   
      
 end subroutine set_derivedParameterNames
@@ -1117,7 +1133,7 @@ function gmst(GPSsec)
   leapseconds = 32.d0 !At Jan 1st 2000
   if(GPSsec.gt.820108813.d0) leapseconds = leapseconds + 1.d0 !One more leapsecond after 1/1/2006
   if(GPSsec.gt.914803214.d0) leapseconds = leapseconds + 1.d0 !One more leapsecond after 1/1/2009
-  if(GPSsec.lt.630720013.d0) write(0,'(A)')'   WARNING: GMSTs before 1.1.2000 are inaccurate!'
+  if(GPSsec.lt.630720013.d0) write(0,'(A)')'   WARNING: GMSTs before 01/01/2000 are inaccurate!'
   !Time since 1/1/2000 midnight
   seconds       = (GPSsec - gps0) + (leapseconds - 32.d0)
   days          = floor(seconds/86400.d0) - 0.5d0

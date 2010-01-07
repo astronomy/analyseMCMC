@@ -763,6 +763,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
   do p=1,Npdf2D
      p1 = revID(PDF2Dpairs(p,1))
      p2 = revID(PDF2Dpairs(p,2))
+     if(p1*p2.eq.0) cycle
      if(parID(p1)*parID(p2).eq.0) then
         if(parID(p1).eq.0) write(0,'(/,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter '//trim(parNames(parID(p1)))//' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
         if(parID(p2).eq.0) write(0,'(/,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter '//trim(parNames(parID(p2)))//' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
