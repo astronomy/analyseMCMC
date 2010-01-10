@@ -906,7 +906,7 @@ subroutine set_originalParameterNames()
   parNames(61:69) = [character(len=8) :: 'Mc','eta','M1','M2','','','','','']
   parNames(71:79) = [character(len=8) :: 'spin1','cos_th1','phi1','','','','','','']
   parNames(81:89) = [character(len=8) :: 'spin2','cos_th2','phi2','','','','','','']
-  parNames(91:99) = [character(len=8) :: '','','','','','','','','ana_l']
+  parNames(185:199) = [character(len=8) :: 'x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15']
   !parNames(1:9) = [character(len=8) :: '','','','','','','','','']
   
   
@@ -921,7 +921,7 @@ subroutine set_originalParameterNames()
      pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
      pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','cos \(2185)\dspin1\u','\(2147)\dspin1\u (rad)','','','','','','']
      pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','cos \(2185)\dspin2\u','\(2147)\dspin2\u (rad)','','','','','','']
-     pgParNs(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
+     pgParNs(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
      !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
      
      !Short PGPlot symbols (no unit)
@@ -933,7 +933,7 @@ subroutine set_originalParameterNames()
      pgParNss(61:69) = [character(len=99) :: '\(2563)','\(2133)','M\d1\u','M\d2\u','','','','','']
      pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','cos \(2185)\dspin1\u','\(2147)\dspin1\u','','','','','','']
      pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','cos \(2185)\dspin2\u','\(2147)\dspin2\u','','','','','','']
-     pgParNss(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
+     pgParNss(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
      !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
      
   else  !Same, but replace '\(21' with \(06' for arial-like Greek font
@@ -947,7 +947,7 @@ subroutine set_originalParameterNames()
      pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
      pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','cos \(0685)\dspin1\u','\(0647)\dspin1\u (rad)','','','','','','']
      pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','cos \(0685)\dspin2\u','\(0647)\dspin2\u (rad)','','','','','','']
-     pgParNs(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
+     pgParNs(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
      !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
      
      !Short PGPlot symbols (no unit)
@@ -959,7 +959,7 @@ subroutine set_originalParameterNames()
      pgParNss(61:69) = [character(len=99) :: '\(2563)','\(0633)','M\d1\u','M\d2\u','','','','','']
      pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','cos \(0685)\dspin1\u','\(0647)\dspin1\u','','','','','','']
      pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','cos \(0685)\dspin2\u','\(0647)\dspin2\u','','','','','','']
-     pgParNss(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
+     pgParNss(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
      !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
      
   end if
@@ -973,7 +973,7 @@ subroutine set_originalParameterNames()
   pgUnits(61:69) = [character(len=99) :: 'M\d\(2281)\u','','M\d\(2281)\u','M\d\(2281)\u','','','','','']
   pgUnits(71:79) = [character(len=99) :: '','','rad','','','','','','']
   pgUnits(81:89) = [character(len=99) :: '','','rad','','','','','','']
-  pgUnits(91:99) = [character(len=99) :: '','','','','','','','','']
+  pgUnits(185:199) = [character(len=99) :: '','','','','','','','','','','','','','','']
   !pgUnits(1:9) = [character(len=99) :: '','','','','','','','','']
   
      
@@ -1014,7 +1014,7 @@ subroutine set_derivedParameterNames()
   parNames(61:69) = [character(len=8) :: 'Mc','eta','M1','M2','','','','','']
   parNames(71:79) = [character(len=8) :: 'spin1','th1','phi1','','','','','','']
   parNames(81:89) = [character(len=8) :: 'spin2','th2','phi2','','','','','','']
-  parNames(91:99) = [character(len=8) :: '','','','','','','','','ana_l']
+  parNames(185:199) = [character(len=8) :: 'x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15']
   !parNames(1:9) = [character(len=8) :: '','','','','','','','','']
   
   
@@ -1029,7 +1029,7 @@ subroutine set_derivedParameterNames()
      pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
      pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','\(2185)\dspin1\u (\(2218))','\(2147)\dspin1\u (\(2218))','','','','','','']
      pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','\(2185)\dspin2\u (\(2218))','\(2147)\dspin2\u (\(2218))','','','','','','']
-     pgParNs(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
+     pgParNs(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
      !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
      
      !Short PGPlot symbols (no unit)
@@ -1041,7 +1041,7 @@ subroutine set_derivedParameterNames()
      pgParNss(61:69) = [character(len=99) :: '\(2563)','\(2133)','M\d1\u','M\d2\u','','','','','']
      pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','\(2185)\dspin1\u','\(2147)\dspin1\u','','','','','','']
      pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','\(2185)\dspin2\u','\(2147)\dspin2\u','','','','','','']
-     pgParNss(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
+     pgParNss(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
      !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
      
   else  !Same, but replace '\(21' with \(06' for arial-like Greek font
@@ -1055,7 +1055,7 @@ subroutine set_derivedParameterNames()
      pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
      pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','\(0685)\dspin1\u (\(2218))','\(0647)\dspin1\u (\(2218))','','','','','','']
      pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','\(0685)\dspin2\u (\(2218))','\(0647)\dspin2\u (\(2218))','','','','','','']
-     pgParNs(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
+     pgParNs(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
      !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
      
      !Short PGPlot symbols (no unit)
@@ -1067,7 +1067,7 @@ subroutine set_derivedParameterNames()
      pgParNss(61:69) = [character(len=99) :: '\(2563)','\(0633)','M\d1\u','M\d2\u','','','','','']
      pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','\(0685)\dspin1\u','\(0647)\dspin1\u','','','','','','']
      pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','\(0685)\dspin2\u','\(0647)\dspin2\u','','','','','','']
-     pgParNss(91:99) = [character(len=99) :: '','','','','','','','','L\dana\u']
+     pgParNss(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
      !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
      
   end if
@@ -1081,7 +1081,7 @@ subroutine set_derivedParameterNames()
   pgUnits(61:69) = [character(len=99) :: 'M\d\(2281)\u','','M\d\(2281)\u','M\d\(2281)\u','','','','','']
   pgUnits(71:79) = [character(len=99) :: '','\(2218)','\(2218)','','','','','','']
   pgUnits(81:89) = [character(len=99) :: '','\(2218)','\(2218)','','','','','','']
-  pgUnits(91:99) = [character(len=99) :: '','','','','','','','','']
+  pgUnits(185:199) = [character(len=99) :: '','','','','','','','','','','','','','','']
   !pgUnits(1:9) = [character(len=99) :: '','','','','','','','','']
   
      
