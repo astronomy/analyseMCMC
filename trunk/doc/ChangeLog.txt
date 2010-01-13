@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+   107: sluys, 13/01/2010
+     - 1d/2d PDFs: show correct Delta label (e.g. \Delta_{95%} for 2-sigma) for probability ranges
+     
    105: sluys, 07/01/2010
      - AnalyseMCMC: added waveform 9 and variable 99 for analytic-likelihood runs
    
