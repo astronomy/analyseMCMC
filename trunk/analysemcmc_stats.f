@@ -18,7 +18,7 @@ subroutine statistics(exitcode)
   !real*8 :: var,total
   !real*16 :: var,total  !gfortran doesn't support this
   !real(kind=10) :: var,total  !Means different things on different compilers
-  real(kind=selected_real_kind(18,4931)) :: var,total  !Precision of 18, exponential range of 4931 - max gfortran supports?
+  real(kind=selected_real_kind(18,4931)) :: var,total,total2  !Precision of 18, exponential range of 4931 - max gfortran supports?
   !print*,precision(var),range(var)
   
   exitcode = 0
@@ -279,18 +279,21 @@ subroutine statistics(exitcode)
      !Compute Bayes factor
      !if(prProgress.ge.1.and.ic.eq.1) write(6,'(A,$)')'  Bayes factor,'
      total = 0
+	 total2 = 0
      maxlogl = -1.e30
      minlogl =  1.e30
      do i=Nburn(ic),ntot(ic)
         var = post(ic,i)          !Use quadruple precision
-        total = total + exp(-var)
+        total = total + exp(-var)**(1/Tchain(ic))
+		total2 = total2 + exp(var)**(1-(1/Tchain(ic)))
         maxlogl = max(post(ic,i),maxlogl)
         minlogl = min(post(ic,i),minlogl)
      end do
-     var = dble(n(ic))/total
+     !var = dble(n(ic))/total
+	 var = total2/total
      logebayesfactor(ic) = real(log(var))
      log10bayesfactor(ic) = real(log10(var))
-     !write(6,'(4F10.3,I9)')logebayesfactor(ic),log10bayesfactor(ic),maxlogl,minlogl,n(ic)
+     write(6,'(A,4F10.3,2I9,F10.3)')'ln Bayes',logebayesfactor(ic),log10bayesfactor(ic),maxlogl,minlogl,n(ic),ic,Tchain(ic)
      
      
      
@@ -609,12 +612,13 @@ subroutine statistics(exitcode)
      
   end do !ic
   
-  
-  
-  
-  
-  
-  
+  !average the Bayes factors from all chains
+  logebayesfactortotal=0.0
+  do ic=1,nchains0
+  logebayesfactortotal=logebayesfactortotal+logebayesfactor(ic)
+  end do
+  logebayesfactortotal=logebayesfactortotal/dble(nchains)
+  !write(6,'(A,F10.3)')'ln Bayes Total',logebayesfactortotal
   
   !Compute and print convergence:
   if(nchains0.gt.1 .and. (prConv.ge.1.or.saveStats.ge.1)) call compute_convergence()  !Need unwrapped data for this (?)
@@ -792,6 +796,45 @@ subroutine save_stats(exitcode)  !Save statistics to file
   end if
   
 end subroutine save_stats
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+subroutine save_bayes(exitcode)  !Save statistics to file  
+  use constants
+  use analysemcmc_settings
+  use general_data
+  use mcmcrun_data
+  use stats_data
+  use chain_data
+  implicit none
+  integer :: c,i,ic,o,p,p1,p2,exitcode,system
+  
+  exitcode = 0
+  !ic = 1 !Use chain 1
+  o = 20 !Output port
+  open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__bayes.dat')
+  write(o,'(A)')trim(outputname)
+  
+  write(o,'(//,A,/)')'GENERAL INFORMATION:'
+  write(o,'(6x,3A12,2A22)')'nchains','used','seed','null likelihood','ln(Bayes_total)'
+  write(o,'(6x,3I12,F22.5,F22.5)')nchains0,contrchains,seed(ic),nullh,logebayesfactortotal
+  
+  write(o,'(//,A,/)')'EVIDENCES:'
+  write(o,'(6x,5A12,2A22)')'chain','totiter','totlines','totpts','totburn','temperature','ln(Bayes)'
+  do ic=1,nchains0
+  write(o,'(6x,5I12,F22.3,F22.5)')ic,totiter,totlines,totpts,totlines-totpts,Tchain(ic),logebayesfactor(ic)
+  end do
+  
+  close(o) !Statistics output file
+  if(saveStats.eq.2) i = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__bayes.ps')
+  !write(6,*)''
+  if(prProgress.ge.1) then
+     if(saveStats.eq.1) write(6,'(A)')'  Bayes factors saved in '//trim(outputname)//'__bayes.dat'
+     if(saveStats.eq.2) write(6,'(A)')'  Bayes factors saved in '//trim(outputname)//'__bayes.dat,ps'
+  end if
+  
+end subroutine save_bayes
 !***********************************************************************************************************************************
 
 

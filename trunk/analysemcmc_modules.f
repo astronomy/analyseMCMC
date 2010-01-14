@@ -50,7 +50,7 @@ module general_data
   integer :: fixedpar(maxMCMCpar),nfixedpar,contrchains,contrchain(maxChs)
   real, allocatable :: selDat(:,:,:),allDat(:,:,:),post(:,:),prior(:,:)
   real :: startval(maxChs,maxMCMCpar,3)
-  real :: ranges(maxChs,maxNival,maxMCMCpar,nr1),stats(maxChs,maxMCMCpar,nstat1),log10bayesfactor(maxChs),logebayesfactor(maxChs)
+  real :: ranges(maxChs,maxNival,maxMCMCpar,nr1),stats(maxChs,maxMCMCpar,nstat1),log10bayesfactor(maxChs),logebayesfactor(maxChs),logebayesfactortotal
   real*8 :: rhat(maxMCMCpar)
   
   character :: parNames(nParDB)*8,infiles(maxChs)*99,outputname*99,outputdir*99

@@ -14,14 +14,11 @@ subroutine pdfs1d(exitcode)
   real :: x(maxChs,maxChs*maxIter),xmin,xmax,xmin1,xmax1,xpeak,dx,ymin,ymax,sch
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ysum(:),yconv(:),ycum(:)  !These depend on Nbin1D, allocate after reading input file
   real :: plshift,plx,ply,x0,norm,bindx
-  character :: string*99,str*99,str1*99,str2*99,delta*19
+  character :: string*99,str*99,str1*99,str2*99
   
   exitcode=0
   if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1) write(6,'(A,$)')'  Saving 1D pdfs'
   if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(6,'(A,$)')' 1D pdfs'
-
-  write(delta,'(A,I3.3,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
-  if(nint(ivals(c0)*100).lt.100) write(delta,'(A,I2.2,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
   
   !Autodetermine number of bins:
   if(Nbin1D.le.0) then
@@ -196,6 +193,7 @@ subroutine pdfs1d(exitcode)
            else !Normalise to the height of the PDF
               if(normPDF1D.eq.2) ybin1 = ybin1/maxval(ybin1)  !Normalise to the height of the PDF
               if(normPDF1D.eq.3) ybin1 = ybin1/(maxval(ybin1)**0.5)  !Normalise to the sqrt of the height of the PDF; Works nicely for comparing parallel-tempering chains
+			  if(normPDF1D.eq.4) ybin1 = (ybin1/maxval(ybin1))**(Tchain(ic))			  
               if(ic*j.eq.1) write(0,'(//,A,/)')'  *** WARNING: using non-default normalisation for PDFs ***'
            end if
         end if
@@ -459,9 +457,9 @@ subroutine pdfs1d(exitcode)
               if(prIval.ge.1) then
                  if(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6) then
                     if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then  !Distance, Mc, M1, M2
-                       write(str,'(A,F6.2,A1)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)*100,'%'
+                       write(str,'(A,F6.2,A1)')trim(str)//' \(2030):',ranges(ic,c0,p,5)*100,'%'
                     else
-                       write(str,'(A,F7.3)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)
+                       write(str,'(A,F7.3)')trim(str)//' \(2030):',ranges(ic,c0,p,5)
                     end if
                  end if
               end if
@@ -470,11 +468,11 @@ subroutine pdfs1d(exitcode)
               if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then  !Distacnce, Mc,M1,M2
                  if(plInject.eq.3.or.plInject.eq.4) write(str,'(A,F7.3)')trim(str)//' mdl:',startval(ic,p,1)
                  if(plMedian.eq.4.or.plMedian.eq.5.or.plMedian.eq.6) write(str,'(A,F8.3)')trim(str)//' med:',stats(ic,p,1)
-                 if(prIval.ge.1.and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6)) write(str,'(A,F6.2,A1)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)*100,'%'
+                 if(prIval.ge.1.and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6)) write(str,'(A,F6.2,A1)')trim(str)//' \(2030):',ranges(ic,c0,p,5)*100,'%'
               else
                  if(plInject.eq.3.or.plInject.eq.4) write(str,'(A,F7.3)')trim(str)//' mdl:',startval(ic,p,1)
                  if(plMedian.eq.4.or.plMedian.eq.5.or.plMedian.eq.6) write(str,'(A,F8.3)')trim(str)//' med:',stats(ic,p,1)
-                 if(prIval.ge.1.and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6)) write(str,'(A,F7.3)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)
+                 if(prIval.ge.1.and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6)) write(str,'(A,F7.3)')trim(str)//' \(2030):',ranges(ic,c0,p,5)
               end if
               call pgsch(sch*1.2)
               call pgptxt(xmin+0.05*dx,ymax*(1.0-0.1*fontsize1d),0.,0.,trim(pgParNss(parID(p))))
@@ -493,7 +491,7 @@ subroutine pdfs1d(exitcode)
               if(x0.ge.1.and.x0.lt.9.95) write(str,'(F3.1)')x0
               if(x0.ge.9.95.and.x0.lt.99.5) write(str,'(I2)')nint(x0)
               if(x0.ge.99.5) write(str,'(I3)')nint(x0)
-              write(str,'(A)')trim(delta)//': '//trim(str)
+              write(str,'(A)')'\(2030): '//trim(str)
               if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then
                  write(str,'(A)')trim(str)//'%'
               else
@@ -524,13 +522,13 @@ subroutine pdfs1d(exitcode)
         
         !Write the deltas of the two pdfs
         if(nchains.eq.2..and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6)) then
-           write(str,'(A)')trim(delta)
+           write(str,'(A8)')'\(2030)'
            if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then  !Distance, Mc, M1, M2
-              write(str1,'(A,F6.2,A1)')trim(delta)//':',ranges(1,c0,p,5)*100.,'%'
-              write(str2,'(A,F6.2,A1)')trim(delta)//':',ranges(2,c0,p,5)*100.,'%'
+              write(str1,'(A8,F6.2,A1)')'\(2030):',ranges(1,c0,p,5)*100.,'%'
+              write(str2,'(A8,F6.2,A1)')'\(2030):',ranges(2,c0,p,5)*100.,'%'
            else
-              write(str1,'(A,F7.3)')trim(delta)//':',ranges(1,c0,p,5)
-              write(str2,'(A,F7.3)')trim(delta)//':',ranges(2,c0,p,5)
+              write(str1,'(A8,F7.3)')'\(2030):',ranges(1,c0,p,5)
+              write(str2,'(A8,F7.3)')'\(2030):',ranges(2,c0,p,5)
            end if
         end if
         call pgsch(sch*1.1)

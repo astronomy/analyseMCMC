@@ -298,7 +298,11 @@ program analyseMCMC
   !***********************************************************************************************************************************      
   
   !Write statistics to file
-  if(saveStats.ge.1.and.nchains.gt.1) write(0,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
+  if(saveStats.ge.1.and.nchains.gt.1) then
+    write(0,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
+    call save_bayes(exitcode)
+	if(exitcode.ne.0) goto 9999
+  end if
   if(saveStats.ge.1.and.nchains.eq.1) then
      call save_stats(exitcode)
      if(exitcode.ne.0) goto 9999
