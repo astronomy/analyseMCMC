@@ -818,7 +818,7 @@ subroutine save_bayes(exitcode)  !Save statistics to file
   
   write(o,'(//,A,/)')'GENERAL INFORMATION:'
   write(o,'(6x,3A12,2A22)')'nchains','used','seed','null likelihood','ln(Bayes_total)'
-  write(o,'(6x,3I12,F22.5,F22.5)')nchains0,contrchains,seed(ic),nullh,logebayesfactortotal
+  write(o,'(6x,3I12,F22.5,F22.5)')nchains0,contrchains,seed(1),nullh,logebayesfactortotal
   
   write(o,'(//,A,/)')'EVIDENCES:'
   write(o,'(6x,5A12,2A22)')'chain','totiter','totlines','totpts','totburn','temperature','ln(Bayes)'

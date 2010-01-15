@@ -54,7 +54,7 @@ program analyseMCMC
      write(0,'(A,/)')'  Syntax: analysemcmc <file1> [file2] ...'
      stop
   end if
-  if(nchains0.gt.maxChs) write(0,'(A,I3,A)')'  *** WARNING:  Too many input files (chains), please increase maxChs in analysemcmc_functions.f. Only',maxChs,' files can be read.'
+  if(nchains0.gt.maxChs) write(0,'(A,I3,A)')'  *** WARNING:  Too many input files (chains), please increase maxChs in analysemcmc_modules.f. Only',maxChs,' files can be read.'
   nchains0 = min(nchains0,maxChs)
   
   
