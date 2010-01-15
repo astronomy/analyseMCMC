@@ -14,7 +14,7 @@ subroutine pdfs2d(exitcode)
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
-  character :: string*99,str*99,tempfile*99,ivalstr*99
+  character :: string*99,str*99,tempfile*99,ivalstr*99,delta*19
   logical :: project_map,sky_position,binary_orientation
   
   exitcode = 0
@@ -515,6 +515,8 @@ subroutine pdfs2d(exitcode)
               
               !Plot interval ranges in 2D PDF
               if(plRange.eq.2.or.plRange.eq.3.or.plRange.eq.5.or.plRange.eq.6) then
+                 write(delta,'(A,I3.3,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
+                 if(nint(ivals(c0)*100).lt.100) write(delta,'(A,I2.2,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
                  call pgsls(1)
                  call pgsch(sch*0.6)
                  call pgsah(1,45.,0.1)
@@ -522,12 +524,12 @@ subroutine pdfs2d(exitcode)
                  call pgarro(ranges(ic,c0,p1,3),ymin+dy*a,ranges(ic,c0,p1,1),ymin+dy*a)
                  call pgarro(ranges(ic,c0,p1,3),ymin+dy*a,ranges(ic,c0,p1,2),ymin+dy*a)
                  a = 0.0333333*sch
-                 call pgptxt(ranges(ic,c0,p1,3),ymin+dy*a,0.,0.5,'\(2030)\d90%\u')
+                 call pgptxt(ranges(ic,c0,p1,3),ymin+dy*a,0.,0.5,trim(delta))
                  a = 0.0233333*sch
                  call pgarro(xmin+dx*a,ranges(ic,c0,p2,3),xmin+dx*a,ranges(ic,c0,p2,1))
                  call pgarro(xmin+dx*a,ranges(ic,c0,p2,3),xmin+dx*a,ranges(ic,c0,p2,2))
                  a = 0.01*sch
-                 call pgptxt(xmin+dx*a,ranges(ic,c0,p2,3),90.,0.5,'\(2030)\d90%\u')
+                 call pgptxt(xmin+dx*a,ranges(ic,c0,p2,3),90.,0.5,trim(delta))
               end if
               
               call pgsch(sch)
