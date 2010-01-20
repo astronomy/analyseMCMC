@@ -124,7 +124,7 @@ subroutine statistics(exitcode)
         if(parID(p).eq.31.and.ic.eq.1) raShift = shift                         !Save RA shift to plot sky map
         
         !Do the actual wrapping:
-        allDat(ic,p,1:ntot(ic))  = mod(allDat(ic,p,1:ntot(ic))  + shift, shIval) - shift   !Original data
+        allDat(ic,p,1:Ntot(ic))  = mod(allDat(ic,p,1:Ntot(ic))  + shift, shIval) - shift   !Original data
         selDat(ic,p,1:n(ic))     = mod(selDat(ic,p,1:n(ic))     + shift, shIval) - shift
         startval(ic,p,1:3)       = mod(startval(ic,p,1:3)       + shift, shIval) - shift   !Injection, starting and Lmax values
         y1 = mod(y1 + shift, shIval) - shift
@@ -183,7 +183,7 @@ subroutine statistics(exitcode)
      
      
      
-     !Correlations:
+     !Compute correlations:
      if(prCorr.gt.0.or.saveStats.gt.0) then
         !write(6,'(A)')' Calculating correlations...   '
         if(prProgress.ge.1) write(6,'(A,$)')' corrs, '
@@ -204,31 +204,38 @@ subroutine statistics(exitcode)
      end if
      
      
-     !Autocorrelations:
-     if(plACorr.gt.0) then
-        !write(6,'(A)')' Calculating autocorrelations...'
+     !Compute autocorrelations:
+     !if(plAcorr.gt.0) then
+     if(nACorr.gt.0) then
         if(prProgress.ge.1) write(6,'(A,$)')' autocorrs, '
-        j1 = plACorr/100 !Step size to get 100 autocorrelations per var
+        if(mergeChains.ge.1) write(6,'(A,$)')'  *** WARNING: mergeChains > 0; the autocorrelation results may not be what you expect! ***  '
+        acorrs(ic,:,:) = 0.
+        lAcorrs(ic,:) = 0.
+        
+        !j1 = min(plAcorr,Ntot(ic))/nAcorr   !Step size to get nAcorr autocorrelations per parameter - don't waste any CPU
+        j1 = Ntot(ic)/nAcorr   !Step size to get nAcorr autocorrelations per parameter - don't waste any CPU - not using plAcor at the moment
+        if(j1.lt.1) then
+           write(0,'(A)')"  *** WARNING:  plAcorr too small or nAcorr too large to compute autocorrelations properly. I can't use all data points and the results may not be what you expect ***"
+           j1 = 1
+        end if
         do p=1,nMCMCpar
-           acorrs(ic,p,:) = 0.
-           !do j=1,ntot(ic)-1
-           !do j=1,min(plACorr,ntot(ic)-1)
-           do j=0,min(100,ntot(ic)-1)
-              do i=1,ntot(ic)-j*j1
-                 acorrs(ic,p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - medians(p))*(allDat(ic,p,i+j*j1) - medians(p))
-                 !acorrs(p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - mean(p))*(allDat(ic,p,i+j*j1) - mean(p))
+           do j=0,min(nAcorr,Ntot(ic)-1)
+              do i=1,Ntot(ic)-j*j1
+                 acorrs(ic,p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - medians(p))*(allDat(ic,p,i+j*j1) - medians(p))   !Use median
+                 !acorrs(p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - mean(p))*(allDat(ic,p,i+j*j1) - mean(p))           !Use mean
               end do
-              acorrs(ic,0,j) = real(j*j1)
-              acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev1(p)*stdev1(p)*(ntot(ic)-j*j1))
-              !acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev2(p)*stdev2(p)*(ntot(ic)-j*j1))
+              acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev1(p)*stdev1(p)*(Ntot(ic)-j*j1))   !Use median
+              !acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev2(p)*stdev2(p)*(Ntot(ic)-j*j1))  !Use mean
+              
+              if(lAcorrs(ic,p).lt.1. .and. acorrs(ic,p,j).lt.0.) lAcorrs(ic,p) = real(j*j1*totthin(ic))
+              if(p.eq.1) acorrs(ic,0,j) = real(j*j1*totthin(ic))  !Make sure you get the iteration number, not the data point number
            end do !j
-           !write(6,*)''
         end do !p
      end if
      
      
-     !Determine interval ranges
-     !if(prProgress.ge.2) write(6,'(A29,$)')' Determining interval levels: '
+     
+     !Determine interval ranges:
      if(prProgress.ge.1.and.ic.eq.1) write(6,'(A,$)')' prob.ivals: '
      c0 = 0
      do c=1,Nival
@@ -279,21 +286,21 @@ subroutine statistics(exitcode)
      !Compute Bayes factor
      !if(prProgress.ge.1.and.ic.eq.1) write(6,'(A,$)')'  Bayes factor,'
      total = 0
-	 total2 = 0
+     total2 = 0
      maxlogl = -1.e30
      minlogl =  1.e30
-     do i=Nburn(ic),ntot(ic)
+     do i=Nburn(ic),Ntot(ic)
         var = post(ic,i)          !Use quadruple precision
         total = total + exp(-var)**(1/Tchain(ic))
-		total2 = total2 + exp(var)**(1-(1/Tchain(ic)))
+        total2 = total2 + exp(var)**(1-(1/Tchain(ic)))
         maxlogl = max(post(ic,i),maxlogl)
         minlogl = min(post(ic,i),minlogl)
      end do
      !var = dble(n(ic))/total
-	 var = total2/total
+     var = total2/total
      logebayesfactor(ic) = real(log(var))
      log10bayesfactor(ic) = real(log10(var))
-     write(6,'(A,4F10.3,2I9,F10.3)')'ln Bayes',logebayesfactor(ic),log10bayesfactor(ic),maxlogl,minlogl,n(ic),ic,Tchain(ic)
+     !write(6,'(A,4F10.3,2I9,F10.3)')'ln Bayes',logebayesfactor(ic),log10bayesfactor(ic),maxlogl,minlogl,n(ic),ic,Tchain(ic)
      
      
      
@@ -612,10 +619,13 @@ subroutine statistics(exitcode)
      
   end do !ic
   
+  
+  
+  
   !average the Bayes factors from all chains
   logebayesfactortotal=0.0
   do ic=1,nchains0
-  logebayesfactortotal=logebayesfactortotal+logebayesfactor(ic)
+     logebayesfactortotal=logebayesfactortotal+logebayesfactor(ic)
   end do
   logebayesfactortotal=logebayesfactortotal/dble(nchains)
   !write(6,'(A,F10.3)')'ln Bayes Total',logebayesfactortotal
@@ -628,12 +638,12 @@ subroutine statistics(exitcode)
   if(changeVar.ge.1) then
      do ic=1,nchains0
         do p=1,nMCMCpar
-           if(parID(p).eq.21) allDat(ic,p,1:ntot(ic)) = allDat(ic,p,1:ntot(ic))**c3rd  !^(1/3)
-           if(parID(p).eq.22) allDat(ic,p,1:ntot(ic)) = exp(allDat(ic,p,1:ntot(ic)))   !exp
-           if(parID(p).eq.51.or.parID(p).eq.72.or.parID(p).eq.82) allDat(ic,p,1:ntot(ic)) = acos(allDat(ic,p,1:ntot(ic)))*r2d  !acos -> deg
-           if(parID(p).eq.31) allDat(ic,p,1:ntot(ic)) = allDat(ic,p,1:ntot(ic))*r2h  !rad -> h
-           if(parID(p).eq.32.or.parID(p).eq.53) allDat(ic,p,1:ntot(ic)) = asin(allDat(ic,p,1:ntot(ic)))*r2d  !asin -> deg
-           if(parID(p).eq.41.or.parID(p).eq.52.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) allDat(ic,p,1:ntot(ic)) = allDat(ic,p,1:ntot(ic))*r2d  !rad -> deg
+           if(parID(p).eq.21) allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**c3rd  !^(1/3)
+           if(parID(p).eq.22) allDat(ic,p,1:Ntot(ic)) = exp(allDat(ic,p,1:Ntot(ic)))   !exp
+           if(parID(p).eq.51.or.parID(p).eq.72.or.parID(p).eq.82) allDat(ic,p,1:Ntot(ic)) = acos(allDat(ic,p,1:Ntot(ic)))*r2d  !acos -> deg
+           if(parID(p).eq.31) allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*r2h  !rad -> h
+           if(parID(p).eq.32.or.parID(p).eq.53) allDat(ic,p,1:Ntot(ic)) = asin(allDat(ic,p,1:Ntot(ic)))*r2d  !asin -> deg
+           if(parID(p).eq.41.or.parID(p).eq.52.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*r2d  !rad -> deg
         end do !p
      end do
   end if !if(changeVar.ge.1)
@@ -800,15 +810,14 @@ end subroutine save_stats
 
 
 !***********************************************************************************************************************************
-subroutine save_bayes(exitcode)  !Save statistics to file  
-  use constants
+subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file  
   use analysemcmc_settings
   use general_data
   use mcmcrun_data
-  use stats_data
   use chain_data
+  
   implicit none
-  integer :: c,i,ic,o,p,p1,p2,exitcode,system
+  integer :: i,ic,o,exitcode,system
   
   exitcode = 0
   !ic = 1 !Use chain 1
@@ -823,10 +832,10 @@ subroutine save_bayes(exitcode)  !Save statistics to file
   write(o,'(//,A,/)')'EVIDENCES:'
   write(o,'(6x,5A12,2A22)')'chain','totiter','totlines','totpts','totburn','temperature','ln(Bayes)'
   do ic=1,nchains0
-  write(o,'(6x,5I12,F22.3,F22.5)')ic,totiter,totlines,totpts,totlines-totpts,Tchain(ic),logebayesfactor(ic)
+     write(o,'(6x,5I12,F22.3,F22.5)')ic,totiter,totlines,totpts,totlines-totpts,Tchain(ic),logebayesfactor(ic)
   end do
   
-  close(o) !Statistics output file
+  close(o) !Bayes output file
   if(saveStats.eq.2) i = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__bayes.ps')
   !write(6,*)''
   if(prProgress.ge.1) then
@@ -1234,7 +1243,7 @@ subroutine compute_convergence()
   !Compute the means for each chain and for all chains:
   chmean = 1.d-30
   avgMean = 1.d-30
-  nn = minval(ntot(1:nchains0))/2
+  nn = minval(Ntot(1:nchains0))/2
   do p=1,nMCMCpar
      do ic=1,nchains0
         do i=nn+1,2*nn

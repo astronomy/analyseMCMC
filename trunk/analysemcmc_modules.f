@@ -15,7 +15,7 @@ module analysemcmc_settings
   integer :: thin,Nburn(maxChs),reverseRead,update,mergeChains,wrapData,changeVar,maxChLen
   integer :: file,colour,orientation,quality,fonttype
   integer :: prProgress,prRunInfo,prChainInfo,prInitial,prStat,prCorr,prIval,prConv,saveStats,savePDF       
-  integer :: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plACorr,plotSky,plAnim       
+  integer :: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plACorr,nAcorr,plotSky,plAnim       
   integer :: chainSymbol,chainPlI,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D,normPDF2D
   integer :: scLogLpl,scChainsPl,bmpXSz,bmpYSz,map_projection
   integer :: nAnimFrames,animScheme,whiteBG,unSharp,Nival,ival0,wikioutput
@@ -120,7 +120,7 @@ module chain_data
   save
   real :: is(maxChs,maxIter),isburn(maxChs)
   real :: jumps(maxChs,maxMCMCpar,maxIter)
-  real :: corrs(maxMCMCpar,maxMCMCpar),acorrs(maxChs,0:maxMCMCpar,0:maxIter)
+  real :: corrs(maxMCMCpar,maxMCMCpar),acorrs(maxChs,0:maxMCMCpar,0:maxIter),lAcorrs(maxChs,0:maxMCMCpar)
   real*8 :: nullh
 end module chain_data
 !***************************************************************************************************

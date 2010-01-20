@@ -47,6 +47,8 @@ subroutine read_settingsfile
   real*8 :: dblvar
   filename = 'analysemcmc.dat'
   
+  !dblvar is used when a (possibly) large integer is expected; read it as double, then convert to integer
+  
   u = 15
   open(unit=u,form='formatted',status='old',action='read',file=trim(filename),iostat=io)
   if(io.ne.0) then
@@ -62,7 +64,8 @@ subroutine read_settingsfile
 
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)thin
-  read(u,*,iostat=io)Nburn(1)
+  read(u,*,iostat=io)dblvar
+  Nburn(1) = nint(dblvar)
   do i=2,maxChs
      Nburn(i) = Nburn(1)
   end do
@@ -100,7 +103,8 @@ subroutine read_settingsfile
   read(u,*,iostat=io)plJump
   read(u,*,iostat=io)plPDF1D
   read(u,*,iostat=io)plPDF2D
-  read(u,*,iostat=io)plACorr
+  read(u,*,iostat=io)dblvar
+  nAcorr = nint(dblvar)
   read(u,*,iostat=io)plotSky
   read(u,*,iostat=io)plAnim
   
@@ -191,7 +195,7 @@ subroutine write_settingsfile
   write(u,11)quality, 'quality',   '"Quality" of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster'
   write(u,11)reverseRead, 'reverseRead',   'Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too'
   write(u,11)update, 'update',   'Update screen plot every 10 seconds: 0-no, 1-yes'
-  write(u,11)mergeChains, 'mergeChains',   'Merge the data from different files into one chain: 0-no (treat separately), 1-yes'
+  write(u,11)mergeChains, 'mergeChains',   'Merge the data from different files into one chain: 0-no (treat separately), 1-yes (default)'
   write(u,11)wrapData, 'wrapData',   'Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)'
   write(u,11)changeVar, 'changeVar',   'Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)'
   
@@ -217,7 +221,7 @@ subroutine write_settingsfile
   write(u,11)plJump, 'plJump',   'Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log'
   write(u,11)plPDF1D, 'plPDF1D',   'Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.'
   write(u,11)plPDF2D, 'plPDF2D',   'Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) or not (=0).'
-  write(u,11)plACorr, 'plACorr',   'Plot autocorrelations: 0-no, >0-yes: plot plACorr steps'
+  write(u,11)nAcorr, 'nAcorr',   'Plot autocorrelations: 0-no, >0-yes: plot nAcorr steps (defaults: 0, 100)'
   write(u,11)plotSky, 'plotSky',   'Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
   write(u,11)plAnim, 'plAnim',   'Create movie frames'
   
@@ -293,7 +297,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   quality = 0       !'Quality' of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
   reverseRead = 0   !Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too
   update = 0        !Update screen plot every 10 seconds: 0-no, 1-yes
-  mergeChains = 1   !Merge the data from different files into one chain: 0-no (treat separately), 1-yes
+  mergeChains = 1   !Merge the data from different files into one chain: 0-no (treat separately), 1-yes (default)
   wrapData = 1      !Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
   changeVar = 1     !Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)
   
@@ -317,9 +321,9 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   plJump = 1        !Plot actual jump sizes
   plPDF1D = 1       !Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.
   plPDF2D = 2       !Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) or not (=0).
-  plACorr = 0e4     !Plot autocorrelations: 0-no, >0-yes: plot plACorr steps
+  nAcorr = 0        !Plot autocorrelations: 0-no, >0-yes: plot nAcorr steps (defaults: 0, 100)
   plotSky = 0       !Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
-  plAnim = 0       !Plot movie frames
+  plAnim = 0        !Plot movie frames
   
   chainSymbol = 1   !Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle
   chainPlI = 0      !Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine, chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.

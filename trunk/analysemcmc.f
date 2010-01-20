@@ -61,7 +61,7 @@ program analyseMCMC
   !Some of the stuff below will have to go to the input file
   
   maxdots = 25000  !~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much and eps/pdf files from becoming huge.  Use this to autoset chainPlI
-  
+  !nAcorr  = 100    !Compute nAcorr steps of autocorrelation, can be quite time consuming.  Default: 100
   
   !Determine plot sizes and ratios:   (ratio ~ y/x and usually < 1 ('landscape'))
   bmpsz = real(bmpXSz-1)/85. * scFac !Make png larger, so that convert interpolates and makes the plot smoother
@@ -297,12 +297,15 @@ program analyseMCMC
   
   !***********************************************************************************************************************************      
   
-  !Write statistics to file
   if(saveStats.ge.1.and.nchains.gt.1) then
-    write(0,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
-    call save_bayes(exitcode)
-	if(exitcode.ne.0) goto 9999
+     write(0,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
+     
+     !Write Bayes factors to file:
+     call save_bayes(exitcode)
+     if(exitcode.ne.0) goto 9999
   end if
+  
+  !Write statistics to file:
   if(saveStats.ge.1.and.nchains.eq.1) then
      call save_stats(exitcode)
      if(exitcode.ne.0) goto 9999

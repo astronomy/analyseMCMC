@@ -2,6 +2,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+   111: sluys, 19/01/2010
+     - Updated autocorrelations (use with mergeChains=1):
+       - compute, print and plot autocorrelation length
+       - plot Markov-chain iteration number rather than data-point number
+       - nAcorr rather than plAcorr in input file; nAcor was 100, now plAcorr=Ntot
+     
    107: sluys, 13/01/2010
      - 1d/2d PDFs: show correct Delta label (e.g. \Delta_{95%} for 2-sigma) for probability ranges
      

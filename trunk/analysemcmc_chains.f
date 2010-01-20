@@ -11,7 +11,7 @@ subroutine chains(exitcode)
   integer :: i,j,pgopen,imin,ci,lw,symbol,io,ic,p,system,exitcode
   real :: rev360,rev24,rev180
   real :: dx,dy,xmin,xmax,ymin,ymax,sch,plx,ply
-  character :: string*99
+  character :: title*99
   
   exitcode = 0
   
@@ -55,11 +55,11 @@ subroutine chains(exitcode)
      ymax = -1.e30
      do ic=1,nchains0
         xmin = 0.
-        xmax = max(xmax,maxval(is(ic,1:ntot(ic))))
+        xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
         imin = 10                                              !Take into account burn-in
         if(scLogLpl.eq.1) imin = Nburn(ic)                   !Scale without taking into account burnin
-        ymin = min(ymin,minval(post(ic,imin:ntot(ic)))) 
-        ymax = max(ymax,maxval(post(ic,imin:ntot(ic))))
+        ymin = min(ymin,minval(post(ic,imin:Ntot(ic)))) 
+        ymax = max(ymax,maxval(post(ic,imin:Ntot(ic))))
      end do
      ic = 1
      p = 1
@@ -92,7 +92,7 @@ subroutine chains(exitcode)
            call pgpoint(1,is(ic,i),post(ic,i),1)
         end do
         call pgsci(ci)
-        do i=Nburn(ic)+ic,ntot(ic),chainPlI !Start at ic to reduce overplotting
+        do i=Nburn(ic)+ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
            call pgpoint(1,is(ic,i),post(ic,i),1)
         end do
      end do
@@ -112,7 +112,7 @@ subroutine chains(exitcode)
         call pgsls(2)
         if(abs(post(ic,1)).gt.1.e-4) call pgline(2,(/-1.e20,1.e20/),(/post(ic,1),post(ic,1)/))  !Plot injection value, only if injection was done
         call pgsci(colours(mod(ic-1,ncolours)+1))
-        if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/)) !Vertical line at burn-in
+        if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/)) !Vertical line at burn-in
         call pgsls(4)
         call pgline(2,(/-1.e20,1.e20/),(/post(ic,2),post(ic,2)/))  !Horizontal dotted line at starting value
      end do
@@ -164,7 +164,7 @@ subroutine chains(exitcode)
      if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')' parameter chains, '
      if(file.eq.0) then
         io = pgopen('13/xs')
-        sch = 1.5
+        sch = fontsize1d*1.5
         lw = 1
      end if
      if(file.ge.1) then
@@ -173,8 +173,8 @@ subroutine chains(exitcode)
         lw = 3
         if(nPlPar.ge.10) lw = 2
         if(quality.lt.2) lw = max(lw-1,1)  !Draft/Paper
-        sch = 1.2
-        if(nchains.eq.1.and.nPlPar.gt.9) sch = 1.2
+        sch = fontsize1d*1.2
+        if(nchains.eq.1.and.nPlPar.gt.9) sch = fontsize1d*1.2
         if(quality.eq.0) then !Draft
            sch = sch*1.75
            lw = 2
@@ -253,16 +253,16 @@ subroutine chains(exitcode)
         if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
         
         xmin = 0.
-        !xmax = real(maxval(ntot(1:nchains0)))
+        !xmax = real(maxval(Ntot(1:nchains0)))
         xmax = -1.e30
         ymin =  1.e30
         ymax = -1.e30
         do ic=1,nchains0
-           xmax = max(xmax,maxval(is(ic,1:ntot(ic))))
+           xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
            imin = 1                                               !Take into account burn-in
            if(scChainsPl.eq.1) imin = Nburn(ic)                   !Scale without taking into account burnin
-           ymin = min(ymin,minval(allDat(ic,p,imin:ntot(ic))))
-           ymax = max(ymax,maxval(allDat(ic,p,imin:ntot(ic))))
+           ymin = min(ymin,minval(allDat(ic,p,imin:Ntot(ic))))
+           ymax = max(ymax,maxval(allDat(ic,p,imin:Ntot(ic))))
         end do
         
         if(changeVar.gt.0) then
@@ -322,7 +322,7 @@ subroutine chains(exitcode)
            call pgsci(defcolour)
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
            if(chainSymbol.eq.0) then !Plot lines rather than symbols
-              call pgline(ntot(ic),is(ic,1:ntot(ic)),allDat(ic,p,1:ntot(ic)))
+              call pgline(Ntot(ic),is(ic,1:Ntot(ic)),allDat(ic,p,1:Ntot(ic)))
            else
               !Give pre- and post-burnin different colour
               ci = defcolour
@@ -338,7 +338,7 @@ subroutine chains(exitcode)
                  call pgpoint(1,is(ic,i),ply,symbol)
               end do
               call pgsci(ci)
-              do i=Nburn(ic)+ic,ntot(ic),chainPlI !Start at ic to reduce overplotting
+              do i=Nburn(ic)+ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
                  ply = allDat(ic,p,i)
                  if(changeVar.gt.0) then
                     if(parID(p).eq.31) ply = rev24(ply)  !RA
@@ -376,7 +376,7 @@ subroutine chains(exitcode)
            !Plot burn-in phase
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
            !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
            call pgsci(1)
            
            
@@ -440,9 +440,12 @@ subroutine chains(exitcode)
         
         call pgsci(1)
         call pgsls(1)
-        write(string,'(F6.3)')rhat(p)
-        call pgmtxt('T',-1.,0.,0.,' '//trim(pgParNs(parID(p))))
-        if(nchains0.gt.1.and.prConv.ge.1) call pgmtxt('T',1.,1.,1.,'R-hat: '//trim(string))
+        write(title,'(F6.3)')rhat(p)
+        if(nchains0.gt.1.and.prConv.ge.1) then
+           call pgmtxt('T',1.,1.,1.,'R-hat: '//trim(title))
+        else
+           call pgmtxt('T',-1.,0.,0.,' '//trim(pgParNs(parID(p))))
+        end if
      end do !do j=1,nPlPar
      
      if(quality.eq.0) then
@@ -499,7 +502,7 @@ subroutine chains(exitcode)
      if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')' parameter-L, '
      if(file.eq.0) then
         io = pgopen('22/xs')
-        sch = 1.5
+        sch = fontsize1d*1.5
         lw = 1
      end if
      if(file.ge.1) then
@@ -508,8 +511,8 @@ subroutine chains(exitcode)
         lw = 3
         if(nPlPar.ge.10) lw = 2
         if(quality.lt.2) lw = max(lw-1,1)  !Draft/Paper
-        sch = 1.2
-        if(nchains.eq.1.and.nPlPar.gt.9) sch = 1.2
+        sch = fontsize1d*1.2
+        if(nchains.eq.1.and.nPlPar.gt.9) sch = fontsize1d*1.2
         if(quality.eq.0) then !Draft
            sch = sch*1.75
            lw = 2
@@ -584,12 +587,12 @@ subroutine chains(exitcode)
         ymin =  1.e30
         ymax = -1.e30
         do ic=1,nchains0
-           !xmin = min(xmin,minval(is(ic,Nburn(ic):ntot(ic))))
-           !xmax = max(xmax,maxval(is(ic,Nburn(ic):ntot(ic))))
-           xmin = min(xmin,minval(allDat(ic,p,Nburn(ic):ntot(ic))))
-           xmax = max(xmax,maxval(allDat(ic,p,Nburn(ic):ntot(ic))))
-           ymin = min(ymin,minval(post(ic,Nburn(ic):ntot(ic))))
-           ymax = max(ymax,maxval(post(ic,Nburn(ic):ntot(ic))))
+           !xmin = min(xmin,minval(is(ic,Nburn(ic):Ntot(ic))))
+           !xmax = max(xmax,maxval(is(ic,Nburn(ic):Ntot(ic))))
+           xmin = min(xmin,minval(allDat(ic,p,Nburn(ic):Ntot(ic))))
+           xmax = max(xmax,maxval(allDat(ic,p,Nburn(ic):Ntot(ic))))
+           ymin = min(ymin,minval(post(ic,Nburn(ic):Ntot(ic))))
+           ymax = max(ymax,maxval(post(ic,Nburn(ic):Ntot(ic))))
         end do
         
         if(changeVar.gt.0) then
@@ -664,7 +667,7 @@ subroutine chains(exitcode)
            if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
            call pgsci(defcolour)
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           do i=Nburn(ic),ntot(ic),chainPlI
+           do i=Nburn(ic),Ntot(ic),chainPlI
               plx = allDat(ic,p,i)
               ply = post(ic,i)
               if(changeVar.gt.0) then
@@ -775,12 +778,12 @@ subroutine chains(exitcode)
      if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')' jump sizes, '
      if(file.eq.0) then
         io = pgopen('18/xs')
-        sch=1.5
+        sch = fontsize1d*1.5
      end if
      if(file.ge.1) then
         if(file.eq.1) io = pgopen('jumps.ppm/ppm')
         if(file.ge.2) io = pgopen('jumps.eps'//trim(psclr))
-        sch=1.2
+        sch = fontsize1d*1.2
      end if
      if(io.le.0) then
         write(0,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
@@ -788,9 +791,9 @@ subroutine chains(exitcode)
         return
      end if
      if(file.eq.0) call pgpap(scrSz,scrRat)
-     if(file.eq.0) sch=1.5
+     if(file.eq.0) sch = fontsize1d*1.5
      if(file.eq.1) call pgpap(bmpsz,bmprat)
-     if(file.eq.1) sch=1.5
+     if(file.eq.1) sch = fontsize1d*1.5
      if(quality.eq.0) then !Draft
         !sch = sch*1.75
         sch = sch*1.4
@@ -817,13 +820,13 @@ subroutine chains(exitcode)
         ymax = -1.e30
         do ic=1,nchains0
            xmin = 0.
-           xmax = max(xmax,maxval(is(ic,1:ntot(ic))))
+           xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
            dx = abs(xmax-xmin)*0.01
            if(plJump.eq.1) then
-              ymin = min(ymin,minval(jumps(ic,p,2:ntot(ic))))
-              ymax = max(ymax,maxval(jumps(ic,p,2:ntot(ic))))
+              ymin = min(ymin,minval(jumps(ic,p,2:Ntot(ic))))
+              ymax = max(ymax,maxval(jumps(ic,p,2:Ntot(ic))))
            end if
-           do i=10,ntot(ic)
+           do i=10,Ntot(ic)
               if(plJump.eq.2.and.jumps(ic,p,i).gt.1.e-20) then
                  ymin = min(ymin,log10(abs(jumps(ic,p,i))))
                  ymax = max(ymax,log10(abs(jumps(ic,p,i))))
@@ -845,13 +848,13 @@ subroutine chains(exitcode)
            call pgsci(defcolour)
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
            if(plJump.eq.1) then
-              !do i=1,ntot(ic),chainPlI
-              do i=ic,ntot(ic),chainPlI !Start at ic to reduce overplotting
+              !do i=1,Ntot(ic),chainPlI
+              do i=ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
                  call pgpoint(1,is(ic,i),jumps(ic,p,i),1)
               end do
            else
-              !do i=1,ntot(ic),chainPlI
-              do i=ic,ntot(ic),chainPlI !Start at ic to reduce overplotting
+              !do i=1,Ntot(ic),chainPlI
+              do i=ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
                  call pgpoint(1,is(ic,i),log10(abs(jumps(ic,p,i))+1.e-30),1)
               end do
            end if
@@ -863,7 +866,7 @@ subroutine chains(exitcode)
            !call pgline(2,(/real(Nburn(ic)),real(Nburn(ic))/),(/-1.e20,1.e20/))
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
            !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
         end do
         call pgsci(1)
         call pgsls(1)
@@ -902,31 +905,37 @@ subroutine chains(exitcode)
   
   
   
-  
-  
   !***********************************************************************************************************************************      
   !Plot autocorrelations for each parameter
-  if(plACorr.gt.0) then
+  if(nAcorr.gt.0) then
      !if(prProgress.ge.1.and.update.eq.0) write(6,'(A)')' Plotting autocorrelations...'
      if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')' autocorrelations, '
      if(file.eq.0) then
         io = pgopen('19/xs')
-        call pgsch(1.5)
+        sch = fontsize1d*1.5
+        sch = sch*1.5
+        call pgpap(scrSz,scrRat)
      end if
-     if(file.ge.1) then
-        if(file.eq.1) io = pgopen('acorrs.ppm/ppm')
-        if(file.ge.2) io = pgopen('acorrs.eps'//trim(psclr))
-        call pgsch(1.2)
+     if(file.eq.1) then
+        io = pgopen('acorrs.ppm/ppm')
+        sch = fontsize1d*1.2
+        sch = sch*1.5
+        call pgpap(bmpsz,bmprat)
+     end if
+     if(file.ge.2) then
+        io = pgopen('acorrs.eps'//trim(psclr))
+        sch = fontsize1d*1.2
+        sch = sch*1.5
+        call pgpap(PSsz,PSrat)
+        call pgscf(fonttype)
      end if
      if(io.le.0) then
         write(0,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
         return
      end if
-     if(file.eq.0) call pgpap(scrSz,scrRat)
-     if(file.eq.0) call pgsch(1.5)
-     if(file.eq.1) call pgpap(bmpsz,bmprat)
-     if(file.eq.1) call pgsch(1.5)
+     
+     call pgsch(sch)
      
      if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
      
@@ -942,36 +951,49 @@ subroutine chains(exitcode)
         
         call pgpage
         if(j.eq.1) call pginitl(colour,file,whiteBG)
+        
         xmin = 0.
-        xmin = minval(acorrs(1,0,0:100))
-        xmax = maxval(acorrs(1,0,0:100))
+        xmin = minval(acorrs(1:nchains,0,0:nAcorr))
+        xmax = maxval(acorrs(1:nchains,0,0:nAcorr))
         dx = abs(xmax-xmin)*0.01
+        
         ymin =  1.e30
         ymax = -1.e30
-        do ic=1,nchains0
-           ymin = min(ymin,minval(acorrs(ic,p,0:100)))
-           ymax = max(ymax,maxval(acorrs(ic,p,0:100)))
+        do ic=1,nchains
+           ymin = min(ymin,minval(acorrs(ic,p,0:nAcorr)))
+           ymax = max(ymax,maxval(acorrs(ic,p,0:nAcorr)))
         end do
+        ymin = max(ymin,-1.)
+        ymax = min(ymax,1.)
         dy = abs(ymax-ymin)*0.05
-        !write(6,'(I3,5F10.2)')p,xmin,xmax,ymin,ymax,acorrs(1,0,100)
+        !write(6,'(3I3,5F12.2)')p,nchains,nchains0,xmin,xmax,ymin,ymax,acorrs(1,0,nAcorr)
         
         call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
         call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
         
-        do ic=1,nchains0
-           call pgsci(defcolour)
+        call pgsci(defcolour)
+        do ic=1,nchains
            if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           do i=1,100!plACorr!ntot(ic),chainPlI
+           do i=1,nAcorr
               call pgpoint(1,acorrs(ic,0,i),acorrs(ic,p,i),1)
            end do
         end do
         
-        call pgsci(1)
+        !Plot autocorrelation length:
         call pgsls(2)
+        call pgsci(defcolour)
+        do ic=1,nchains
+           if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+           call pgline(2,(/lAcorrs(ic,p),lAcorrs(ic,p)/),(/-1.e20,1.e20/))
+        end do
+        
+        !Plot horizontal line at 0
+        call pgsci(1)
         call pgline(2,(/-1.e20,1.e20/),(/0.,0./))
         call pgsci(1)
         call pgsls(1)
-        call pgmtxt('T',1.,0.5,0.5,'Autocorrelation: '//trim(pgParNs(parID(p))))
+        write(title,'(A,ES9.2)')'Autocorrelation: '//trim(pgParNss(parID(p)))//', mean length:',sum(lAcorrs(1:nchains,p))/real(nchains)
+        call pgmtxt('T',1.,0.5,0.5,trim(title))
      end do
      
      if(quality.eq.0) then
@@ -997,7 +1019,7 @@ subroutine chains(exitcode)
         if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
         i = system('rm -f acorrs.ppm')
      end if
-  end if !if(plACorrs.gt.0)
+  end if !if(nAcorr.gt.0)
   
   
 end subroutine chains
