@@ -23,6 +23,8 @@ subroutine setconstants
   rh2r = rpi/12.      !hr->rad 
   rc3rd = 1./3.       !1/3     
   
+  stdErr = 0  !Standard error unit
+  stdOut = 6  !Standard output unit - screen
   
   !Define detector abbreviations here (don't forget to change detabbrs() in the module constants in analysemcmc_modules.f):
   detabbrs = [character(len=2) :: 'H1','L1','V ','H2']
@@ -40,6 +42,7 @@ end subroutine setconstants
 
 !***************************************************************************************************
 subroutine read_settingsfile
+  use constants
   use analysemcmc_settings
   implicit none
   integer :: i,u,io,io1
@@ -52,7 +55,7 @@ subroutine read_settingsfile
   u = 15
   open(unit=u,form='formatted',status='old',action='read',file=trim(filename),iostat=io)
   if(io.ne.0) then
-     write(0,'(A)')'  Error opening input file '//trim(filename)//', aborting...'
+     write(stdErr,'(A)')'  Error opening input file '//trim(filename)//', aborting...'
      stop
   end if
   
@@ -161,7 +164,7 @@ subroutine read_settingsfile
   close(u)
   
   if(io.ne.0) then
-     write(0,'(/,A,I2,A,I3,A,/)')'  Error reading input file '//trim(filename)//', aborting...'
+     write(stdErr,'(/,A,I2,A,I3,A,/)')'  Error reading input file '//trim(filename)//', aborting...'
      stop
   end if
   
@@ -176,7 +179,7 @@ subroutine write_settingsfile
   integer :: u,i
   
   u = 14
-  open(unit=u,form='formatted',status='replace',file='analysemcmc.used')
+  open(unit=u,form='formatted',status='replace',action='write',file='analysemcmc.used')
   
 11 format(I10,1x,A19,5x,A)
 12 format(2I5,1x,A19,5x,A)
@@ -374,6 +377,7 @@ end subroutine set_plotsettings
 
 !************************************************************************************************************************************
 subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspiral.output.*)
+  use constants
   use analysemcmc_settings
   use general_data
   use mcmcrun_data
@@ -400,13 +404,13 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      
      open(unit=10,form='formatted',status='old',file=trim(infile),iostat=io)
      if(io.ne.0) then
-        write(0,'(A)')'   Error:  File not found: '//trim(infile)//', aborting.'
+        write(stdErr,'(A)')'   Error:  File not found: '//trim(infile)//', aborting.'
         exitcode = 1
         return
      end if
      rewind(10)
      
-     !if(prProgress.ge.2) write(6,'(A,I3,A,I3,A20,$)')'    File',ic,':  '//trim(infile)//'    Using colour',colours(mod(ic-1,ncolours)+1),': '//colournames(colours(mod(ic-1,ncolours)+1))
+     !if(prProgress.ge.2) write(stdOut,'(A,I3,A,I3,A20,$)')'    File',ic,':  '//trim(infile)//'    Using colour',colours(mod(ic-1,ncolours)+1),': '//colournames(colours(mod(ic-1,ncolours)+1))
      
      !Read the headers
      !Determine from the length of the first line whether this is output from before of after July 2009
@@ -425,7 +429,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
         !read(10,'(2x,A14,F18.8,4F12.2,F22.8,F17.7,3I14)') detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
         read(10,*)detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
         detname = detnames(ic,i)
-        !write(0,'(A)')trim(detname)
+        !write(stdErr,'(A)')trim(detname)
         j = len_trim(detname)
         if(detname(j-3:j).eq.'ford') detnr(ic,i) = 1
         if(detname(j-3:j).eq.'ston') detnr(ic,i) = 2
@@ -438,7 +442,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
         revID = 0
         read(10,*,iostat=io)parID(1:nMCMCpar) !Read parameter IDs
         if(io.ne.0) then
-           write(0,'(//,A,//)')'  Error reading MCMC parameter IDs, aborting...'
+           write(stdErr,'(//,A,//)')'  Error reading MCMC parameter IDs, aborting...'
            stop
         end if
         do i=1,nMCMCpar
@@ -460,12 +464,12 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
         if(io.gt.0) then !Read error
            if(readerror.eq.1) then !Read error in previous line as well
               if(i.lt.25) then
-                 write(0,'(A,I7,$)')'  Read error in file '//trim(infile)//', line',i
-                 write(0,'(A,/)')'  Aborting program...'
+                 write(stdErr,'(A,I7,$)')'  Read error in file '//trim(infile)//', line',i
+                 write(stdErr,'(A,/)')'  Aborting program...'
                  stop
               else
-                 write(6,'(A,I7,$)')'  Read error in file '//trim(infile)//', line',i
-                 write(6,*)
+                 write(stdOut,'(A,I7,$)')'  Read error in file '//trim(infile)//', line',i
+                 write(stdOut,*)
                  i = i-1
                  exit
               end if
@@ -506,12 +510,12 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
         if(tmpInt.ge.maxChLen) exit
      end do !i
      
-     if(i.ge.maxIter-2) write(0,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
+     if(i.ge.maxIter-2) write(stdErr,'(A,$)')'   *** WARNING ***   Not all lines in this file were read    '
      goto 199
 199  close(10)
      ntot(ic) = i-1
      n(ic) = ntot(ic) !n can be changed in rearranging chains, ntot won't be changed
-     !if(prProgress.ge.2.and.update.ne.1) write(6,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',Nburn(ic),'.'
+     !if(prProgress.ge.2.and.update.ne.1) write(stdOut,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',Nburn(ic),'.'
   end do !do ic = 1,nchains0
   
   
@@ -545,25 +549,25 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   do ic = 1,nchains0
      totiter = totiter + nint(is(ic,ntot(ic)))
   end do
-  !if(prProgress.ge.2.and.update.ne.1) write(6,'(A10,65x,2(A,I9),A1)')'Total:',' Lines:',sum(ntot(1:nchains0)),', iterations:',totiter
+  !if(prProgress.ge.2.and.update.ne.1) write(stdOut,'(A10,65x,2(A,I9),A1)')'Total:',' Lines:',sum(ntot(1:nchains0)),', iterations:',totiter
   
   
   
   !Print run info (detectors, SNR, amount of data, FFT, etc)
   if(prRunInfo.gt.0.and.update.eq.0) then
-     if(prRunInfo.eq.1) write(6,'(/,A)')'  Run information for chain 1:'
-     if(prRunInfo.eq.2) write(6,'(/,A)')'  Run information:'
+     if(prRunInfo.eq.1) write(stdOut,'(/,A)')'  Run information for chain 1:'
+     if(prRunInfo.eq.2) write(stdOut,'(/,A)')'  Run information:'
      do ic = 1,nchains0
         if((prRunInfo.eq.1.and.ic.eq.1) .or. prRunInfo.eq.2) then
            infile = infiles(ic)
-           write(6,'(4x,A7,A12,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
-           write(6,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
-           write(6,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
+           write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
+           write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
+           write(stdOut,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
            
            do i=1,ndet(ic)
-              write(6,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')trim(detnames(ic,i)),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+              write(stdOut,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')trim(detnames(ic,i)),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
            end do
-           write(6,*)
+           write(stdOut,*)
         end if
      end do !do ic = 1,nchains0
   end if  !prRunInfo.gt.0
@@ -582,7 +586,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
         if(Nburn(ic).ge.nint(is(ic,n(ic)))) then
            !print*,Nburn(ic),nint(is(ic,n(ic)))
            if(Nburn0(ic).ge.nint(is(ic,n(ic)))) then
-              write(0,'(A,I3)')'   *** WARNING ***  Nburn larger than Nchain, setting Nburn to 10% for chain',ic
+              write(stdErr,'(A,I3)')'   *** WARNING ***  Nburn larger than Nchain, setting Nburn to 10% for chain',ic
               Nburn(ic) = nint(is(ic,n(ic))*0.1)
            else
               Nburn(ic) = Nburn0(ic)
@@ -623,16 +627,16 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      ic = icloglmax
      i = iloglmax
      infile = infiles(ic)
-     write(6,'(A,I4,2(A,I9),A,F10.3,A,F7.2,A)')'    Maximum likelihood point:   chain:',ic,' ('//trim(infile(19:99))//'),   line:',i*thin+7+ndet(ic), &
+     write(stdOut,'(A,I4,2(A,I9),A,F10.3,A,F7.2,A)')'    Maximum likelihood point:   chain:',ic,' ('//trim(infile(19:99))//'),   line:',i*thin+7+ndet(ic), &
           ',   iteration:',nint(is(ic,i)),',   max log(L):',loglmax,'  -> SNR:',sqrt(2*loglmax),'.'
      
      !Test: get parameter values for L=Lmax
      !if(prProgress.ge.3) then
-     !   write(6,'(I10,F14.6,1x,2F12.7,F20.8,9F12.7)')nint(is(ic,i)),loglmax,allDat(ic,2:3,i),allDat(ic,4,i)+t0,allDat(ic,5:13,i)
+     !   write(stdOut,'(I10,F14.6,1x,2F12.7,F20.8,9F12.7)')nint(is(ic,i)),loglmax,allDat(ic,2:3,i),allDat(ic,4,i)+t0,allDat(ic,5:13,i)
      !   call mc_eta_2_m1_m2r(allDat(ic,2,i),allDat(ic,3,i), m1,m2)
-     !   write(6,'(F9.4,F10.4,F21.6,F11.4,F10.4,F12.4,2F11.4,F12.4,3F11.4)')m1,m2,allDat(ic,4,i)+t0,exp(allDat(ic,5,i)),allDat(ic,6,i),acos(allDat(ic,7,i))*r2d,allDat(ic,8,i)*r2h,asin(allDat(ic,9,i))*r2d,allDat(ic,10,i)*r2d,asin(allDat(ic,11,i))*r2d,allDat(ic,12,i)*r2d,allDat(ic,13,i)*r2d
+     !   write(stdOut,'(F9.4,F10.4,F21.6,F11.4,F10.4,F12.4,2F11.4,F12.4,3F11.4)')m1,m2,allDat(ic,4,i)+t0,exp(allDat(ic,5,i)),allDat(ic,6,i),acos(allDat(ic,7,i))*r2d,allDat(ic,8,i)*r2h,asin(allDat(ic,9,i))*r2d,allDat(ic,10,i)*r2d,asin(allDat(ic,11,i))*r2d,allDat(ic,12,i)*r2d,allDat(ic,13,i)*r2d
      !end if
-     if(prRunInfo.ge.1) write(6,*)
+     if(prRunInfo.ge.1) write(stdOut,*)
   end if
   
   
@@ -660,16 +664,16 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      infile = infiles(ic)
      if(prChainInfo.ge.2.and.update.ne.1) then
         if(n(ic)-Nburn(ic).gt.0) then
-           write(6,'(A6,$)'),'    * '  !Flag contributing chains
+           write(stdOut,'(A6,$)'),'    * '  !Flag contributing chains
         else
-           write(6,'(A6,$)'),'      '
+           write(stdOut,'(A6,$)'),'      '
         end if
-        write(6,'(A2,I2,A1,A10,A12,$)') 'Ch',ic,':',trim(infile(19:99)),', '//colournames(colours(mod(ic-1,ncolours)+1))//'.'
-        write(6,'(A,ES7.1,A,ES7.1,A1,$)') '  Lines/iter: ',real(n(ic)),'/',is(ic,n(ic)),'.'
-        write(6,'(A,ES7.1,A,ES7.1,A1,$)') '  Burn-in: ',real(Nburn(ic)),'/',isburn(ic),'.'
-        write(6,'(A,F8.2,A,F6.1,A,F4.1,A1,$)') '  Lmx:',loglmaxs(ic),', dLmx:',abs(loglmax-loglmaxs(ic)),'/',autoBurnin,'.'
-        write(6,'(A,I3,A,I4,A1,$)') ' Thin: file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),', tot:',totthin(ic),'.'
-        write(6,'(A,ES7.1,A1)') '  Data pts: ',abs(real(n(ic)-Nburn(ic))),'.'
+        write(stdOut,'(A2,I2,A1,A10,A12,$)') 'Ch',ic,':',trim(infile(19:99)),', '//colournames(colours(mod(ic-1,ncolours)+1))//'.'
+        write(stdOut,'(A,ES7.1,A,ES7.1,A1,$)') '  Lines/iter: ',real(n(ic)),'/',is(ic,n(ic)),'.'
+        write(stdOut,'(A,ES7.1,A,ES7.1,A1,$)') '  Burn-in: ',real(Nburn(ic)),'/',isburn(ic),'.'
+        write(stdOut,'(A,F8.2,A,F6.1,A,F4.1,A1,$)') '  Lmx:',loglmaxs(ic),', dLmx:',abs(loglmax-loglmaxs(ic)),'/',autoBurnin,'.'
+        write(stdOut,'(A,I3,A,I4,A1,$)') ' Thin: file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),', tot:',totthin(ic),'.'
+        write(stdOut,'(A,ES7.1,A1)') '  Data pts: ',abs(real(n(ic)-Nburn(ic))),'.'
      end if
   end do
   totiter = 0
@@ -685,7 +689,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      end if
   end do
   totlines = sum(ntot(1:nchains0))
-  if(prChainInfo.ge.1.and.update.ne.1) write(6,'(4x,A, A,ES10.4, A,ES10.4, A,I4, A,ES10.4,  A2,F5.1, A,I3,A1,I2,A1)') 'In all chains:','  # lines: ',real(totlines), &
+  if(prChainInfo.ge.1.and.update.ne.1) write(stdOut,'(4x,A, A,ES10.4, A,ES10.4, A,I4, A,ES10.4,  A2,F5.1, A,I3,A1,I2,A1)') 'In all chains:','  # lines: ',real(totlines), &
        ',  # iterations: ',real(totiter),',  total thinning:',nint(avgtotthin),'x, # data points after burnin: ',real(totpts),' (',real(totpts)/real(totlines)*100,'%), contributing chains:',contrchains,'/',nchains0,'.'
   
   
@@ -697,31 +701,31 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      chainPlI = max(1,nint(real(sum(ntot(1:nchains0)))/real(maxdots)))  !Use ntot and nchains0, since n is low if many points are in the burnin
      if(prChainInfo.ge.1.and.update.eq.0) then
         if(chainPlI.gt.1) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
-           write(6,'(A,I4,A,I5,A,I5,A)')'    Plotting every',chainPlI,'-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*chainPlI),'x.'
+           write(stdOut,'(A,I4,A,I5,A,I5,A)')'    Plotting every',chainPlI,'-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*chainPlI),'x.'
         else
-           write(6,'(A,I4,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.  Average total thinning remains',nint(avgtotthin),'x for these plots.'
+           write(stdOut,'(A,I4,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.  Average total thinning remains',nint(avgtotthin),'x for these plots.'
         end if
      end if
-     write(6,*)
+     write(stdOut,*)
   end if
-  !if(prRunInfo.gt.0) write(6,*)
+  !if(prRunInfo.gt.0) write(stdOut,*)
   
   
   
   
   !*** Change some MCMC parameters:
   if(changeVar.ge.1) then
-     if(prProgress.ge.2.and.update.eq.0) write(6,'(A,$)')'  Changing some parameters...   '
+     if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A,$)')'  Changing some parameters...   '
      
      if(revID(61)*revID(62).ne.0 .and. revID(63)+revID(64).eq.0) then  !Calculate the individual masses from Mch and eta:
-        if(prProgress.ge.2.and.update.eq.0) write(6,'(A)')'  Computing M1, M2 from Mc, eta'
+        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing M1, M2 from Mc, eta'
         parID(nMCMCpar+1) = 63  !M1
         parID(nMCMCpar+2) = 64  !M2
         revID(63) = nMCMCpar + 1  !M1
         revID(64) = nMCMCpar + 2  !M2
         nMCMCpar = nMCMCpar + 2
         if(nMCMCpar.gt.maxMCMCpar) then
-           write(0,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar,' to at least',nMCMCpar,' in order to continue.  Aborting...'
+           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar,' to at least',nMCMCpar,' in order to continue.  Aborting...'
            stop
         end if
         do ic=1,nchains0
@@ -730,14 +734,14 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
            end do
         end do
      else if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) then  !Calculate Mc, eta from the individual masses:
-        if(prProgress.ge.2.and.update.eq.0) write(6,'(A)')'  Computing Mc, eta from M1, M2'
+        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mc, eta from M1, M2'
         parID(nMCMCpar+1) = 61  !Mc
         parID(nMCMCpar+2) = 62  !eta
         revID(61) = nMCMCpar + 1  !Mc
         revID(62) = nMCMCpar + 2  !eta
         nMCMCpar = nMCMCpar + 2
         if(nMCMCpar.gt.maxMCMCpar) then
-           write(0,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar,' to at least',nMCMCpar,' in order to continue.  Aborting...'
+           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar,' to at least',nMCMCpar,' in order to continue.  Aborting...'
            stop
         end if
         do ic=1,nchains0
@@ -769,14 +773,14 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   jumps = 0.
   offsetrun = 0
   if(prInitial.ne.0) then
-     if(prInitial.eq.1) write(6,'(/,A)')'  Starting values for the chains:'
-     if(prInitial.eq.2) write(6,'(/,A)')'  Injection and starting values for the chains:'
-     if(prInitial.ge.3) write(6,'(/,A)')'  Injection, starting and Lmax values for the chains:'
-     write(6,'(5x,A10,$)')''
+     if(prInitial.eq.1) write(stdOut,'(/,A)')'  Starting values for the chains:'
+     if(prInitial.eq.2) write(stdOut,'(/,A)')'  Injection and starting values for the chains:'
+     if(prInitial.ge.3) write(stdOut,'(/,A)')'  Injection, starting and Lmax values for the chains:'
+     write(stdOut,'(5x,A10,$)')''
      do p=1,nMCMCpar
-        write(6,'(A9,$)')trim(parNames(parID(p)))
+        write(stdOut,'(A9,$)')trim(parNames(parID(p)))
      end do
-     write(6,*)
+     write(stdOut,*)
   end if
   
   do ic=1,nchains
@@ -785,49 +789,49 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      jumps(ic,1:nMCMCpar,2:n(ic)) = allDat(ic,1:nMCMCpar,2:n(ic)) -  allDat(ic,1:nMCMCpar,1:n(ic)-1)
      if(prInitial.ne.0) then 
         if(ic.eq.1.and.prInitial.ge.2) then
-           write(6,'(4x,A11,$)')'Injection:  '
+           write(stdOut,'(4x,A11,$)')'Injection:  '
            do p=1,nMCMCpar
-              write(6,'(F9.4,$)')startval(1,p,1)
+              write(stdOut,'(F9.4,$)')startval(1,p,1)
            end do
-           write(6,*)
-           if(prInitial.ge.4) write(6,*)
+           write(stdOut,*)
+           if(prInitial.ge.4) write(stdOut,*)
         end if
         if(abs((sum(startval(ic,1:nMCMCpar,1))-sum(startval(ic,1:nMCMCpar,2)))/sum(startval(ic,1:nMCMCpar,1))).gt.1.e-10) then
            offsetrun = 1
-           write(6,'(I4,A1,A10,$)')ic,':','  Start: '
+           write(stdOut,'(I4,A1,A10,$)')ic,':','  Start: '
            do p=1,nMCMCpar
-              write(6,'(F9.4,$)')startval(ic,p,2)
+              write(stdOut,'(F9.4,$)')startval(ic,p,2)
            end do
-           write(6,*)
+           write(stdOut,*)
            if(prInitial.ge.4) then
-              write(6,'(5x,A10,$)')'Diff:  '
+              write(stdOut,'(5x,A10,$)')'Diff:  '
               do p=1,nMCMCpar
-                 write(6,'(F9.4,$)')abs(startval(ic,p,1)-startval(ic,p,2))
+                 write(stdOut,'(F9.4,$)')abs(startval(ic,p,1)-startval(ic,p,2))
               end do
-              write(6,'(/)')
+              write(stdOut,'(/)')
            end if
         end if
      end if
   end do
   if(prInitial.ge.3) then
-     write(6,'(5x,A10,$)')'Lmax:  '
+     write(stdOut,'(5x,A10,$)')'Lmax:  '
      do p=1,nMCMCpar
-        write(6,'(F9.4,$)')startval(1,p,3)
+        write(stdOut,'(F9.4,$)')startval(1,p,3)
      end do
-     write(6,*)
+     write(stdOut,*)
      if(prInitial.ge.4) then
-        write(6,'(5x,A10,$)')'Diff:  '
+        write(stdOut,'(5x,A10,$)')'Diff:  '
         do p=1,nMCMCpar
-           write(6,'(F9.4,$)')abs(startval(1,p,1)-startval(1,p,3))
+           write(stdOut,'(F9.4,$)')abs(startval(1,p,1)-startval(1,p,3))
         end do
-        write(6,*)
+        write(stdOut,*)
      end if
-     write(6,*)
+     write(stdOut,*)
   end if
   
   
-  !if(prProgress.ge.1.and.update.eq.0) write(6,'(A)')'  Done.'
-  if(prProgress.ge.2.and.update.eq.0) write(6,'(A,I12,A,F7.4)')'  t0:',nint(t0), '  GMST:',gmst(t0)
+  !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')'  Done.'
+  if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A,I12,A,F7.4)')'  t0:',nint(t0), '  GMST:',gmst(t0)
   
   
   !Check which parameters were fixed during the MCMC run:
@@ -877,14 +881,14 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      end do
      nchains = 1
      n(1) = j-1
-     !if(prProgress.ge.1) write(6,'(A,I8,A,ES7.1,A)')'  Data points in combined chains: ',n(1),'  (',real(n(1)),')'
+     !if(prProgress.ge.1) write(stdOut,'(A,I8,A,ES7.1,A)')'  Data points in combined chains: ',n(1),'  (',real(n(1)),')'
   else
      allocate(selDat(nchains,maxMCMCpar,maxLine))
      do ic=1,nchains
         selDat(ic,1:nMCMCpar,1:n(ic)-Nburn(ic)) = allDat(ic,1:nMCMCpar,Nburn(ic)+1:n(ic))  !SelDat has the same structure as allDat, but contains only info AFTER the burnin.
         n(ic) = n(ic)-Nburn(ic) !n(ic)=0 if a chain is not contributing (in which case contrchain(ic)=0)!
      end do
-     !if(prProgress.ge.1) write(6,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
+     !if(prProgress.ge.1) write(stdOut,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
   end if
   
 end subroutine mcmcruninfo
@@ -1143,7 +1147,7 @@ function gmst(GPSsec)
   leapseconds = 32.d0 !At Jan 1st 2000
   if(GPSsec.gt.820108813.d0) leapseconds = leapseconds + 1.d0 !One more leapsecond after 1/1/2006
   if(GPSsec.gt.914803214.d0) leapseconds = leapseconds + 1.d0 !One more leapsecond after 1/1/2009
-  if(GPSsec.lt.630720013.d0) write(0,'(A)')'   WARNING: GMSTs before 01/01/2000 are inaccurate!'
+  if(GPSsec.lt.630720013.d0) write(stdErr,'(A)')'   WARNING: GMSTs before 01/01/2000 are inaccurate!'
   !Time since 1/1/2000 midnight
   seconds       = (GPSsec - gps0) + (leapseconds - 32.d0)
   days          = floor(seconds/86400.d0) - 0.5d0
@@ -1708,7 +1712,7 @@ function getos() !Determine the operating system type: 1-Linux, 2-MacOSX
   open(16,file=trim(filename), status='old', form='formatted')
   read(16,'(A)')ostype
   close(16, status = 'delete')
-  !write(6,*)ostype
+  !write(stdOut,*)ostype
   getos = 1 !Linux
   if(ostype(1:5).eq.'Darwi') getos = 2 !MacOSX
   return

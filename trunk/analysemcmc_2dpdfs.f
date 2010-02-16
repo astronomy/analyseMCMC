@@ -25,21 +25,21 @@ subroutine pdfs2d(exitcode)
   j1 = 1
   j2 = nMCMCpar
   
-  if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1.and.plPDF1D.eq.0) write(6,'(A,$)')'  Saving'
-  if(prProgress.ge.1.and.update.eq.0.and.Npdf2D.ge.0) write(6,'(A,$)')'  2D pdfs: '
+  if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1.and.plPDF1D.eq.0) write(stdOut,'(A,$)')'  Saving'
+  if(prProgress.ge.1.and.update.eq.0.and.Npdf2D.ge.0) write(stdOut,'(A,$)')'  2D pdfs: '
   if(Npdf2D.lt.0) then
      totplots = 0
      do j=j1,j2-nfixedpar
         totplots = totplots + j - j1
      end do
-     if(prProgress.ge.1.and.update.eq.0) write(6,'(A,I3,A,I3,A,/)')'  *all* ',totplots,' 2D PDFs for the all combinations of the',j2-j1+1-nfixedpar,' non-fixed parameters: '
+     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,I3,A,I3,A,/)')'  *all* ',totplots,' 2D PDFs for the all combinations of the',j2-j1+1-nfixedpar,' non-fixed parameters: '
   end if
   
   
   !Check consistency of PDF2Dpairs():
   do i=1,Npdf2D
-     if(revID(PDF2Dpairs(i,1)).eq.0) write(0,'(/,A)')'  * Warning:  pdfs2d():  parameter '//trim(parNames(PDF2Dpairs(i,1)))//' is not defined, check plPars() in the input file.  Skipping...'
-     if(revID(PDF2Dpairs(i,2)).eq.0) write(0,'(/,A)')'  * Warning:  pdfs2d():  parameter '//trim(parNames(PDF2Dpairs(i,2)))//' is not defined, check plPars() in the input file.  Skipping...'
+     if(revID(PDF2Dpairs(i,1)).eq.0) write(stdErr,'(/,A)')'  * Warning:  pdfs2d():  parameter '//trim(parNames(PDF2Dpairs(i,1)))//' is not defined, check plPars() in the input file.  Skipping...'
+     if(revID(PDF2Dpairs(i,2)).eq.0) write(stdErr,'(/,A)')'  * Warning:  pdfs2d():  parameter '//trim(parNames(PDF2Dpairs(i,2)))//' is not defined, check plPars() in the input file.  Skipping...'
   end do
   
   !Autodetermine number of bins for 2D PDFs:
@@ -54,10 +54,10 @@ subroutine pdfs2d(exitcode)
         Nbin2Dy = floor(10*log10(real(totpts)))         !Same as for 1D case (~50)
      end if
      if(prProgress.ge.2.and.plot.eq.1.and.update.eq.0) then
-        if(Nbin2Dx.lt.100) write(6,'(A1,I2,A1,$)')'(',Nbin2Dx,'x'
-        if(Nbin2Dx.ge.100) write(6,'(A1,I3,A1,$)')'(',Nbin2Dx,'x'
-        if(Nbin2Dy.lt.100) write(6,'(I2,A7,$)')Nbin2Dy,' bins) '
-        if(Nbin2Dy.ge.100) write(6,'(I3,A7,$)')Nbin2Dy,' bins) '
+        if(Nbin2Dx.lt.100) write(stdOut,'(A1,I2,A1,$)')'(',Nbin2Dx,'x'
+        if(Nbin2Dx.ge.100) write(stdOut,'(A1,I3,A1,$)')'(',Nbin2Dx,'x'
+        if(Nbin2Dy.lt.100) write(stdOut,'(I2,A7,$)')Nbin2Dy,' bins) '
+        if(Nbin2Dy.ge.100) write(stdOut,'(I3,A7,$)')Nbin2Dy,' bins) '
      end if
   end if
   if(Nbin2Dy.eq.0) Nbin2Dy = Nbin2Dx
@@ -87,7 +87,7 @@ subroutine pdfs2d(exitcode)
      end if
      !if(file.ge.2.and.multipagefile) then
      !   if(io.le.0) then
-     !      write(0,'(A,I4)')'  Error:  cannot open PGPlot device.  Quitting the programme',io
+     !      write(stdErr,'(A,I4)')'  Error:  cannot open PGPlot device.  Quitting the programme',io
      !      exitcode = 1
      !      return
      !   end if
@@ -111,12 +111,12 @@ subroutine pdfs2d(exitcode)
               if(p1.eq.revID(PDF2Dpairs(i,1)).and.p2.eq.revID(PDF2Dpairs(i,2))) plotthis = 1  !Use PDF2Dpairs from the input file
            end do
            if(plotthis.eq.0) cycle
-           if(prProgress.ge.1.and.update.eq.0) write(6,'(A,$)')trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//' '
+           if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,$)')trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//' '
         else
            if(p2.le.p1) cycle
            if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
-           write(6,*)upline !Move cursor up 1 line
-           if(prProgress.ge.1.and.update.eq.0) write(6,'(F7.1,A)')real(countplots+1)/real(totplots)*100,'%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                      '
+           write(stdOut,*)upline !Move cursor up 1 line
+           if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(F7.1,A)')real(countplots+1)/real(totplots)*100,'%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                      '
         end if
         
         
@@ -163,7 +163,7 @@ subroutine pdfs2d(exitcode)
               call pgscf(fonttype)
            end if
            if(io.le.0) then
-              write(0,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
+              write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
               exitcode = 1
               return
            end if
@@ -178,8 +178,8 @@ subroutine pdfs2d(exitcode)
         ymax = maxval(selDat(ic,p2,1:n(ic)))
         dx = xmax - xmin
         dy = ymax - ymin
-        !write(6,'(A,2F10.5)')'  Xmin,Xmax: ',xmin,xmax
-        !write(6,'(A,2F10.5)')'  Ymin,Ymax: ',ymin,ymax
+        !write(stdOut,'(A,2F10.5)')'  Xmin,Xmax: ',xmin,xmax
+        !write(stdOut,'(A,2F10.5)')'  Ymin,Ymax: ',ymin,ymax
         
         xx(1:n(ic)) = selDat(ic,p1,1:n(ic)) !Parameter 1
         yy(1:n(ic)) = selDat(ic,p2,1:n(ic)) !Parameter 2
@@ -208,14 +208,14 @@ subroutine pdfs2d(exitcode)
               a = (xmin+xmax)*0.5
               xmin = a - 0.5*dx
               xmax = a + 0.5*dx
-              if(prProgress.ge.3) write(6,'(A,F6.1,A3,F6.1,A,$)')'  Changing RA binning range to ',xmin,' - ',xmax,' h.'
+              if(prProgress.ge.3) write(stdOut,'(A,F6.1,A3,F6.1,A,$)')'  Changing RA binning range to ',xmin,' - ',xmax,' h.'
            end if
            if(abs(dx)*15.gt.dy/rat) then !Expand y
               dy = abs(dx)*rat*15
               a = (ymin+ymax)*0.5
               ymin = a - 0.5*dy
               ymax = a + 0.5*dy
-              if(prProgress.ge.3) write(6,'(A,F6.1,A3,F6.1,A,$)')'  Changing declination binning range to ',ymin,' - ',ymax,' deg.'
+              if(prProgress.ge.3) write(stdOut,'(A,F6.1,A3,F6.1,A,$)')'  Changing declination binning range to ',ymin,' - ',ymax,' deg.'
            end if
         end if !if(plot.eq.1 .and. project_map)
         
@@ -237,16 +237,16 @@ subroutine pdfs2d(exitcode)
            if(normPDF2D.eq.1) z = max(0.,log10(z + 1.e-30))
            if(normPDF2D.eq.2) z = max(0.,sqrt(z + 1.e-30))
            if(normPDF2D.eq.4) then
-              if(prProgress.ge.3) write(6,'(A,$)')'  identifying 2D ranges...'
+              if(prProgress.ge.3) write(stdOut,'(A,$)')'  identifying 2D ranges...'
               call identify_2d_ranges(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr) !Get 2D probability ranges; identify to which range each bin belongs
-              if(prProgress.ge.3) write(6,'(A,$)')'  computing 2D areas...'
+              if(prProgress.ge.3) write(stdOut,'(A,$)')'  computing 2D areas...'
               call calc_2d_areas(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
               injectionranges2d(p1,p2) = injectionrange2d(z,Nbin2Dx+1,Nbin2Dy+1,startval(1,p1,1),startval(1,p2,1),tr)
-              !write(6,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
+              !write(stdOut,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
               do i=1,Nival
                  if(prIval.ge.1.and.prProgress.ge.2 .and. (sky_position .or. binary_orientation)) then  !For sky position and orientation only
-                    if(i.eq.1) write(6,'(/,1x,A10,A13,3A23)')'Nr.','Ival frac.','Area (sq.deg) ','Circ. area rad. (deg) ','Fraction of sky '
-                    write(6,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probarea(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
+                    if(i.eq.1) write(stdOut,'(/,1x,A10,A13,3A23)')'Nr.','Ival frac.','Area (sq.deg) ','Circ. area rad. (deg) ','Fraction of sky '
+                    write(stdOut,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probarea(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
                  end if
                  probareas(p1,p2,i,1) = probarea(i)*(pi/180.)**2/(4*pi)  !Fraction of the sky
                  probareas(p1,p2,i,2) = sqrt(probarea(i)/pi)*2           !Equivalent diameter
@@ -255,7 +255,7 @@ subroutine pdfs2d(exitcode)
            end if
         end if
         if(normPDF2D.eq.3) then
-           if(prProgress.ge.3) write(6,'(A,$)')'  binning 2D data...'
+           if(prProgress.ge.3) write(stdOut,'(A,$)')'  binning 2D data...'
            call bindata2da(n(ic),xx(1:n(ic)),yy(1:n(ic)),zz(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin,xmax,ymin,ymax,z,tr)  !Measure amount of likelihood in each bin
         end if
         
@@ -382,10 +382,10 @@ subroutine pdfs2d(exitcode)
               
               !Plot the PDF
               if(project_map .and. plotSky.ge.2) then
-                 if(prProgress.ge.3) write(6,'(A,$)')'  plotting map projection...'
+                 if(prProgress.ge.3) write(stdOut,'(A,$)')'  plotting map projection...'
                  call pgimag_project(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr,map_projection)
               else
-                 if(prProgress.ge.3) write(6,'(A,$)')'  plotting 2D PDF...'
+                 if(prProgress.ge.3) write(stdOut,'(A,$)')'  plotting 2D PDF...'
                  !call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr) !Gives seg.fault (on amd64) - but why?
                  call pgimag_project(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr,0)  !0-no projection
               end if
@@ -669,14 +669,14 @@ subroutine pdfs2d(exitcode)
                  i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)//' '//trim(tempfile)//' '// &
                       trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.png &')
               end if
-              if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
+              if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
            end if
            !if(file.ge.2.and.multipagefile) call pgpage
            if(file.ge.2) then
               call pgend
               if(file.eq.3) then
                  i = system('eps2pdf '//trim(tempfile))
-                 if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
+                 if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
               end if
            end if
         end if !if(plot.eq.1)
@@ -744,9 +744,9 @@ subroutine bindata2dold(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !C
   real :: x(n),y(n),xbin(nxbin+1),ybin(nybin+1),z(nxbin+1,nybin+1)
   real :: xmin,xmax,ymin,ymax,dx,dy,xmin1,xmax1,ymin1,ymax1,tr(6)
   
-  !write(6,'(A4,5I8)')'n:',norm,nxbin,nybin
-  !write(6,'(A4,2F8.3)')'x:',xmin1,xmax1
-  !write(6,'(A4,2F8.3)')'y:',ymin1,ymax1
+  !write(stdOut,'(A4,5I8)')'n:',norm,nxbin,nybin
+  !write(stdOut,'(A4,2F8.3)')'x:',xmin1,xmax1
+  !write(stdOut,'(A4,2F8.3)')'y:',ymin1,ymax1
   
   xmin = xmin1
   xmax = xmax1
@@ -772,10 +772,10 @@ subroutine bindata2dold(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !C
      ybin(by) = ymin + (by-1)*dy          !y is the left of the bin
   end do
   
-  !write(6,'(50F5.2)'),x(1:50)
-  !write(6,'(50F5.2)'),y(1:50)
-  !write(6,'(20F8.5)'),xbin
-  !write(6,'(20F8.5)'),ybin
+  !write(stdOut,'(50F5.2)'),x(1:50)
+  !write(stdOut,'(50F5.2)'),y(1:50)
+  !write(stdOut,'(20F8.5)'),xbin
+  !write(stdOut,'(20F8.5)'),ybin
   
   z = 0.
   !ztot = 0.
@@ -867,9 +867,9 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Comp
      !   if(by.eq.0.or.by.eq.nybin+1) by = max(min(by,nybin),1)  !Treat an error of 1 y bin as round-off
      !   
      !   if(bx.lt.0.or.bx.gt.nxbin+1) then
-     !      !write(0,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for X data point',i,' (',x(i),').  I found bin',bx,', but it should lie between 1 and',nxbin,'.'
+     !      !write(stdErr,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for X data point',i,' (',x(i),').  I found bin',bx,', but it should lie between 1 and',nxbin,'.'
      !   else if(by.lt.0.or.by.gt.nybin+1) then
-     !      !write(0,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for Y data point',i,' (',y(i),').  I found bin',by,', but it should lie between 1 and',nybin,'.'
+     !      !write(stdErr,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for Y data point',i,' (',y(i),').  I found bin',by,', but it should lie between 1 and',nybin,'.'
      !   else
      !      z(bx,by) = z(bx,by) + 1.
      !   end if
@@ -911,9 +911,9 @@ subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)  !
   real :: x(n),y(n),z(n),xbin(nxbin+1),ybin(nybin+1),zz(nxbin+1,nybin+1),zztot,xmin,xmax,ymin,ymax,dx,dy,xmin1,xmax1,ymin1,ymax1
   real :: tr(6),zmin
   
-  !write(6,'(A4,5I8)')'n:',norm,nxbin,nybin
-  !write(6,'(A4,2F8.3)')'x:',xmin1,xmax1
-  !write(6,'(A4,2F8.3)')'y:',ymin1,ymax1
+  !write(stdOut,'(A4,5I8)')'n:',norm,nxbin,nybin
+  !write(stdOut,'(A4,2F8.3)')'x:',xmin1,xmax1
+  !write(stdOut,'(A4,2F8.3)')'y:',ymin1,ymax1
   
   xmin = xmin1
   xmax = xmax1
@@ -940,10 +940,10 @@ subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)  !
      ybin(by) = ymin + (by-1)*dy          !y is the left of the bin
   end do
   
-  !write(6,'(50F5.2)'),x(1:50)
-  !write(6,'(50F5.2)'),y(1:50)
-  !write(6,'(20F8.5)'),xbin
-  !write(6,'(20F8.5)'),ybin
+  !write(stdOut,'(50F5.2)'),x(1:50)
+  !write(stdOut,'(50F5.2)'),y(1:50)
+  !write(stdOut,'(20F8.5)'),xbin
+  !write(stdOut,'(20F8.5)'),ybin
   
   zz = 0.
   zztot = 0.
@@ -953,12 +953,12 @@ subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)  !
         do i=1,n
            !if(x(i).ge.xbin(bx).and.x(i).lt.xbin(bx+1) .and. y(i).ge.ybin(by).and.y(i).lt.ybin(by+1)) zz(bx,by) = zz(bx,by) + 1.
            if(x(i).ge.xbin(bx).and.x(i).lt.xbin(bx+1) .and. y(i).ge.ybin(by).and.y(i).lt.ybin(by+1)) zz(bx,by) = zz(bx,by) + exp(z(i) - zmin)
-           !write(6,'(2I4,8F10.5)')bx,by,x(i),xbin(bx),xbin(bx+1),y(i),ybin(by),ybin(by+1),zz(bx,by),z(i)
+           !write(stdOut,'(2I4,8F10.5)')bx,by,x(i),xbin(bx),xbin(bx+1),y(i),ybin(by),ybin(by+1),zz(bx,by),z(i)
         end do
         zztot = zztot + zz(bx,by) 
-        !write(6,'(2I4,5x,4F6.3,5x,10I8)')bx,by,xbin(bx),xbin(bx+1),ybin(by),ybin(by+1),nint(zz(bx,by))
+        !write(stdOut,'(2I4,5x,4F6.3,5x,10I8)')bx,by,xbin(bx),xbin(bx+1),ybin(by),ybin(by+1),nint(zz(bx,by))
      end do
-     !write(6,'(I4,5x,2F6.3,5x,10I8)')bx,xbin(bx),xbin(bx+1),nint(zz(bx,1:nybin))
+     !write(stdOut,'(I4,5x,2F6.3,5x,10I8)')bx,xbin(bx),xbin(bx+1),nint(zz(bx,1:nybin))
      end do
   !if(norm.eq.1) z = z/(zztot+1.e-30)
   if(norm.eq.1) z = z/maxval(z+1.e-30)
@@ -1013,7 +1013,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
                  z(1:nx,iy) = z(1:nx,iy)/(abs(sin(y*rd2r))+1.e-30)
               else  !This can happen when the PDF lies close to the pole
                  z(1:nx,iy) = 0.
-                 !write(0,'(//,A,//)')'  *** identify_2d_ranges:  sin(y)<0.  Please check whether the if(y.ge.0..and.y.lt.180.) statement works properly ***'
+                 !write(stdErr,'(//,A,//)')'  *** identify_2d_ranges:  sin(y)<0.  Please check whether the if(y.ge.0..and.y.lt.180.) statement works properly ***'
               end if
            end if
         end if
@@ -1038,13 +1038,13 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
            x2(ib) = real(ni-i+1)  !e.g. x2(b) = ni if within 68%, ni-1 if within 95%, etc, and 1 if within 99.7%
         else
            if(prProgress.ge.3.and.full(i).eq.0) then !Report the number of points in the lastly selected bin
-              if(i.eq.1) write(6,'(A,$)')'Last bin:'
-              !write(6,'(F6.3,I5,$)')ivals(i),nint(x1(ib))
-              write(6,'(I5,$)')nint(x1(ib))
+              if(i.eq.1) write(stdOut,'(A,$)')'Last bin:'
+              !write(stdOut,'(F6.3,I5,$)')ivals(i),nint(x1(ib))
+              write(stdOut,'(I5,$)')nint(x1(ib))
               full(i) = 1
            end if
         end if
-        !write(6,'(2I4, F6.2, 3F20.5)')b,i, ivals(i), np,tot,np*ivals(i)
+        !write(stdOut,'(2I4, F6.2, 3F20.5)')b,i, ivals(i), np,tot,np*ivals(i)
      end do
   end do
   
@@ -1263,7 +1263,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,raShift)
            call pgsci(1)
            mag = getmag(vm(i),mlim)*schmag
            call pgcirc(x,y,mag)
-           !write(6,'(3F10.3)')x,y,mag
+           !write(stdOut,'(3F10.3)')x,y,mag
            call pgsch(schfac*schlbl)
            sni = sn(i)
            !if(sni(1:1).eq.'\') call pgsch(schlbl*max(1.33,schfac))  !Greek letters need larger font
@@ -1576,8 +1576,8 @@ subroutine project_skymap(x,y,raCentre,projection)  !Project a sky map, using pr
      x = (x-raCentre) * cos(theta) + raCentre
      y = sin(theta)*90.
   else
-     write(0,'(A,I3)')'  ERROR:  Projection not defined:',projection
-     write(0,'(A)')'  Aborting...'
+     write(stdErr,'(A,I3)')'  ERROR:  Projection not defined:',projection
+     write(stdErr,'(A)')'  Aborting...'
      stop
   end if
   

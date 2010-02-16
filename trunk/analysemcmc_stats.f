@@ -8,7 +8,7 @@ subroutine statistics(exitcode)
   use chain_data
   use mcmcrun_data
   implicit none
-  integer :: c,i,ic,i0,o,p,p1,p2,nr,nstat,exitcode,wraptype
+  integer :: c,i,ic,i0,p,p1,p2,nr,nstat,exitcode,wraptype
   integer :: indexx(maxMCMCpar,maxChs*maxIter),index1(maxChs*maxIter)
   real :: rev2pi,x0,x1,x2,y1,y2,rrevpi
   real :: range1,minrange,maxgap,ival,wrapival,centre,maxlogl,minlogl,shift,shIval,shIval2
@@ -25,7 +25,7 @@ subroutine statistics(exitcode)
   
   
   !Sort all data and find the interval limits for the default probability interval for the wrapable parameters
-  if(prProgress.ge.2) write(6,*)''
+  if(prProgress.ge.2) write(stdOut,*)''
   shift = 0.
   wrap = 0
   raShift = 0.
@@ -34,8 +34,8 @@ subroutine statistics(exitcode)
      !wrapival = ivals(Nival) !Use the largest range
      wrapival = 0.999 !Always use a very large range (?)
      indexx = 0
-     if(prProgress.ge.2.and.mergeChains.eq.0) write(6,'(A,I2.2,A,$)')' Ch',ic,' '
-     if(prProgress.ge.2.and.ic.eq.1.and.wrapData.ge.1) write(6,'(A,$)')'  Wrap data. '
+     if(prProgress.ge.2.and.mergeChains.eq.0) write(stdOut,'(A,I2.2,A,$)')' Ch',ic,' '
+     if(prProgress.ge.2.and.ic.eq.1.and.wrapData.ge.1) write(stdOut,'(A,$)')'  Wrap data. '
      do p=1,nMCMCpar
         if(wrapData.eq.0 .or. &
              (parID(p).ne.31.and.parID(p).ne.41.and.parID(p).ne.52.and.parID(p).ne.54.and.parID(p).ne.73.and.parID(p).ne.83) ) then  !Not RA, phi_c, psi, phi_Jo, phi_1,2
@@ -68,9 +68,9 @@ subroutine statistics(exitcode)
               minrange = range1
               y1 = x1
               y2 = x2
-              !write(6,'(2I6,7F10.5)')i,mod(nint(i+n(ic)*wrapival),n(ic)),x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
+              !write(stdOut,'(2I6,7F10.5)')i,mod(nint(i+n(ic)*wrapival),n(ic)),x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
            end if
-           !write(6,'(2I6,7F10.5)')i,mod(nint(i+n(ic)*wrapival),n(ic)),x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
+           !write(stdOut,'(2I6,7F10.5)')i,mod(nint(i+n(ic)*wrapival),n(ic)),x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
         end do !i
         centre = (y1+y2)/2.
         
@@ -96,7 +96,7 @@ subroutine statistics(exitcode)
            do i=1,n(ic)-1
               x1 = selDat(ic,p,indexx(p,i))
               x2 = selDat(ic,p,indexx(p,i+1))
-              !write(6,'(2I3,2I8,4F10.5)')ic,p,i,i0,x1,x2,x2-x2,maxgap
+              !write(stdOut,'(2I3,2I8,4F10.5)')ic,p,i,i0,x1,x2,x2-x2,maxgap
               if(x2-x1.gt.maxgap) then
                  maxgap = x2-x1
                  i0 = i
@@ -107,7 +107,7 @@ subroutine statistics(exitcode)
            !if(maxgap.gt.2*tpi/sqrt(real(n(ic)))) then
            if(maxgap.gt.0.1) then 
               x0 = (x1+x2)/2.
-              !write(6,'(10F10.5)')x1,x2,(x1+x2)/2.,maxgap,ymin,ymax,centre,minrange,y1,y2
+              !write(stdOut,'(10F10.5)')x1,x2,(x1+x2)/2.,maxgap,ymin,ymax,centre,minrange,y1,y2
               !if(y1.lt.y2.and.(x0.lt.y1.or.x0.gt.y2)) wrap(ic,p) = 1  !If centre of max gap is outside 90% range  WHY???
               !if(y1.gt.y2.and.(x0.gt.y2.and.x0.lt.y1)) wrap(ic,p) = 1
            end if
@@ -145,8 +145,8 @@ subroutine statistics(exitcode)
      
      
      !Do statistics
-     !if(prProgress.ge.2) write(6,'(A)')' Calculating: statistics...'
-     if(prProgress.ge.1.and.ic.eq.1) write(6,'(A,$)')'  Calc: stats, '
+     !if(prProgress.ge.2) write(stdOut,'(A)')' Calculating: statistics...'
+     if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A,$)')'  Calc: stats, '
      do p=1,nMCMCpar
         !Determine the median
         if(mod(n(ic),2).eq.0) medians(p) = 0.5*(selDat(ic,p,indexx(p,n(ic)/2)) + selDat(ic,p,indexx(p,n(ic)/2+1)))
@@ -185,8 +185,8 @@ subroutine statistics(exitcode)
      
      !Compute correlations:
      if(prCorr.gt.0.or.saveStats.gt.0) then
-        !write(6,'(A)')' Calculating correlations...   '
-        if(prProgress.ge.1) write(6,'(A,$)')' corrs, '
+        !write(stdOut,'(A)')' Calculating correlations...   '
+        if(prProgress.ge.1) write(stdOut,'(A,$)')' corrs, '
         do p1=1,nMCMCpar
            do p2=1,nMCMCpar
               !do p2=p1,nMCMCpar
@@ -205,17 +205,17 @@ subroutine statistics(exitcode)
      
      
      !Determine interval ranges:
-     if(prProgress.ge.1.and.ic.eq.1) write(6,'(A,$)')' prob.ivals: '
+     if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A,$)')' prob.ivals: '
      c0 = 0
      do c=1,Nival
         ival = ivals(c)
         c0 = ival0
         if(c.ne.c0 .and. prIval.eq.0 .and. prStat.lt.2 .and. saveStats.eq.0) cycle
         
-        if(prProgress.ge.1.and.ic.eq.1) write(6,'(F6.3,$)')ival
+        if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(F6.3,$)')ival
         do p=1,nMCMCpar
            minrange = 1.e30
-           !write(6,'(A8,4x,4F10.5,I4)')parNames(parID(p)),y1,y2,minrange,centre,wrap(ic,p)
+           !write(stdOut,'(A8,4x,4F10.5,I4)')parNames(parID(p)),y1,y2,minrange,centre,wrap(ic,p)
            do i=1,floor(n(ic)*(1.-ival))
               x1 = selDat(ic,p,indexx(p,i))
               x2 = selDat(ic,p,indexx(p,i+floor(n(ic)*ival)))
@@ -226,10 +226,10 @@ subroutine statistics(exitcode)
                  y1 = x1
                  y2 = x2
               end if
-              !write(6,'(I6,7F10.5)')i,x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
+              !write(stdOut,'(I6,7F10.5)')i,x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
            end do
            centre = (y1+y2)/2.
-           !write(6,'(A8,4x,4F10.5,I4)')parNames(parID(p)),y1,y2,minrange,centre,wrap(ic,p)
+           !write(stdOut,'(A8,4x,4F10.5,I4)')parNames(parID(p)),y1,y2,minrange,centre,wrap(ic,p)
            
            !Save ranges:
            nr = 4                  !Only ranges(:,:,:,1:nr) get converted later on
@@ -241,8 +241,8 @@ subroutine statistics(exitcode)
            if(parID(p).eq.21.or.parID(p).eq.22 .or. parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  !Distance or mass
         end do !p
      end do !c
-     !if(prProgress.ge.2) write(6,'(A34,F8.4)')'.  Standard probability interval: ',ivals(ival0)
-     !if(prProgress.ge.2) write(6,'(A,F8.4,$)')', default ival:',ivals(ival0)
+     !if(prProgress.ge.2) write(stdOut,'(A34,F8.4)')'.  Standard probability interval: ',ivals(ival0)
+     !if(prProgress.ge.2) write(stdOut,'(A,F8.4,$)')', default ival:',ivals(ival0)
      
      
      
@@ -253,7 +253,7 @@ subroutine statistics(exitcode)
      
      
      !Compute Bayes factor
-     !if(prProgress.ge.1.and.ic.eq.1) write(6,'(A,$)')'  Bayes factor,'
+     !if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A,$)')'  Bayes factor,'
      total = 0
      total2 = 0
      maxlogl = -1.e30
@@ -269,7 +269,7 @@ subroutine statistics(exitcode)
      var = total2/total
      logebayesfactor(ic) = real(log(var))
      log10bayesfactor(ic) = real(log10(var))
-     !write(6,'(A,4F10.3,2I9,F10.3)')'ln Bayes',logebayesfactor(ic),log10bayesfactor(ic),maxlogl,minlogl,n(ic),ic,Tchain(ic)
+     !write(stdOut,'(A,4F10.3,2I9,F10.3)')'ln Bayes',logebayesfactor(ic),log10bayesfactor(ic),maxlogl,minlogl,n(ic),ic,Tchain(ic)
      
      
      
@@ -290,7 +290,7 @@ subroutine statistics(exitcode)
      
      !Change MCMC parameters
      if(changeVar.ge.1) then
-        if(prProgress.ge.1.and.ic.eq.i.and.update.eq.0) write(6,'(A,$)')'.  Change vars. '
+        if(prProgress.ge.1.and.ic.eq.i.and.update.eq.0) write(stdOut,'(A,$)')'.  Change vars. '
         do p=1,nMCMCpar
            !CHECK: need d^3!
            if(parID(p).eq.22) then !Take exp
@@ -360,7 +360,7 @@ subroutine statistics(exitcode)
      !Find 100% probability range
      do c = 1,Nival
         if(abs(ivals(c)-1.).lt.1.e-4) then !Then treat it as a 100% interval to prevent numerical problems
-           if(prProgress.ge.1) write(6,'(A,F9.4,A)')'  Treating probability interval',ivals(c)*100,'% as 100%'
+           if(prProgress.ge.1) write(stdOut,'(A,F9.4,A)')'  Treating probability interval',ivals(c)*100,'% as 100%'
            do p=1,nMCMCpar
               ranges(ic,c,p,1) = minval(selDat(ic,p,1:n(ic)))
               ranges(ic,c,p,2) = maxval(selDat(ic,p,1:n(ic)))
@@ -374,9 +374,9 @@ subroutine statistics(exitcode)
      
      if(prProgress.ge.1) then
         if(ic.eq.nChains) then
-           write(6,*)
+           write(stdOut,*)
         else
-           write(6,'(A,$)')'  '
+           write(stdOut,'(A,$)')'  '
         end if
      end if
      
@@ -398,35 +398,33 @@ subroutine statistics(exitcode)
      !******   PRINT STATISTICS   ******************************************************************
      !**********************************************************************************************
      
-     o=6 !Print to this unit - 6=screen
-     
      
      if(prProgress+prStat+prIval+prConv.gt.0.and.ic.eq.1) then
-        write(o,'(/,A,2(A,F7.2),$)')'  Bayes factor:   ','log_e(B_SN) =',logebayesfactor(ic),',  log_10(B_SN) =',log10bayesfactor(ic)
-        !write(o,'(8x,A,3(A,F7.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),',  log_10(Lmax) =',startval(ic,1,3)/log(10.),',  -> SNR =',sqrt(2*startval(ic,1,3)),'.'
-        write(o,'(8x,A,3(A,F7.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',loglmax,',  log_10(Lmax) =',loglmax/log(10.),',  -> SNR =',sqrt(2*loglmax),'.'
+        write(stdOut,'(/,A,2(A,F7.2),$)')'  Bayes factor:   ','log_e(B_SN) =',logebayesfactor(ic),',  log_10(B_SN) =',log10bayesfactor(ic)
+        !write(stdOut,'(8x,A,3(A,F7.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),',  log_10(Lmax) =',startval(ic,1,3)/log(10.),',  -> SNR =',sqrt(2*startval(ic,1,3)),'.'
+        write(stdOut,'(8x,A,3(A,F7.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',loglmax,',  log_10(Lmax) =',loglmax/log(10.),',  -> SNR =',sqrt(2*loglmax),'.'
      end if
      
      
      !Print statistics to screen
      if(prStat.gt.0) then
-        write(o,'(/,A)')'  Main statistics:'
+        write(stdOut,'(/,A)')'  Main statistics:'
         do c=1,Nival
            if(c.ne.c0.and.prStat.lt.2) cycle
-           if(c.gt.1.and.prStat.ge.2) write(o,*)
-           write(o,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)')'Param.  ','model','median','mean','Lmax','stdev1','stdev2','abvar1','abvar2',  &
+           if(c.gt.1.and.prStat.ge.2) write(stdOut,*)
+           write(stdOut,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)')'Param.  ','model','median','mean','Lmax','stdev1','stdev2','abvar1','abvar2',  &
                 'rng_c','rng1','rng2','drng','d/drng','delta','ok?','result (',ivals(c)*100,'%)'
            do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle !Parameter was not fitted
-              write(o,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4,$)')parNames(parID(p)),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absVar1(p),  &
+              write(stdOut,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4,$)')parNames(parID(p)),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absVar1(p),  &
                    absVar2(p),ranges(ic,c,p,3),ranges(ic,c,p,1),ranges(ic,c,p,2),ranges(ic,c,p,4),  &
                    2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt centre of range
               if(startval(ic,p,1).ge.ranges(ic,c,p,1).and.startval(ic,p,1).le.ranges(ic,c,p,2)) then
-                 write(o,'(A4,$)')'y '
+                 write(stdOut,'(A4,$)')'y '
               else
-                 write(o,'(A4,$)')'*N*'
+                 write(stdOut,'(A4,$)')'*N*'
               end if
-              write(o,'(F10.4,A3,F9.4)')ranges(ic,c,p,3),'+-',0.5*ranges(ic,c,p,4)
+              write(stdOut,'(F10.4,A3,F9.4)')ranges(ic,c,p,3),'+-',0.5*ranges(ic,c,p,4)
            end do !p
         end do !c
      end if
@@ -434,106 +432,106 @@ subroutine statistics(exitcode)
      
      !Print intervals as: centre, delta, in range:
      if(prIval.eq.1.or.prIval.eq.3) then
-        write(o,'(/,A)')'  Probability intervals:'
-        write(o,'(A22,A8,$)')'Interval:',''
+        write(stdOut,'(/,A)')'  Probability intervals:'
+        write(stdOut,'(A22,A8,$)')'Interval:',''
         do c=1,Nival
-           write(o,'(F20.4,A9,$)')ivals(c),''
+           write(stdOut,'(F20.4,A9,$)')ivals(c),''
         end do
-        write(o,*)''
+        write(stdOut,*)''
         
-        write(o,'(A10,2x,2A9,$)')'Param.  ','model','median'
+        write(stdOut,'(A10,2x,2A9,$)')'Param.  ','model','median'
         do c=1,Nival
-           !write(o,'(2x,2A9,A8,$)')'rng1','rng2','in rnge'
-           write(o,'(2x,3A9,$)')'centre','delta','in rnge'
+           !write(stdOut,'(2x,2A9,A8,$)')'rng1','rng2','in rnge'
+           write(stdOut,'(2x,3A9,$)')'centre','delta','in rnge'
         end do
-        write(o,*)''
+        write(stdOut,*)''
         do p=1,nMCMCpar
            !if(stdev1(p).lt.1.d-20) cycle
            if(fixedpar(p).eq.1) cycle
-           write(o,'(A10,2x,2F9.4,$)')parNames(parID(p)),startval(ic,p,1),stats(ic,p,1)
+           write(stdOut,'(A10,2x,2F9.4,$)')parNames(parID(p)),startval(ic,p,1),stats(ic,p,1)
            do c=1,Nival
               if(mergeChains.eq.0) then
-                 write(o,'(2x,2F9.4,F6.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),9.999) !Defined with centre of prob. range, need some extra security to print correctly
+                 write(stdOut,'(2x,2F9.4,F6.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),9.999) !Defined with centre of prob. range, need some extra security to print correctly
               else
-                 write(o,'(2x,2F9.4,F6.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+                 write(stdOut,'(2x,2F9.4,F6.3,$)')ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
               end if
               if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
-                 write(o,'(A3,$)')'y '
+                 write(stdOut,'(A3,$)')'y '
               else
-                 write(o,'(A3,$)')'N*'
+                 write(stdOut,'(A3,$)')'N*'
               end if
            end do
-           write(o,*)''
+           write(stdOut,*)''
         end do
-        write(o,*)''
+        write(stdOut,*)''
      end if
      
      
      if(prIval.ge.2) then
-        write(o,'(/,A)')'  Statistics and probability intervals:'
+        write(stdOut,'(/,A)')'  Statistics and probability intervals:'
         
         !Print intervals as x +- dx:
-        write(o,'(A61,$)')'Interval:'
+        write(stdOut,'(A61,$)')'Interval:'
         do c=1,Nival
-           write(o,'(F14.3,A1,A9,$)')ivals(c)*100,'%',''
+           write(stdOut,'(F14.3,A1,A9,$)')ivals(c)*100,'%',''
         end do
-        write(o,*)''
+        write(stdOut,*)''
         
-        write(o,'(A11,1x,4A10,$)')'Parameter','median','mean','Lmax','stdev'
+        write(stdOut,'(A11,1x,4A10,$)')'Parameter','median','mean','Lmax','stdev'
         do c=1,Nival
-           write(o,'(5x,A8,4x,A7,$)')'x','dx'
+           write(stdOut,'(5x,A8,4x,A7,$)')'x','dx'
         end do
-        write(o,*)''
+        write(stdOut,*)''
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
-           write(o,'(A10,2x,4F10.3,$)')parNames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
+           write(stdOut,'(A10,2x,4F10.3,$)')parNames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            do c=1,Nival
-              write(o,'(5x,F8.3,A4,F7.3$)')ranges(ic,c,p,3),' +- ',0.5d0*ranges(ic,c,p,4)
+              write(stdOut,'(5x,F8.3,A4,F7.3$)')ranges(ic,c,p,3),' +- ',0.5d0*ranges(ic,c,p,4)
            end do
-           write(o,*)''
+           write(stdOut,*)''
         end do
-        write(o,*)''
+        write(stdOut,*)''
         
         !Print intervals as low-high:
-        write(o,'(A61,$)')'Interval:'
+        write(stdOut,'(A61,$)')'Interval:'
         do c=1,Nival
-           write(o,'(F14.3,A1,A9,$)')ivals(c)*100,'%',''
+           write(stdOut,'(F14.3,A1,A9,$)')ivals(c)*100,'%',''
         end do
-        write(o,*)''
+        write(stdOut,*)''
         
-        write(o,'(A11,1x,4A10,$)')'Parameter','median','mean','Lmax','stdev'
+        write(stdOut,'(A11,1x,4A10,$)')'Parameter','median','mean','Lmax','stdev'
         do c=1,Nival
-           write(o,'(6x,A8,3x,A7,$)')'min','max'
+           write(stdOut,'(6x,A8,3x,A7,$)')'min','max'
         end do
-        write(o,*)''
+        write(stdOut,*)''
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
-           write(o,'(A10,2x,4F10.3,$)')parNames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
+           write(stdOut,'(A10,2x,4F10.3,$)')parNames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            do c=1,Nival
-              write(o,'(6x,F8.3,A3,F7.3$)')ranges(ic,c,p,1),' - ',ranges(ic,c,p,2)
+              write(stdOut,'(6x,F8.3,A3,F7.3$)')ranges(ic,c,p,1),' - ',ranges(ic,c,p,2)
            end do
-           write(o,*)''
+           write(stdOut,*)''
         end do
-        write(o,*)''
+        write(stdOut,*)''
         
         
         !Print intervals as x -dx1 +dx2 in LaTeX format:
         if(1.eq.2) then
-           write(o,'(A19,$)')'Interval:   '
+           write(stdOut,'(A19,$)')'Interval:   '
            do c=1,Nival
-              write(o,'(F27.3,A1,A9,$)')ivals(c)*100,'%',''
+              write(stdOut,'(F27.3,A1,A9,$)')ivals(c)*100,'%',''
            end do
-           write(o,*)''
+           write(stdOut,*)''
            
            do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle
-              write(o,'(A10,2x,$)')parNames(parID(p))
+              write(stdOut,'(A10,2x,$)')parNames(parID(p))
               do c=1,Nival
-                 write(o,'(5x,A1,F8.3,2(A,F7.3),A,$)')'$',stats(ic,p,1),'_{-',abs(stats(ic,p,1)-ranges(ic,c,p,1)),'}^{+',abs(stats(ic,p,1)-ranges(ic,c,p,2)),'}$'
+                 write(stdOut,'(5x,A1,F8.3,2(A,F7.3),A,$)')'$',stats(ic,p,1),'_{-',abs(stats(ic,p,1)-ranges(ic,c,p,1)),'}^{+',abs(stats(ic,p,1)-ranges(ic,c,p,2)),'}$'
               end do
-              write(o,*)''
+              write(stdOut,*)''
            end do
-           write(o,*)''
+           write(stdOut,*)''
         end if
         
      end if
@@ -551,30 +549,30 @@ subroutine statistics(exitcode)
      if(prCorr.gt.0) then
         corr1 = 0.1
         corr2 = 0.5
-        write(o,'(/,A,$)')'  Correlations  '
-        write(o,'(A,3(F4.2,A))')'  (weak [',corr1,'<abs(cor)<',corr2,']: in lower triangle,  strong [abs(cor)>',corr2,']: in upper triangle):'
-        write(o,'(A8,$)')''
+        write(stdOut,'(/,A,$)')'  Correlations  '
+        write(stdOut,'(A,3(F4.2,A))')'  (weak [',corr1,'<abs(cor)<',corr2,']: in lower triangle,  strong [abs(cor)>',corr2,']: in upper triangle):'
+        write(stdOut,'(A8,$)')''
         do p=1,nMCMCpar
-           if(fixedpar(p).eq.0) write(o,'(A7,$)')trim(parNames(parID(p)))
+           if(fixedpar(p).eq.0) write(stdOut,'(A7,$)')trim(parNames(parID(p)))
         end do
-        write(o,*)''
+        write(stdOut,*)''
         do p1=1,nMCMCpar
            if(fixedpar(p1).eq.1) cycle
-           write(o,'(A8,$)')trim(parNames(parID(p1)))
+           write(stdOut,'(A8,$)')trim(parNames(parID(p1)))
            do p2=1,nMCMCpar
               corr = corrs(p1,p2)
               if(fixedpar(p2).eq.1) cycle
               if( (abs(corr).ge.corr2.and.p2.gt.p1) ) then  !Print in the upper triangle
-                 write(o,'(F7.2,$)')corr
+                 write(stdOut,'(F7.2,$)')corr
               else if( (abs(corr).ge.corr1.and.abs(corr).lt.corr2.and.p1.gt.p2) ) then   !Print in the lower triangle
-                 write(o,'(F7.2,$)')corr
+                 write(stdOut,'(F7.2,$)')corr
               else if(p1.eq.p2) then !Print on the diagonal
-                 write(o,'(A7,$)')' ######' !'
+                 write(stdOut,'(A7,$)')' ######' !'
               else
-                 write(o,'(A7,$)')''
+                 write(stdOut,'(A7,$)')''
               end if
            end do
-           write(o,'(A)')'   '//trim(parNames(parID(p1)))
+           write(stdOut,'(A)')'   '//trim(parNames(parID(p1)))
         end do
      end if
      
@@ -597,7 +595,7 @@ subroutine statistics(exitcode)
      logebayesfactortotal=logebayesfactortotal+logebayesfactor(ic)
   end do
   logebayesfactortotal=logebayesfactortotal/dble(nChains)
-  !write(6,'(A,F10.3)')'ln Bayes Total',logebayesfactortotal
+  !write(stdOut,'(A,F10.3)')'ln Bayes Total',logebayesfactortotal
   
   !!Compute autocorrelations:
   if(prAcorr.gt.0.or.plAcorr.gt.0) call compute_autocorrelations()
@@ -751,8 +749,8 @@ subroutine save_stats(exitcode)  !Save statistics to file
      p2 = revID(PDF2Dpairs(p,2))
      if(p1*p2.eq.0) cycle
      if(parID(p1)*parID(p2).eq.0) then
-        if(parID(p1).eq.0) write(0,'(/,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter '//trim(parNames(parID(p1)))//' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
-        if(parID(p2).eq.0) write(0,'(/,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter '//trim(parNames(parID(p2)))//' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
+        if(parID(p1).eq.0) write(stdErr,'(/,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter '//trim(parNames(parID(p1)))//' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
+        if(parID(p2).eq.0) write(stdErr,'(/,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter '//trim(parNames(parID(p2)))//' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
         stop
      end if
      write(o,'(2I4,2(2x,A8),2x,$)')p1,p2,trim(parNames(parID(p1))),trim(parNames(parID(p2)))
@@ -771,10 +769,10 @@ subroutine save_stats(exitcode)  !Save statistics to file
   
   close(o) !Statistics output file
   if(saveStats.eq.2) i = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
-  !write(6,*)''
+  !write(stdOut,*)''
   if(prProgress.ge.1) then
-     if(saveStats.eq.1) write(6,'(A)')'  Statistics saved in '//trim(outputname)//'__statistics.dat'
-     if(saveStats.eq.2) write(6,'(A)')'  Statistics saved in '//trim(outputname)//'__statistics.dat,ps'
+     if(saveStats.eq.1) write(stdOut,'(A)')'  Statistics saved in '//trim(outputname)//'__statistics.dat'
+     if(saveStats.eq.2) write(stdOut,'(A)')'  Statistics saved in '//trim(outputname)//'__statistics.dat,ps'
   end if
   
 end subroutine save_stats
@@ -783,6 +781,7 @@ end subroutine save_stats
 
 !***********************************************************************************************************************************
 subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file  
+  use constants
   use analysemcmc_settings
   use general_data
   use mcmcrun_data
@@ -809,10 +808,10 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   
   close(o) !Bayes output file
   if(saveStats.eq.2) i = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__bayes.ps')
-  !write(6,*)''
+  !write(stdOut,*)''
   if(prProgress.ge.1) then
-     if(saveStats.eq.1) write(6,'(A)')'  Bayes factors saved in '//trim(outputname)//'__bayes.dat'
-     if(saveStats.eq.2) write(6,'(A)')'  Bayes factors saved in '//trim(outputname)//'__bayes.dat,ps'
+     if(saveStats.eq.1) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputname)//'__bayes.dat'
+     if(saveStats.eq.2) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputname)//'__bayes.dat,ps'
   end if
   
 end subroutine save_bayes
@@ -843,7 +842,7 @@ subroutine save_cbc_wiki_data(ic)
   write(wikifilename,'(A)')trim(outputname)//'__wiki.dat'
   open(unit=o,form='formatted',status='replace',action='write',position='rewind',file=trim(wikifilename),iostat=io)
   if(io.ne.0) then
-     write(0,'(A)')'  Error opening '//trim(wikifilename)//', aborting...'
+     write(stdErr,'(A)')'  Error opening '//trim(wikifilename)//', aborting...'
      stop
   end if
   write(gps,'(I10.10)')GPStime
@@ -1078,12 +1077,12 @@ subroutine save_cbc_wiki_data(ic)
      if(abs(ivals(i)-0.9545).lt.0.0001) c = i
   end do
   if(c.eq.0) then
-     write(0,'(A)')'  Error: 2-sigma range not found, needed for Wiki output!'
-     write(6,'(A,$)')'  Do you want to continue?  (y/n)  '
+     write(stdErr,'(A)')'  Error: 2-sigma range not found, needed for Wiki output!'
+     write(stdOut,'(A,$)')'  Do you want to continue?  (y/n)  '
      read(5,*)ans
      if(ans.eq.'y'.or.ans.eq.'Y') then
         c = 1
-        write(6,'(A,F6.2,A)')'  Continuing with ',ivals(c)*100,"% probability interval, don't use wiki.txt!!!"
+        write(stdOut,'(A,F6.2,A)')'  Continuing with ',ivals(c)*100,"% probability interval, don't use wiki.txt!!!"
      else
         stop
      end if
@@ -1252,31 +1251,31 @@ subroutine compute_convergence()
   
   !Print means per chain:
   if(prConv.ge.1) then
-     write(6,*)''
-     if(prConv.ge.2) write(6,'(A,I7,A)')'  Convergence parameters for',nn,' iterations:'
-     write(6,'(A14,$)')''
+     write(stdOut,*)''
+     if(prConv.ge.2) write(stdOut,'(A,I7,A)')'  Convergence parameters for',nn,' iterations:'
+     write(stdOut,'(A14,$)')''
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
-        write(6,'(A9,$)')trim(parNames(parID(p)))
+        write(stdOut,'(A9,$)')trim(parNames(parID(p)))
      end do
-     write(6,'(A9)')'Mean'
+     write(stdOut,'(A9)')'Mean'
      
      if(prConv.ge.3) then
-        write(6,'(A)')'  Means:'
+        write(stdOut,'(A)')'  Means:'
         do ic=1,nChains0
-           write(6,'(I12,A2,$)')ic,': '
+           write(stdOut,'(I12,A2,$)')ic,': '
            do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle
-              write(6,'(F9.5,$)')chmean(ic,p)
+              write(stdOut,'(F9.5,$)')chmean(ic,p)
            end do
-           write(6,*)
+           write(stdOut,*)
         end do
-        write(6,'(A14,$)')'        Mean: '
+        write(stdOut,'(A14,$)')'        Mean: '
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
-           write(6,'(F9.5,$)')avgMean(p)
+           write(stdOut,'(F9.5,$)')avgMean(p)
         end do
-        write(6,*)''
+        write(stdOut,*)''
         
      end if !if(prConv.ge.3)
   end if !if(prConv.ge.1)
@@ -1284,8 +1283,8 @@ subroutine compute_convergence()
   
   !Flag and print variances:
   if(prConv.ge.3) then
-     write(6,*)''
-     write(6,'(A)')'  Variances:'
+     write(stdOut,*)''
+     write(stdOut,'(A)')'  Variances:'
   end if
   do ic=1,nChains0
      lowVar = 0
@@ -1320,58 +1319,58 @@ subroutine compute_convergence()
         ch = ' '
         if(nLowVar.eq.nUsedPar) ch = '*'
         if(nHighVar.eq.nUsedPar) ch = '#'
-        write(6,'(I12,A2,$)')ic,':'//ch
+        write(stdOut,'(I12,A2,$)')ic,':'//ch
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle
            ch = ' '
            if(lowVar(p).eq.1) ch = '*'
            if(highVar(p).eq.1) ch = '#'
-           write(6,'(F8.4,A1,$)')chVar1(ic,p),ch
+           write(stdOut,'(F8.4,A1,$)')chVar1(ic,p),ch
         end do
         ch = ' '
         if(meanRelVar.lt.0.5) ch = '*'
         if(meanRelVar.gt.2.0) ch = '#'
-        write(6,'(F8.3,A1,$)')meanRelVar,ch
-        write(6,*)''
+        write(stdOut,'(F8.3,A1,$)')meanRelVar,ch
+        write(stdOut,*)''
      end if !if(prConv.ge.3)
   end do
   
   !Print mean variance for all parameters :
   if(prConv.ge.3) then
-     write(6,'(A13,$)')'   Mean:'
+     write(stdOut,'(A13,$)')'   Mean:'
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
-        write(6,'(F9.4,$)')chVar(p)
+        write(stdOut,'(F9.4,$)')chVar(p)
      end do
-     write(6,*)''
-     write(6,*)''
+     write(stdOut,*)''
+     write(stdOut,*)''
   end if !if(prConv.ge.3)
   
   !Print the variances within chains and between chains:
   if(prConv.ge.2) then
-     write(6,'(A)')'  Variances:'
-     write(6,'(A14,$)')'      In chs: '
+     write(stdOut,'(A)')'  Variances:'
+     write(stdOut,'(A14,$)')'      In chs: '
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
-        write(6,'(ES9.1,$)')chVar(p)
+        write(stdOut,'(ES9.1,$)')chVar(p)
      end do
-     write(6,*)
-     write(6,'(A14,$)')'   Betw. chs: '
+     write(stdOut,*)
+     write(stdOut,'(A14,$)')'   Betw. chs: '
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
-        write(6,'(ES9.1,$)')meanVar(p)
+        write(stdOut,'(ES9.1,$)')meanVar(p)
      end do
-     write(6,*)
+     write(stdOut,*)
   end if
   
   !Print R-hat:
   if(prConv.ge.1) then
-     write(6,'(A14,$)')'       R-hat: '
+     write(stdOut,'(A14,$)')'       R-hat: '
      totRhat = 1.d0
      nRhat = 0
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
-        write(6,'(F9.4,$)')Rhat(p)
+        write(stdOut,'(F9.4,$)')Rhat(p)
         !print*,parID(p)
         if(parID(p).ne.63.and.parID(p).ne.64) then !If not one of M1,M2
            !totRhat = totRhat + Rhat(p)   !Arithmetic mean
@@ -1379,9 +1378,9 @@ subroutine compute_convergence()
            nRhat = nRhat + 1
         end if
      end do
-     !write(6,'(F9.4)')totRhat/dble(nRhat)          !Arithmetic mean
-     !write(6,'(F9.4)')totRhat**(1.d0/dble(nRhat))  !Geometric mean
-     write(6,'(F9.4,A)')compute_median(Rhat(1:nMCMCpar),nMCMCpar),' (med)'  !Median
+     !write(stdOut,'(F9.4)')totRhat/dble(nRhat)          !Arithmetic mean
+     !write(stdOut,'(F9.4)')totRhat**(1.d0/dble(nRhat))  !Geometric mean
+     write(stdOut,'(F9.4,A)')compute_median(Rhat(1:nMCMCpar),nMCMCpar),' (med)'  !Median
   end if
   
 end subroutine compute_convergence
@@ -1396,6 +1395,7 @@ subroutine compute_autocorrelations()
   !! Results are printed to stdout if prAcorr>0
   !< 
   
+  use constants
   use mcmcrun_data
   use chain_data
   implicit none
@@ -1403,16 +1403,16 @@ subroutine compute_autocorrelations()
   real :: median,medians(nMCMCpar),compute_median_real,stdev,compute_stdev_real
   
   if(prAcorr.eq.0) then
-     write(6,'(A,$)')' autocorrs, '
+     write(stdOut,'(A,$)')' autocorrs, '
   else
-     write(6,*)
-     if(prAcorr.ge.2) write(6,'(A)')' Autocorrelations:'
-     write(6,'(A14,$)')''
+     write(stdOut,*)
+     if(prAcorr.ge.2) write(stdOut,'(A)')' Autocorrelations:'
+     write(stdOut,'(A14,$)')''
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
-        write(6,'(A9,$)')trim(parNames(parID(p)))
+        write(stdOut,'(A9,$)')trim(parNames(parID(p)))
      end do
-     write(6,'(A11)')'Median'
+     write(stdOut,'(A11)')'Median'
   end if
   
   
@@ -1422,11 +1422,11 @@ subroutine compute_autocorrelations()
      
      j1 = Ntot(ic)/nAcorr   !Step size to get nAcorr autocorrelations per parameter - don't waste any CPU
      if(j1.lt.1) then
-        write(0,'(A)')"  *** WARNING:  nAcorr too small or nAcorr too large to compute autocorrelations properly. I can't use all data points and the results may not be what you expect ***"
+        write(stdErr,'(A)')"  *** WARNING:  nAcorr too small or nAcorr too large to compute autocorrelations properly. I can't use all data points and the results may not be what you expect ***"
         j1 = 1
      end if
      
-     if(prAcorr.ge.2) write(6,'(A,I3,A,$)')'  Chain',ic,':   '
+     if(prAcorr.ge.2) write(stdOut,'(A,I3,A,$)')'  Chain',ic,':   '
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
         
@@ -1444,24 +1444,24 @@ subroutine compute_autocorrelations()
            if(p.eq.1) acorrs(ic,0,j) = real(j*j1*totthin(ic))  !Make sure you get the iteration number, not the data-point number
         end do !j
         
-        if(prAcorr.ge.2) write(6,'(ES9.1,$)')lAcorrs(ic,p)
+        if(prAcorr.ge.2) write(stdOut,'(ES9.1,$)')lAcorrs(ic,p)
      end do !p
      
-     if(prAcorr.ge.2) write(6,'(ES11.1)')compute_median_real(lAcorrs(ic,1:nMCMCpar),nMCMCpar)
+     if(prAcorr.ge.2) write(stdOut,'(ES11.1)')compute_median_real(lAcorrs(ic,1:nMCMCpar),nMCMCpar)
   end do !ic
   
   
   if(prAcorr.ge.1) then
-     if(prAcorr.eq.1) write(6,'(A,$)')' Med.Autocor: '
-     if(prAcorr.ge.2) write(6,'(/,A,$)')'    Median:   '
+     if(prAcorr.eq.1) write(stdOut,'(A,$)')' Med.Autocor: '
+     if(prAcorr.ge.2) write(stdOut,'(/,A,$)')'    Median:   '
      np = 0
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
         np = np+1
         medians(np) = compute_median_real(lAcorrs(1:nChains0,p),nChains0)
-        write(6,'(ES9.1,$)')medians(np)
+        write(stdOut,'(ES9.1,$)')medians(np)
      end do
-     write(6,'(ES11.1)')compute_median_real(medians(1:np),np)
+     write(stdOut,'(ES11.1)')compute_median_real(medians(1:np),np)
   end if
   
 end subroutine compute_autocorrelations

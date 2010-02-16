@@ -31,12 +31,15 @@ program analyseMCMC
   call setconstants           !Define mathematical constants
   os = getos() !1-Linux, 2-MacOS
   timestamps(1) = timestamp()
-  write(6,*)
   
   
   call set_plotsettings()     !Set plot settings to 'default' values
   call read_settingsfile()    !Read the plot settings (overwrite the defaults)
   call write_settingsfile()   !Write the input file back to disc
+  
+  !stop
+  stdOut = 16
+  write(stdOut,*)
   
   whiteBG = 1                 !Use a white background in screen and bitmap plots: 0-no (black), 1-yes.  Used to be in input file, redundant I'd say.
   fontsize1d = 1.             !Set plot scale for 1D plots, needs to be implemented fully
@@ -51,10 +54,10 @@ program analyseMCMC
   
   nchains0 = iargc()
   if(nchains0.lt.1) then
-     write(0,'(A,/)')'  Syntax: analysemcmc <file1> [file2] ...'
+     write(stdErr,'(A,/)')'  Syntax: analysemcmc <file1> [file2] ...'
      stop
   end if
-  if(nchains0.gt.maxChs) write(0,'(A,I3,A)')'  *** WARNING:  Too many input files (chains), please increase maxChs in analysemcmc_modules.f. Only',maxChs,' files can be read.'
+  if(nchains0.gt.maxChs) write(stdErr,'(A,I3,A)')'  *** WARNING:  Too many input files (chains), please increase maxChs in analysemcmc_modules.f. Only',maxChs,' files can be read.'
   nchains0 = min(nchains0,maxChs)
   
   
@@ -150,7 +153,7 @@ program analyseMCMC
      plAnim = 0
   end if
   if(savePDF.eq.1) then
-     !if(nPlPar.ne.15) write(0,'(/,A)')'*** WARNING:  I changed nPlPar to 15, since savePDF is selected ***'
+     !if(nPlPar.ne.15) write(stdErr,'(/,A)')'*** WARNING:  I changed nPlPar to 15, since savePDF is selected ***'
      !nPlPar = 15; plPars(1:nPlPar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !All 12 + m1,m2
      wrapData = 0
   end if
@@ -165,9 +168,9 @@ program analyseMCMC
   
   if(prChainInfo.ge.1) then
      if(nchains0.eq.1) then
-        write(6,'(A)')'  Analysing 1 chain from SPINspiral'
+        write(stdOut,'(A)')'  Analysing 1 chain from SPINspiral'
      else
-        write(6,'(A,I3,A)')'  Analysing',nchains0,' chains from SPINspiral'
+        write(stdOut,'(A,I3,A)')'  Analysing',nchains0,' chains from SPINspiral'
      end if
   end if
   nchains = nchains0
@@ -239,13 +242,13 @@ program analyseMCMC
   
   timestamps(4) = timestamp()
   
-  if(prProgress.ge.2) write(6,*)''
+  if(prProgress.ge.2) write(stdOut,*)''
   if(plot.eq.1.and.prProgress.ge.1.and.update.eq.0) then
-     write(6,'(/,A,$)')'  Plotting '
-     if(file.eq.0) write(6,'(A,$)')'to screen: '
-     if(file.eq.1) write(6,'(A,$)')'to png: '
-     if(file.eq.2) write(6,'(A,$)')'to eps: '
-     if(file.eq.3) write(6,'(A,$)')'to pdf: '
+     write(stdOut,'(/,A,$)')'  Plotting '
+     if(file.eq.0) write(stdOut,'(A,$)')'to screen: '
+     if(file.eq.1) write(stdOut,'(A,$)')'to png: '
+     if(file.eq.2) write(stdOut,'(A,$)')'to eps: '
+     if(file.eq.3) write(stdOut,'(A,$)')'to pdf: '
   end if
   
   
@@ -274,7 +277,7 @@ program analyseMCMC
   
   !***********************************************************************************************************************************      
   if(plPDF2D.ge.1.and.mergeChains.eq.0) then
-     write(6,'(A,$)')', (skipping 2D PDFs since mergeChains=0), '
+     write(stdOut,'(A,$)')', (skipping 2D PDFs since mergeChains=0), '
      plPDF2D = 0
   end if
   
@@ -284,9 +287,9 @@ program analyseMCMC
   end if !if(plPDF2D.eq.1)
   
   if(Npdf2D.lt.0) then !Then we just plotted all 2D PDFs
-     write(6,*)
+     write(stdOut,*)
   else
-     if(prProgress.ge.1.and.update.eq.0.and.plot.gt.0) write(6,'(A,/)')' done.  '
+     if(prProgress.ge.1.and.update.eq.0.and.plot.gt.0) write(stdOut,'(A,/)')' done.  '
   end if
   
   timestamps(7) = timestamp()  
@@ -297,7 +300,7 @@ program analyseMCMC
   !***********************************************************************************************************************************      
   
   if(saveStats.ge.1.and.nchains.gt.1) then
-     write(0,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
+     write(stdErr,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
      
      !Write Bayes factors to file:
      call save_bayes(exitcode)
@@ -308,7 +311,7 @@ program analyseMCMC
   if(saveStats.ge.1.and.nchains.eq.1) then
      call save_stats(exitcode)
      if(exitcode.ne.0) goto 9999
-     write(6,*)''
+     write(stdOut,*)''
   end if !if(saveStats.ge.1.and.nchains.eq.1) then
   
   
@@ -334,37 +337,37 @@ program analyseMCMC
      goto 101
   end if
   
-  !write(6,'(A)')'  Waiting for you to finish me off...'
+  !write(stdOut,'(A)')'  Waiting for you to finish me off...'
   !pause
   
 9999 continue
   deallocate(selDat)
 9998 continue
   deallocate(allDat,post,prior)
-  !if(prProgress.ge.1) write(6,*)''
+  !if(prProgress.ge.1) write(stdOut,*)''
   
   timestamps(9) = timestamp()
   
   if(prProgress.ge.1.and.exitcode.eq.0) then
-     write(6,'(A,$)')'  Run time: '
-     write(6,'(A,F5.1,A,$)')'   input:',min(abs(timestamps(2)-timestamps(1)),999.9),'s,'
-     !write(6,'(A,F5.1,A,$)')'   info:',min(abs(timestamps(3)-timestamps(2)),999.9),'s,'
-     !write(6,'(A,F5.1,A,$)')'   stats:',min(abs(timestamps(4)-timestamps(3)),999.9),'s,'
-     write(6,'(A,F5.1,A,$)')'   stats:',min(abs(timestamps(4)-timestamps(2)),999.9),'s,'
+     write(stdOut,'(A,$)')'  Run time: '
+     write(stdOut,'(A,F5.1,A,$)')'   input:',min(abs(timestamps(2)-timestamps(1)),999.9),'s,'
+     !write(stdOut,'(A,F5.1,A,$)')'   info:',min(abs(timestamps(3)-timestamps(2)),999.9),'s,'
+     !write(stdOut,'(A,F5.1,A,$)')'   stats:',min(abs(timestamps(4)-timestamps(3)),999.9),'s,'
+     write(stdOut,'(A,F5.1,A,$)')'   stats:',min(abs(timestamps(4)-timestamps(2)),999.9),'s,'
      if(plot.eq.1.and.plLogL+plChain+plJump+plACorr.gt.0) then
-        write(6,'(A,F5.1,A,$)')'   chains:',min(abs(timestamps(5)-timestamps(4)),999.9),'s,'
+        write(stdOut,'(A,F5.1,A,$)')'   chains:',min(abs(timestamps(5)-timestamps(4)),999.9),'s,'
      end if
      if(plot.eq.1.or.savePDF.ge.1) then
-        if(plPDF1D.ge.1) write(6,'(A,F5.1,A,$)')'   1d pdfs:',min(abs(timestamps(6)-timestamps(5)),999.9),'s,'
-        if(plPDF2D.ge.1) write(6,'(A,F6.1,A,$)')'   2d pdfs:',min(abs(timestamps(7)-timestamps(6)),999.9),'s,'
+        if(plPDF1D.ge.1) write(stdOut,'(A,F5.1,A,$)')'   1d pdfs:',min(abs(timestamps(6)-timestamps(5)),999.9),'s,'
+        if(plPDF2D.ge.1) write(stdOut,'(A,F6.1,A,$)')'   2d pdfs:',min(abs(timestamps(7)-timestamps(6)),999.9),'s,'
      end if
-     !write(6,'(A,F6.1,A,$)')'   plots:',min(abs(timestamps(7)-timestamps(4)),999.9),'s,'
-     !write(6,'(A,F5.1,A,$)')'   save stats:',min(abs(timestamps(8)-timestamps(7)),999.9),'s,'
-     if(plAnim.ge.1) write(6,'(A,F5.1,A,$)')'   movie:',min(abs(timestamps(9)-timestamps(8)),999.9),'s,'
-     write(6,'(A,F6.1,A)')'   total:',min(abs(timestamps(9)-timestamps(1)),999.9),'s.'
+     !write(stdOut,'(A,F6.1,A,$)')'   plots:',min(abs(timestamps(7)-timestamps(4)),999.9),'s,'
+     !write(stdOut,'(A,F5.1,A,$)')'   save stats:',min(abs(timestamps(8)-timestamps(7)),999.9),'s,'
+     if(plAnim.ge.1) write(stdOut,'(A,F5.1,A,$)')'   movie:',min(abs(timestamps(9)-timestamps(8)),999.9),'s,'
+     write(stdOut,'(A,F6.1,A)')'   total:',min(abs(timestamps(9)-timestamps(1)),999.9),'s.'
   end if
   
-  write(6,*)''
+  write(stdOut,*)''
 end program analyseMCMC
 !************************************************************************************************************************************
 

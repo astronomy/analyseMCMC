@@ -20,7 +20,7 @@ subroutine animation(exitcode)
   exitcode = 0
   
   ts1 = timestamp(os)
-  write(6,*)
+  write(stdOut,*)
   !p = 1 !Parameter to plot: 1-Mc
   p = plAnim
   small_anim = 1  !Make small animation (e.g. gif) rather than ~screen size
@@ -29,12 +29,12 @@ subroutine animation(exitcode)
   if(Nbin1D.le.0) then
      call determine_nbin_1d(totpts,Nbin1D)
      if(prProgress.ge.2.and.plot.eq.1.and.update.eq.0) then
-        if(Nbin1D.lt.100) write(6,'(A2,I2,A8,$)')' (',Nbin1D,' bins), '
-        if(Nbin1D.ge.100) write(6,'(A2,I3,A8,$)')' (',Nbin1D,' bins), '
+        if(Nbin1D.lt.100) write(stdOut,'(A2,I2,A8,$)')' (',Nbin1D,' bins), '
+        if(Nbin1D.ge.100) write(stdOut,'(A2,I3,A8,$)')' (',Nbin1D,' bins), '
      end if
   else
      Nbin1D = max(Nbin1D,5)
-     if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(6,'(A2,$)')', '
+     if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(stdOut,'(A2,$)')', '
   end if
   
   
@@ -46,17 +46,17 @@ subroutine animation(exitcode)
   allocate(xbin(maxChs,Nbin1D+1),ybin(maxChs,Nbin1D+1),xbin1(Nbin1D+1),ybin1(Nbin1D+1))
   
   !nAnimFrames = nAnimFrames-1
-  if(prProgress.ge.1.and.update.eq.0) write(6,'(A,I5,A,I6,A,/)')'  Creating animation using',nAnimFrames,' frames and',maxval(ntot(1:nchains)),' points..'
+  if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,I5,A,I6,A,/)')'  Creating animation using',nAnimFrames,' frames and',maxval(ntot(1:nchains)),' points..'
   do iframe = 0,nAnimFrames
      nplt = nint(real(iframe)/real(nAnimFrames)*maxval(ntot(1:nchains)))  !This is the line number, not the iteration number
      
      if(prProgress.ge.1.and.update.eq.0) then
-        write(6,*)upline !Move cursor up 1 line
-        write(6,'(A,I5,A1,I5,A,I6,A,I6,A,$)')'  Plotting movie frame',iframe,'/',nAnimFrames,'  (',nplt,'/',ntot(1:nchains),' points)'
+        write(stdOut,*)upline !Move cursor up 1 line
+        write(stdOut,'(A,I5,A1,I5,A,I6,A,I6,A,$)')'  Plotting movie frame',iframe,'/',nAnimFrames,'  (',nplt,'/',ntot(1:nchains),' points)'
         
         !Print remaining time
         ts2 = timestamp(os)
-        if(prProgress.ge.1.and.file.eq.1) write(6,'(A,A9)')'   Est.time left:',tms((ts2-ts1)*(nAnimFrames-iframe)/3600.d0)                 !Use the system clock
+        if(prProgress.ge.1.and.file.eq.1) write(stdOut,'(A,A9)')'   Est.time left:',tms((ts2-ts1)*(nAnimFrames-iframe)/3600.d0)                 !Use the system clock
         ts1 = ts2
      end if
      
@@ -103,10 +103,10 @@ subroutine animation(exitcode)
               y1 = x1
               y2 = x2
            end if
-           !write(6,'(2I6,7F12.8)')i,i+floor((nplt-Nburn(ic))*ival),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
+           !write(stdOut,'(2I6,7F12.8)')i,i+floor((nplt-Nburn(ic))*ival),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
         end do !i
         centre = (y1+y2)/2.
-        !write(6,'(A8,4x,4F10.5,I4)')parNames(p),y1,y2,minrange,centre,wrap(ic,p)
+        !write(stdOut,'(A8,4x,4F10.5,I4)')parNames(p),y1,y2,minrange,centre,wrap(ic,p)
         
         !Save ranges:
         range1 = y1
@@ -124,7 +124,7 @@ subroutine animation(exitcode)
      if(file.eq.0) io = pgopen('17/xs')
      if(file.eq.1) io = pgopen('analysemcmc_frame.ppm/ppm')
      if(io.le.0) then
-        write(0,'(A,I4)')'   ERROR:  Cannot open PGPlot device.  Quitting the programme',io
+        write(stdErr,'(A,I4)')'   ERROR:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
         return
      end if
@@ -153,7 +153,7 @@ subroutine animation(exitcode)
      !Plot chain for this parameter
      
      
-     !if(prProgress.ge.1.and.update.eq.0) write(6,'(A)')'  - parameter chains'
+     !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')'  - parameter chains'
      call pgslw(lw)
      if(animScheme.eq.1) call pgsvp(0.05,0.35,0.65,0.95)
      if(animScheme.eq.2) call pgsvp(0.05,0.95,0.05,0.25)
@@ -249,7 +249,7 @@ subroutine animation(exitcode)
      
      if(animScheme.eq.3) then
         
-        !if(prProgress.ge.1.and.update.eq.0) write(6,'(A)')'  - logL'
+        !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')'  - logL'
         call pgslw(lw)
         if(animScheme.eq.3) call pgsvp(0.20,0.95,0.05,0.20)
         ic = 1
@@ -332,7 +332,7 @@ subroutine animation(exitcode)
      
      !***********************************************************************************************************************************            
      !Plot 1D pdf
-     !if(prProgress.ge.1.and.update.eq.0) write(6,'(A)')'  - pdf'
+     !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')'  - pdf'
      
      if(animScheme.eq.1) call pgsvp(0.45,0.95,0.05,0.8)
      if(animScheme.eq.2) call pgsvp(0.25,0.95,0.32,0.999)
@@ -630,7 +630,7 @@ subroutine animation(exitcode)
         else
            i = system('convert -resize 1024x738 -depth 8 -unsharp '//trim(unSharppdf1d)//' analysemcmc_frame.ppm '//trim(framename))  !Rescale the output frame
         end if
-        if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
+        if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
         i = system('rm -f analysemcmc_frame.ppm')
      end if
      

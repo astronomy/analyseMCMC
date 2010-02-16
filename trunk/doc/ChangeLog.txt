@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+   114: sluys, 15/02/2010
+     - Prepare code to write standard output to file
+     
    113: sluys, 15/02/2010
      - Input file changed!  see doc/analysemcmc_*.dat
      - Moved autocorrelation computation to compute_autocorrelations(), now works for mergeChains=1

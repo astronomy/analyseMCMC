@@ -17,8 +17,8 @@ subroutine pdfs1d(exitcode)
   character :: string*99,str*99,str1*99,str2*99,delta*19
   
   exitcode=0
-  if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1) write(6,'(A,$)')'  Saving 1D pdfs'
-  if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(6,'(A,$)')' 1D pdfs'
+  if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1) write(stdOut,'(A,$)')'  Saving 1D pdfs'
+  if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(stdOut,'(A,$)')' 1D pdfs'
 
   write(delta,'(A,I3.3,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
   if(nint(ivals(c0)*100).lt.100) write(delta,'(A,I2.2,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
@@ -33,12 +33,12 @@ subroutine pdfs1d(exitcode)
      !Nbin1D = max(Nbin1D,5)
      call determine_nbin_1d(totpts,Nbin1D)
      if(prProgress.ge.2.and.plot.eq.1.and.update.eq.0) then
-        if(Nbin1D.lt.100) write(6,'(A2,I2,A8,$)')' (',Nbin1D,' bins), '
-        if(Nbin1D.ge.100) write(6,'(A2,I3,A8,$)')' (',Nbin1D,' bins), '
+        if(Nbin1D.lt.100) write(stdOut,'(A2,I2,A8,$)')' (',Nbin1D,' bins), '
+        if(Nbin1D.ge.100) write(stdOut,'(A2,I3,A8,$)')' (',Nbin1D,' bins), '
      end if
   else
      Nbin1D = max(Nbin1D,5)
-     if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(6,'(A2,$)')', '
+     if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(stdOut,'(A2,$)')', '
   end if
 
   !Allocate memory:
@@ -97,7 +97,7 @@ subroutine pdfs1d(exitcode)
         end if
      end if !if(file.ge.1)
      if(io.le.0) then
-        write(0,'(A,I4)')'  ERROR:  Cannot open PGPlot device.  Quitting the programme',io
+        write(stdErr,'(A,I4)')'  ERROR:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
         return
      end if
@@ -129,7 +129,7 @@ subroutine pdfs1d(exitcode)
   do j=1,nPlPar
      p = revID(plPars(j))
      if(p.eq.0) then
-        write(0,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))//' is not defined, check plPars() in the input file.  Skipping...'
+        write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))//' is not defined, check plPars() in the input file.  Skipping...'
         cycle
      end if
      
@@ -145,7 +145,7 @@ subroutine pdfs1d(exitcode)
         do ic=1,nchains
            xmin = min(xmin,ranges(ic,Nival,p,1))
            xmax = max(xmax,ranges(ic,Nival,p,2))
-           !write(6,'(3I4,6F10.3)')ic,p,Nival,xmin,xmax,ranges(ic,Nival,p,1),ranges(ic,Nival,p,2)
+           !write(stdOut,'(3I4,6F10.3)')ic,p,Nival,xmin,xmax,ranges(ic,Nival,p,1),ranges(ic,Nival,p,2)
         end do
      end if
      !print*,xmin,huge(xmin)
@@ -196,7 +196,7 @@ subroutine pdfs1d(exitcode)
            else !Normalise to the height of the PDF
               if(normPDF1D.eq.2) ybin1 = ybin1/maxval(ybin1)  !Normalise to the height of the PDF
               if(normPDF1D.eq.3) ybin1 = ybin1/(maxval(ybin1)**0.5)  !Normalise to the sqrt of the height of the PDF; Works nicely for comparing parallel-tempering chains
-              if(ic*j.eq.1) write(0,'(//,A,/)')'  *** WARNING: using non-default normalisation for PDFs ***'
+              if(ic*j.eq.1) write(stdErr,'(//,A,/)')'  *** WARNING: using non-default normalisation for PDFs ***'
            end if
         end if
         
@@ -581,12 +581,12 @@ subroutine pdfs1d(exitcode)
      if(file.ge.2) then
         if(file.eq.3) then
            i = system('eps2pdf pdfs.eps -o '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.pdf >& /dev/null')
-           if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
+           if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
         end if
         i = system('mv -f pdfs.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.eps')
      else if(file.eq.1) then
         i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf1d)//' pdfs.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.png')
-        if(i.ne.0) write(0,'(A,I6)')'  Error converting plot',i
+        if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
         i = system('rm -f pdfs.ppm')
      end if
   end if !if(plot.eq.1)
