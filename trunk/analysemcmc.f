@@ -38,7 +38,7 @@ program analyseMCMC
   call write_settingsfile()   !Write the input file back to disc
   
   !stop
-  stdOut = 16
+  stdOut = 6
   write(stdOut,*)
   
   whiteBG = 1                 !Use a white background in screen and bitmap plots: 0-no (black), 1-yes.  Used to be in input file, redundant I'd say.

@@ -86,6 +86,7 @@ subroutine read_settingsfile
   read(u,*,iostat=io)changeVar
   
   read(u,*,iostat=io)bla
+  !read(u,*,iostat=io)prStdOut
   read(u,*,iostat=io)prProgress
   read(u,*,iostat=io)prRunInfo
   read(u,*,iostat=io)prChainInfo
@@ -206,6 +207,7 @@ subroutine write_settingsfile
   
   
   write(u,'(/,A)')' Select what output to print to screen and write to file:'
+  !write(u,11)prStdOut, 'prStdOut',   'Print standard output to 1: screen, 2: text file'
   write(u,11)prProgress, 'prProgress',   'Print general messages about the progress of the program: 0-no, 1-some, 2-more, 3-debug output'
   write(u,11)prRunInfo, 'prRunInfo',   'Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files'
   write(u,11)prChainInfo, 'prChainInfo',   'Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per chain (file name, plot colour, # iterations, burnin, Lmax, # data points)'
@@ -308,6 +310,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   wrapData = 1      !Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
   changeVar = 1     !Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)
   
+  prStdOut = 1      !Print standard output to 1: screen, 2: text file
   prProgress = 2    !Print general messages about the progress of the program: 0-no, 1-some, 2-more
   prRunInfo = 0     !Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files
   prInitial = 0     !Print injection values, starting values and their difference
