@@ -21,7 +21,7 @@ program analyseMCMC
   use plot_data
   use chain_data
   implicit none
-  integer :: i,iargc,exitcode,tempintarray(99),getos
+  integer :: i,io,iargc,exitcode,tempintarray(99),getos,get_ran_seed,system
   real :: pltsz
   real*8 :: timestamp,timestamps(9)  !< Time the progress of the code.
   
@@ -37,8 +37,15 @@ program analyseMCMC
   call read_settingsfile()    !Read the plot settings (overwrite the defaults)
   call write_settingsfile()   !Write the input file back to disc
   
-  !stop
-  stdOut = 6
+  if(prStdOut.ge.2) then  !Write standard output to file rather than screen
+     stdOut = 19
+     write(stdOutFile,'(A,I6.6,A)')'analysemcmc_tempstdout_',abs(get_ran_seed(0)),'.txt'
+     open(unit=stdOut,action='write',form='formatted',status='replace',file=trim(stdOutFile),iostat=io)
+     if(io.ne.0) then
+        write(stdErr,'(A)')'  Error opening output file '//trim(stdOutFile)//', aborting...'
+        stop
+     end if
+  end if
   write(stdOut,*)
   
   whiteBG = 1                 !Use a white background in screen and bitmap plots: 0-no (black), 1-yes.  Used to be in input file, redundant I'd say.
@@ -368,6 +375,17 @@ program analyseMCMC
   end if
   
   write(stdOut,*)''
+  
+  if(prStdOut.ge.2) then
+     io = system('mv -f '//trim(stdOutFile)//' '//trim(outputname)//'__output.txt')
+     if(io.eq.0) then
+        write(6,'(/,A,/)')'  AnalyseMCMC:  saved standard output to '//trim(outputname)//'__output.txt'
+     else
+        write(6,'(/,A)')'  AnalyseMCMC:  Error saving standard output to '//trim(outputname)//'__output.txt'
+        write(6,'(A,/)')'                Check the file '//trim(stdOutFile)
+     end if
+  end if
+  
 end program analyseMCMC
 !************************************************************************************************************************************
 

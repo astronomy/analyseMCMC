@@ -17,6 +17,7 @@
          1           changeVar     Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)
 
  Select what output to print to screen and write to file:
+         1            prStdOut     Print standard output to 1: screen, 2: text file
          2          prProgress     Print general messages about the progress of the program: 0-no, 1-some, 2-more, 3-debug output
          1           prRunInfo     Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files
          1         prChainInfo     Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per chain (file name, plot colour, # iterations, burnin, Lmax, # data points)

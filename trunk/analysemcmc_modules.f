@@ -14,7 +14,7 @@ module analysemcmc_settings
   integer :: plPars(maxMCMCpar),nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D,PDF2Dpairs(250,2),panels(2)
   integer :: thin,Nburn(maxChs),reverseRead,update,mergeChains,wrapData,changeVar,maxChLen
   integer :: file,colour,orientation,quality,fonttype
-  integer :: prProgress,prRunInfo,prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF       
+  integer :: prStdOut,prProgress,prRunInfo,prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF       
   integer :: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plACorr,plotSky,plAnim       
   integer :: chainSymbol,chainPlI,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D,normPDF2D
   integer :: scLogLpl,scChainsPl,bmpXSz,bmpYSz,map_projection
@@ -33,7 +33,7 @@ module constants
   integer :: os,stdOut,stdErr
   real*8 :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
   real :: rpi,rtpi,rpi2,rr2d,rd2r,rr2h,rh2r,rc3rd
-  character :: upline*4,detabbrs(4)*2,waveforms(0:9)*99,homedir*99
+  character :: upline*4,detabbrs(4)*2,waveforms(0:9)*99,homedir*99,stdOutFile*99
 end module constants
 !***************************************************************************************************
 

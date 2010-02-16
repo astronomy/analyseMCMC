@@ -86,7 +86,7 @@ subroutine read_settingsfile
   read(u,*,iostat=io)changeVar
   
   read(u,*,iostat=io)bla
-  !read(u,*,iostat=io)prStdOut
+  read(u,*,iostat=io)prStdOut
   read(u,*,iostat=io)prProgress
   read(u,*,iostat=io)prRunInfo
   read(u,*,iostat=io)prChainInfo
@@ -207,7 +207,7 @@ subroutine write_settingsfile
   
   
   write(u,'(/,A)')' Select what output to print to screen and write to file:'
-  !write(u,11)prStdOut, 'prStdOut',   'Print standard output to 1: screen, 2: text file'
+  write(u,11)prStdOut, 'prStdOut',   'Print standard output to 1: screen, 2: text file'
   write(u,11)prProgress, 'prProgress',   'Print general messages about the progress of the program: 0-no, 1-some, 2-more, 3-debug output'
   write(u,11)prRunInfo, 'prRunInfo',   'Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files'
   write(u,11)prChainInfo, 'prChainInfo',   'Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per chain (file name, plot colour, # iterations, burnin, Lmax, # data points)'
@@ -2101,5 +2101,73 @@ function compute_stdev_real(datar,ni,meanr)  !Compute the standard deviation of 
   compute_stdev_real = real(stdevd)
 end function compute_stdev_real
 !************************************************************************************************************************************
+
+
+!****************************************************************************************************
+function get_ran_seed(degree)  !Get a random initialisation seed for a random-numbed generator (i.e., negative integer), e.g. ran_unif().  -1e6 < seed < 0
+  !degree: degree of randomness: 0-completely (same for a ms), 1-same during an hour, 2-same during a day
+  
+  implicit none
+  integer :: get_ran_seed,seed,degree,dt(8)
+  character :: tmpstr*10
+  
+  call date_and_time(tmpstr,tmpstr,tmpstr,dt)  !dt: 1-year, 2-month, 3-day, 5-hour, 6-minute, 7-second, 8-millisecond
+  
+  seed = dt(6)*1010+dt(7)*10101+dt(8)*1001                           !Different every millisecond
+  if(degree.eq.1) seed = dt(1)*1000+dt(2)*10000+dt(3)*10101+dt(5)    !Constant during a clock hour
+  if(degree.eq.2) seed = dt(1)*1000+dt(2)*10000+dt(3)*10101          !Constant during a calendar day
+  
+  get_ran_seed = -abs(mod(seed+1,999999))  !Want to return a negative number, -1e6 < seed < 0
+end function get_ran_seed
+!****************************************************************************************************
+
+
+
+!****************************************************************************************************
+function ran_unif(seed1)  !Generate a uniform random number 0 < r < 1.  Set seed1<0 to initialise the generator, seed1 is updated between calls
+  !Use two L'Ecuyer generators, period is ~10^18
+  !tab is a Bays-Durham shuffle table of length Ntab
+  implicit none
+  integer, parameter :: im1=2147483563, ia1=40014, iq1=53668, ir1=12211 
+  integer, parameter :: im2=2147483399, ia2=40692, iq2=52774, ir2= 3791
+  integer, parameter :: Ntab=32,im1m1=im1-1,ndtab=1+im1m1/Ntab
+  real*8, parameter :: am1=1.d0/im1,eps=1.d-15,rnmx=1.d0-eps  !rnmx should be the largest number <1 and !=1, 1.d-15 should be safe for real*8
+  integer, save :: seed2=123456789, tab(Ntab)=0, iy=0
+  integer :: seed1,j,k
+  real*8 :: ran_unif
+  
+  if(seed1.le.0) then                                 !'Initialise' generator
+     seed1 = max(-seed1,1)                            !Don't allow seed1=0
+     seed2 = seed1
+     do j = Ntab+8,1,-1                               !Shuffle the table, don't save the first 8 iterations
+        k = seed1/iq1
+        seed1 = ia1*(seed1-k*iq1)-k*ir1
+        if(seed1.lt.0) seed1 = seed1+im1
+        if(j.le.Ntab) tab(j) = seed1
+     end do
+     iy = tab(1)
+  end if
+  
+  !Produce the random number 1:
+  k = seed1/iq1
+  seed1 = ia1*(seed1-k*iq1) - k*ir1                   !Use Schrage's method to compute mod(). Update seed for next draw
+  if(seed1.lt.0) seed1 = seed1 + im1
+  
+  !Produce the random number 2:
+  k = seed2/iq2
+  seed2 = ia2*(seed2-k*iq2) - k*ir2                   !Use Schrage's method to compute mod(). Update seed for next draw
+  if(seed2.lt.0) seed2 = seed2 + im2
+  
+  j = 1 + iy/ndtab                                    !Result: 1 <= j <= Ntab
+  iy = tab(j) - seed2                                 !tab contains information about seed1
+  tab(j) = seed1
+  if(iy.lt.1) iy = iy + im1m1
+  
+  ran_unif = min(am1*iy,rnmx)                         !Make sure r<1
+  
+end function ran_unif
+!****************************************************************************************************
+
+
 
 
