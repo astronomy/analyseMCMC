@@ -8,7 +8,7 @@ subroutine statistics(exitcode)
   use chain_data
   use mcmcrun_data
   implicit none
-  integer :: c,i,ic,i0,j,j1,o,p,p1,p2,nr,nstat,exitcode,wraptype
+  integer :: c,i,ic,i0,o,p,p1,p2,nr,nstat,exitcode,wraptype
   integer :: indexx(maxMCMCpar,maxChs*maxIter),index1(maxChs*maxIter)
   real :: rev2pi,x0,x1,x2,y1,y2,rrevpi
   real :: range1,minrange,maxgap,ival,wrapival,centre,maxlogl,minlogl,shift,shIval,shIval2
@@ -29,7 +29,7 @@ subroutine statistics(exitcode)
   shift = 0.
   wrap = 0
   raShift = 0.
-  do ic=1,nchains
+  do ic=1,nChains
      if(mergeChains.eq.0.and.contrchain(ic).eq.0) cycle
      !wrapival = ivals(Nival) !Use the largest range
      wrapival = 0.999 !Always use a very large range (?)
@@ -189,7 +189,7 @@ subroutine statistics(exitcode)
         if(prProgress.ge.1) write(6,'(A,$)')' corrs, '
         do p1=1,nMCMCpar
            do p2=1,nMCMCpar
-           !do p2=p1,nMCMCpar
+              !do p2=p1,nMCMCpar
               corrs(p1,p2) = 0.
               if(fixedpar(p1)+fixedpar(p2).eq.0) then
                  do i=1,n(ic)
@@ -202,37 +202,6 @@ subroutine statistics(exitcode)
            end do !p2
         end do !p1
      end if
-     
-     
-     !Compute autocorrelations:
-     !if(plAcorr.gt.0) then
-     if(nACorr.gt.0) then
-        if(prProgress.ge.1) write(6,'(A,$)')' autocorrs, '
-        if(mergeChains.ge.1) write(6,'(A,$)')'  *** WARNING: mergeChains > 0; the autocorrelation results may not be what you expect! ***  '
-        acorrs(ic,:,:) = 0.
-        lAcorrs(ic,:) = 0.
-        
-        !j1 = min(plAcorr,Ntot(ic))/nAcorr   !Step size to get nAcorr autocorrelations per parameter - don't waste any CPU
-        j1 = Ntot(ic)/nAcorr   !Step size to get nAcorr autocorrelations per parameter - don't waste any CPU - not using plAcor at the moment
-        if(j1.lt.1) then
-           write(0,'(A)')"  *** WARNING:  plAcorr too small or nAcorr too large to compute autocorrelations properly. I can't use all data points and the results may not be what you expect ***"
-           j1 = 1
-        end if
-        do p=1,nMCMCpar
-           do j=0,min(nAcorr,Ntot(ic)-1)
-              do i=1,Ntot(ic)-j*j1
-                 acorrs(ic,p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - medians(p))*(allDat(ic,p,i+j*j1) - medians(p))   !Use median
-                 !acorrs(p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - mean(p))*(allDat(ic,p,i+j*j1) - mean(p))           !Use mean
-              end do
-              acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev1(p)*stdev1(p)*(Ntot(ic)-j*j1))   !Use median
-              !acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev2(p)*stdev2(p)*(Ntot(ic)-j*j1))  !Use mean
-              
-              if(lAcorrs(ic,p).lt.1. .and. acorrs(ic,p,j).lt.0.) lAcorrs(ic,p) = real(j*j1*totthin(ic))
-              if(p.eq.1) acorrs(ic,0,j) = real(j*j1*totthin(ic))  !Make sure you get the iteration number, not the data point number
-           end do !j
-        end do !p
-     end if
-     
      
      
      !Determine interval ranges:
@@ -328,7 +297,7 @@ subroutine statistics(exitcode)
               stdev1(p) = stdev1(p)*exp(stats(ic,p,1))  !Median  For exponential function y = exp(x), sig_y = exp(x) sig_x
               stdev2(p) = stdev2(p)*exp(stats(ic,p,2))  !Mean
               selDat(ic,p,1:n(ic)) = exp(selDat(ic,p,1:n(ic)))     !logD -> Distance
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = exp(startval(1:nchains0,p,1:3))
+              if(ic.eq.1) startval(1:nChains0,p,1:3) = exp(startval(1:nChains0,p,1:3))
               stats(ic,p,1:nstat) = exp(stats(ic,p,1:nstat))
               ranges(ic,1:Nival,p,1:nr) = exp(ranges(ic,1:Nival,p,1:nr))
            end if
@@ -336,7 +305,7 @@ subroutine statistics(exitcode)
               stdev1(p) = abs(-1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
               stdev2(p) = abs(-1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
               selDat(ic,p,1:n(ic)) = acos(selDat(ic,p,1:n(ic)))*rr2d
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = acos(startval(1:nchains0,p,1:3))*rr2d
+              if(ic.eq.1) startval(1:nChains0,p,1:3) = acos(startval(1:nChains0,p,1:3))*rr2d
               stats(ic,p,1:nstat) = acos(stats(ic,p,1:nstat))*rr2d
               ranges(ic,1:Nival,p,1:nr) = acos(ranges(ic,1:Nival,p,1:nr))*rr2d
               do c=1,Nival
@@ -349,7 +318,7 @@ subroutine statistics(exitcode)
               stdev1(p) = stdev1(p)*rr2h
               stdev2(p) = stdev2(p)*rr2h
               selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2h
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*rr2h
+              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2h
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2h
               ranges(ic,1:Nival,p,1:nr) = ranges(ic,1:Nival,p,1:nr)*rr2h
               shifts(ic,p) = shifts(ic,p)*rr2h
@@ -361,7 +330,7 @@ subroutine statistics(exitcode)
               stdev1(p) = abs(1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
               stdev2(p) = abs(1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
               selDat(ic,p,1:n(ic)) = asin(selDat(ic,p,1:n(ic)))*rr2d
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = asin(startval(1:nchains0,p,1:3))*rr2d
+              if(ic.eq.1) startval(1:nChains0,p,1:3) = asin(startval(1:nChains0,p,1:3))*rr2d
               stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*rr2d
               ranges(ic,1:Nival,p,1:nr) = asin(ranges(ic,1:Nival,p,1:nr))*rr2d
            end if
@@ -369,7 +338,7 @@ subroutine statistics(exitcode)
               stdev1(p) = stdev1(p)*rr2d
               stdev2(p) = stdev2(p)*rr2d
               selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2d
-              if(ic.eq.1) startval(1:nchains0,p,1:3) = startval(1:nchains0,p,1:3)*rr2d
+              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2d
               stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2d
               ranges(ic,1:Nival,p,1:nr) = ranges(ic,1:Nival,p,1:nr)*rr2d
               shifts(ic,p) = shifts(ic,p)*rr2d
@@ -404,7 +373,7 @@ subroutine statistics(exitcode)
      end do
      
      if(prProgress.ge.1) then
-        if(ic.eq.nchains) then
+        if(ic.eq.nChains) then
            write(6,*)
         else
            write(6,'(A,$)')'  '
@@ -428,7 +397,7 @@ subroutine statistics(exitcode)
      !**********************************************************************************************
      !******   PRINT STATISTICS   ******************************************************************
      !**********************************************************************************************
-
+     
      o=6 !Print to this unit - 6=screen
      
      
@@ -624,19 +593,22 @@ subroutine statistics(exitcode)
   
   !average the Bayes factors from all chains
   logebayesfactortotal=0.0
-  do ic=1,nchains0
+  do ic=1,nChains0
      logebayesfactortotal=logebayesfactortotal+logebayesfactor(ic)
   end do
-  logebayesfactortotal=logebayesfactortotal/dble(nchains)
+  logebayesfactortotal=logebayesfactortotal/dble(nChains)
   !write(6,'(A,F10.3)')'ln Bayes Total',logebayesfactortotal
   
+  !!Compute autocorrelations:
+  if(prAcorr.gt.0.or.plAcorr.gt.0) call compute_autocorrelations()
+  
   !Compute and print convergence:
-  if(nchains0.gt.1 .and. (prConv.ge.1.or.saveStats.ge.1)) call compute_convergence()  !Need unwrapped data for this (?)
+  if(nChains0.gt.1 .and. (prConv.ge.1.or.saveStats.ge.1)) call compute_convergence()  !Need unwrapped data for this (?)
   
   
   !Change the original chain data:
   if(changeVar.ge.1) then
-     do ic=1,nchains0
+     do ic=1,nChains0
         do p=1,nMCMCpar
            if(parID(p).eq.21) allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**c3rd  !^(1/3)
            if(parID(p).eq.22) allDat(ic,p,1:Ntot(ic)) = exp(allDat(ic,p,1:Ntot(ic)))   !exp
@@ -680,8 +652,8 @@ subroutine save_stats(exitcode)  !Save statistics to file
   
   !Print general run and detector info:
   write(o,'(//,A,/)')'GENERAL INFORMATION:'
-  write(o,'(6x,4A12,A12,A5  A8,A22,A8)')'totiter','totlines','totpts','totburn','nchains','used','seed','null likelihood','ndet'
-  write(o,'(6x,4I12,I12,I5, I8,F22.10,I8)')totiter,totlines,totpts,totlines-totpts,nchains0,contrchains,seed(ic),nullh,ndet(ic)
+  write(o,'(6x,4A12,A12,A5  A8,A22,A8)')'totiter','totlines','totpts','totburn','nChains','used','seed','null likelihood','ndet'
+  write(o,'(6x,4I12,I12,I5, I8,F22.10,I8)')totiter,totlines,totpts,totlines-totpts,nChains0,contrchains,seed(ic),nullh,ndet(ic)
   write(o,*)''
   write(o,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
   do i=1,ndet(ic)
@@ -826,12 +798,12 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   write(o,'(A)')trim(outputname)
   
   write(o,'(//,A,/)')'GENERAL INFORMATION:'
-  write(o,'(6x,3A12,2A22)')'nchains','used','seed','null likelihood','ln(Bayes_total)'
-  write(o,'(6x,3I12,F22.5,F22.5)')nchains0,contrchains,seed(1),nullh,logebayesfactortotal
+  write(o,'(6x,3A12,2A22)')'nChains','used','seed','null likelihood','ln(Bayes_total)'
+  write(o,'(6x,3I12,F22.5,F22.5)')nChains0,contrchains,seed(1),nullh,logebayesfactortotal
   
   write(o,'(//,A,/)')'EVIDENCES:'
   write(o,'(6x,5A12,2A22)')'chain','totiter','totlines','totpts','totburn','temperature','ln(Bayes)'
-  do ic=1,nchains0
+  do ic=1,nChains0
      write(o,'(6x,5I12,F22.3,F22.5)')ic,totiter,totlines,totpts,totlines-totpts,Tchain(ic),logebayesfactor(ic)
   end do
   
@@ -1243,9 +1215,9 @@ subroutine compute_convergence()
   !Compute the means for each chain and for all chains:
   chmean = 1.d-30
   avgMean = 1.d-30
-  nn = minval(Ntot(1:nchains0))/2
+  nn = minval(Ntot(1:nChains0))/2
   do p=1,nMCMCpar
-     do ic=1,nchains0
+     do ic=1,nChains0
         do i=nn+1,2*nn
            chmean(ic,p) = chmean(ic,p) + allDat(ic,p,i) !We used to take unwrapped data for this...
         end do
@@ -1253,7 +1225,7 @@ subroutine compute_convergence()
      end do
   end do
   chmean = chmean/dble(nn)
-  avgMean = avgMean/dble(nn*nchains0)
+  avgMean = avgMean/dble(nn*nChains0)
   
   
   !Compute variances per chain, for all chains
@@ -1261,7 +1233,7 @@ subroutine compute_convergence()
   chVar1 = 1.d-30
   meanVar = 1.d-30
   do p=1,nMCMCpar
-     do ic=1,nchains0
+     do ic=1,nChains0
         do i=nn+1,2*nn
            dx = (allDat(ic,p,i) - chmean(ic,p))**2 !We used to take unwrapped data for this...
            chVar(p) = chVar(p) + dx
@@ -1270,11 +1242,11 @@ subroutine compute_convergence()
         meanVar(p) = meanVar(p) + (chmean(ic,p) - avgMean(p))**2
         chVar1(ic,p) = chVar1(ic,p)/dble(nn-1)
      end do
-     chVar(p) = chVar(p)/dble(nchains0*(nn-1))
-     meanVar(p) = meanVar(p)/dble(nchains0-1)
+     chVar(p) = chVar(p)/dble(nChains0*(nn-1))
+     meanVar(p) = meanVar(p)/dble(nChains0-1)
      
      !Compute Rhat:
-     Rhat(p) = min( dble(nn-1)/dble(nn)  +  meanVar(p)/chVar(p) * (1.d0 + 1.d0/dble(nchains0)), 99.d0)
+     Rhat(p) = min( dble(nn-1)/dble(nn)  +  meanVar(p)/chVar(p) * (1.d0 + 1.d0/dble(nChains0)), 99.d0)
   end do
   
   
@@ -1291,7 +1263,7 @@ subroutine compute_convergence()
      
      if(prConv.ge.3) then
         write(6,'(A)')'  Means:'
-        do ic=1,nchains0
+        do ic=1,nChains0
            write(6,'(I12,A2,$)')ic,': '
            do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle
@@ -1315,7 +1287,7 @@ subroutine compute_convergence()
      write(6,*)''
      write(6,'(A)')'  Variances:'
   end if
-  do ic=1,nchains0
+  do ic=1,nChains0
      lowVar = 0
      highVar = 0
      meanRelVar = 1.d0
@@ -1414,5 +1386,86 @@ subroutine compute_convergence()
   
 end subroutine compute_convergence
 !***********************************************************************************************************************************
+
+
+
+!***********************************************************************************************************************************
+subroutine compute_autocorrelations()
+  !> Compute autocorrelations
+  !! Use the original nChains0 chains and allDat()
+  !! Results are printed to stdout if prAcorr>0
+  !< 
+  
+  use mcmcrun_data
+  use chain_data
+  implicit none
+  integer :: ic,j1,p,j,i,np
+  real :: median,medians(nMCMCpar),compute_median_real,stdev,compute_stdev_real
+  
+  if(prAcorr.eq.0) then
+     write(6,'(A,$)')' autocorrs, '
+  else
+     write(6,*)
+     if(prAcorr.ge.2) write(6,'(A)')' Autocorrelations:'
+     write(6,'(A14,$)')''
+     do p=1,nMCMCpar
+        if(fixedpar(p).eq.1) cycle
+        write(6,'(A9,$)')trim(parNames(parID(p)))
+     end do
+     write(6,'(A11)')'Median'
+  end if
+  
+  
+  do ic=1,nChains0  !Use original data
+     acorrs(ic,:,:) = 0.
+     lAcorrs(ic,:) = 0.
+     
+     j1 = Ntot(ic)/nAcorr   !Step size to get nAcorr autocorrelations per parameter - don't waste any CPU
+     if(j1.lt.1) then
+        write(0,'(A)')"  *** WARNING:  nAcorr too small or nAcorr too large to compute autocorrelations properly. I can't use all data points and the results may not be what you expect ***"
+        j1 = 1
+     end if
+     
+     if(prAcorr.ge.2) write(6,'(A,I3,A,$)')'  Chain',ic,':   '
+     do p=1,nMCMCpar
+        if(fixedpar(p).eq.1) cycle
+        
+        median = compute_median_real(allDat(ic,p,1:Ntot(ic)),Ntot(ic))
+        !median = sum(selDat(ic,p,1:Ntot(ic)))/real(Ntot(ic))  !Replace median with mean
+        stdev  = compute_stdev_real(allDat(ic,p,1:Ntot(ic)),Ntot(ic),median)
+        
+        do j=0,min(nAcorr,Ntot(ic)-1)
+           do i=1,Ntot(ic)-j*j1
+              acorrs(ic,p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - median)*(allDat(ic,p,i+j*j1) - median)   !Use median
+           end do
+           acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev*stdev*(Ntot(ic)-j*j1))   !Use median
+           
+           if(lAcorrs(ic,p).lt.1. .and. acorrs(ic,p,j).lt.0) lAcorrs(ic,p) = real(j*j1*totthin(ic))
+           if(p.eq.1) acorrs(ic,0,j) = real(j*j1*totthin(ic))  !Make sure you get the iteration number, not the data-point number
+        end do !j
+        
+        if(prAcorr.ge.2) write(6,'(ES9.1,$)')lAcorrs(ic,p)
+     end do !p
+     
+     if(prAcorr.ge.2) write(6,'(ES11.1)')compute_median_real(lAcorrs(ic,1:nMCMCpar),nMCMCpar)
+  end do !ic
+  
+  
+  if(prAcorr.ge.1) then
+     if(prAcorr.eq.1) write(6,'(A,$)')' Med.Autocor: '
+     if(prAcorr.ge.2) write(6,'(/,A,$)')'    Median:   '
+     np = 0
+     do p=1,nMCMCpar
+        if(fixedpar(p).eq.1) cycle
+        np = np+1
+        medians(np) = compute_median_real(lAcorrs(1:nChains0,p),nChains0)
+        write(6,'(ES9.1,$)')medians(np)
+     end do
+     write(6,'(ES11.1)')compute_median_real(medians(1:np),np)
+  end if
+  
+end subroutine compute_autocorrelations
+!***********************************************************************************************************************************
+
 
 

@@ -14,8 +14,8 @@ module analysemcmc_settings
   integer :: plPars(maxMCMCpar),nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D,PDF2Dpairs(250,2),panels(2)
   integer :: thin,Nburn(maxChs),reverseRead,update,mergeChains,wrapData,changeVar,maxChLen
   integer :: file,colour,orientation,quality,fonttype
-  integer :: prProgress,prRunInfo,prChainInfo,prInitial,prStat,prCorr,prIval,prConv,saveStats,savePDF       
-  integer :: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plACorr,nAcorr,plotSky,plAnim       
+  integer :: prProgress,prRunInfo,prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF       
+  integer :: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plACorr,plotSky,plAnim       
   integer :: chainSymbol,chainPlI,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D,normPDF2D
   integer :: scLogLpl,scChainsPl,bmpXSz,bmpYSz,map_projection
   integer :: nAnimFrames,animScheme,whiteBG,unSharp,Nival,ival0,wikioutput

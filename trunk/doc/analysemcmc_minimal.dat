@@ -12,7 +12,7 @@
          2             quality     "Quality" of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
          0         reverseRead     Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too
          0              update     Update screen plot every 10 seconds: 0-no, 1-yes
-         1         mergeChains     Merge the data from different files into one chain: 0-no (treat separately), 1-yes
+         1         mergeChains     Merge the data from different files into one chain: 0-no (treat separately), 1-yes (default)
          1            wrapData     Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
          1           changeVar     Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)
 
@@ -23,6 +23,8 @@
          0           prInitial     Print starting values for each chain: 0-no, 1-yes, 2-add injection value, 3-add Lmax value, 4-add differences (~triples number of output lines for this part)
          0              prStat     Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals
          0              prCorr     Print correlations: 0-no, 1-yes
+         0             prAcorr     Print autocorrelations: 0-no, 1-some, 2-more
+       100              nAcorr     Compute nAcorr steps of autocorrelations if prAcorr>0 or plAcorr>0 (default: 100)
          0              prIval     Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both
          0              prConv     Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain
          1           saveStats     Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
@@ -36,7 +38,7 @@
          0              plJump     Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log
          1             plPDF1D     Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.
          2             plPDF2D     Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) or not (=0).
-         0              nAcorr     Plot autocorrelations: 0-no, >0-yes: plot nAcorr steps (defaults: 0, 100)
+         0             plAcorr     Plot autocorrelations: 0-no, 1-yes
          2             plotSky     Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars
          0              plAnim     Create movie frames
 

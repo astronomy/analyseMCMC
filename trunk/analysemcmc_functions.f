@@ -89,6 +89,9 @@ subroutine read_settingsfile
   read(u,*,iostat=io)prInitial
   read(u,*,iostat=io)prStat
   read(u,*,iostat=io)prCorr
+  read(u,*,iostat=io)prAcorr
+  read(u,*,iostat=io)dblvar
+  nAcorr = nint(dblvar)
   read(u,*,iostat=io)prIval
   read(u,*,iostat=io)prConv
   read(u,*,iostat=io)saveStats
@@ -103,8 +106,7 @@ subroutine read_settingsfile
   read(u,*,iostat=io)plJump
   read(u,*,iostat=io)plPDF1D
   read(u,*,iostat=io)plPDF2D
-  read(u,*,iostat=io)dblvar
-  nAcorr = nint(dblvar)
+  read(u,*,iostat=io)plAcorr
   read(u,*,iostat=io)plotSky
   read(u,*,iostat=io)plAnim
   
@@ -207,6 +209,8 @@ subroutine write_settingsfile
   write(u,11)prInitial, 'prInitial',   'Print starting values for each chain: 0-no, 1-yes, 2-add injection value, 3-add Lmax value, 4-add differences (~triples number of output lines for this part)'
   write(u,11)prStat, 'prStat',   'Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals'
   write(u,11)prCorr, 'prCorr',   'Print correlations: 0-no, 1-yes'
+  write(u,11)prAcorr, 'prAcorr',   'Print autocorrelations: 0-no, 1-some, 2-more'
+  write(u,11)nAcorr, 'nAcorr',   'Compute nAcorr steps of autocorrelations if prAcorr>0 or plAcorr>0 (default: 100)'
   write(u,11)prIval, 'prIval',   'Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both'
   write(u,11)prConv, 'prConv',   'Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain'
   write(u,11)saveStats, 'saveStats',   'Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS'
@@ -221,7 +225,7 @@ subroutine write_settingsfile
   write(u,11)plJump, 'plJump',   'Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log'
   write(u,11)plPDF1D, 'plPDF1D',   'Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.'
   write(u,11)plPDF2D, 'plPDF2D',   'Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) or not (=0).'
-  write(u,11)nAcorr, 'nAcorr',   'Plot autocorrelations: 0-no, >0-yes: plot nAcorr steps (defaults: 0, 100)'
+  write(u,11)plAcorr, 'plAcorr',   'Plot autocorrelations: 0-no, 1-yes'
   write(u,11)plotSky, 'plotSky',   'Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
   write(u,11)plAnim, 'plAnim',   'Create movie frames'
   
@@ -306,6 +310,8 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   prInitial = 0     !Print injection values, starting values and their difference
   prStat = 1        !Print statistics: 0-no, 1-yes
   prCorr = 0        !Print correlations: 0-no, 1-yes
+  prAcorr = 0       !Plot autocorrelations: 0-no, 1-some, 2: more
+  nAcorr = 100      !Compute prAcorr steps of autocorrelations if prAcorr>0 or plAcor>0 (default: 100)
   prIval = 0        !Print interval info: 0-no, 1-yes
   prConv = 1        !Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-medians, stdevs, etc. too.
   saveStats = 0     !Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
@@ -321,7 +327,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   plJump = 1        !Plot actual jump sizes
   plPDF1D = 1       !Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.
   plPDF2D = 2       !Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) or not (=0).
-  nAcorr = 0        !Plot autocorrelations: 0-no, >0-yes: plot nAcorr steps (defaults: 0, 100)
+  plAcorr = 0       !Plot autocorrelations: 0-no, 1-yes
   plotSky = 0       !Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
   plAnim = 0        !Plot movie frames
   
@@ -2057,6 +2063,36 @@ function compute_median_real(datar,ni)
   mediand = compute_median(datad,ni)
   compute_median_real = real(mediand)
 end function compute_median_real
+!************************************************************************************************************************************
+
+!************************************************************************************************************************************
+function compute_stdev(data,ni,mean)  !Compute the standard deviation of a data set data(1:ni) with mean 'mean' - double
+  implicit none
+  integer :: ni,i
+  real*8 :: compute_stdev,data(ni),mean,stdev
+  
+  stdev = 0.d0
+  do i=1,ni
+     stdev = stdev + (data(i)-mean)**2
+  end do
+  
+  compute_stdev = sqrt(stdev/dble(ni-1))
+  
+end function compute_stdev
+!************************************************************************************************************************************
+
+!************************************************************************************************************************************
+function compute_stdev_real(datar,ni,meanr)  !Compute the standard deviation of a data set datar(1:ni) with mean 'meanr' - real
+  implicit none
+  integer :: ni
+  real :: compute_stdev_real,datar(ni),meanr
+  real*8 :: datad(ni),meand,compute_stdev,stdevd
+  
+  datad = dble(datar)
+  meand = dble(meanr)
+  stdevd = compute_stdev(datad,ni,meand)
+  compute_stdev_real = real(stdevd)
+end function compute_stdev_real
 !************************************************************************************************************************************
 
 

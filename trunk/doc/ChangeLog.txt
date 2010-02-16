@@ -2,8 +2,13 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
-   111: sluys, 19/01/2010
-     - Updated autocorrelations (use with mergeChains=1):
+   113: sluys, 15/02/2010
+     - Input file changed!  see doc/analysemcmc_*.dat
+     - Moved autocorrelation computation to compute_autocorrelations(), now works for mergeChains=1
+     - Separate input parameters to print and plot, and for the number of steps (prAcorr,plAcorr,nAcorr)
+     
+   112: sluys, 19/01/2010
+     - Updated autocorrelations (use with mergeChains=0):
        - compute, print and plot autocorrelation length
        - plot Markov-chain iteration number rather than data-point number
        - nAcorr rather than plAcorr in input file; nAcor was 100, now plAcorr=Ntot

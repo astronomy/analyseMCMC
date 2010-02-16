@@ -61,7 +61,6 @@ program analyseMCMC
   !Some of the stuff below will have to go to the input file
   
   maxdots = 25000  !~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much and eps/pdf files from becoming huge.  Use this to autoset chainPlI
-  !nAcorr  = 100    !Compute nAcorr steps of autocorrelation, can be quite time consuming.  Default: 100
   
   !Determine plot sizes and ratios:   (ratio ~ y/x and usually < 1 ('landscape'))
   bmpsz = real(bmpXSz-1)/85. * scFac !Make png larger, so that convert interpolates and makes the plot smoother
