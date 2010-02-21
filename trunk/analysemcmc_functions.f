@@ -543,7 +543,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   use plot_data
   implicit none
   integer :: i,ic,j,p,exitcode,maxLine
-  real :: avgtotthin
+  real :: avgtotthin,compute_median_real
   real*8 :: lon2ra,gmst
   character :: infile*99
   
@@ -659,9 +659,23 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   end if
   
   
+  !Determine the total number of iterations and lines in the input and data points for statistics; determine how many and which chains contribute
+  totiter = 0
+  totpts  = 0
+  contrchains = 0
+  contrchain = 0
+  totlines = sum(ntot(1:nchains0))  !Total number of lines in the input files (including burn-in)
+  do ic=1,nchains0
+     totiter = totiter + nint(is(ic,ntot(ic)))  !Total number of iterations (including the burn-in)
+     totpts = totpts + n(ic)-Nburn(ic)          !Total number of data points available for statistics, after removing the burn-in
+     if(n(ic).gt.Nburn(ic)) then
+        contrchains = contrchains + 1
+        contrchain(ic) = 1
+     end if
+  end do
   
   
-  !*** Print chain info to screen
+  !*** Print chain info to screen:
   !Print info on number of iterations, burnin, thinning, etc.
   do ic=1,nchains0
      infile = infiles(ic)
@@ -679,21 +693,9 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
         write(stdOut,'(A,ES7.1,A1)') '  Data pts: ',abs(real(n(ic)-Nburn(ic))),'.'
      end if
   end do
-  totiter = 0
-  totpts  = 0
-  contrchains = 0
-  contrchain = 0
-  do ic=1,nchains0
-     totiter = totiter + nint(is(ic,ntot(ic)))
-     totpts = totpts + n(ic)-Nburn(ic)
-     if(n(ic).gt.Nburn(ic)) then
-        contrchains = contrchains + 1
-        contrchain(ic) = 1
-     end if
-  end do
-  totlines = sum(ntot(1:nchains0))
-  if(prChainInfo.ge.1.and.update.ne.1) write(stdOut,'(4x,A, A,ES10.4, A,ES10.4, A,I4, A,ES10.4,  A2,F5.1, A,I3,A1,I2,A1)') 'In all chains:','  # lines: ',real(totlines), &
-       ',  # iterations: ',real(totiter),',  total thinning:',nint(avgtotthin),'x, # data points after burnin: ',real(totpts),' (',real(totpts)/real(totlines)*100,'%), contributing chains:',contrchains,'/',nchains0,'.'
+  if(prChainInfo.ge.1.and.update.ne.1) write(stdOut,'(4x,A, A,ES10.3, A,ES10.3, A,I4, A,ES9.2,   A,ES10.3,  A2,F5.1, A,I3,A1,I2,A1)') &
+       'All chains:','  # lines:',real(totlines), ',  # iterations:',real(totiter), ',  thinning:',nint(avgtotthin), 'x,  med.burnin:',compute_median_real(real(isburn(1:nChains0)),nChains0), &
+       ',  # dat.pts after burnin:',real(totpts),' (',real(totpts)/real(totlines)*100,'%), contrib.chains:',contrchains,'/',nchains0,'.'
   
   
   

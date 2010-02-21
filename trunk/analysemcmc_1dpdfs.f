@@ -25,12 +25,6 @@ subroutine pdfs1d(exitcode)
   
   !Autodetermine number of bins:
   if(Nbin1D.le.0) then
-     !if(totpts.le.100) then
-     !   Nbin1D = floor(2*sqrt(real(totpts)))
-     !else
-     !   Nbin1D = floor(10*log10(real(totpts)))
-     !end if
-     !Nbin1D = max(Nbin1D,5)
      call determine_nbin_1d(totpts,Nbin1D)
      if(prProgress.ge.2.and.plot.eq.1.and.update.eq.0) then
         if(Nbin1D.lt.100) write(stdOut,'(A2,I2,A8,$)')' (',Nbin1D,' bins), '

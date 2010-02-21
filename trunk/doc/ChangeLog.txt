@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+   117: sluys, 20/02/2010
+     - Write analysemcmc.used only for prProgress.ge.3
+     - Add median burn-in length to screen output 
+   
    116: sluys, 15/02/2010
      - Input file changed!  see doc/analysemcmc_*.dat
      - Added input parameter prStdOut to control where standard output is written (screen or file)

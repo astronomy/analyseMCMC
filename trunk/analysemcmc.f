@@ -35,7 +35,7 @@ program analyseMCMC
   
   call set_plotsettings()     !Set plot settings to 'default' values
   call read_settingsfile()    !Read the plot settings (overwrite the defaults)
-  call write_settingsfile()   !Write the input file back to disc
+  if(prProgress.ge.3) call write_settingsfile()   !Write the input file back to disc
   
   if(prStdOut.ge.2) then  !Write standard output to file rather than screen
      stdOut = 19
@@ -379,10 +379,12 @@ program analyseMCMC
   if(prStdOut.ge.2) then
      io = system('mv -f '//trim(stdOutFile)//' '//trim(outputname)//'__output.txt')
      if(io.eq.0) then
-        write(6,'(/,A,/)')'  AnalyseMCMC:  saved standard output to '//trim(outputname)//'__output.txt'
+        write(6,'(/,A,/)')'  AnalyseMCMC:  saved standard output to '//trim(outputname)//'__output.txt'  !Should be 6, not stdOut
      else
-        write(6,'(/,A)')'  AnalyseMCMC:  Error saving standard output to '//trim(outputname)//'__output.txt'
-        write(6,'(A,/)')'                Check the file '//trim(stdOutFile)
+        write(stdErr,'(/,A)')'  AnalyseMCMC:  Error saving standard output to '//trim(outputname)//'__output.txt'
+        !write(stdErr,'(A,/)')'                Check the file '//trim(stdOutFile)
+        io = system('rm -f '//trim(stdOutFile))
+        write(stdErr,*)
      end if
   end if
   

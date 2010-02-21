@@ -1436,9 +1436,9 @@ subroutine compute_autocorrelations()
         
         do j=0,min(nAcorr,Ntot(ic)-1)
            do i=1,Ntot(ic)-j*j1
-              acorrs(ic,p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - median)*(allDat(ic,p,i+j*j1) - median)   !Use median
+              acorrs(ic,p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - median)*(allDat(ic,p,i+j*j1) - median)
            end do
-           acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev*stdev*(Ntot(ic)-j*j1))   !Use median
+           acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev*stdev*(Ntot(ic)-j*j1))
            
            if(lAcorrs(ic,p).lt.1. .and. acorrs(ic,p,j).lt.0) lAcorrs(ic,p) = real(j*j1*totthin(ic))
            if(p.eq.1) acorrs(ic,0,j) = real(j*j1*totthin(ic))  !Make sure you get the iteration number, not the data-point number
