@@ -1,5 +1,5 @@
 !> \mainpage Documentation analyseMCMC
-!! AnalyseMCMC is a Fortran code that can be used to analyse the output of <a href="http://www.astro.northwestern.edu/~sluys/index.php?title=SPINspiral">SPINspiral</a>.
+!! AnalyseMCMC is a Fortran code that can be used to analyse the output of <a href="http://www.phys.ualberta.ca/~sluys/index.php?title=SPINspiral">SPINspiral</a>.
 !! 
 !! \file analysemcmc.f
 !! \brief Contains analyseMCMC main routine

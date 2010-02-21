@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+   119: sluys, 20/02/2010
+     - Use the maximum number of data points to compute R-hat
+   
    118: sluys, 20/02/2010
      - Use only converged chains for R-hat
    
