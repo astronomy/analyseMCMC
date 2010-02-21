@@ -662,15 +662,15 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   !Determine the total number of iterations and lines in the input and data points for statistics; determine how many and which chains contribute
   totiter = 0
   totpts  = 0
-  contrchains = 0
-  contrchain = 0
+  contrChains = 0
+  contrChain = 0
   totlines = sum(ntot(1:nchains0))  !Total number of lines in the input files (including burn-in)
   do ic=1,nchains0
      totiter = totiter + nint(is(ic,ntot(ic)))  !Total number of iterations (including the burn-in)
      totpts = totpts + n(ic)-Nburn(ic)          !Total number of data points available for statistics, after removing the burn-in
      if(n(ic).gt.Nburn(ic)) then
-        contrchains = contrchains + 1
-        contrchain(ic) = 1
+        contrChains = contrChains + 1
+        contrChain(ic) = 1
      end if
   end do
   
@@ -680,7 +680,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   do ic=1,nchains0
      infile = infiles(ic)
      if(prChainInfo.ge.2.and.update.ne.1) then
-        if(n(ic)-Nburn(ic).gt.0) then
+        if(contrChain(ic).eq.1) then
            write(stdOut,'(A6,$)'),'    * '  !Flag contributing chains
         else
            write(stdOut,'(A6,$)'),'      '
@@ -695,7 +695,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   end do
   if(prChainInfo.ge.1.and.update.ne.1) write(stdOut,'(4x,A, A,ES10.3, A,ES10.3, A,I4, A,ES9.2,   A,ES10.3,  A2,F5.1, A,I3,A1,I2,A1)') &
        'All chains:','  # lines:',real(totlines), ',  # iterations:',real(totiter), ',  thinning:',nint(avgtotthin), 'x,  med.burnin:',compute_median_real(real(isburn(1:nChains0)),nChains0), &
-       ',  # dat.pts after burnin:',real(totpts),' (',real(totpts)/real(totlines)*100,'%), contrib.chains:',contrchains,'/',nchains0,'.'
+       ',  # dat.pts after burnin:',real(totpts),' (',real(totpts)/real(totlines)*100,'%), contrib.chains:',contrChains,'/',nchains0,'.'
   
   
   
@@ -891,7 +891,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      allocate(selDat(nchains,maxMCMCpar,maxLine))
      do ic=1,nchains
         selDat(ic,1:nMCMCpar,1:n(ic)-Nburn(ic)) = allDat(ic,1:nMCMCpar,Nburn(ic)+1:n(ic))  !SelDat has the same structure as allDat, but contains only info AFTER the burnin.
-        n(ic) = n(ic)-Nburn(ic) !n(ic)=0 if a chain is not contributing (in which case contrchain(ic)=0)!
+        n(ic) = n(ic)-Nburn(ic) !n(ic)=0 if a chain is not contributing (in which case contrChain(ic)=0)!
      end do
      !if(prProgress.ge.1) write(stdOut,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
   end if

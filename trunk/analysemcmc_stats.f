@@ -30,7 +30,7 @@ subroutine statistics(exitcode)
   wrap = 0
   raShift = 0.
   do ic=1,nChains
-     if(mergeChains.eq.0.and.contrchain(ic).eq.0) cycle
+     if(mergeChains.eq.0.and.contrChain(ic).eq.0) cycle
      !wrapival = ivals(Nival) !Use the largest range
      wrapival = 0.999 !Always use a very large range (?)
      indexx = 0
@@ -651,7 +651,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
   !Print general run and detector info:
   write(o,'(//,A,/)')'GENERAL INFORMATION:'
   write(o,'(6x,4A12,A12,A5  A8,A22,A8)')'totiter','totlines','totpts','totburn','nChains','used','seed','null likelihood','ndet'
-  write(o,'(6x,4I12,I12,I5, I8,F22.10,I8)')totiter,totlines,totpts,totlines-totpts,nChains0,contrchains,seed(ic),nullh,ndet(ic)
+  write(o,'(6x,4I12,I12,I5, I8,F22.10,I8)')totiter,totlines,totpts,totlines-totpts,nChains0,contrChains,seed(ic),nullh,ndet(ic)
   write(o,*)''
   write(o,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
   do i=1,ndet(ic)
@@ -798,7 +798,7 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   
   write(o,'(//,A,/)')'GENERAL INFORMATION:'
   write(o,'(6x,3A12,2A22)')'nChains','used','seed','null likelihood','ln(Bayes_total)'
-  write(o,'(6x,3I12,F22.5,F22.5)')nChains0,contrchains,seed(1),nullh,logebayesfactortotal
+  write(o,'(6x,3I12,F22.5,F22.5)')nChains0,contrChains,seed(1),nullh,logebayesfactortotal
   
   write(o,'(//,A,/)')'EVIDENCES:'
   write(o,'(6x,5A12,2A22)')'chain','totiter','totlines','totpts','totburn','temperature','ln(Bayes)'
@@ -1192,7 +1192,7 @@ end subroutine save_cbc_wiki_data
 !!    http://www.stat.columbia.edu/~gelman/research/published/brooksgelman.pdf (Author's website)
 !!    See Eq.1.1,  where:  B/n := meanVar  and  W := chVar
 !!  \todo:  use only data selected after (auto)burnin
-!!  \todo:  do we need unwrapped data for this?
+!!  \todo:  do we need unwrapped data for this? - probably not, since the different chains are wrapped in the same way
 !<
 !***********************************************************************************************************************************
 subroutine compute_convergence()
@@ -1207,52 +1207,65 @@ subroutine compute_convergence()
   integer :: i,ic,p
   integer :: nn,lowVar(maxMCMCpar),nLowVar,highVar(maxMCMCpar),nHighVar,nmeanRelVar,nRhat,IDs(maxMCMCpar),nUsedPar
   real :: dx
-  real*8 :: chmean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar),totRhat,meanRelVar,compute_median
+  real*8 :: chMean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar),totRhat,meanRelVar,compute_median
   character :: ch
+  
+  if(contrChains.le.1) then
+     if(prConv.ge.1) write(stdOut,'(A)')'  At least two chains are needed to compute R-hat...'
+     return
+  end if
+  
+  !Determine the number of points to use:
+  nn = nint(1e9)
+  do ic=1,nChains0
+     if(contrChain(ic).eq.1.and.Ntot(ic)/2.lt.nn) nn = Ntot(ic)/2
+  end do
+  
+  if(prConv.ge.2) write(stdOut,'(A,I7,A)')'  Convergence parameters for',nn,' iterations:'
   
   
   !Compute the means for each chain and for all chains:
-  chmean = 1.d-30
+  chMean = 1.d-30
   avgMean = 1.d-30
-  nn = minval(Ntot(1:nChains0))/2
   do p=1,nMCMCpar
      do ic=1,nChains0
+        if(contrChain(ic).eq.0) cycle
         do i=nn+1,2*nn
-           chmean(ic,p) = chmean(ic,p) + allDat(ic,p,i) !We used to take unwrapped data for this...
+           chMean(ic,p) = chMean(ic,p) + allDat(ic,p,i)
         end do
-        avgMean(p) = avgMean(p) + chmean(ic,p)
+        avgMean(p) = avgMean(p) + chMean(ic,p)
      end do
   end do
-  chmean = chmean/dble(nn)
-  avgMean = avgMean/dble(nn*nChains0)
+  chMean = chMean/dble(nn)
+  avgMean = avgMean/dble(nn*contrChains)
   
   
-  !Compute variances per chain, for all chains
+  !Compute variances per chain, for all chains:
   chVar = 1.d-30
   chVar1 = 1.d-30
   meanVar = 1.d-30
   do p=1,nMCMCpar
      do ic=1,nChains0
+        if(contrChain(ic).eq.0) cycle
         do i=nn+1,2*nn
-           dx = (allDat(ic,p,i) - chmean(ic,p))**2 !We used to take unwrapped data for this...
+           dx = (allDat(ic,p,i) - chMean(ic,p))**2
            chVar(p) = chVar(p) + dx
            chVar1(ic,p) = chVar1(ic,p) + dx !Keep track of the variance per chain
         end do
-        meanVar(p) = meanVar(p) + (chmean(ic,p) - avgMean(p))**2
+        meanVar(p) = meanVar(p) + (chMean(ic,p) - avgMean(p))**2
         chVar1(ic,p) = chVar1(ic,p)/dble(nn-1)
      end do
-     chVar(p) = chVar(p)/dble(nChains0*(nn-1))
-     meanVar(p) = meanVar(p)/dble(nChains0-1)
+     chVar(p) = chVar(p)/dble(contrChains*(nn-1))
+     meanVar(p) = meanVar(p)/dble(contrChains-1)
      
      !Compute Rhat:
-     Rhat(p) = min( dble(nn-1)/dble(nn)  +  meanVar(p)/chVar(p) * (1.d0 + 1.d0/dble(nChains0)), 99.d0)
+     Rhat(p) = min( dble(nn-1)/dble(nn)  +  meanVar(p)/chVar(p) * (1.d0 + 1.d0/dble(contrChains)), 99.d0)
   end do
   
   
   !Print means per chain:
   if(prConv.ge.1) then
      write(stdOut,*)''
-     if(prConv.ge.2) write(stdOut,'(A,I7,A)')'  Convergence parameters for',nn,' iterations:'
      write(stdOut,'(A14,$)')''
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle
@@ -1263,10 +1276,11 @@ subroutine compute_convergence()
      if(prConv.ge.3) then
         write(stdOut,'(A)')'  Means:'
         do ic=1,nChains0
+           if(contrChain(ic).eq.0) cycle
            write(stdOut,'(I12,A2,$)')ic,': '
            do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle
-              write(stdOut,'(F9.5,$)')chmean(ic,p)
+              write(stdOut,'(F9.5,$)')chMean(ic,p)
            end do
            write(stdOut,*)
         end do
@@ -1282,11 +1296,9 @@ subroutine compute_convergence()
   
   
   !Flag and print variances:
-  if(prConv.ge.3) then
-     write(stdOut,*)''
-     write(stdOut,'(A)')'  Variances:'
-  end if
+  if(prConv.ge.3) write(stdOut,'(/,A)')'  Variances:'
   do ic=1,nChains0
+     if(contrChain(ic).eq.0) cycle
      lowVar = 0
      highVar = 0
      meanRelVar = 1.d0
@@ -1295,7 +1307,7 @@ subroutine compute_convergence()
         if(fixedpar(p).eq.0 .and.abs(chVar1(ic,p)).gt.1.e-30) then  !Take only the parameters that were fitted and have a variance > 0
            if(chVar1(ic,p).lt.0.5*chVar(p)) lowVar(p) = 1  !Too (?) low variance, mark it
            if(chVar1(ic,p).gt.2*chVar(p))  highVar(p) = 1  !Too (?) high variance, mark it
-           meanRelVar = meanRelVar * chVar1(ic,p)/chVar(p) !Take geometric mean
+           meanRelVar = meanRelVar * chVar1(ic,p)/chVar(p) !Multiply in order to take the geometric mean
            nmeanRelVar = nmeanRelVar + 1
         end if
      end do
@@ -1334,6 +1346,7 @@ subroutine compute_convergence()
         write(stdOut,*)''
      end if !if(prConv.ge.3)
   end do
+  
   
   !Print mean variance for all parameters :
   if(prConv.ge.3) then
