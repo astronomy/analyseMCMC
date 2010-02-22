@@ -1223,7 +1223,7 @@ subroutine compute_convergence()
      if(nn1.lt.nn) nn = nn1
   end do
   
-  if(prConv.ge.2) write(stdOut,'(A,I7,A)')'  Convergence parameters for',nn,' data points in each chain:'
+  if(prConv.ge.2) write(stdOut,'(A,I8,A)')'  Convergence parameters for',nn,' data points in each chain:'
   
   
   !Compute the means for each chain and for all chains:

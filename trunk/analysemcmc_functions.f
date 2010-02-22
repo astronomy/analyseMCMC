@@ -194,7 +194,7 @@ subroutine write_settingsfile
   write(u,11)thin, 'thin',   'If >1, "thin" the output; read every thin-th line '
   write(u,11)maxval(Nburn), 'Nburn',   'If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain'
   write(u,21)NburnFrac, 'NburnFrac',   'If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides Nburn above'
-  write(u,21)autoBurnin, 'autoBurnin',   'If >0: Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin. Overrides Nburn and NburnFrac above'
+  write(u,21)autoBurnin, 'autoBurnin',   'If !=0: Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin. If autoBurnin<0, use Npar/2. Overrides Nburn and NburnFrac above'
   write(u,31)dble(maxChLen), 'maxChLen',   'Maximum chain length to read in (number of iterations, not number of lines)'
   write(u,11)file, 'file',   'Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter "outputdir" below'
   write(u,11)colour, 'colour',   'Use colours: 0-no (grey scales), 1-yes'
@@ -210,7 +210,7 @@ subroutine write_settingsfile
   write(u,11)prStdOut, 'prStdOut',   'Print standard output to 1: screen, 2: text file'
   write(u,11)prProgress, 'prProgress',   'Print general messages about the progress of the program: 0-no, 1-some, 2-more, 3-debug output'
   write(u,11)prRunInfo, 'prRunInfo',   'Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files'
-  write(u,11)prChainInfo, 'prChainInfo',   'Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per chain (file name, plot colour, # iterations, burnin, Lmax, # data points)'
+  write(u,11)prChainInfo, 'prChainInfo',   'Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per chain (file name, plot colour, # iterations, burn-in, Lmax, # data points)'
   write(u,11)prInitial, 'prInitial',   'Print starting values for each chain: 0-no, 1-yes, 2-add injection value, 3-add Lmax value, 4-add differences (~triples number of output lines for this part)'
   write(u,11)prStat, 'prStat',   'Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals'
   write(u,11)prCorr, 'prCorr',   'Print correlations: 0-no, 1-yes'
@@ -238,13 +238,13 @@ subroutine write_settingsfile
   write(u,'(/,A)')' Detailed plot settings:'
   write(u,11)chainSymbol, 'chainSymbol',   'Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols'
   write(u,11)chainPlI, 'chainPlI',   'Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine, chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.'
-  write(u,11)scLogLpl, 'scLogLpl',   'Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and injection values into account'
-  write(u,11)scChainsPl, 'scChainsPl',   'Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and injection values into account'
+  write(u,11)scLogLpl, 'scLogLpl',   'Scale logL plot ranges: 0: take everything into account, including burn-in and starting values;  1: take only post-burn-in and injection values into account'
+  write(u,11)scChainsPl, 'scChainsPl',   'Scale chains plot ranges: 0: take everything into account, including burn-in;  1: take only post-burn-in and injection values into account'
   write(u,11)plInject, 'plInject',   'Plot injection values in the chains and pdfs: 0: no,  1: yes (all pars),  2: yes (selected pars), 3-4: as 1-2 + print value in PDF panel'
   write(u,11)plStart, 'plStart',   'Plot starting values in the chains and pdfs'
   write(u,11)plMedian, 'plMedian',   'Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel'
   write(u,11)plRange, 'plRange',   'Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel'
-  write(u,11)plBurn, 'plBurn',   'Plot the burnin in logL, the chains, etc.'
+  write(u,11)plBurn, 'plBurn',   'Plot the burn-in in logL, the chains, etc.'
   write(u,11)plLmax, 'plLmax',   'Plot the position of the max logL, in the chains and pdfs'
   write(u,11)prValues, 'prValues',   'Print values (injection, median, range) in pdfs'
   write(u,11)smooth, 'smooth',   'Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!'
@@ -299,7 +299,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   thin = 10         !If >1, 'thin' the output; read every thin-th line 
   Nburn = 1e5       !If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number, but it becomes the line number later on in the code.  Nburn > Nchain sets Nburn = 0.1*Nchain
   NburnFrac = 0.5   !If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
-  autoBurnin = 1.   !Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
+  autoBurnin = -1.  !Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin.  If <0, use Npar/2.  Overrides NburnFrac.
   maxChLen = 1e8    !Maximum chain length
   file = 1          !Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter 'outputdir' below.
   colour = 1        !Use colours: 0-no (grey scales), 1-yes
@@ -324,9 +324,8 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   savePDF = 0       !Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
   
   plot = 1          !0: plot nothing at all, 1: plot the items selected below
-  autoBurnin = 1.   !Determine burnin automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
-  scLogLpl = 1      !Scale logL plot ranges: 0: take everything into account, including burnin and starting values;  1: take only post-burnin and injection values into account
-  scChainsPl = 1    !Scale chains plot ranges: 0: take everything into account, including burnin;  1: take only post-burnin and injection values into account
+  scLogLpl = 1      !Scale logL plot ranges: 0: take everything into account, including burn-in and starting values;  1: take only post-burn-in and injection values into account
+  scChainsPl = 1    !Scale chains plot ranges: 0: take everything into account, including burn-in;  1: take only post-burn-in and injection values into account
   plLogL = 1        !Plot log L chains: 0-no, 1-yes
   plChain = 1       !Plot parameter chains: 0-no, 1-yes
   plParL = 1        !Plot L vs. parameter value: 0-no, 1-yes
@@ -343,7 +342,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   plStart = 1       !Plot starting values in the chains and pdfs
   plMedian = 1      !Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
   plRange = 1       !Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
-  plBurn = 1        !Plot the burnin in logL, the chains, etc.
+  plBurn = 1        !Plot the burn-in in logL, the chains, etc.
   plLmax = 0        !Plot the position of the max of logL in chains and pdfs
   prValues = 1      !Print values (injection, median, range) in pdfs
   smooth = 3        !Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!
@@ -389,7 +388,6 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
   integer :: i,tmpInt,io,ic,j,exitcode,readerror,p
   character :: tmpStr*99,detname*14,firstLine*999,infile*99
   real*8 :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar)!,lon2ra,ra2lon
-  real :: outputVersion
   
   exitcode = 0
   readerror = 0
@@ -426,6 +424,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      
      if(outputVersion > 0.5) read(10,*,end=199,err=199)tmpStr  !Read empty line between version number and first header
      read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') niter(ic),Nburn0(ic),seed(ic),nullh,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform,pnOrder,nMCMCpar
+     nMCMCpar0 = nMCMCpar  !< nMCMCpar may change when secondary parameters are computed
      
      read(10,*,end=199,err=199)tmpStr !Read empty line above detector info
      do i=1,ndet(ic)
@@ -533,7 +532,7 @@ end subroutine read_mcmcfiles
 
 !************************************************************************************************************************************
 subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some of it to screen:
-  !  print MCMC run info,  determine Lmax, burnin,  print chain info,  determine thinning for chains plots,  change/add MCMC parameters, 
+  !  print MCMC run info,  determine Lmax, burn-in,  print chain info,  determine thinning for chains plots,  change/add MCMC parameters, 
   !  determine injection, start, Lmax values of chains,  compute jumps,  construct output file name,  store data in selDat (from dat)
   use constants
   use analysemcmc_settings
@@ -563,8 +562,14 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      do ic = 1,nchains0
         if((prRunInfo.eq.1.and.ic.eq.1) .or. prRunInfo.eq.2) then
            infile = infiles(ic)
-           write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
-           write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
+           if(outputVersion.lt.0.5) then
+              write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
+              write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
+           else
+              write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8,  2A8,2A8,  A8,  A8,A8,  A8)') 'Chain','file name','colour','Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','WaveFm','pN','Npar'
+              write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8,  2I8,2F8.1,F8.3,I8,F8.1,I8)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic), &
+                   nCorr(ic),nTemps(ic),real(Tmax(ic)),Tchain(ic),networkSNR(ic),waveform,pnOrder,nMCMCpar
+           end if
            write(stdOut,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
            
            do i=1,ndet(ic)
@@ -601,7 +606,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   do ic=1,nchains0
      isburn(ic) = real(Nburn(ic))
      do i=1,ntot(ic)
-        if(is(ic,i).le.isburn(ic)) Nburn(ic) = i   !isburn is the true iteration number at which the burnin ends
+        if(is(ic,i).le.isburn(ic)) Nburn(ic) = i   !isburn is the true iteration number at which the burn-in ends
         totthin(ic) = nint(isburn(ic)/real(Nburn(ic)))
      end do
   end do
@@ -644,9 +649,10 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   
   
   !***AutoBurnin: for each chain, get the first point where log(L) > log(L_max)-autoBurnin
-  if(autoBurnin.gt.1.e-10) then
+  if(abs(autoBurnin).gt.1.e-10) then
+     if(autoBurnin.lt.-1.e-10) autoBurnin = real(nMCMCpar0)/2.  !< The default value for autoBurnin = Npar/2
      loop1: do ic=1,nchains0
-        isburn(ic) = is(ic,ntot(ic)) !Set burnin to last iteration, so that chain is completely excluded if condition is never fulfilled
+        isburn(ic) = is(ic,ntot(ic)) !Set burn-in to last iteration, so that chain is completely excluded if condition is never fulfilled
         Nburn(ic) = ntot(ic)
         do i=2,ntot(ic) !i=1 is injection value?
            if(post(ic,i).gt.real(loglmax)-autoBurnin) then
@@ -676,7 +682,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   
   
   !*** Print chain info to screen:
-  !Print info on number of iterations, burnin, thinning, etc.
+  !Print info on number of iterations, burn-in, thinning, etc.
   do ic=1,nchains0
      infile = infiles(ic)
      if(prChainInfo.ge.2.and.update.ne.1) then
@@ -703,7 +709,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   !*** Determine extra thinning for logL, chain, jump plots
   if(chainPlI.le.0) then
      !if(sum(ntot(1:nchains0)).gt.maxdots) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
-     chainPlI = max(1,nint(real(sum(ntot(1:nchains0)))/real(maxdots)))  !Use ntot and nchains0, since n is low if many points are in the burnin
+     chainPlI = max(1,nint(real(sum(ntot(1:nchains0)))/real(maxdots)))  !Use ntot and nchains0, since n is low if many points are in the burn-in
      if(prChainInfo.ge.1.and.update.eq.0) then
         if(chainPlI.gt.1) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
            write(stdOut,'(A,I4,A,I5,A,I5,A)')'    Plotting every',chainPlI,'-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*chainPlI),'x.'
@@ -875,12 +881,12 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   
   
   !*** Put data in selDat
-  if(mergeChains.eq.1) then  !Merge chains, leave out burnin (then nchains = 1)
+  if(mergeChains.eq.1) then  !Merge chains, leave out burn-in (then nchains = 1)
      allocate(selDat(1,maxMCMCpar,nchains*maxLine))
      j = 1
      do ic=1,nchains
         do i=Nburn(ic)+1,n(ic)
-           selDat(1,1:nMCMCpar,j) = allDat(ic,1:nMCMCpar,i)  !selDat has the same structure as allDat, but contains only data AFTER the burnin.
+           selDat(1,1:nMCMCpar,j) = allDat(ic,1:nMCMCpar,i)  !selDat has the same structure as allDat, but contains only data AFTER the burn-in.
            j = j+1
         end do
      end do
@@ -890,7 +896,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   else
      allocate(selDat(nchains,maxMCMCpar,maxLine))
      do ic=1,nchains
-        selDat(ic,1:nMCMCpar,1:n(ic)-Nburn(ic)) = allDat(ic,1:nMCMCpar,Nburn(ic)+1:n(ic))  !SelDat has the same structure as allDat, but contains only info AFTER the burnin.
+        selDat(ic,1:nMCMCpar,1:n(ic)-Nburn(ic)) = allDat(ic,1:nMCMCpar,Nburn(ic)+1:n(ic))  !SelDat has the same structure as allDat, but contains only info AFTER the burn-in.
         n(ic) = n(ic)-Nburn(ic) !n(ic)=0 if a chain is not contributing (in which case contrChain(ic)=0)!
      end do
      !if(prProgress.ge.1) write(stdOut,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))

@@ -70,12 +70,12 @@ module mcmcrun_data
   implicit none
   save
   integer :: niter(maxChs),totiter,totlines,totpts,Nburn0(maxChs),seed(maxChs),ndet(maxChs),totthin(maxChs)
-  integer :: nCorr(maxChs),nTemps(maxChs),waveform,nMCMCpar,Tmax(maxChs)
+  integer :: nCorr(maxChs),nTemps(maxChs),waveform,nMCMCpar,nMCMCpar0,Tmax(maxChs)
   integer :: samplerate(maxChs,ndets),samplesize(maxChs,ndets),FTsize(maxChs,ndets),detnr(maxChs,ndets),offsetrun
   integer :: parID(maxMCMCpar),revID(nParDB),spinningRun
   integer*8 :: GPStime
   real :: snr(maxChs,ndets),flow(maxChs,ndets),fhigh(maxChs,ndets),t_before(maxChs,ndets),t_after(maxChs,ndets),deltaFT(maxChs,ndets)
-  real :: Tchain(maxChs),networkSNR(maxChs),pnOrder
+  real :: Tchain(maxChs),networkSNR(maxChs),pnOrder,outputVersion
   real*8 :: FTstart(maxChs,ndets),t0,loglmax,loglmaxs(maxChs)
   character :: detnames(maxChs,ndets)*14
 end module mcmcrun_data

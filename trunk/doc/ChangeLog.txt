@@ -2,6 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+   120: sluys, 21/02/2010
+     - Set autoBurnin to <0 to use autoBurnin = nMCMCpar/2 (default)
+     - Print some more run info to screen (nCorr,nTemps,Tmax,Tchain,netSNR,waveform,pnOrder,nMCMCpar)
+     - Fix: always print parameter symbol in chain plots
+        
    119: sluys, 20/02/2010
      - Use the maximum number of data points to compute R-hat
    

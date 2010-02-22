@@ -57,7 +57,7 @@ subroutine chains(exitcode)
         xmin = 0.
         xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
         imin = 10                                              !Take into account burn-in
-        if(scLogLpl.eq.1) imin = Nburn(ic)                   !Scale without taking into account burnin
+        if(scLogLpl.eq.1) imin = Nburn(ic)                   !Scale without taking into account burn-in
         ymin = min(ymin,minval(post(ic,imin:Ntot(ic)))) 
         ymax = max(ymax,maxval(post(ic,imin:Ntot(ic))))
      end do
@@ -84,7 +84,7 @@ subroutine chains(exitcode)
      end if
      
      do ic=1,nChains0
-        !Give pre- and post-burnin different colour
+        !Give pre- and post-burn-in different colour
         ci = defcolour
         if(nChains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
         call pgscidark(ci,file,whiteBG)
@@ -260,7 +260,7 @@ subroutine chains(exitcode)
         do ic=1,nChains0
            xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
            imin = 1                                               !Take into account burn-in
-           if(scChainsPl.eq.1) imin = Nburn(ic)                   !Scale without taking into account burnin
+           if(scChainsPl.eq.1) imin = Nburn(ic)                   !Scale without taking into account burn-in
            ymin = min(ymin,minval(allDat(ic,p,imin:Ntot(ic))))
            ymax = max(ymax,maxval(allDat(ic,p,imin:Ntot(ic))))
         end do
@@ -324,7 +324,7 @@ subroutine chains(exitcode)
            if(chainSymbol.eq.0) then !Plot lines rather than symbols
               call pgline(Ntot(ic),is(ic,1:Ntot(ic)),allDat(ic,p,1:Ntot(ic)))
            else
-              !Give pre- and post-burnin different colour
+              !Give pre- and post-burn-in different colour
               ci = defcolour
               if(nChains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
               call pgscidark(ci,file,whiteBG)
@@ -440,12 +440,9 @@ subroutine chains(exitcode)
         
         call pgsci(1)
         call pgsls(1)
+        call pgmtxt('T',1.,0.,0.,' '//trim(pgParNs(parID(p))))
         write(title,'(F6.3)')rhat(p)
-        if(nChains0.gt.1.and.prConv.ge.1) then
-           call pgmtxt('T',1.,1.,1.,'R-hat: '//trim(title))
-        else
-           call pgmtxt('T',-1.,0.,0.,' '//trim(pgParNs(parID(p))))
-        end if
+        if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',1.,1.,1.,'R-hat: '//trim(title))
      end do !do j=1,nPlPar
      
      if(quality.eq.0) then

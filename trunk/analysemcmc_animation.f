@@ -564,7 +564,7 @@ subroutine animation(exitcode)
         
      else
         
-        !Before burnin:
+        !Before burn-in:
         call pgsch(sch)
         call pgswin(xmin,xmax,ymin,ymax)
         !end if  !if(nplt.gt.Nburn(ic)) 
