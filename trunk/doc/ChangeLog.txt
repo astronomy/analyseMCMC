@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+   121: sluys, 21/02/2010
+     - Print waveform name rather than number to screen
+     
    120: sluys, 21/02/2010
      - Set autoBurnin to <0 to use autoBurnin = nMCMCpar/2 (default)
      - Print some more run info to screen (nCorr,nTemps,Tmax,Tchain,netSNR,waveform,pnOrder,nMCMCpar)

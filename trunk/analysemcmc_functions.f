@@ -566,12 +566,13 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
               write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
               write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
            else
-              write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8,  2A8,2A8,  A8,  A8,A8,  A8)') 'Chain','file name','colour','Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','WaveFm','pN','Npar'
-              write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8,  2I8,2F8.1,F8.3,I8,F8.1,I8)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic), &
-                   nCorr(ic),nTemps(ic),real(Tmax(ic)),Tchain(ic),networkSNR(ic),waveform,pnOrder,nMCMCpar
+              write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8,  2A8,2A8,  A8,  A8,  A8, 3x,A8)') 'Chain','file name','colour','Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','pN','Npar','WaveForm'
+              write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8,  2I8,2F8.1,F8.3,F8.1,I8, 3x,A)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic), &
+                   nCorr(ic),nTemps(ic),real(Tmax(ic)),Tchain(ic),networkSNR(ic),pnOrder,nMCMCpar,trim(waveforms(waveform))
            end if
-           write(stdOut,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
            
+           write(stdOut,*)
+           write(stdOut,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
            do i=1,ndet(ic)
               write(stdOut,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')trim(detnames(ic,i)),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
            end do
