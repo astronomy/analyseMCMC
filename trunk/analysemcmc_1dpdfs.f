@@ -190,6 +190,8 @@ subroutine pdfs1d(exitcode)
            else !Normalise to the height of the PDF
               if(normPDF1D.eq.2) ybin1 = ybin1/maxval(ybin1)  !Normalise to the height of the PDF
               if(normPDF1D.eq.3) ybin1 = ybin1/(maxval(ybin1)**0.5)  !Normalise to the sqrt of the height of the PDF; Works nicely for comparing parallel-tempering chains
+			  if(normPDF1D.eq.4) ybin1 = (ybin1/maxval(ybin1))**(Tchain(ic)) !Extrapolate the true PDF from temperature chains
+			  if(normPDF1D.eq.5) ybin1 = (ybin1/maxval(ybin1))**(2.0)
               if(ic*j.eq.1) write(stdErr,'(//,A,/)')'  *** WARNING: using non-default normalisation for PDFs ***'
            end if
         end if
