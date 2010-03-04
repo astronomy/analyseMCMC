@@ -18,7 +18,7 @@ subroutine statistics(exitcode)
   !real*8 :: var,total
   !real*16 :: var,total  !gfortran doesn't support this
   !real(kind=10) :: var,total  !Means different things on different compilers
-  real(kind=selected_real_kind(18,4931)) :: var,total,total2  !Precision of 18, exponential range of 4931 - max gfortran supports?
+  real(kind=selected_real_kind(18,4931)) :: var,total,total2,total3,deltab  !Precision of 18, exponential range of 4931 - max gfortran supports?
   !print*,precision(var),range(var)
   
   exitcode = 0
@@ -256,12 +256,14 @@ subroutine statistics(exitcode)
      !if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A,$)')'  Bayes factor,'
      total = 0
      total2 = 0
+	 total3 = 0
      maxlogl = -1.e30
      minlogl =  1.e30
      do i=Nburn(ic),Ntot(ic)
         var = post(ic,i)          !Use quadruple precision
         total = total + exp(-var)**(1/Tchain(ic))
         total2 = total2 + exp(var)**(1-(1/Tchain(ic)))
+		total3 = total3 + var
         maxlogl = max(post(ic,i),maxlogl)
         minlogl = min(post(ic,i),minlogl)
      end do
@@ -269,8 +271,16 @@ subroutine statistics(exitcode)
      var = total2/total
      logebayesfactor(ic) = real(log(var))
      log10bayesfactor(ic) = real(log10(var))
+	 
+	 if(ic.eq.nChains) then
+	 deltab = 1/Tchain(ic)
+	 else
+	 deltab = 1/Tchain(ic) - 1/Tchain(ic+1)
+	 end if
+	 
+	 logebayestempfactor(ic) = real((total3/(n(ic)))*deltab)
      !write(stdOut,'(A,4F10.3,2I9,F10.3)')'ln Bayes',logebayesfactor(ic),log10bayesfactor(ic),maxlogl,minlogl,n(ic),ic,Tchain(ic)
-     
+     write(stdOut,'(A,F10.3,I9,2F10.3,3I9)')'ln Bayes',logebayestempfactor(ic),ic,Tchain(ic),deltab,Nburn(ic),Ntot(ic),n(ic)
      
      
      
@@ -586,16 +596,33 @@ subroutine statistics(exitcode)
      
   end do !ic
   
-  
-  
-  
   !average the Bayes factors from all chains
+  logebayesfactortotalgeom=0.0
+  logebayesfactortotalarith=0.0
+  logebayesfactortotalharmo=0.0
   logebayesfactortotal=0.0
-  do ic=1,nChains0
-     logebayesfactortotal=logebayesfactortotal+logebayesfactor(ic)
+  var=0.0
+  total=0.0
+  total2=0.0
+  do ic=1,nchains0
+  var=logebayesfactor(ic)
+  !write(6,'(A,F10.3)')'ln Bayes',logebayesfactor(ic)
+  logebayesfactortotalgeom=logebayesfactortotalgeom+var
+  !write(6,'(A,F10.3)')'logebayesfactortotalgeom',logebayesfactortotalgeom
+  total=total+exp(var)
+  !write(6,'(A,F10.3)')'logebayesfactortotalarith',logebayesfactortotalarith
+  total2=total2+(exp(-var))
+  !write(6,'(A,F10.3)')'logebayesfactortotalharmo',logebayesfactortotalharmo
+  logebayesfactortotal=logebayesfactortotal+logebayestempfactor(ic)
   end do
-  logebayesfactortotal=logebayesfactortotal/dble(nChains)
-  !write(stdOut,'(A,F10.3)')'ln Bayes Total',logebayesfactortotal
+  logebayesfactortotalgeom=logebayesfactortotalgeom/dble(nchains)
+  total=total/dble(nchains)
+  logebayesfactortotalarith=real(log(total))
+  total2=dble(nchains)/total2
+  logebayesfactortotalharmo=real(log(total2))
+  
+  !write(6,'(A,F10.3)')'ln Bayes Total',logebayesfactortotal
+
   
   !!Compute autocorrelations:
   if(prAcorr.gt.0.or.plAcorr.gt.0) call compute_autocorrelations()
@@ -797,8 +824,9 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   write(o,'(A)')trim(outputname)
   
   write(o,'(//,A,/)')'GENERAL INFORMATION:'
-  write(o,'(6x,3A12,2A22)')'nChains','used','seed','null likelihood','ln(Bayes_total)'
-  write(o,'(6x,3I12,F22.5,F22.5)')nChains0,contrChains,seed(1),nullh,logebayesfactortotal
+  write(o,'(6x,7A12,5A22)')'nChains','used','totiter','totlines','totpts','totburn','seed','null likelihood','ln(Bayes_total_arith)','ln(Bayes_total_harmo)','ln(Bayes_total_geom)','ln(Bayes_total_temp)'
+  write(o,'(6x,7I12,F22.5,4F22.5)')nchains0,contrChains,totiter,totlines,totpts,totlines-totpts,seed(1),nullh,logebayesfactortotalarith,logebayesfactortotalharmo,logebayesfactortotalgeom,logebayesfactortotal
+
   
   write(o,'(//,A,/)')'EVIDENCES:'
   write(o,'(6x,5A12,2A22)')'chain','totiter','totlines','totpts','totburn','temperature','ln(Bayes)'

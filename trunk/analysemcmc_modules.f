@@ -8,7 +8,7 @@ module analysemcmc_settings
   implicit none
   save
   integer, parameter :: maxNival=5    !< maxNival: Maximum number of probability intervals that can be used
-  integer, parameter :: maxChs=20     !< macChs: Maximum number of chains that can be read
+  integer, parameter :: maxChs=25     !< macChs: Maximum number of chains that can be read
   integer, parameter :: maxMCMCpar=17 !< MaxMCMCpar: MCMCpar+secondary parameters, e.g. 12+2(M1M2) = 14 for 12 par; 17 for 15 par
   integer, parameter :: nParDB=199     !< nParDB: size of the parameter database
   integer :: plPars(maxMCMCpar),nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D,PDF2Dpairs(250,2),panels(2)
@@ -50,7 +50,7 @@ module general_data
   integer :: fixedpar(maxMCMCpar),nfixedpar,contrchains,contrchain(maxChs)
   real, allocatable :: selDat(:,:,:),allDat(:,:,:),post(:,:),prior(:,:)
   real :: startval(maxChs,maxMCMCpar,3)
-  real :: ranges(maxChs,maxNival,maxMCMCpar,nr1),stats(maxChs,maxMCMCpar,nstat1),log10bayesfactor(maxChs),logebayesfactor(maxChs),logebayesfactortotal
+  real :: ranges(maxChs,maxNival,maxMCMCpar,nr1),stats(maxChs,maxMCMCpar,nstat1),log10bayesfactor(maxChs),logebayesfactor(maxChs),logebayesfactortotalharmo,logebayesfactortotalgeom,logebayesfactortotalarith,logebayesfactortotal,logebayestempfactor(maxChs)
   real*8 :: rhat(maxMCMCpar)
   
   character :: parNames(nParDB)*8,infiles(maxChs)*99,outputname*99,outputdir*99
