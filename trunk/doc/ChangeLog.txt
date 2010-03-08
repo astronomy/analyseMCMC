@@ -2,6 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+   124: sluys, 08/03/2010
+     - Set waveform type and parameter IDs manually when an old MCMC output file is used.
+       Default: Apostolatos, but this can be changed (manually, hardcoded) in
+       analysemcmc_functions.f
+     
    121: sluys, 21/02/2010
      - Print waveform name rather than number to screen
      

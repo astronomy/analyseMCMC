@@ -441,18 +441,42 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      parID = 0
      revID = 0
      if(outputVersion > 0.5) then
-        revID = 0
         read(10,*,iostat=io)parID(1:nMCMCpar) !Read parameter IDs
         if(io.ne.0) then
            write(stdErr,'(//,A,//)')'  Error reading MCMC parameter IDs, aborting...'
            stop
         end if
-        do i=1,nMCMCpar
-           revID(parID(i)) = i  !Reverse ID
-        end do
+     else  !Set the parameter IDs of an old MCMC output file manually:
+        
+        !Assume 12-parameter Apostolatos:
+        if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters, assuming that an Apostolatos, 1.5-pN, 12-parameter waveform was used..."
+        nMCMCpar = 12  !Mc et tc ld a1 th ra de ph tJ pJ,ph_spin
+        parID(1:12) = (/61,62,11,22,71,72,31,32,41,53,54,73/)
+        waveform = 1
+        pNorder = 1.5
+        
+        !Assume 12-parameter SpinTaylor:
+        !if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters, assuming that a SpinTaylor, 3.5-pN, 12-parameter waveform was used..."
+        !nMCMCpar = 12  !
+        !parID(1:12) = (//)  !Needs to be filled in before use
+        !waveform = 2
+        !pNorder = 3.5
+        
+        !Assume 15-parameter SpinTaylor:
+        !if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters, assuming that a SpinTaylor, 3.5-pN, 15-parameter waveform was used..."
+        !nMCMCpar = 15  !
+        !parID(1:15) = (//)  !Needs to be filled in before use
+        !waveform = 3
+        !pNorder = 3.5
+        
+        nMCMCpar0 = nMCMCpar  !< nMCMCpar may change when secondary parameters are computed
      end if
+     do i=1,nMCMCpar
+        revID(parID(i)) = i  !Reverse ID
+     end do
      
      read(10,*,end=199,err=199)tmpStr  !Read line with column headers (Cycle, log Post., Prior, etc)
+     
      i=1
      do while(i.le.maxIter)
         if(outputVersion < 0.5) then
@@ -564,7 +588,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
            infile = infiles(ic)
            if(outputVersion.lt.0.5) then
               write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
-              write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
+              write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(13:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
            else
               write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8,  2A8,2A8,  A8,  A8,  A8, 3x,A8)') 'Chain','file name','colour','Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','pN','Npar','WaveForm'
               write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8,  2I8,2F8.1,F8.3,F8.1,I8, 3x,A)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic), &
