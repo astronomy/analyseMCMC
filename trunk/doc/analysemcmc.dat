@@ -77,7 +77,7 @@
  Fonts, symbols, etc.:
          1         orientation     Use portrait (1) or landscape (2) for eps/pdf; mainly useful when sending a plot to a printer
          1            fontType     Font type used for eps/pdf: 1-simple, 2-roman, 3-italic, 4-script
-   2.00000          fontSize1D     Scale the font size for 1D plots (chains, 1D PDFs) with respect to default.  Default: 1.0
+   1.00000          fontSize1D     Scale the font size for 1D plots (chains, 1D PDFs) with respect to default.  Default: 1.0
    1.00000          fontSize2D     Scale the font size for 2D plots (2D PDFs) with respect to default.  Default: 1.0
          1         chainSymbol     Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols
 
