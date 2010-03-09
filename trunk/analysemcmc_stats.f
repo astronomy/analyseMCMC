@@ -835,6 +835,7 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   end do
   
   close(o) !Bayes output file
+  
   if(saveStats.eq.2) i = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__bayes.ps')
   !write(stdOut,*)''
   if(prProgress.ge.1) then
@@ -866,7 +867,7 @@ subroutine save_cbc_wiki_data(ic)
   write(pnstr,'(F3.1)')pnOrder
   
   !Print output for CBC Wiki:
-  o = 10
+  o = 20
   write(wikifilename,'(A)')trim(outputname)//'__wiki.dat'
   open(unit=o,form='formatted',status='replace',action='write',position='rewind',file=trim(wikifilename),iostat=io)
   if(io.ne.0) then
@@ -1199,7 +1200,7 @@ subroutine save_cbc_wiki_data(ic)
   write(o,'(///,A)')'----'
   write(o,'(A)')'Back to [:JointS5/BayesianFollowUpOfE14Events:Bayesian follow-up in E14]'
   
-  close(o)
+  close(o)  !Wiki output file
   
 end subroutine save_cbc_wiki_data
 !***********************************************************************************************************************************
@@ -1509,6 +1510,3 @@ subroutine compute_autocorrelations()
   
 end subroutine compute_autocorrelations
 !***********************************************************************************************************************************
-
-
-

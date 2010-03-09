@@ -227,7 +227,7 @@ subroutine write_settingsfile
   write(u,11)prConv, 'prConv',   'Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain'
   write(u,11)saveStats, 'saveStats',   'Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS'
   write(u,11)savePDF, 'savePDF',   'Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying'
-  write(u,11)tailoredOutput, 'tailoredOutput',   'Save (ascii) output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the hardcoded block tO in the subroutine tailoredOutput() in analysemcmc_stats.f'
+  write(u,11)tailoredOutput, 'tailoredOutput',   'Save (ascii) output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the hardcoded block tO in the subroutine tailored_output() in analysemcmc_tailored.f'
   
   
   write(u,'(/,A)')' Select which plots to make:'
@@ -336,7 +336,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   prConv = 1        !Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-medians, stdevs, etc. too.
   saveStats = 0     !Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
   savePDF = 0       !Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
-  tailoredOutput=0  !Save output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the hardcoded block tO in the subroutine tailoredOutput() in analysemcmc_stats.f
+  tailoredOutput=0  !Save output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the hardcoded block tO in the subroutine tailored_output() in analysemcmc_tailored.f
   
   plot = 1          !0: plot nothing at all, 1: plot the items selected below
   scLogLpl = 1      !Scale logL plot ranges: 0: take everything into account, including burn-in and starting values;  1: take only post-burn-in and injection values into account
@@ -1765,7 +1765,7 @@ function getos() !Determine the operating system type: 1-Linux, 2-MacOSX
   character :: ostype*25,filename*99
   filename = '.analysemcmc.uname.temp'
   i = system('uname &> '//trim(filename)) !This should return "Linux" or "Darwin"
-  open(16,file=trim(filename), status='old', form='formatted')
+  open(unit=16,file=trim(filename), status='old', form='formatted')
   read(16,'(A)')ostype
   close(16, status = 'delete')
   !write(stdOut,*)ostype
@@ -1790,9 +1790,9 @@ function timestamp()  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
   else
      i = system('date +%s >& '//trim(fname)) !%N for fractional seconds doesn't work on MacOS!!! (But it does with GNU date)
   end if
-  open(unit=9,status='old',file=trim(fname))
-  read(9,*)timestamp
-  close(9)
+  open(unit=17,status='old',file=trim(fname))
+  read(17,*)timestamp
+  close(17)
   i = system('rm -f '//trim(fname))
 end function timestamp
 !************************************************************************

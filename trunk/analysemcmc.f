@@ -3,6 +3,30 @@
 !! 
 !! \file analysemcmc.f
 !! \brief Contains analyseMCMC main routine
+!!
+!! I/O units used:
+!! 
+!!  0: StdErr
+!!  6: StdOut
+!!
+!! 10: input (MCMC) file
+!! 14: write settings file (analysemcmc.dat)
+!! 15: read settings file (analysemcmc.dat)
+!! 16: temp file in getos
+!! 17: temp file in timestamp
+!! 19: StdOut redirection (__output.txt)
+!!
+!! 20: Output: __statistics.dat, __wiki.dat, __bayes.dat 
+!!
+!! 21: bsc.dat (bright star catalogue)
+!! 22: bsc_const.dat (BSC constellation data)
+!! 23: bsc_names.dat (BSC names)
+!! 24: milkyway*.dat (Milky Way data)
+!! 
+!! 30: Output: __pdf1/2d.dat
+!! 40: output: tailored output
+!! 
+!! 
 !<
 
 ! This program replaces plotspins.
@@ -186,11 +210,13 @@ program analyseMCMC
   
 101 continue
   !Read the input files:
+  exitcode = 0
   call read_mcmcfiles(exitcode)
   if(exitcode.ne.0) goto 9998
   
   !Get and print some basic chain statistics:
   timestamps(2) = timestamp()
+  exitcode = 0
   call mcmcruninfo(exitcode)
   
   !More implicit options:
@@ -228,6 +254,7 @@ program analyseMCMC
   
   timestamps(3) = timestamp()
   
+  exitcode = 0
   call statistics(exitcode)
   if(exitcode.ne.0) goto 9999
   
@@ -255,6 +282,7 @@ program analyseMCMC
   !***********************************************************************************************************************************      
   !Plot (1d) chains: logL, parameter chains, jumps, etc.
   if(plot.eq.1) then
+     exitcode = 0
      call chains(exitcode)
      if(exitcode.ne.0) goto 9999
   end if
@@ -266,6 +294,7 @@ program analyseMCMC
   !***********************************************************************************************************************************      
   !Plot pdfs (1d)
   if(plPDF1D.ge.1) then
+     exitcode = 0
      call pdfs1d(exitcode)
      if(exitcode.ne.0) goto 9999
   end if !if(plPDF1D.ge.1)
@@ -281,6 +310,7 @@ program analyseMCMC
   end if
   
   if(plPDF2D.ge.1) then
+     exitcode = 0
      call pdfs2d(exitcode)
      if(exitcode.ne.0) goto 9999
   end if !if(plPDF2D.eq.1)
@@ -302,25 +332,33 @@ program analyseMCMC
      write(stdErr,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
      
      !Write Bayes factors to file:
+     exitcode = 0
      call save_bayes(exitcode)
      if(exitcode.ne.0) goto 9999
   end if
   
   !Write statistics to file:
   if(saveStats.ge.1.and.nchains.eq.1) then
+     exitcode = 0
      call save_stats(exitcode)
      if(exitcode.ne.0) goto 9999
      write(stdOut,*)''
   end if !if(saveStats.ge.1.and.nchains.eq.1) then
   
   
-  
+  !Save tailored output to a file:
+  if(tailoredOutput.gt.0) then
+     exitcode = 0
+     call tailored_output(exitcode)
+     !if(exitcode.ne.0) goto 9999
+  end if
   
   !***********************************************************************************************************************************      
   
   timestamps(8) = timestamp()
   
   if(plAnim.ge.1) then
+     exitcode = 0
      call animation(exitcode)
      if(exitcode.ne.0) goto 9999
   end if
@@ -347,7 +385,7 @@ program analyseMCMC
   
   timestamps(9) = timestamp()
   
-  if(prProgress.ge.1.and.exitcode.eq.0) then
+  if(prProgress.ge.1) then
      write(stdOut,'(A,$)')'  Run time: '
      write(stdOut,'(A,F5.1,A,$)')'   input:',min(abs(timestamps(2)-timestamps(1)),999.9),'s,'
      !write(stdOut,'(A,F5.1,A,$)')'   info:',min(abs(timestamps(3)-timestamps(2)),999.9),'s,'

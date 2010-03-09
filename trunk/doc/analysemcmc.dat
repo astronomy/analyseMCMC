@@ -30,7 +30,7 @@
          1              prConv     Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain
          1           saveStats     Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
          0             savePDF     Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
-         0      tailoredOutput     Save (ascii) output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the hardcoded block tO in the subroutine tailoredOutput() in analysemcmc_stats.f
+         0      tailoredOutput     Save (ascii) output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the hardcoded block tO in the subroutine tailored_output() in analysemcmc_tailored.f
 
  Select which plots to make:
          1                plot     0: plot nothing at all, 1: plot the items selected below

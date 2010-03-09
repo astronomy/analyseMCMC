@@ -1160,25 +1160,25 @@ subroutine plotthesky(bx1,bx2,by1,by2,raShift)
   end if
   
   !Read bright-star catalogue (BSC)
-  open(unit=20,form='formatted',status='old',file=trim(homedir)//'/bsc.dat')
-  rewind(20)
+  open(unit=21,form='formatted',status='old',file=trim(homedir)//'/bsc.dat')
+  rewind(21)
   do i=1,ns
-     read(20,320)name,ra(i),dec(i),pma,pmd,rv,vm(i),par,mult,var
+     read(21,320)name,ra(i),dec(i),pma,pmd,rv,vm(i),par,mult,var
 320  format(A10,1x,2F10.6,1x,2F7.3,I5,F6.2,F6.3,A2,A10)
      sn(i) = getsname(name)
      ra(i) = mod(ra(i)+raShift,tpi)-raShift
   end do
-  close(20)
-
-
+  close(21)
+  
+  
   !Read Constellation figure data for BSC
-  open(unit=40,form='formatted',status='old',file=trim(homedir)//'/bsc_const.dat')
+  open(unit=22,form='formatted',status='old',file=trim(homedir)//'/bsc_const.dat')
   do i=1,ns
-     read(40,'(I4)',end=340,advance='no')c(i,1)
+     read(22,'(I4)',end=340,advance='no')c(i,1)
      do j=1,c(i,1)
-        read(40,'(I5)',advance='no')c(i,j+1)
+        read(22,'(I5)',advance='no')c(i,j+1)
      end do
-     read(40,'(1x,A3,A20)')cn(i),con(i)
+     read(22,'(1x,A3,A20)')cn(i),con(i)
      !Get mean star position to place const. name
      dx1 = 0.d0
      dx2 = 0.d0
@@ -1199,28 +1199,28 @@ subroutine plotthesky(bx1,bx2,by1,by2,raShift)
      constx(i) = real((mod(ra1+raShift,tpi)-raShift)*r2d)
      consty(i) = real(dec1*r2d)
   end do
-340 close(40)
+340 close(22)
   nc = i-1
   
   !Read star names
-  open(unit=50,form='formatted',status='old',file=trim(homedir)//'/bsc_names.dat')
+  open(unit=23,form='formatted',status='old',file=trim(homedir)//'/bsc_names.dat')
   do i=1,nsn
-     read(50,'(I4,2x,A10)',end=350)snr(i),snam(i)
+     read(23,'(I4,2x,A10)',end=350)snr(i),snam(i)
   end do
-350 close(50)
+350 close(23)
   
   
   !!Read Milky Way data
   !do f=1,5
   !   write(mwfname,'(A10,I1,A4)')'milkyway_s',f,'.dat'
-  !   open(unit=60,form='formatted',status='old',file=trim(homedir)//'data/'//mwfname)
+  !   open(unit=24,form='formatted',status='old',file=trim(homedir)//'data/'//mwfname)
   !   do i=1,mwn(f)
-  !      read(60,'(F7.5,F9.5)')mwa(f,i),mwd(f,i)
+  !      read(24,'(F7.5,F9.5)')mwa(f,i),mwd(f,i)
   !      if(maptype.eq.1) call eq2az(mwa(f,i),mwd(f,i),agst)
   !      if(maptype.eq.2) call eq2ecl(mwa(f,i),mwd(f,i),eps)
   !   end do
   !end do
-  !close(60)
+  !close(24)
   
   
   !Plot constellation figures

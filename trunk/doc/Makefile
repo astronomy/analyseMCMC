@@ -33,7 +33,7 @@ LFLAGS = -lpgplot
 
 
 #STDOBJ = functions.o
-ANALYSEMCMC_OBJ = analysemcmc_modules.o analysemcmc_functions.o analysemcmc_stats.o analysemcmc_chains.o analysemcmc_1dpdfs.o analysemcmc_2dpdfs.o analysemcmc_animation.o analysemcmc_plot.o analysemcmc.o
+ANALYSEMCMC_OBJ = analysemcmc_modules.o analysemcmc_functions.o analysemcmc_stats.o analysemcmc_tailored.o analysemcmc_chains.o analysemcmc_1dpdfs.o analysemcmc_2dpdfs.o analysemcmc_animation.o analysemcmc_plot.o analysemcmc.o
 
 #.f.o: 
 #	$(COMP) $(CFLAGS) -c $?

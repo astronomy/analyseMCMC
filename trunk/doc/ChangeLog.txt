@@ -1,7 +1,16 @@
 
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
-    
+    	 
+   127: sluys, 09/03/2010
+     - *Makefile changed*: in line ANALYSEMCMC_OBJ=..., added analysemcmc_tailored.o
+     - added analysemcmc_tailored.f, which contains tailored output for a given paper/poster, etc.
+       - for each new problem, please create a routine tailored_output_xxxx()
+     - listed (in analysemcmc.f) and renamed (some) i/o units
+     
+   126: sluys, 09/03/2010
+     - small bugfix
+     
    125: sluys, 09/03/2010
      - *Input file changed*, see doc/analysemcmc*.dat.  Added parameters:
        - tailoredOutput:  save specific output to file
