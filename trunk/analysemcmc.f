@@ -36,6 +36,7 @@ program analyseMCMC
   call set_plotsettings()     !Set plot settings to 'default' values
   call read_settingsfile()    !Read the plot settings (overwrite the defaults)
   if(prProgress.ge.3) call write_settingsfile()   !Write the input file back to disc
+  !call write_settingsfile()   !Write the input file back to disc
   
   if(prStdOut.ge.2) then  !Write standard output to file rather than screen
      stdOut = 19
@@ -49,15 +50,6 @@ program analyseMCMC
   write(stdOut,*)
   
   whiteBG = 1                 !Use a white background in screen and bitmap plots: 0-no (black), 1-yes.  Used to be in input file, redundant I'd say.
-  fontsize1d = 1.             !Set plot scale for 1D plots, needs to be implemented fully
-  fontsize2d = 1.             !Set plot scale for 2D plots, needs to be implemented fully. Typically, take ~1.2*fontsize1d
-  if(quality.eq.91) then !NINJA
-     fontsize1d = 1.3
-     fontsize2d = 1.55
-  end if
-  orientation = 1             !Use portrait (1) or landscape (2) for eps/pdf
-  if(quality.eq.0) orientation = 2  !Easier to print eps
-  fonttype = 1                !Font type used for eps/pdf: 1-simple, 2-roman, 3-italic 4-script
   
   nchains0 = iargc()
   if(nchains0.lt.1) then

@@ -2,6 +2,14 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
     
+   125: sluys, 09/03/2010
+     - *Input file changed*, see doc/analysemcmc*.dat.  Added parameters:
+       - tailoredOutput:  save specific output to file
+       - orientation:  change the orientation of an eps/pdf file (for printing)
+       - fontType: select font type
+       - fontSize(1/2)D:  change the font size for 1D/2D plots
+       - chainSymbol:  was there before, but moved down in the input file
+     
    124: sluys, 08/03/2010
      - Set waveform type and parameter IDs manually when an old MCMC output file is used.
        Default: Apostolatos, but this can be changed (manually, hardcoded) in

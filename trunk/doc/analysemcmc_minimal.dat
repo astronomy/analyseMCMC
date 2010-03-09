@@ -5,7 +5,7 @@
          1                thin     If >1, "thin" the output; read every thin-th line 
     500000               Nburn     If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain
    0.50000           NburnFrac     If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides Nburn above
-   2.00000          autoBurnin     If >0: Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin. If <0, use Npar/2 (default). Overrides Nburn and NburnFrac above
+   2.00000          autoBurnin     If !=0: Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin. If autoBurnin<0, use Npar/2. Overrides Nburn and NburnFrac above
   1.00E+09            maxChLen     Maximum chain length to read in (number of iterations, not number of lines)
          1                file     Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter "outputdir" below
          1              colour     Use colours: 0-no (grey scales), 1-yes
@@ -30,6 +30,7 @@
          0              prConv     Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain
          1           saveStats     Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
          0             savePDF     Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
+         0      tailoredOutput     Save (ascii) output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the hardcoded block tO in the subroutine tailoredOutput() in analysemcmc_stats.f
 
  Select which plots to make:
          1                plot     0: plot nothing at all, 1: plot the items selected below
@@ -44,7 +45,6 @@
          0              plAnim     Create movie frames
 
  Detailed plot settings:
-         1         chainSymbol     Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols
          0            chainPlI     Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine, chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.
          1            scLogLpl     Scale logL plot ranges: 0: take everything into account, including burn-in and starting values;  1: take only post-burn-in and injection values into account
          1          scChainsPl     Scale chains plot ranges: 0: take everything into account, including burn-in;  1: take only post-burn-in and injection values into account
@@ -73,6 +73,13 @@
    0.74200               PSrat     Ratio for PS/PDF (PGPlot units). Default: 0.742  /   
    1.20000               scFac     !!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot
         10             unSharp     Apply unsharp mask when creating .png plots. Default: 10.
+
+ Fonts, symbols, etc.:
+         1         orientation     Use portrait (1) or landscape (2) for eps/pdf; mainly useful when sending a plot to a printer
+         1            fontType     Font type used for eps/pdf: 1-simple, 2-roman, 3-italic, 4-script
+   2.00000          fontSize1D     Scale the font size for 1D plots (chains, 1D PDFs) with respect to default.  Default: 1.0
+   1.00000          fontSize2D     Scale the font size for 2D plots (2D PDFs) with respect to default.  Default: 1.0
+         1         chainSymbol     Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols
 
  Data settings:
  Plot MCMC parameters (plPar()):  11-2:tc/t40, 21-2:d^3/logd, 31-2:RA/dec, 41:phase, 51-4:i/psi/thJo/phJo, 61-4:Mc/eta/M1/M2, 71-3:a/th/phi for spin1, 81-3: spin2

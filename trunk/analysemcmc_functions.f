@@ -100,6 +100,7 @@ subroutine read_settingsfile
   read(u,*,iostat=io)prConv
   read(u,*,iostat=io)saveStats
   read(u,*,iostat=io)savePDF
+  read(u,*,iostat=io)tailoredOutput
   
   
   read(u,*,iostat=io)bla
@@ -116,7 +117,6 @@ subroutine read_settingsfile
   
   
   read(u,*,iostat=io)bla
-  read(u,*,iostat=io)chainSymbol
   read(u,*,iostat=io)chainPlI
   read(u,*,iostat=io)scLogLpl
   read(u,*,iostat=io)scChainsPl
@@ -145,6 +145,13 @@ subroutine read_settingsfile
   read(u,*,iostat=io)PSrat
   read(u,*,iostat=io)scFac
   read(u,*,iostat=io)unSharp
+
+  read(u,*,iostat=io)bla
+  read(u,*,iostat=io)orientation
+  read(u,*,iostat=io)fontType
+  read(u,*,iostat=io)fontSize1D
+  read(u,*,iostat=io)fontSize2D
+  read(u,*,iostat=io)chainSymbol
   
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)bla
@@ -220,6 +227,7 @@ subroutine write_settingsfile
   write(u,11)prConv, 'prConv',   'Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain'
   write(u,11)saveStats, 'saveStats',   'Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS'
   write(u,11)savePDF, 'savePDF',   'Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying'
+  write(u,11)tailoredOutput, 'tailoredOutput',   'Save (ascii) output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the hardcoded block tO in the subroutine tailoredOutput() in analysemcmc_stats.f'
   
   
   write(u,'(/,A)')' Select which plots to make:'
@@ -236,7 +244,6 @@ subroutine write_settingsfile
   
   
   write(u,'(/,A)')' Detailed plot settings:'
-  write(u,11)chainSymbol, 'chainSymbol',   'Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols'
   write(u,11)chainPlI, 'chainPlI',   'Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine, chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.'
   write(u,11)scLogLpl, 'scLogLpl',   'Scale logL plot ranges: 0: take everything into account, including burn-in and starting values;  1: take only post-burn-in and injection values into account'
   write(u,11)scChainsPl, 'scChainsPl',   'Scale chains plot ranges: 0: take everything into account, including burn-in;  1: take only post-burn-in and injection values into account'
@@ -268,6 +275,13 @@ subroutine write_settingsfile
   write(u,21)PSrat, 'PSrat',   'Ratio for PS/PDF (PGPlot units). Default: 0.742  /   '
   write(u,21)scFac, 'scFac',   '!!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot'
   write(u,11)unSharp, 'unSharp',   'Apply unsharp mask when creating .png plots. Default: 10.'
+
+  write(u,'(/,A)')' Fonts, symbols, etc.:'
+  write(u,11)orientation, 'orientation',   'Use portrait (1) or landscape (2) for eps/pdf; mainly useful when sending a plot to a printer'
+  write(u,11)fontType, 'fontType',   'Font type used for eps/pdf: 1-simple, 2-roman, 3-italic, 4-script'
+  write(u,21)fontSize1D, 'fontSize1D',   'Scale the font size for 1D plots (chains, 1D PDFs) with respect to default.  Default: 1.0'
+  write(u,21)fontSize2D, 'fontSize2D',   'Scale the font size for 2D plots (2D PDFs) with respect to default.  Default: 1.0'
+  write(u,11)chainSymbol, 'chainSymbol',   'Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols'
   
   write(u,'(/,A)')' Data settings:'
   write(u,'(A)')' Plot MCMC parameters (plPar()):  11-2:tc/t40, 21-2:d^3/logd, 31-2:RA/dec, 41:phase, 51-4:i/psi/thJo/phJo, 61-4:Mc/eta/M1/M2, 71-3:a/th/phi for spin1, 81-3: spin2'
@@ -322,6 +336,7 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   prConv = 1        !Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-medians, stdevs, etc. too.
   saveStats = 0     !Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
   savePDF = 0       !Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
+  tailoredOutput=0  !Save output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the hardcoded block tO in the subroutine tailoredOutput() in analysemcmc_stats.f
   
   plot = 1          !0: plot nothing at all, 1: plot the items selected below
   scLogLpl = 1      !Scale logL plot ranges: 0: take everything into account, including burn-in and starting values;  1: take only post-burn-in and injection values into account
@@ -336,7 +351,6 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   plotSky = 0       !Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
   plAnim = 0        !Plot movie frames
   
-  chainSymbol = 1   !Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle
   chainPlI = 0      !Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine, chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.
   plInject = 1        !Plot injection values in the chains and pdfs
   plStart = 1       !Plot starting values in the chains and pdfs
@@ -363,6 +377,12 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   PSrat  = 0.742    !Ratio for PS/PDF (PGPlot units). Default: 0.742  /
   scFac = 1.2       !Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot
   unSharp = 10      !Apply unsharp mask when creating .png plots. Default: 10
+  
+  orientation = 1   !Use portrait (1) or landscape (2) for eps/pdf; mainly useful when sending a plot to a printer
+  fonttype = 1      !Font type used for eps/pdf: 1-simple, 2-roman, 3-italic, 4-script
+  fontsize1d = 1.   !Set plot scale for 1D plots, needs to be implemented fully
+  fontsize2d = 1.   !Set plot scale for 2D plots, needs to be implemented fully. Typically, take ~1.2*fontsize1d
+  chainSymbol = 1   !Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle
   
   nPlPar = 15       !Number of plot parameters for 1D plots
   plPars(1:nPlPar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !The nPlPar plot parameters

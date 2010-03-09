@@ -42,52 +42,52 @@ subroutine pdfs1d(exitcode)
      if(file.eq.0) then
         io = pgopen('14/xs')
         sch = 1.5*fontsize1d
-        lw = 1
+        lw = nint(1*fontsize1d)
      end if
      if(file.ge.1) then
         if(file.eq.1) io = pgopen('pdfs.ppm/ppm')
         if(file.ge.2) io = pgopen('pdfs.eps'//trim(psclr))
-        lw = 3
-        if(nPlPar.ge.10) lw = 2
+        lw = nint(3*fontsize1d)
+        if(nPlPar.ge.10) lw = nint(2*fontsize1d)
         if(quality.lt.2) lw = max(lw-1,1)  !Draft/Paper
         sch = 1.2*fontsize1d !2.5
         if(nchains.eq.1.and.nPlPar.gt.9) sch = 1.2*fontsize1d
         if(quality.eq.0) then !Draft
            sch = sch*1.75
-           lw = 2
+           lw = nint(2*fontsize1d)
         end if
         if(quality.eq.1) then !Paper
            if(nPlPar.eq.12) then
               sch = sch*1.75
-              lw = 2
+              lw = nint(2*fontsize1d)
            else
               sch = sch*1.25
-              lw = 1
+              lw = nint(1*fontsize1d)
            end if
         end if
         if(quality.eq.2) then !Talk
            if(nPlPar.le.12) then
               sch = sch*2
-              lw = 2
+              lw = nint(2*fontsize1d)
            else
               sch = sch*1.5
-              lw = 1
+              lw = nint(1*fontsize1d)
            end if
         end if
         if(quality.eq.3) then !Poster
            if(nPlPar.eq.12.and.file.ge.2) then
               sch = sch*2.7
-              lw = 3
+              lw = nint(3*fontsize1d)
            else
               !sch = sch*1.25
-              !lw = 1
+              !lw = nint(1*fontsize1d)
               sch = sch*1.5
-              lw = 2
+              lw = nint(2*fontsize1d)
            end if
         end if
         if(quality.eq.4) then !Vivien's thesis
            sch = sch*2.5
-           lw = 2
+           lw = nint(2*fontsize1d)
         end if
      end if !if(file.ge.1)
      if(io.le.0) then
@@ -190,8 +190,8 @@ subroutine pdfs1d(exitcode)
            else !Normalise to the height of the PDF
               if(normPDF1D.eq.2) ybin1 = ybin1/maxval(ybin1)  !Normalise to the height of the PDF
               if(normPDF1D.eq.3) ybin1 = ybin1/(maxval(ybin1)**0.5)  !Normalise to the sqrt of the height of the PDF; Works nicely for comparing parallel-tempering chains
-			  if(normPDF1D.eq.4) ybin1 = (ybin1/maxval(ybin1))**(Tchain(ic)) !Extrapolate the true PDF from temperature chains
-			  if(normPDF1D.eq.5) ybin1 = (ybin1/maxval(ybin1))**(2.0)
+                          if(normPDF1D.eq.4) ybin1 = (ybin1/maxval(ybin1))**(Tchain(ic)) !Extrapolate the true PDF from temperature chains
+                          if(normPDF1D.eq.5) ybin1 = (ybin1/maxval(ybin1))**(2.0)
               if(ic*j.eq.1) write(stdErr,'(//,A,/)')'  *** WARNING: using non-default normalisation for PDFs ***'
            end if
         end if

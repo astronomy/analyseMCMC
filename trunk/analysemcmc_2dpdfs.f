@@ -10,7 +10,7 @@ subroutine pdfs2d(exitcode)
   use stats_data
   implicit none
   integer :: i,j,j1,j2,p1,p2,ic,lw,io,exitcode,c,system,pgopen,clr,maxclr
-  integer :: npdf,ncont,lw2,plotthis,injectionrange2d,countplots,totplots
+  integer :: npdf,ncont,flw,plotthis,injectionrange2d,countplots,totplots
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
@@ -69,18 +69,18 @@ subroutine pdfs2d(exitcode)
   if(plot.eq.1) then
      if(file.eq.0) then
         lw = 1
-        lw2 = 1
+        flw = nint(1*fontsize2d) !Font lw
         sch = 1.5*fontsize2d
      end if
      if(file.ge.1) then
         !if(file.ge.2.and.multipagefile) io = pgopen('pdf2d.eps'//trim(psclr))
         lw = 3
-        lw2 = 2 !Font lw
-        if(quality.eq.91) lw2 = 3 !NINJA
+        flw = nint(2*fontsize2d) !Font lw
+        if(quality.eq.91) flw = nint(3*fontsize2d) !NINJA
         sch = 1.5*fontsize2d
         if(quality.eq.3) then !Poster
            lw = 4
-           lw2 = 3 !Font lw
+           flw = nint(3*fontsize2d) !Font lw
            sch = 2.*fontsize2d
         end if
         if(PSsz.lt.5) sch = sch * sqrt(5.0/PSsz)
@@ -576,7 +576,7 @@ subroutine pdfs2d(exitcode)
            
            !Plot coordinate axes and axis labels in 2D PDF
            call pgsls(1)
-           call pgslw(lw2)
+           call pgslw(flw)
            call pgsci(1)
            if(.not.project_map) call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
            !if(plotSky.eq.1) then

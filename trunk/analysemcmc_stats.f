@@ -256,14 +256,14 @@ subroutine statistics(exitcode)
      !if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A,$)')'  Bayes factor,'
      total = 0
      total2 = 0
-	 total3 = 0
+         total3 = 0
      maxlogl = -1.e30
      minlogl =  1.e30
      do i=Nburn(ic),Ntot(ic)
         var = post(ic,i)          !Use quadruple precision
         total = total + exp(-var)**(1/Tchain(ic))
         total2 = total2 + exp(var)**(1-(1/Tchain(ic)))
-		total3 = total3 + var
+                total3 = total3 + var
         maxlogl = max(post(ic,i),maxlogl)
         minlogl = min(post(ic,i),minlogl)
      end do
@@ -271,14 +271,14 @@ subroutine statistics(exitcode)
      var = total2/total
      logebayesfactor(ic) = real(log(var))
      log10bayesfactor(ic) = real(log10(var))
-	 
-	 if(ic.eq.nChains) then
-	 deltab = 1/Tchain(ic)
-	 else
-	 deltab = 1/Tchain(ic) - 1/Tchain(ic+1)
-	 end if
-	 
-	 logebayestempfactor(ic) = real((total3/(n(ic)))*deltab)
+         
+         if(ic.eq.nChains) then
+         deltab = 1/Tchain(ic)
+         else
+         deltab = 1/Tchain(ic) - 1/Tchain(ic+1)
+         end if
+         
+         logebayestempfactor(ic) = real((total3/(n(ic)))*deltab)
      !write(stdOut,'(A,4F10.3,2I9,F10.3)')'ln Bayes',logebayesfactor(ic),log10bayesfactor(ic),maxlogl,minlogl,n(ic),ic,Tchain(ic)
      write(stdOut,'(A,F10.3,I9,2F10.3,3I9)')'ln Bayes',logebayestempfactor(ic),ic,Tchain(ic),deltab,Nburn(ic),Ntot(ic),n(ic)
      
