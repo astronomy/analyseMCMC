@@ -236,21 +236,26 @@ subroutine pdfs2d(exitcode)
            
            if(normPDF2D.eq.1) z = max(0.,log10(z + 1.e-30))
            if(normPDF2D.eq.2) z = max(0.,sqrt(z + 1.e-30))
+           
            if(normPDF2D.eq.4) then
+              
+              !Get 2D probability ranges; identify to which range each bin belongs:
               if(prProgress.ge.3) write(stdOut,'(A,$)')'  identifying 2D ranges...'
-              call identify_2d_ranges(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr) !Get 2D probability ranges; identify to which range each bin belongs
+              call identify_2d_ranges(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr)
+              
+              !Compute 2D probability areas; sum the areas of all bins:
               if(prProgress.ge.3) write(stdOut,'(A,$)')'  computing 2D areas...'
-              call calc_2d_areas(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr,probarea) !Compute 2D probability areas; sum the areas of all bins
+              call calc_2d_areas(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr,probArea)
               injectionranges2d(p1,p2) = injectionrange2d(z,Nbin2Dx+1,Nbin2Dy+1,startval(1,p1,1),startval(1,p2,1),tr)
-              !write(stdOut,'(/,A23,2(2x,A21))')'Probability interval:','Equivalent diameter:','Fraction of a sphere:'
+              
               do i=1,Nival
                  if(prIval.ge.1.and.prProgress.ge.2 .and. (sky_position .or. binary_orientation)) then  !For sky position and orientation only
                     if(i.eq.1) write(stdOut,'(/,1x,A10,A13,3A23)')'Nr.','Ival frac.','Area (sq.deg) ','Circ. area rad. (deg) ','Fraction of sky '
-                    write(stdOut,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probarea(i),sqrt(probarea(i)/pi)*2,probarea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
+                    write(stdOut,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probArea(i),sqrt(probArea(i)/pi)*2,probArea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
                  end if
-                 probareas(p1,p2,i,1) = probarea(i)*(pi/180.)**2/(4*pi)  !Fraction of the sky
-                 probareas(p1,p2,i,2) = sqrt(probarea(i)/pi)*2           !Equivalent diameter
-                 probareas(p1,p2,i,3) = probarea(i)                      !Square degrees
+                 probAreas(p1,p2,i,1) = probArea(i)*(pi/180.)**2/(4*pi)  !Fraction of the sky
+                 probAreas(p1,p2,i,2) = sqrt(probArea(i)/pi)*2           !Equivalent diameter
+                 probAreas(p1,p2,i,3) = probArea(i)                      !Square degrees
               end do
            end if
         end if
@@ -604,7 +609,7 @@ subroutine pdfs2d(exitcode)
                  end if
                  
                  i = 3  !2-use degrees, 3-square degrees
-                 a = probareas(p1,p2,c,i)
+                 a = probAreas(p1,p2,c,i)
                  if(i.eq.2) then
                     if(a.lt.1.) then
                        write(string,'(A,F5.2,A7)')trim(ivalstr)//':',a,'\(2218)'

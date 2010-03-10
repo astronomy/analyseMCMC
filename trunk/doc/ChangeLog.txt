@@ -1,7 +1,10 @@
 
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
-    	 
+   
+   128: sluys, 10/03/2010
+     - Completed tailored_output_0002(): output for methods paper
+     
    127: sluys, 09/03/2010
      - *Makefile changed*: in line ANALYSEMCMC_OBJ=..., added analysemcmc_tailored.o
      - added analysemcmc_tailored.f, which contains tailored output for a given paper/poster, etc.
