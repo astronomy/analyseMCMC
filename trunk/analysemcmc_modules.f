@@ -45,7 +45,7 @@ module general_data
   implicit none
   save
   integer, parameter :: maxIter=1.5e5                                     !< maxIter: Maximum number of iterations (output lines) that can be stored
-  integer, parameter :: nr1=5,nstat1=10,ndets=3
+  integer, parameter :: nr1=5,nstat1=10,ndets=4
   integer :: n(maxChs),ntot(maxChs),iloglmax,icloglmax,c0,nchains,nchains0
   integer :: fixedpar(maxMCMCpar),nfixedpar,contrchains,contrchain(maxChs)
   real, allocatable :: selDat(:,:,:),allDat(:,:,:),post(:,:),prior(:,:)

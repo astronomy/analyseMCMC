@@ -456,6 +456,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
         if(detname(j-3:j).eq.'ford') detnr(ic,i) = 1
         if(detname(j-3:j).eq.'ston') detnr(ic,i) = 2
         if(detname(j-3:j).eq.'Pisa') detnr(ic,i) = 3
+		if(detname(j-3:j).eq.'Aigo') detnr(ic,i) = 4
      end do
      
      parID = 0
