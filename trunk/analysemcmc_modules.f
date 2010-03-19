@@ -121,7 +121,7 @@ module chain_data
   real :: is(maxChs,maxIter),isburn(maxChs)
   real :: jumps(maxChs,maxMCMCpar,maxIter)
   real :: corrs(maxMCMCpar,maxMCMCpar),acorrs(maxChs,0:maxMCMCpar,0:maxIter),lAcorrs(maxChs,0:maxMCMCpar)
-  real*8 :: nullh
+  real*8 :: DoverD
 end module chain_data
 !***************************************************************************************************
 

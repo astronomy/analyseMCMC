@@ -677,8 +677,8 @@ subroutine save_stats(exitcode)  !Save statistics to file
   
   !Print general run and detector info:
   write(o,'(//,A,/)')'GENERAL INFORMATION:'
-  write(o,'(6x,4A12,A12,A5  A8,A22,A8)')'totiter','totlines','totpts','totburn','nChains','used','seed','null likelihood','ndet'
-  write(o,'(6x,4I12,I12,I5, I8,F22.10,I8)')totiter,totlines,totpts,totlines-totpts,nChains0,contrChains,seed(ic),nullh,ndet(ic)
+  write(o,'(6x,4A12,A12,A5  A8,A22,A8)')'totiter','totlines','totpts','totburn','nChains','used','seed','<d|d>','ndet'
+  write(o,'(6x,4I12,I12,I5, I8,F22.10,I8)')totiter,totlines,totpts,totlines-totpts,nChains0,contrChains,seed(ic),DoverD,ndet(ic)
   write(o,*)''
   write(o,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
   do i=1,ndet(ic)
@@ -824,8 +824,8 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   write(o,'(A)')trim(outputname)
   
   write(o,'(//,A,/)')'GENERAL INFORMATION:'
-  write(o,'(6x,7A12,5A22)')'nChains','used','totiter','totlines','totpts','totburn','seed','null likelihood','ln(Bayes_total_arith)','ln(Bayes_total_harmo)','ln(Bayes_total_geom)','ln(Bayes_total_temp)'
-  write(o,'(6x,7I12,F22.5,4F22.5)')nchains0,contrChains,totiter,totlines,totpts,totlines-totpts,seed(1),nullh,logebayesfactortotalarith,logebayesfactortotalharmo,logebayesfactortotalgeom,logebayesfactortotal
+  write(o,'(6x,7A12,5A22)')'nChains','used','totiter','totlines','totpts','totburn','seed','<d|d>','ln(Bayes_total_arith)','ln(Bayes_total_harmo)','ln(Bayes_total_geom)','ln(Bayes_total_temp)'
+  write(o,'(6x,7I12,F22.5,4F22.5)')nchains0,contrChains,totiter,totlines,totpts,totlines-totpts,seed(1),DoverD,logebayesfactortotalarith,logebayesfactortotalharmo,logebayesfactortotalgeom,logebayesfactortotal
 
   
   write(o,'(//,A,/)')'EVIDENCES:'

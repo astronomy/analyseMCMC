@@ -435,7 +435,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      
      !Read the headers
      !Determine from the length of the first line whether this is output from before of after July 2009
-     !  before: first line is >80 characters long header (     Niter       Nburn    seed       null likelihood    Ndet    Ncorr   Ntemps      Tmax      Tchain   Network SNR)
+     !  before: first line is >80 characters long header (     Niter       Nburn    seed       null likelihood (now <d|d>)    Ndet    Ncorr   Ntemps      Tmax      Tchain   Network SNR)
      !  after:  first line is <80 characters long version number (  SPINspiral version:    1.00)
      
      outputVersion = 0.0  !Use old format
@@ -443,7 +443,8 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      if(len_trim(firstLine).lt.80) read(firstLine,'(A21,F8.2)')tmpStr,outputVersion  !Use new format
      
      if(outputVersion > 0.5) read(10,*,end=199,err=199)tmpStr  !Read empty line between version number and first header
-     read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') niter(ic),Nburn0(ic),seed(ic),nullh,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform,pnOrder,nMCMCpar
+     read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform,pnOrder,nMCMCpar
+     
      nMCMCpar0 = nMCMCpar  !< nMCMCpar may change when secondary parameters are computed
      
      read(10,*,end=199,err=199)tmpStr !Read empty line above detector info
@@ -611,9 +612,9 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
               write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
               write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(13:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
            else
-              write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8,  2A8,2A8,  A8,  A8,  A8, 3x,A8)') 'Chain','file name','colour','Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','pN','Npar','WaveForm'
-              write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8,  2I8,2F8.1,F8.3,F8.1,I8, 3x,A)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic), &
-                   nCorr(ic),nTemps(ic),real(Tmax(ic)),Tchain(ic),networkSNR(ic),pnOrder,nMCMCpar,trim(waveforms(waveform))
+              write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8,  2A8,2A8,  A8,  A10,  A8,  A8, 3x,A8)') 'Chain','file name','colour','Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','<d|d>','pN','Npar','WaveForm'
+              write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8,  2I8,2F8.1,F8.3,F10.2,F8.1,I8, 3x,A)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic), &
+                   nCorr(ic),nTemps(ic),real(Tmax(ic)),Tchain(ic),networkSNR(ic),DoverD,pnOrder,nMCMCpar,trim(waveforms(waveform))
            end if
            
            write(stdOut,*)

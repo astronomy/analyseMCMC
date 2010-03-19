@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   130: sluys, 19/03/2010
+     - Added <d|d> to output, assuming it is read from the field that contained log L_null
+       (this still needs to be changed in SPINspiral)
+   
    128: sluys, 10/03/2010
      - Completed tailored_output_0002(): output for methods paper
      

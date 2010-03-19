@@ -680,7 +680,7 @@ subroutine pdfs2d(exitcode)
            if(file.ge.2) then
               call pgend
               if(file.eq.3) then
-                 i = system('eps2pdf '//trim(tempfile))
+                 i = system('eps2pdf '//trim(tempfile)//' &> /dev/null')
                  if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
               end if
            end if
