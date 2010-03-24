@@ -46,10 +46,11 @@ program analyseMCMC
   use chain_data
   
   implicit none
-  integer :: i,ic,io,iargc,exitcode,tempintarray(99),getos,get_ran_seed,system
+  integer :: i,ic,io,iargc,exitcode,tempintarray(99),getos,get_ran_seed,status,system
   real :: pltsz
   real*8 :: timestamp,timestamps(9)  !< Time the progress of the code.
   character :: infile*99
+  logical :: ex
   
   wikioutput = 1  !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
   map_projection = 1  !Choose map projection: 1-Mollweide
@@ -64,9 +65,16 @@ program analyseMCMC
   if(prProgress.ge.3) call write_settingsfile()   !Write the input file back to disc
   !call write_settingsfile()   !Write the input file back to disc
   
+  outputdir = '.'  !Directory where output is saved (either relative or absolute path)
+  inquire(file=trim(outputdir), exist=ex)  !Check whether the directory already exists 
+  if(.not.ex) then
+     status = system('mkdir -p '//trim(outputdir))
+     if(status.ne.0) call quit_program('Could not create output directory: '//trim(outputdir)//'/')
+  end if
+  
   if(prStdOut.ge.2) then  !Write standard output to file rather than screen
      stdOut = 19
-     write(stdOutFile,'(A,I6.6,A)')'analysemcmc_tempstdout_',abs(get_ran_seed(0)),'.txt'
+     write(stdOutFile,'(A,I6.6,A)')trim(outputdir)//'/analysemcmc_tempstdout_',abs(get_ran_seed(0)),'.txt'
      open(unit=stdOut,action='write',form='formatted',status='replace',file=trim(stdOutFile),iostat=io)
      if(io.ne.0) then
         write(stdErr,'(A)')'  Error opening output file '//trim(stdOutFile)//', aborting...'
@@ -118,7 +126,6 @@ program analyseMCMC
   write(unSharppdf1d,'(I4)')max(nint(real(unSharp)/2.),1) !~12 panels, no dots
   write(unSharppdf2d,'(I4)')max(nint(real(unSharp)/4.),1) !1 panel, no dots
   
-  outputdir = '.'  !Directory where output is saved (either relative or absolute path)
   
   
   
@@ -420,14 +427,15 @@ program analyseMCMC
   
   write(stdOut,*)''
   
+  !Save standard-output file under final name:
   if(prStdOut.ge.2) then
-     io = system('mv -f '//trim(stdOutFile)//' '//trim(outputname)//'__output.txt')
-     if(io.eq.0) then
-        write(6,'(/,A,/)')'  AnalyseMCMC:  saved standard output to '//trim(outputname)//'__output.txt'  !Should be 6, not stdOut
+     status = system('mv -f '//trim(stdOutFile)//' '//trim(outputdir)//'/'//trim(outputname)//'__output.txt')
+     if(status.eq.0) then
+        write(6,'(/,A,/)')'  AnalyseMCMC:  saved standard output to '//trim(outputdir)//'/'//trim(outputname)//'__output.txt'  !Should be 6, not stdOut
      else
-        write(stdErr,'(/,A)')'  AnalyseMCMC:  Error saving standard output to '//trim(outputname)//'__output.txt'
+        write(stdErr,'(/,A)')'  AnalyseMCMC:  Error saving standard output to '//trim(outputdir)//'/'//trim(outputname)//'__output.txt'
         !write(stdErr,'(A,/)')'                Check the file '//trim(stdOutFile)
-        io = system('rm -f '//trim(stdOutFile))
+        status = system('rm -f '//trim(stdOutFile))
         write(stdErr,*)
      end if
   end if

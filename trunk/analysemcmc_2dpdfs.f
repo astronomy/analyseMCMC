@@ -73,7 +73,7 @@ subroutine pdfs2d(exitcode)
         sch = 1.5*fontsize2d
      end if
      if(file.ge.1) then
-        !if(file.ge.2.and.multipagefile) io = pgopen('pdf2d.eps'//trim(psclr))
+        !if(file.ge.2.and.multipagefile) io = pgopen(trim(outputdir)//'/pdf2d.eps'//trim(psclr))
         lw = 3
         flw = nint(2*fontsize2d) !Font lw
         if(quality.eq.91) flw = nint(3*fontsize2d) !NINJA
@@ -115,8 +115,10 @@ subroutine pdfs2d(exitcode)
         else
            if(p2.le.p1) cycle
            if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
-           write(stdOut,*)upline !Move cursor up 1 line
-           if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(F7.1,A)')real(countplots+1)/real(totplots)*100,'%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                      '
+           if(stdOut.lt.10) then
+              write(stdOut,*)upline !Move cursor up 1 line
+              if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(F7.1,A)')real(countplots+1)/real(totplots)*100,'%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                      '
+           end if
         end if
         
         
@@ -142,7 +144,7 @@ subroutine pdfs2d(exitcode)
               call pginitl(colour,file,whiteBG)
            end if
            if(file.eq.1) then
-              write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.ppm'
+              write(tempfile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.ppm'
               io = pgopen(trim(tempfile)//'/ppm')
               if(project_map) then
                  call pgpap(bmpsz/0.5*bmprat,0.5)
@@ -152,7 +154,7 @@ subroutine pdfs2d(exitcode)
               call pginitl(colour,file,whiteBG)
            end if
            if(file.ge.2) then
-              write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.eps'
+              write(tempfile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.eps'
               io = pgopen(trim(tempfile)//trim(psclr))
               if(project_map) then
                  call pgpap(PSsz/0.5*PSrat,0.5)
@@ -718,7 +720,7 @@ subroutine pdfs2d(exitcode)
                  if(p2.le.p1) cycle
                  if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
               end if
-              write(tempfile,'(A)') trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.ppm'
+              write(tempfile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.ppm'
               i = system('rm -f '//trim(tempfile))
            end do
         end do

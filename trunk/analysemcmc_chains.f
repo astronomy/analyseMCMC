@@ -26,8 +26,8 @@ subroutine chains(exitcode)
         call pgsch(1.5)
      end if
      if(file.ge.1) then
-        if(file.eq.1) io = pgopen('posterior.ppm/ppm')
-        if(file.ge.2) io = pgopen('posterior.eps'//trim(psclr))
+        if(file.eq.1) io = pgopen(trim(outputdir)//'/posterior.ppm/ppm')
+        if(file.ge.2) io = pgopen(trim(outputdir)//'/posterior.eps'//trim(psclr))
         call pgsch(1.2)
      end if
      if(io.le.0) then
@@ -129,15 +129,15 @@ subroutine chains(exitcode)
      call pgend
      if(file.ge.2) then
         if(file.eq.3) then
-           i = system('eps2pdf posterior.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__posterior.pdf   >& /dev/null')
+           i = system('eps2pdf '//trim(outputdir)//'/posterior.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__posterior.pdf   >& /dev/null')
            if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
         end if
-        i = system('mv -f posterior.eps '//trim(outputdir)//'/'//trim(outputname)//'__posterior.eps')
+        i = system('mv -f '//trim(outputdir)//'/posterior.eps '//trim(outputdir)//'/'//trim(outputname)//'__posterior.eps')
      end if
      if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharplogl)//' posterior.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__posterior.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharplogl)//' '//trim(outputdir)//'/posterior.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__posterior.png')
         if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
-        i = system('rm -f posterior.ppm')
+        i = system('rm -f '//trim(outputdir)//'/posterior.ppm')
         !if(i.ne.0) write(stdErr,'(A)')'  Error removing file',i
      end if
   end if !if(plLogL.eq.1) then
@@ -168,8 +168,8 @@ subroutine chains(exitcode)
         lw = 1
      end if
      if(file.ge.1) then
-        if(file.eq.1) io = pgopen('chains.ppm/ppm')
-        if(file.ge.2) io = pgopen('chains.eps'//trim(psclr))
+        if(file.eq.1) io = pgopen(trim(outputdir)//'/chains.ppm/ppm')
+        if(file.ge.2) io = pgopen(trim(outputdir)//'/chains.eps'//trim(psclr))
         lw = 3
         if(nPlPar.ge.10) lw = 2
         if(quality.lt.2) lw = max(lw-1,1)  !Draft/Paper
@@ -458,15 +458,15 @@ subroutine chains(exitcode)
      call pgend
      if(file.ge.2) then
         if(file.eq.3) then
-           i = system('eps2pdf chains.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__chains.pdf   >& /dev/null')
+           i = system('eps2pdf '//trim(outputdir)//'/chains.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__chains.pdf   >& /dev/null')
            if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
         end if
-        i = system('mv -f chains.eps '//trim(outputdir)//'/'//trim(outputname)//'__chains.eps')
+        i = system('mv -f '//trim(outputdir)//'/chains.eps '//trim(outputdir)//'/'//trim(outputname)//'__chains.eps')
      end if
      if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' chains.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__chains.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)//'/chains.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__chains.png')
         if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
-        i = system('rm -f chains.ppm')
+        i = system('rm -f '//trim(outputdir)//'/chains.ppm')
      end if
   end if !if(plChain.eq.1)
   !***********************************************************************************************************************************      
@@ -503,8 +503,8 @@ subroutine chains(exitcode)
         lw = 1
      end if
      if(file.ge.1) then
-        if(file.eq.1) io = pgopen('parlogl.ppm/ppm')
-        if(file.ge.2) io = pgopen('parlogl.eps'//trim(psclr))
+        if(file.eq.1) io = pgopen(trim(outputdir)//'/parlogl.ppm/ppm')
+        if(file.ge.2) io = pgopen(trim(outputdir)//'/parlogl.eps'//trim(psclr))
         lw = 3
         if(nPlPar.ge.10) lw = 2
         if(quality.lt.2) lw = max(lw-1,1)  !Draft/Paper
@@ -749,15 +749,15 @@ subroutine chains(exitcode)
      call pgend
      if(file.ge.2) then
         if(file.eq.3) then
-           i = system('eps2pdf parlogl.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.pdf   >& /dev/null')
+           i = system('eps2pdf '//trim(outputdir)//'/parlogl.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.pdf   >& /dev/null')
            if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
         end if
-        i = system('mv -f parlogl.eps '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.eps')
+        i = system('mv -f '//trim(outputdir)//'/parlogl.eps '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.eps')
      end if
      if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' parlogl.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)//'/parlogl.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.png')
         if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
-        i = system('rm -f parlogl.ppm')
+        i = system('rm -f '//trim(outputdir)//'/parlogl.ppm')
      end if
   end if !if(plParL.eq.1)
   
@@ -778,8 +778,8 @@ subroutine chains(exitcode)
         sch = fontsize1d*1.5
      end if
      if(file.ge.1) then
-        if(file.eq.1) io = pgopen('jumps.ppm/ppm')
-        if(file.ge.2) io = pgopen('jumps.eps'//trim(psclr))
+        if(file.eq.1) io = pgopen(trim(outputdir)//'/jumps.ppm/ppm')
+        if(file.ge.2) io = pgopen(trim(outputdir)//'/jumps.eps'//trim(psclr))
         sch = fontsize1d*1.2
      end if
      if(io.le.0) then
@@ -884,15 +884,15 @@ subroutine chains(exitcode)
      call pgend
      if(file.ge.2) then
         if(file.eq.3) then
-           i = system('eps2pdf jumps.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__jumps.pdf   >& /dev/null')
+           i = system('eps2pdf '//trim(outputdir)//'/jumps.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__jumps.pdf   >& /dev/null')
            if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
         end if
-        i = system('mv -f jumps.eps '//trim(outputdir)//'/'//trim(outputname)//'__jumps.eps')
+        i = system('mv -f '//trim(outputdir)//'/jumps.eps '//trim(outputdir)//'/'//trim(outputname)//'__jumps.eps')
      end if
      if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' jumps.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__jumps.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)//'/jumps.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__jumps.png')
         if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
-        i = system('rm -f jumps.ppm')
+        i = system('rm -f '//trim(outputdir)//'/jumps.ppm')
      end if
   end if !if(plJump.ge.1)
   
@@ -914,13 +914,13 @@ subroutine chains(exitcode)
         call pgpap(scrSz,scrRat)
      end if
      if(file.eq.1) then
-        io = pgopen('acorrs.ppm/ppm')
+        io = pgopen(trim(outputdir)//'/acorrs.ppm/ppm')
         sch = fontsize1d*1.2
         sch = sch*1.5
         call pgpap(bmpsz,bmprat)
      end if
      if(file.ge.2) then
-        io = pgopen('acorrs.eps'//trim(psclr))
+        io = pgopen(trim(outputdir)//'/acorrs.eps'//trim(psclr))
         sch = fontsize1d*1.2
         sch = sch*1.5
         call pgpap(PSsz,PSrat)
@@ -1009,15 +1009,15 @@ subroutine chains(exitcode)
      call pgend
      if(file.ge.2) then
         if(file.eq.3) then
-           i = system('eps2pdf acorrs.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.pdf   >& /dev/null')
+           i = system('eps2pdf '//trim(outputdir)//'/acorrs.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.pdf   >& /dev/null')
            if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
         end if
-        i = system('mv -f acorrs.eps '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.eps')
+        i = system('mv -f '//trim(outputdir)//'/acorrs.eps '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.eps')
      end if
      if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' acorrs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)//'/acorrs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.png')
         if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
-        i = system('rm -f acorrs.ppm')
+        i = system('rm -f '//trim(outputdir)//'/acorrs.ppm')
      end if
   end if !if(plAcorr.gt.0)
   

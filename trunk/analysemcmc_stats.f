@@ -798,8 +798,8 @@ subroutine save_stats(exitcode)  !Save statistics to file
   if(saveStats.eq.2) i = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
   !write(stdOut,*)''
   if(prProgress.ge.1) then
-     if(saveStats.eq.1) write(stdOut,'(A)')'  Statistics saved in '//trim(outputname)//'__statistics.dat'
-     if(saveStats.eq.2) write(stdOut,'(A)')'  Statistics saved in '//trim(outputname)//'__statistics.dat,ps'
+     if(saveStats.eq.1) write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat'
+     if(saveStats.eq.2) write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat,ps'
   end if
   
 end subroutine save_stats
@@ -839,8 +839,8 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   if(saveStats.eq.2) i = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__bayes.ps')
   !write(stdOut,*)''
   if(prProgress.ge.1) then
-     if(saveStats.eq.1) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputname)//'__bayes.dat'
-     if(saveStats.eq.2) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputname)//'__bayes.dat,ps'
+     if(saveStats.eq.1) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat'
+     if(saveStats.eq.2) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat,ps'
   end if
   
 end subroutine save_bayes
@@ -869,7 +869,7 @@ subroutine save_cbc_wiki_data(ic)
   !Print output for CBC Wiki:
   o = 20
   write(wikifilename,'(A)')trim(outputname)//'__wiki.dat'
-  open(unit=o,form='formatted',status='replace',action='write',position='rewind',file=trim(wikifilename),iostat=io)
+  open(unit=o,form='formatted',status='replace',action='write',position='rewind',file=trim(outputdir)//'/'//trim(wikifilename),iostat=io)
   if(io.ne.0) then
      write(stdErr,'(A)')'  Error opening '//trim(wikifilename)//', aborting...'
      stop

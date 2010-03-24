@@ -45,8 +45,8 @@ subroutine pdfs1d(exitcode)
         lw = nint(1*fontsize1d)
      end if
      if(file.ge.1) then
-        if(file.eq.1) io = pgopen('pdfs.ppm/ppm')
-        if(file.ge.2) io = pgopen('pdfs.eps'//trim(psclr))
+        if(file.eq.1) io = pgopen(trim(outputdir)//'/pdfs.ppm/ppm')
+        if(file.ge.2) io = pgopen(trim(outputdir)//'/pdfs.eps'//trim(psclr))
         lw = nint(3*fontsize1d)
         if(nPlPar.ge.10) lw = nint(2*fontsize1d)
         if(quality.lt.2) lw = max(lw-1,1)  !Draft/Paper
@@ -576,14 +576,14 @@ subroutine pdfs1d(exitcode)
      
      if(file.ge.2) then
         if(file.eq.3) then
-           i = system('eps2pdf pdfs.eps -o '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.pdf >& /dev/null')
+           i = system('eps2pdf '//trim(outputdir)//'/pdfs.eps -o '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.pdf >& /dev/null')
            if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
         end if
-        i = system('mv -f pdfs.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.eps')
+        i = system('mv -f '//trim(outputdir)//'/pdfs.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.eps')
      else if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf1d)//' pdfs.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.png')
+        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf1d)//' '//trim(outputdir)//'/pdfs.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.png')
         if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
-        i = system('rm -f pdfs.ppm')
+        i = system('rm -f '//trim(outputdir)//'/pdfs.ppm')
      end if
   end if !if(plot.eq.1)
   

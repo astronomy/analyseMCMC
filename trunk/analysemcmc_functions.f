@@ -1771,10 +1771,12 @@ end function tms
 
 !***********************************************************************
 function getos() !Determine the operating system type: 1-Linux, 2-MacOSX
+  use constants
+  
   implicit none
   integer :: i,system,getos
   character :: ostype*25,filename*99
-  filename = '.analysemcmc.uname.temp'
+  filename = trim(homedir)//'/.analysemcmc.uname.temp'
   i = system('uname &> '//trim(filename)) !This should return "Linux" or "Darwin"
   open(unit=16,file=trim(filename), status='old', form='formatted')
   read(16,'(A)')ostype
@@ -2340,4 +2342,18 @@ subroutine set_currentdate_constants()
   
 end subroutine set_currentdate_constants
 !***********************************************************************************************************************************
+
+!***********************************************************************************************************************************
+subroutine quit_program(message)  !Print a message and stop the execution of the current program
+  use basic
+  use constants
+  implicit none
+  character :: message*(*)
+  
+  write(stdErr,'(/,A)')'  '//trim(message)
+  write(stdErr,'(A,/)')'  Aborting...'
+  stop
+end subroutine quit_program
+!***********************************************************************************************************************************
+
 
