@@ -48,6 +48,8 @@ subroutine setconstants
      if(i1.eq.1) write(workdir,'(A)') '~'//trim(workdir(i2+1:))
   end if
   
+  call set_currentdate_constants()
+  
 end subroutine setconstants
 !***************************************************************************************************
 
@@ -2313,3 +2315,29 @@ subroutine findFiles(match,nff,all,fnames,nf)
   
 end subroutine findFiles
 !***********************************************************************
+
+!***********************************************************************************************************************************
+subroutine set_currentdate_constants()
+  use constants
+  use basic
+  
+  implicit none
+  integer :: dt(8)
+  real(double) :: tz
+  character :: tmpstr*99,tzstr*9,signstr
+  
+  call date_and_time(tmpstr,tmpstr,tmpstr,dt)
+  
+  write(currentdatestr,'(I2.2,A1,I2.2,A1,I4.4)')dt(3),'/',dt(2),'/',dt(1)
+  write(currenttimestr,'(I2.2,A1,I2.2,A1,I2.2)')dt(5),':',dt(6),':',dt(7)
+  
+  tz = abs(dble(dt(4))/60.d0)
+  write(tzstr,'(F5.2)')tz
+  if(nint(tz).lt.10) write(tzstr,'(A1,F4.2)')'0',tz
+  signstr = '-'
+  if(dt(4).ge.0) signstr = '+'
+  write(currenttimezonestr,'(A)')'UTC'//signstr//trim(tzstr)
+  
+end subroutine set_currentdate_constants
+!***********************************************************************************************************************************
+

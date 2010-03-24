@@ -207,7 +207,8 @@ program analyseMCMC
      else
         write(stdOut,'(A,I3,A)')'  Analysing',nchains0,' chains from SPINspiral'
      end if
-     write(stdOut,'(A)')'  from '//trim(username)//'@'//trim(hostname)//':'//trim(workdir)
+     write(stdOut,'(A)',advance='no')'  from '//trim(username)//'@'//trim(hostname)//':'//trim(workdir)
+     write(stdOut,'(A)')'  at '//trim(currentdatestr)//' '//trim(currenttimestr)//' ('//trim(currenttimezonestr)//').'
   end if
   nchains = nchains0
   
