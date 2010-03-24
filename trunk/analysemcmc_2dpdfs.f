@@ -9,7 +9,7 @@ subroutine pdfs2d(exitcode)
   use plot_data
   use stats_data
   implicit none
-  integer :: i,j,j1,j2,p1,p2,ic,lw,io,exitcode,c,system,pgopen,clr,maxclr
+  integer :: i,j,j1,j2,p1,p2,ic,lw,io,exitcode,c,status,system,pgopen,clr,maxclr
   integer :: npdf,ncont,flw,plotthis,injectionrange2d,countplots,totplots
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)
@@ -670,20 +670,20 @@ subroutine pdfs2d(exitcode)
            if(file.eq.1) then
               call pgend
               if(countplots.eq.Npdf2D) then !Convert the last plot in the foreground, so that the process finishes before deleting the original file
-                 i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)//' '//trim(tempfile)//' '// &
+                 status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)//' '//trim(tempfile)//' '// &
                       trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.png')
               else !in the background
-                 i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)//' '//trim(tempfile)//' '// &
+                 status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)//' '//trim(tempfile)//' '// &
                       trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.png &')
               end if
-              if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+              if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
            end if
            !if(file.ge.2.and.multipagefile) call pgpage
            if(file.ge.2) then
               call pgend
               if(file.eq.3) then
-                 i = system('eps2pdf '//trim(tempfile)//' &> /dev/null')
-                 if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+                 status = system('eps2pdf '//trim(tempfile)//' &> /dev/null')
+                 if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
               end if
            end if
         end if !if(plot.eq.1)
@@ -698,11 +698,11 @@ subroutine pdfs2d(exitcode)
      if(file.ne.1) call pgend
      !if(file.ge.2.and.multipagefile) then
      !   if(abs(j2-j1).le.1) then
-     !      if(file.eq.3) i = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(parNames(parID(j1)))//'-'//trim(parNames(parID(j2)))//'.pdf  &> /dev/null')
-     !      i = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(parNames(parID(j1)))//'-'//trim(parNames(parID(j2)))//'.eps')
+     !      if(file.eq.3) status = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(parNames(parID(j1)))//'-'//trim(parNames(parID(j2)))//'.pdf  &> /dev/null')
+     !      status = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(parNames(parID(j1)))//'-'//trim(parNames(parID(j2)))//'.eps')
      !   else
-     !      if(file.eq.3) i = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.pdf  &> /dev/null')
-     !      i = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.eps')
+     !      if(file.eq.3) status = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.pdf  &> /dev/null')
+     !      status = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.eps')
      !   end if
      !end if
   
@@ -721,7 +721,7 @@ subroutine pdfs2d(exitcode)
                  if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
               end if
               write(tempfile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.ppm'
-              i = system('rm -f '//trim(tempfile))
+              status = system('rm -f '//trim(tempfile))
            end do
         end do
      end if

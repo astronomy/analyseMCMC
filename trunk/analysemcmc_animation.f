@@ -9,7 +9,7 @@ subroutine animation(exitcode)
   use chain_data
   use plot_data
   implicit none
-  integer :: c,i,ic,io,p,iframe,nplt,pgopen,lw,n1,n2,exitcode,system
+  integer :: c,i,ic,io,p,iframe,nplt,pgopen,lw,n1,n2,exitcode,status,system
   integer :: index(maxMCMCpar,maxChs*maxIter),small_anim
   real :: range,range1,range2,drange,minrange,centre,median,plshift,ival,norm
   real :: x(maxChs,maxChs*maxIter),x1,x2,xmin,xmax,xmin1,xmax1,dx,y1,y2,ymin,ymax,dy,sch
@@ -626,12 +626,12 @@ subroutine animation(exitcode)
      if(file.ge.1) then
         call pgend
         if(small_anim.eq.1) then
-           i = system('convert -resize 500 -depth 8 -unsharp '//trim(unSharppdf1d)//' analysemcmc_frame.ppm '//trim(framename))  !Rescale the output frame
+           status = system('convert -resize 500 -depth 8 -unsharp '//trim(unSharppdf1d)//' analysemcmc_frame.ppm '//trim(framename))  !Rescale the output frame
         else
-           i = system('convert -resize 1024x738 -depth 8 -unsharp '//trim(unSharppdf1d)//' analysemcmc_frame.ppm '//trim(framename))  !Rescale the output frame
+           status = system('convert -resize 1024x738 -depth 8 -unsharp '//trim(unSharppdf1d)//' analysemcmc_frame.ppm '//trim(framename))  !Rescale the output frame
         end if
-        if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
-        i = system('rm -f analysemcmc_frame.ppm')
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+        status = system('rm -f analysemcmc_frame.ppm')
      end if
      
   end do  !do(iframe=0,nAnimFrames)

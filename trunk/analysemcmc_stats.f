@@ -667,7 +667,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
   use stats_data
   use chain_data
   implicit none
-  integer :: c,i,ic,o,p,p1,p2,exitcode,system
+  integer :: c,i,ic,o,p,p1,p2,exitcode,status,system
   
   exitcode = 0
   ic = 1 !Use chain 1
@@ -795,7 +795,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
   
   
   close(o) !Statistics output file
-  if(saveStats.eq.2) i = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
+  if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
   !write(stdOut,*)''
   if(prProgress.ge.1) then
      if(saveStats.eq.1) write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat'
@@ -815,7 +815,7 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   use chain_data
   
   implicit none
-  integer :: i,ic,o,exitcode,system
+  integer :: ic,o,exitcode,status,system
   
   exitcode = 0
   !ic = 1 !Use chain 1
@@ -836,7 +836,7 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   
   close(o) !Bayes output file
   
-  if(saveStats.eq.2) i = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__bayes.ps')
+  if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__bayes.ps')
   !write(stdOut,*)''
   if(prProgress.ge.1) then
      if(saveStats.eq.1) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat'

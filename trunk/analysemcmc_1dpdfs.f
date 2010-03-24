@@ -9,7 +9,7 @@ subroutine pdfs1d(exitcode)
   use plot_data
   implicit none
   
-  integer :: i,j,p,ic,io,pgopen,lw,exitcode,system
+  integer :: i,j,p,ic,io,pgopen,lw,exitcode,status,system
   real :: rev24,rev360,rev180
   real :: x(maxChs,maxChs*maxIter),xmin,xmax,xmin1,xmax1,xpeak,dx,ymin,ymax,sch
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ysum(:),yconv(:),ycum(:)  !These depend on Nbin1D, allocate after reading input file
@@ -576,14 +576,14 @@ subroutine pdfs1d(exitcode)
      
      if(file.ge.2) then
         if(file.eq.3) then
-           i = system('eps2pdf '//trim(outputdir)//'/pdfs.eps -o '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.pdf >& /dev/null')
-           if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+           status = system('eps2pdf '//trim(outputdir)//'/pdfs.eps -o '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.pdf >& /dev/null')
+           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
         end if
-        i = system('mv -f '//trim(outputdir)//'/pdfs.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.eps')
+        status = system('mv -f '//trim(outputdir)//'/pdfs.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.eps')
      else if(file.eq.1) then
-        i = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf1d)//' '//trim(outputdir)//'/pdfs.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.png')
+        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf1d)//' '//trim(outputdir)//'/pdfs.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.png')
         if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
-        i = system('rm -f '//trim(outputdir)//'/pdfs.ppm')
+        status = system('rm -f '//trim(outputdir)//'/pdfs.ppm')
      end if
   end if !if(plot.eq.1)
   

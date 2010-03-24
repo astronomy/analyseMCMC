@@ -1439,7 +1439,7 @@ subroutine savgol(c,np,nl,nr,ld,m)
      kk=mod(np-k,np)+1
      c(kk)=sum
   end do
-  return
+  
 end subroutine savgol
 !************************************************************************************************************************************
 
@@ -1471,7 +1471,7 @@ subroutine lubksb(a,n,np,indx,b)
      end do
      b(i)=sum/a(i,i)
   end do
-  return
+  
 end subroutine lubksb
 !************************************************************************************************************************************
 
@@ -1533,7 +1533,7 @@ subroutine ludcmp(a,n,np,indx,d)
        end do
     end if
  end do
- return
+ 
 end subroutine ludcmp
 !************************************************************************************************************************************
 
@@ -1644,7 +1644,7 @@ subroutine kstwo(data1,n1,data2,n2,d,prob)  !Needs probks(), sort()
   end if
   en=dsqrt(en1*en2/(en1+en2))
   prob=probks((en+0.12d0+0.11d0/en)*d)
-  return
+  
 end subroutine kstwo
 !************************************************************************
 
@@ -1667,7 +1667,7 @@ function probks(alam)
      termbf=abs(term)
   end do
   probks=1.d0
-  return
+  
 end function probks
 !************************************************************************
 
@@ -1745,6 +1745,7 @@ subroutine sort(n,arr)
      end if
   end if
   goto 1
+  
 end subroutine sort
 !************************************************************************
 
@@ -1764,7 +1765,6 @@ function tms(a1)   !Print angle as mm:ss.s string, input in hours
   if(nint(s*10).lt.100) write(ss,'(a1,f3.1)') '0',s
   write(tms,'(a2,a1,a4,a1)') mm,'m',ss,'s'
   
-  return
 end function tms
 !************************************************************************
 
@@ -1774,17 +1774,19 @@ function getos() !Determine the operating system type: 1-Linux, 2-MacOSX
   use constants
   
   implicit none
-  integer :: i,system,getos
+  integer :: status,system,getos
   character :: ostype*25,filename*99
+  
   filename = trim(homedir)//'/.analysemcmc.uname.temp'
-  i = system('uname &> '//trim(filename)) !This should return "Linux" or "Darwin"
+  status = system('uname &> '//trim(filename)) !This should return "Linux" or "Darwin"
   open(unit=16,file=trim(filename), status='old', form='formatted')
   read(16,'(A)')ostype
   close(16, status = 'delete')
+  
   !write(stdOut,*)ostype
   getos = 1 !Linux
   if(ostype(1:5).eq.'Darwi') getos = 2 !MacOSX
-  return
+  
 end function getos
 !***********************************************************************
 
@@ -1794,19 +1796,19 @@ function timestamp()  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
   use constants
   implicit none
   real*8 :: timestamp
-  integer :: i,system
+  integer :: status,system
   character :: fname*99
   
   fname = trim(homedir)//'/.analysemcmc_timestamp'
   if(os.eq.1) then !Linux
-     i = system('date +%s.%N >& '//trim(fname))
+     status = system('date +%s.%N >& '//trim(fname))
   else
-     i = system('date +%s >& '//trim(fname)) !%N for fractional seconds doesn't work on MacOS!!! (But it does with GNU date)
+     status = system('date +%s >& '//trim(fname)) !%N for fractional seconds doesn't work on MacOS!!! (But it does with GNU date)
   end if
   open(unit=17,status='old',file=trim(fname))
   read(17,*)timestamp
   close(17)
-  i = system('rm -f '//trim(fname))
+  status = system('rm -f '//trim(fname))
 end function timestamp
 !************************************************************************
 
@@ -2249,7 +2251,7 @@ subroutine findFiles(match,nff,all,fnames,nf)
   
   use constants
   implicit none
-  integer :: i,j,k,fnum,nf,nff,system,all
+  integer :: i,j,k,fnum,nf,nff,status,system,all
   character :: match*(*),names(nff)*99,fnames(nff)*99,tempfile*99
   
   if(len_trim(homedir).eq.99) then
@@ -2258,7 +2260,7 @@ subroutine findFiles(match,nff,all,fnames,nf)
   end if
   
   tempfile = trim(homedir)//'/.findFile.tmp'
-  i = system('ls '//trim(match)//' > '//trim(tempfile))  !Shell command to list all the files with the search string and pipe them to a temporary file
+  status = system('ls '//trim(match)//' > '//trim(tempfile))  !Shell command to list all the files with the search string and pipe them to a temporary file
   
   do i=1,nff
      names(i)='                                                                                                   '
