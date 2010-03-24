@@ -4,7 +4,10 @@
 !***************************************************************************************************
 subroutine setconstants
   use constants
+  
   implicit none
+  integer :: i1,i2
+  
   pi =  4*atan(1.d0)  !pi
   tpi = 2*pi          !2pi
   pi2 = 0.5d0*pi      !pi/2
@@ -35,6 +38,15 @@ subroutine setconstants
   upline = char(27)//'[2A'  !Printing this makes the cursor move up one line (actually two lines, since a hard return is included)
   
   call getenv('HOME',homedir)  !Get the current user's home directory
+  call getenv('PWD',workdir)        !Set workdir  = $PWD
+  call getenv('HOSTNAME',hostname)  !Set hostname = $HOSTNAME  !Apparently not always exported
+  call getenv('USER',username)      !Set username = $USER
+  
+  i1 = index(workdir,trim(homedir))
+  if(i1.gt.0.and.i1.lt.99) then
+     i2 = len_trim(homedir)
+     if(i1.eq.1) write(workdir,'(A)') '~'//trim(workdir(i2+1:))
+  end if
   
 end subroutine setconstants
 !***************************************************************************************************
@@ -404,6 +416,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
   use general_data
   use mcmcrun_data
   use chain_data
+  
   implicit none
   integer :: i,tmpInt,io,ic,j,exitcode,readerror,p
   character :: tmpStr*99,detname*14,firstLine*999,infile*99
@@ -416,13 +429,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
   
   
   do ic = 1,nchains0
-     if(reverseRead.eq.0) then
-        call getarg(ic,infile) !Read file name from the command-line arguments
-     else
-        call getarg(nchains0-ic+1,infile) !Read file name from the command-line arguments in reverse order
-     end if
-     infiles(ic) = infile
-     
+     infile = infiles(ic)
      open(unit=10,form='formatted',status='old',file=trim(infile),iostat=io)
      if(io.ne.0) then
         write(stdErr,'(A)')'   Error:  File not found: '//trim(infile)//', aborting.'
@@ -457,7 +464,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
         if(detname(j-3:j).eq.'ford') detnr(ic,i) = 1
         if(detname(j-3:j).eq.'ston') detnr(ic,i) = 2
         if(detname(j-3:j).eq.'Pisa') detnr(ic,i) = 3
-		if(detname(j-3:j).eq.'Aigo') detnr(ic,i) = 4
+        if(detname(j-3:j).eq.'Aigo') detnr(ic,i) = 4
      end do
      
      parID = 0
@@ -2226,3 +2233,83 @@ end function ran_unif
 
 
 
+!***********************************************************************
+subroutine findFiles(match,nff,all,fnames,nf)  
+  !Input:
+  !  match:   search string to match
+  !  nff:     maximum number of files to return
+  !  all:     0-select manually from list, 1-always return all files in list
+  !Output:
+  !  fnames:  array that contains the files found; make sure it has the same length as the array in the calling programme
+  !  nf:      the actual number of files returned in fnames ( = min(number found, nff))
+  
+  use constants
+  implicit none
+  integer :: i,j,k,fnum,nf,nff,system,all
+  character :: match*(*),names(nff)*99,fnames(nff)*99,tempfile*99
+  
+  if(len_trim(homedir).eq.99) then
+     write(0,'(/,A,/)')'  FindFiles:  ERROR:  variable homedir not defined (forgot to call setconstants?), quitting.'
+     stop
+  end if
+  
+  tempfile = trim(homedir)//'/.findFile.tmp'
+  i = system('ls '//trim(match)//' > '//trim(tempfile))  !Shell command to list all the files with the search string and pipe them to a temporary file
+  
+  do i=1,nff
+     names(i)='                                                                                                   '
+  end do
+  
+  k=0
+  open(10,file=trim(tempfile), status='old', form='formatted') !Read the temp file and delete it when closing
+  rewind(10)
+  do i=1,nff
+     read(10,'(A99)',end=100) names(i)
+     k=k+1
+  end do
+100 continue
+  close(10, status='delete')
+  fnames(1) = names(1)
+  nf = 1
+  j = 0
+  
+  if(k.gt.1) then
+     if(all.eq.0) then !Select files manually
+        write(6,'(A)')'  Files found:'  !Don't use stdOut here!
+        do i=1,k
+           write(6,'(I5,A3,A)')i,':  ',trim(names(i))
+        end do
+        write(6,*)''
+        write(6,'(A,I3)')'  Enter the number of the file you want to select: 1 -',k
+        write(6,'(A,I3,A1)')'    (max',nff,')'
+        write(6,'(A)')'      or:   0 - to select all files in the list'
+        write(6,'(A)')'           -1 - when done'
+        do j=1,nff
+           read*,fnum
+           if(fnum.lt.0) then
+              nf = j-1
+              return
+           end if
+           if(fnum.eq.0) then
+              nf = min(k,nff)
+              fnames(1:nf) = names(1:nf)
+              return
+           end if !if(fnum.eq.0)
+           fnames(j) = names(fnum)
+           nf = j
+        end do !j 
+     else  !Select all files (all=1)
+        nf = min(k,nff)
+        fnames(1:nf) = names(1:nf)
+        return
+     end if
+  end if
+  
+  if(k.eq.0) then
+     fnames(1)='                                                                                                   '
+     write(stdErr,'(A)')'  No file found in this directory'
+     nf = 0
+  end if
+  
+end subroutine findFiles
+!***********************************************************************

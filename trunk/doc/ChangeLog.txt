@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   131: sluys, 24/03/2010
+     - Calling AnalyseMCMC without options reads all SPINspiral.output.*.00 in the current dir
+     - Username, hostname (if available) and working directory are written to stdOut
+   
    130: sluys, 19/03/2010
      - Added <d|d> to output, assuming it is read from the field that contained log L_null
        (this still needs to be changed in SPINspiral)

@@ -33,7 +33,8 @@ module constants
   integer :: os,stdOut,stdErr
   real*8 :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
   real :: rpi,rtpi,rpi2,rr2d,rd2r,rr2h,rh2r,rc3rd
-  character :: upline*4,detabbrs(4)*2,waveforms(0:9)*99,homedir*99,stdOutFile*99
+  character :: upline*4,detabbrs(4)*2,waveforms(0:9)*99
+  character(len=99) :: homedir,workdir,hostname,username,stdOutFile
 end module constants
 !***************************************************************************************************
 

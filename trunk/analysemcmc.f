@@ -44,10 +44,12 @@ program analyseMCMC
   use stats_data
   use plot_data
   use chain_data
+  
   implicit none
-  integer :: i,io,iargc,exitcode,tempintarray(99),getos,get_ran_seed,system
+  integer :: i,ic,io,iargc,exitcode,tempintarray(99),getos,get_ran_seed,system
   real :: pltsz
   real*8 :: timestamp,timestamps(9)  !< Time the progress of the code.
+  character :: infile*99
   
   wikioutput = 1  !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
   map_projection = 1  !Choose map projection: 1-Mollweide
@@ -75,11 +77,21 @@ program analyseMCMC
   
   whiteBG = 1                 !Use a white background in screen and bitmap plots: 0-no (black), 1-yes.  Used to be in input file, redundant I'd say.
   
+  !Get command-line arguments
   nchains0 = iargc()
-  if(nchains0.lt.1) then
-     write(stdErr,'(A,/)')'  Syntax: analysemcmc <file1> [file2] ...'
-     stop
+  if(nchains0.lt.1) then  !No command-line arguments - select all files SPINspiral.output.*.00 in the current dir
+     call findFiles('SPINspiral.output.*.00',maxChs,1,infiles,nchains0)
+  else
+     do ic = 1,nchains0
+        if(reverseRead.eq.0) then
+           call getarg(ic,infile) !Read file name from the command-line arguments
+        else
+           call getarg(nchains0-ic+1,infile) !Read file name from the command-line arguments in reverse order
+        end if
+        infiles(ic) = infile
+     end do
   end if
+  
   if(nchains0.gt.maxChs) write(stdErr,'(A,I3,A)')'  *** WARNING:  Too many input files (chains), please increase maxChs in analysemcmc_modules.f. Only',maxChs,' files can be read.'
   nchains0 = min(nchains0,maxChs)
   
@@ -195,6 +207,7 @@ program analyseMCMC
      else
         write(stdOut,'(A,I3,A)')'  Analysing',nchains0,' chains from SPINspiral'
      end if
+     write(stdOut,'(A)')'  from '//trim(username)//'@'//trim(hostname)//':'//trim(workdir)
   end if
   nchains = nchains0
   
