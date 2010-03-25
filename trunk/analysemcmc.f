@@ -55,7 +55,7 @@ program analyseMCMC
   outputdir = '.'     !Directory where output is saved (either relative or absolute path)
   wikioutput = 1      !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
   map_projection = 1  !Choose map projection: 1-Mollweide
-  html = 1            !Produce HTML output
+  html = 0            !Produce HTML output
   
   call setconstants           !Define mathematical constants
   os = getos()                !1-Linux, 2-MacOS
