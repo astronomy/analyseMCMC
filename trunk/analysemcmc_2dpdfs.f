@@ -14,7 +14,7 @@ subroutine pdfs2d(exitcode)
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
-  character :: string*99,str*99,tempfile*99,ivalstr*99,delta*19
+  character :: string*99,str*99,tempfile*99,ivalstr*99,delta*19,outputbasefile*199
   logical :: project_map,sky_position,binary_orientation
   
   exitcode = 0
@@ -41,6 +41,19 @@ subroutine pdfs2d(exitcode)
      if(revID(PDF2Dpairs(i,1)).eq.0) write(stdErr,'(/,A)')'  * Warning:  pdfs2d():  parameter '//trim(parNames(PDF2Dpairs(i,1)))//' is not defined, check plPars() in the input file.  Skipping...'
      if(revID(PDF2Dpairs(i,2)).eq.0) write(stdErr,'(/,A)')'  * Warning:  pdfs2d():  parameter '//trim(parNames(PDF2Dpairs(i,2)))//' is not defined, check plPars() in the input file.  Skipping...'
   end do
+  
+  
+  if(html.eq.1) then
+     bmpXSz = 700
+     bmpYSz = 700
+     
+     bmpsz = real(bmpXSz-1)/85. * scFac !Make png larger, so that convert interpolates and makes the plot smoother
+     bmprat = real(bmpYSz-1)/real(bmpXSz-1)
+     write(bmpxpix,'(I4)')bmpXSz  !Used as a text string by convert
+     pltsz = bmpsz
+     pltrat = bmprat
+  end if
+     
   
   !Autodetermine number of bins for 2D PDFs:
   if(Nbin2Dx.le.0) then
@@ -94,7 +107,9 @@ subroutine pdfs2d(exitcode)
      !   call pgscf(fonttype)
      !   call pginitl(colour,file,whiteBG)
      !end if
+     
   end if !if(plot.eq.1)
+  
   
   if(savePDF.eq.1) then
      open(unit=30,action='write',form='formatted',status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__pdf2d.dat')
@@ -132,6 +147,8 @@ subroutine pdfs2d(exitcode)
         
         
         if(plot.eq.1) then
+           write(outputbasefile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
+           
            if(file.eq.0) then
               npdf=npdf+1
               write(str,'(I3,A3)')200+npdf,'/xs'
@@ -144,7 +161,7 @@ subroutine pdfs2d(exitcode)
               call pginitl(colour,file,whiteBG)
            end if
            if(file.eq.1) then
-              write(tempfile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.ppm'
+              write(tempfile,'(A)') trim(outputbasefile)//'.ppm'
               io = pgopen(trim(tempfile)//'/ppm')
               if(project_map) then
                  call pgpap(bmpsz/0.5*bmprat,0.5)
@@ -154,7 +171,7 @@ subroutine pdfs2d(exitcode)
               call pginitl(colour,file,whiteBG)
            end if
            if(file.ge.2) then
-              write(tempfile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.eps'
+              write(tempfile,'(A)') trim(outputbasefile)//'.eps'
               io = pgopen(trim(tempfile)//trim(psclr))
               if(project_map) then
                  call pgpap(PSsz/0.5*PSrat,0.5)
@@ -671,21 +688,23 @@ subroutine pdfs2d(exitcode)
               call pgend
               if(countplots.eq.Npdf2D) then !Convert the last plot in the foreground, so that the process finishes before deleting the original file
                  status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)//' '//trim(tempfile)//' '// &
-                      trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.png')
+                      trim(outputbasefile)//'.png')
               else !in the background
                  status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)//' '//trim(tempfile)//' '// &
-                      trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.png &')
+                      trim(outputbasefile)//'.png &')
               end if
-              if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+              if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
            end if
+           
            !if(file.ge.2.and.multipagefile) call pgpage
            if(file.ge.2) then
               call pgend
               if(file.eq.3) then
                  status = system('eps2pdf '//trim(tempfile)//' &> /dev/null')
-                 if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+                 if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
               end if
            end if
+           
         end if !if(plot.eq.1)
         
      end do !p2
@@ -708,8 +727,13 @@ subroutine pdfs2d(exitcode)
   
      !Remove all the .ppm files
      if(file.eq.1) then
+        countplots = 0
+        if(html.ge.1) write(51,'(A)')'<table>'
         do p1=j1,j2
+           if(html.ge.1) write(51,'(A)')'<tr>'
            do p2=j1,j2
+              
+              
               if(Npdf2D.ge.0) then
                  plotthis = 0  !Determine to plot or save this combination of j1/j2 or p1/p2
                  do i=1,Npdf2D
@@ -717,13 +741,59 @@ subroutine pdfs2d(exitcode)
                  end do
                  if(plotthis.eq.0) cycle
               else
-                 if(p2.le.p1) cycle
+                 if(p2.le.p1) then
+                    if(html.ge.1) then
+                       if(p1.eq.p2) then
+                          write(51,'(A)')'<td></td>'
+                       else
+                          write(outputbasefile,'(A)') trim(outputname)//'__pdf2d__'//trim(parNames(parID(p2)))//'-'//trim(parNames(parID(p1)))
+                          write(51,'(A)')'<td>'
+                          write(51,'(A)')'  <a href="'//trim(outputbasefile)//'.png">'
+                          write(51,'(A)')'    <img src="'//trim(outputbasefile)//'_thumb.png">'
+                          write(51,'(A)')'  </a>'
+                          write(51,'(A)')'</td>'
+                       end if
+                    end if
+                    cycle
+                 end if
                  if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
               end if
-              write(tempfile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//'.ppm'
+              
+              countplots = countplots + 1  !The current plot is number countplots
+              write(outputbasefile,'(A)') trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
+              write(tempfile,'(A)') trim(outputdir)//'/'//trim(outputbasefile)//'.ppm'
               status = system('rm -f '//trim(tempfile))
+              
+              if(html.ge.1) then
+                 if(countplots.eq.Npdf2D) then !Convert the last plot in the foreground, so that the process finishes before deleting the original file
+                    status = system('convert -resize 200x200 '//trim(outputdir)//'/'//trim(outputbasefile)//'.png '//trim(outputdir)//'/'//trim(outputbasefile)//'_thumb.png')
+                 else
+                    status = system('convert -resize 200x200 '//trim(outputdir)//'/'//trim(outputbasefile)//'.png '//trim(outputdir)//'/'//trim(outputbasefile)//'_thumb.png &')
+                 end if
+                 if(status.ne.0) write(stdErr,'(A)')'  Error creating thumbnail for '//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
+                 
+                 write(51,'(A)')'<td>'
+                 write(51,'(A)')'  <a href="'//trim(outputbasefile)//'.png">'
+                 write(51,'(A)')'    <img src="'//trim(outputbasefile)//'_thumb.png">'
+                 write(51,'(A)')'  </a>'
+                 write(51,'(A)')'</td>'
+              end if
+              
            end do
+           if(html.ge.1) write(51,'(A)')'</tr>'
         end do
+        if(html.ge.1) write(51,'(A)')'</table>'
+     end if
+     
+     if(html.eq.1) then
+        bmpXSz = 1000
+        bmpYSz =  700
+        
+        bmpsz = real(bmpXSz-1)/85. * scFac !Make png larger, so that convert interpolates and makes the plot smoother
+        bmprat = real(bmpYSz-1)/real(bmpXSz-1)
+        write(bmpxpix,'(I4)')bmpXSz  !Used as a text string by convert
+        pltsz = bmpsz
+        pltrat = bmprat
      end if
      
   end if !plot.eq.1
@@ -1584,8 +1654,7 @@ subroutine project_skymap(x,y,raCentre,projection)  !Project a sky map, using pr
      y = sin(theta)*90.
   else
      write(stdErr,'(A,I3)')'  ERROR:  Projection not defined:',projection
-     write(stdErr,'(A)')'  Aborting...'
-     stop
+     call quit_program(' ')
   end if
   
 end subroutine project_skymap

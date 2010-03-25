@@ -28,7 +28,7 @@ module analysemcmc_settings
   integer :: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plACorr,plotSky,plAnim       
   integer :: chainSymbol,chainPlI,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D,normPDF2D
   integer :: scLogLpl,scChainsPl,bmpXSz,bmpYSz,map_projection
-  integer :: nAnimFrames,animScheme,whiteBG,unSharp,Nival,ival0,wikioutput
+  integer :: nAnimFrames,animScheme,whiteBG,unSharp,Nival,ival0,wikioutput,html
   real :: NburnFrac,autoBurnin,ivals(maxNival)
   real :: scrSz,scrRat,PSsz,PSrat,scFac,fontsize1d,fontsize2d
 end module analysemcmc_settings
@@ -115,7 +115,7 @@ module plot_data
   implicit none
   save
   integer :: ncolours,colours(10),defcolour,nsymbols,symbols(10),maxdots
-  real :: pltrat,bmpsz,bmprat
+  real :: pltsz,pltrat,bmpsz,bmprat
   character :: bmpxpix*99,unSharplogl*99,unSharpchain*99,unSharppdf1d*99,unSharppdf2d*99
   character :: psclr*9,colournames(15)*20
 end module plot_data

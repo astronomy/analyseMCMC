@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   135: sluys, 24/03/2010
+     - Started implementing 'HTML mode' - everything should work as before
+     
    134: sluys, 24/03/2010
      - Always catch the status of a "system" call with a variable called "status"
    

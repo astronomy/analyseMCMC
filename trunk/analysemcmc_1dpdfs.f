@@ -577,12 +577,12 @@ subroutine pdfs1d(exitcode)
      if(file.ge.2) then
         if(file.eq.3) then
            status = system('eps2pdf '//trim(outputdir)//'/pdfs.eps -o '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.pdf >& /dev/null')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         end if
         status = system('mv -f '//trim(outputdir)//'/pdfs.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.eps')
      else if(file.eq.1) then
         status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf1d)//' '//trim(outputdir)//'/pdfs.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.png')
-        if(i.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f '//trim(outputdir)//'/pdfs.ppm')
      end if
   end if !if(plot.eq.1)

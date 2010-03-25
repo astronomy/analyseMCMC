@@ -68,10 +68,7 @@ subroutine read_settingsfile
   
   u = 15
   open(unit=u,form='formatted',status='old',action='read',file=trim(filename),iostat=io)
-  if(io.ne.0) then
-     write(stdErr,'(A)')'  Error opening input file '//trim(filename)//', aborting...'
-     stop
-  end if
+  if(io.ne.0) call quit_program('Error opening input file '//trim(filename))
   
   io = 0
   io1 = 0

@@ -630,7 +630,7 @@ subroutine animation(exitcode)
         else
            status = system('convert -resize 1024x738 -depth 8 -unsharp '//trim(unSharppdf1d)//' analysemcmc_frame.ppm '//trim(framename))  !Rescale the output frame
         end if
-        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f analysemcmc_frame.ppm')
      end if
      

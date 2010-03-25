@@ -130,15 +130,15 @@ subroutine chains(exitcode)
      if(file.ge.2) then
         if(file.eq.3) then
            status = system('eps2pdf '//trim(outputdir)//'/posterior.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__posterior.pdf   >& /dev/null')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         end if
         status = system('mv -f '//trim(outputdir)//'/posterior.eps '//trim(outputdir)//'/'//trim(outputname)//'__posterior.eps')
      end if
      if(file.eq.1) then
         status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharplogl)//' '//trim(outputdir)//'/posterior.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__posterior.png')
-        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f '//trim(outputdir)//'/posterior.ppm')
-        !if(status.ne.0) write(stdErr,'(A)')'  Error removing file',i
+        !if(status.ne.0) write(stdErr,'(A)')'  Error removing file',status
      end if
   end if !if(plLogL.eq.1) then
   
@@ -459,13 +459,13 @@ subroutine chains(exitcode)
      if(file.ge.2) then
         if(file.eq.3) then
            status = system('eps2pdf '//trim(outputdir)//'/chains.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__chains.pdf   >& /dev/null')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         end if
         status = system('mv -f '//trim(outputdir)//'/chains.eps '//trim(outputdir)//'/'//trim(outputname)//'__chains.eps')
      end if
      if(file.eq.1) then
         status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)//'/chains.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__chains.png')
-        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f '//trim(outputdir)//'/chains.ppm')
      end if
   end if !if(plChain.eq.1)
@@ -750,13 +750,13 @@ subroutine chains(exitcode)
      if(file.ge.2) then
         if(file.eq.3) then
            status = system('eps2pdf '//trim(outputdir)//'/parlogl.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.pdf   >& /dev/null')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         end if
         status = system('mv -f '//trim(outputdir)//'/parlogl.eps '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.eps')
      end if
      if(file.eq.1) then
         status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)//'/parlogl.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.png')
-        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f '//trim(outputdir)//'/parlogl.ppm')
      end if
   end if !if(plParL.eq.1)
@@ -885,13 +885,13 @@ subroutine chains(exitcode)
      if(file.ge.2) then
         if(file.eq.3) then
            status = system('eps2pdf '//trim(outputdir)//'/jumps.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__jumps.pdf   >& /dev/null')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         end if
         status = system('mv -f '//trim(outputdir)//'/jumps.eps '//trim(outputdir)//'/'//trim(outputname)//'__jumps.eps')
      end if
      if(file.eq.1) then
         status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)//'/jumps.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__jumps.png')
-        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f '//trim(outputdir)//'/jumps.ppm')
      end if
   end if !if(plJump.ge.1)
@@ -1010,13 +1010,13 @@ subroutine chains(exitcode)
      if(file.ge.2) then
         if(file.eq.3) then
            status = system('eps2pdf '//trim(outputdir)//'/acorrs.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.pdf   >& /dev/null')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         end if
         status = system('mv -f '//trim(outputdir)//'/acorrs.eps '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.eps')
      end if
      if(file.eq.1) then
         status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)//'/acorrs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.png')
-        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',i
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f '//trim(outputdir)//'/acorrs.ppm')
      end if
   end if !if(plAcorr.gt.0)

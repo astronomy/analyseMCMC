@@ -24,8 +24,9 @@
 !! 24: milkyway*.dat (Milky Way data)
 !! 
 !! 30: Output: __pdf1/2d.dat
-!! 40: output: tailored output
+!! 40: Output: tailored output
 !! 
+!! 51: Output: HTML main file
 !! 
 !<
 
@@ -47,16 +48,17 @@ program analyseMCMC
   
   implicit none
   integer :: i,ic,io,iargc,exitcode,tempintarray(99),getos,get_ran_seed,status,system
-  real :: pltsz
   real*8 :: timestamp,timestamps(9)  !< Time the progress of the code.
   character :: infile*99
   logical :: ex
   
-  wikioutput = 1  !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
+  outputdir = '.'     !Directory where output is saved (either relative or absolute path)
+  wikioutput = 1      !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
   map_projection = 1  !Choose map projection: 1-Mollweide
+  html = 1            !Produce HTML output
   
   call setconstants           !Define mathematical constants
-  os = getos() !1-Linux, 2-MacOS
+  os = getos()                !1-Linux, 2-MacOS
   timestamps(1) = timestamp()
   
   
@@ -65,7 +67,50 @@ program analyseMCMC
   if(prProgress.ge.3) call write_settingsfile()   !Write the input file back to disc
   !call write_settingsfile()   !Write the input file back to disc
   
-  outputdir = '.'  !Directory where output is saved (either relative or absolute path)
+  if(html.ge.1) then
+     outputdir = 'html'     !Directory where output is saved (either relative or absolute path)
+     
+     file = 1
+     colour = 1
+     
+     prStdOut = 2
+     prProgress = 2
+     prRunInfo = 2
+     prChainInfo = 2
+     prInitial = 4
+     
+     prStat = 2
+     prCorr = 1
+     prIval = 3
+     prConv = 3
+     saveStats = 1
+     
+     plot = 1
+     plLogL = 1
+     plChain = 1
+     plPDF1D = 1
+     plPDF2D = 2
+     plotSky = 2
+     plAnim = 0
+     
+     plInject = 0
+     plStart = 1
+     plMedian = 1
+     plRange = 4
+     plBurn = 1
+     plLmax = 1
+     normPDF2D = 4
+     
+     bmpXSz = 1000
+     bmpYSz =  700
+     
+     !nPlPar = 
+     !plPars = (//)
+     Npdf2D = -1
+  end if
+  
+  
+  
   inquire(file=trim(outputdir), exist=ex)  !Check whether the directory already exists 
   if(.not.ex) then
      status = system('mkdir -p '//trim(outputdir))
@@ -76,14 +121,18 @@ program analyseMCMC
      stdOut = 19
      write(stdOutFile,'(A,I6.6,A)')trim(outputdir)//'/analysemcmc_tempstdout_',abs(get_ran_seed(0)),'.txt'
      open(unit=stdOut,action='write',form='formatted',status='replace',file=trim(stdOutFile),iostat=io)
-     if(io.ne.0) then
-        write(stdErr,'(A)')'  Error opening output file '//trim(stdOutFile)//', aborting...'
-        stop
-     end if
+     if(io.ne.0) call quit_program('Error opening output file '//trim(stdOutFile))
   end if
   write(stdOut,*)
   
-  whiteBG = 1                 !Use a white background in screen and bitmap plots: 0-no (black), 1-yes.  Used to be in input file, redundant I'd say.
+  if(html.ge.1) then  !Write standardised HTML output
+     open(unit=51,action='write',form='formatted',status='replace',file=trim(outputdir)//'/index.html',iostat=io)
+     if(io.ne.0) call quit_program('Error opening HTML output file '//trim(outputdir)//'/index.html')
+  end if
+  
+  
+  
+  
   
   !Get command-line arguments
   nchains0 = iargc()
@@ -104,9 +153,12 @@ program analyseMCMC
   nchains0 = min(nchains0,maxChs)
   
   
+  
+  
   !Some of the stuff below will have to go to the input file
   
   maxdots = 25000  !~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much and eps/pdf files from becoming huge.  Use this to autoset chainPlI
+  whiteBG = 1                 !Use a white background in screen and bitmap plots: 0-no (black), 1-yes.  Used to be in input file, redundant I'd say.
   
   !Determine plot sizes and ratios:   (ratio ~ y/x and usually < 1 ('landscape'))
   bmpsz = real(bmpXSz-1)/85. * scFac !Make png larger, so that convert interpolates and makes the plot smoother
@@ -122,8 +174,8 @@ program analyseMCMC
   
   !Use full unsharp-mask strength for plots with many panels and dots, weaker for those with fewer panels and/or no dots
   write(unSharplogl,'(I4)')max(nint(real(unSharp)/2.),1)  !Only one panel with dots
-  write(unSharpchain,'(I4)')unSharp                       !~12 panels with dots
-  write(unSharppdf1d,'(I4)')max(nint(real(unSharp)/2.),1) !~12 panels, no dots
+  write(unSharpchain,'(I4)')unSharp                       !~15 panels with dots
+  write(unSharppdf1d,'(I4)')max(nint(real(unSharp)/2.),1) !~15 panels, no dots
   write(unSharppdf2d,'(I4)')max(nint(real(unSharp)/4.),1) !1 panel, no dots
   
   
@@ -424,6 +476,9 @@ program analyseMCMC
      if(plAnim.ge.1) write(stdOut,'(A,F5.1,A,$)')'   movie:',min(abs(timestamps(9)-timestamps(8)),999.9),'s,'
      write(stdOut,'(A,F6.1,A)')'   total:',min(abs(timestamps(9)-timestamps(1)),999.9),'s.'
   end if
+  
+  
+  if(html.ge.1) close(51)
   
   write(stdOut,*)''
   
