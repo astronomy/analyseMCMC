@@ -2305,12 +2305,12 @@ subroutine findFiles(match,nff,all,fnames,nf)
   character :: match*(*),names(nff)*99,fnames(nff)*99,tempfile*99
   
   if(len_trim(homedir).eq.99) then
-     write(0,'(/,A,/)')'  FindFiles:  ERROR:  variable homedir not defined (forgot to call setconstants?), quitting.'
+     write(stdErr,'(/,A,/)')'  FindFiles:  ERROR:  variable homedir not defined (forgot to call setconstants?), quitting.'
      stop
   end if
   
   tempfile = trim(homedir)//'/.findFile.tmp'
-  status = system('ls '//trim(match)//' > '//trim(tempfile))  !Shell command to list all the files with the search string and pipe them to a temporary file
+  status = system('ls '//trim(match)//' 1> '//trim(tempfile)//' 2> /dev/null')  !Shell command to list all the files with the search string and pipe them to a temporary file
   
   do i=1,nff
      names(i)='                                                                                                   '
@@ -2363,7 +2363,7 @@ subroutine findFiles(match,nff,all,fnames,nf)
   
   if(k.eq.0) then
      fnames(1)='                                                                                                   '
-     write(stdErr,'(A)')'  No file found in this directory'
+     !write(stdErr,'(A)')'  No file found in this directory'
      nf = 0
   end if
   

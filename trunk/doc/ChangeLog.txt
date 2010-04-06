@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   138: sluys, 06/04/2010
+     - If called without command-line options and no SPINspiral.output.* found in current dir, 
+       try the old names: mcmc.output.*
+     
    136: sluys, 24/03/2010
      - Started implementing 'HTML mode' - everything should work as before
      

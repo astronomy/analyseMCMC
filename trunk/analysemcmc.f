@@ -138,6 +138,12 @@ program analyseMCMC
   nchains0 = iargc()
   if(nchains0.lt.1) then  !No command-line arguments - select all files SPINspiral.output.*.00 in the current dir
      call findFiles('SPINspiral.output.*.00',maxChs,1,infiles,nchains0)
+     if(nchains0.eq.0) then
+        write(stdErr,'(A)')'  No files matching  SPINspiral.output.*.00  were found in the current directory.'
+        write(stdErr,'(A)')'  I will try the old file names  mcmc.output.*.00  instead.'
+        call findFiles('mcmc.output.*.00',maxChs,1,infiles,nchains0)
+        if(nchains0.eq.0) call quit_program('No valid input files were found in the current directory.  Please specify input files manually.')
+     end if
   else
      do ic = 1,nchains0
         if(reverseRead.eq.0) then
