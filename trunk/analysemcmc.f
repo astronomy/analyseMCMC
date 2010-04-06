@@ -292,6 +292,12 @@ program analyseMCMC
   exitcode = 0
   call mcmcruninfo(exitcode)
   
+  if(savePDF.ge.2) then
+       write(stdOut,'(A)')'  Writing after-burnin data points to file'
+       call save_data(exitcode) !save after-burnin combined data to file
+  end if
+
+  
   !More implicit options:
   if(panels(1)*panels(2).lt.min(nPlPar,nMCMCpar)) panels = 0
   if(panels(1)*panels(2).lt.1) then
