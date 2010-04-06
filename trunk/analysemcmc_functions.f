@@ -970,41 +970,41 @@ subroutine save_data(exitcode)  !Save after-burnin data to file
   use plot_data
   
   implicit none
-  integer :: i,ic,o,exitcode,system,p
+  integer :: i,o,exitcode,p
   
   exitcode = 0
   o = 20 !Output port
   open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__data.dat')
-
+  
   do p=1,nMCMCpar
-	if(parID(p).eq.61) write(o,'(A10,$)')'mchirp'
-	if(parID(p).eq.62) write(o,'(A10,$)')'eta'
-	if(parID(p).eq.11.or.parID(p).eq.12) write(o,'(A10,$)')'time'
-	if(parID(p).eq.22) write(o,'(A10,$)')'log(dist)'
-	if(parID(p).eq.31) write(o,'(A10,$)')'RA'
-	if(parID(p).eq.32) write(o,'(A10,$)')'sin(dec)'
-	if(parID(p).eq.51) write(o,'(A10,$)')'cos(iota)'
-	if(parID(p).eq.41) write(o,'(A10,$)')'phi0'
-	if(parID(p).eq.52) write(o,'(A10,$)')'psi'
-    !write(o,'(A10,$)')trim(parNames(parID(p)))
+     if(parID(p).eq.61) write(o,'(A10,$)')'mchirp'
+     if(parID(p).eq.62) write(o,'(A10,$)')'eta'
+     if(parID(p).eq.11.or.parID(p).eq.12) write(o,'(A10,$)')'time'
+     if(parID(p).eq.22) write(o,'(A10,$)')'log(dist)'
+     if(parID(p).eq.31) write(o,'(A10,$)')'RA'
+     if(parID(p).eq.32) write(o,'(A10,$)')'sin(dec)'
+     if(parID(p).eq.51) write(o,'(A10,$)')'cos(iota)'
+     if(parID(p).eq.41) write(o,'(A10,$)')'phi0'
+     if(parID(p).eq.52) write(o,'(A10,$)')'psi'
+     !write(o,'(A10,$)')trim(parNames(parID(p)))
   end do
   write(o,*)''
-!  do p=1,nMCMCpar
-!    write(o,'(F10.5,$)')startval(1,p,1)
-!  end do
-!  write(o,*)''
-!  write(o,*)''
-
-!  do ic=1,nChains0
- do i=1,n(1)
-    do p=1,nMCMCpar
-      write(o,'(F10.5,$)')selDat(1,p,i)
-    end do
-	write(o,*)''
- end do
-!  end do
-
-
+  !  do p=1,nMCMCpar
+  !    write(o,'(F10.5,$)')startval(1,p,1)
+  !  end do
+  !  write(o,*)''
+  !  write(o,*)''
+  
+  !  do ic=1,nChains0
+  do i=1,n(1)
+     do p=1,nMCMCpar
+        write(o,'(F10.5,$)')selDat(1,p,i)
+     end do
+     write(o,*)''
+  end do
+  !  end do
+  
+  
   
   close(o) !data output file
   
