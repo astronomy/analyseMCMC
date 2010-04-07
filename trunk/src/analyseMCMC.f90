@@ -261,7 +261,10 @@ program analyseMCMC
   if(file.ge.1) update = 0
   if(plAnim.ge.1) update = 0
   
-  colournames(1:15) = [character(len=20) :: 'white','red','dark green','dark blue','cyan','magenta','yellow','orange','light green','brown','dark red','purple','red-purple','dark grey','light grey']
+  colournames(1:15) = (/ &
+       'white               ','red                 ','dark green          ','dark blue           ','cyan                ', &
+       'magenta             ','yellow              ','orange              ','light green         ','brown               ', &
+       'dark red            ','purple              ','red-purple          ','dark grey           ','light grey          '/)
   if(file.ge.2) colournames(1) = 'black'
   
   call set_originalParameterNames()  !Set the names and symbols of the original MCMC parameters in the database

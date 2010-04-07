@@ -1,7 +1,7 @@
 !Functions for analysemcmc.f
 
 
-!***************************************************************************************************
+!***********************************************************************************************************************************
 subroutine setconstants
   use constants
   
@@ -30,10 +30,15 @@ subroutine setconstants
   stdOut = 6  !Standard output unit - screen
   
   !Define detector abbreviations here (don't forget to change detabbrs() in the module constants in analysemcmc_modules.f):
-  detabbrs = [character(len=2) :: 'H1','L1','V ','H2']
+  detabbrs = (/'H1','L1','V ','H2'/)
   
   !Define waveforms here (don't forget to change waveforms() in the module constants in analysemcmc_modules.f):
-  waveforms = [character(len=99) :: 'Unknown','Apostolatos','SpinTaylor12','SpinTaylor15','PPN','','','','','Ana.L'] !0-4,9
+  waveforms(0) = 'Unknown'
+  waveforms(1) = 'Apostolatos'
+  waveforms(2) = 'SpinTaylor12'
+  waveforms(3) = 'SpinTaylor15'
+  waveforms(4) = 'PPN'
+  waveforms(9) = 'Ana.L'
   
   upline = char(27)//'[2A'  !Printing this makes the cursor move up one line (actually two lines, since a hard return is included)
   
@@ -51,10 +56,10 @@ subroutine setconstants
   call set_currentdate_constants()
   
 end subroutine setconstants
-!***************************************************************************************************
+!***********************************************************************************************************************************
 
 
-!***************************************************************************************************
+!***********************************************************************************************************************************
 subroutine read_settingsfile
   use basic
   use constants
@@ -190,10 +195,10 @@ subroutine read_settingsfile
   end if
   
 end subroutine read_settingsfile
-!***************************************************************************************************
+!***********************************************************************************************************************************
 
 
-!***************************************************************************************************
+!***********************************************************************************************************************************
 subroutine write_settingsfile
   use analysemcmc_settings
   implicit none
@@ -212,35 +217,51 @@ subroutine write_settingsfile
   
   write(u,'(/,A)')' Basic options:'
   write(u,11)thin, 'thin',   'If >1, "thin" the output; read every thin-th line '
-  write(u,11)maxval(Nburn), 'Nburn',   'If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain'
-  write(u,21)NburnFrac, 'NburnFrac',   'If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides Nburn above'
-  write(u,21)autoBurnin, 'autoBurnin',   'If !=0: Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin. If autoBurnin<0, use Npar/2. Overrides Nburn and NburnFrac above'
+  write(u,11)maxval(Nburn), 'Nburn',   'If >=0: override length of the burn-in phase, for all chains!'// &
+       ' This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain'
+  write(u,21)NburnFrac, 'NburnFrac',   'If !=0: override length of the burn-in phase, as a fraction of the length of each chain.'//&
+       ' This overrides Nburn above'
+  write(u,21)autoBurnin, 'autoBurnin',   'If !=0: Determine burn-in automatically as the first iteration where'// &
+       ' log(L_chain) > max(log(L_allchains)) - autoBurnin. If autoBurnin<0, use Npar/2. Overrides Nburn and NburnFrac above'
   write(u,31)dble(maxChLen), 'maxChLen',   'Maximum chain length to read in (number of iterations, not number of lines)'
-  write(u,11)file, 'file',   'Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter "outputdir" below'
+  write(u,11)file, 'file',   'Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files'// &
+       ' in the parameter "outputdir" below'
   write(u,11)colour, 'colour',   'Use colours: 0-no (grey scales), 1-yes'
   write(u,11)quality, 'quality',   '"Quality" of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster'
-  write(u,11)reverseRead, 'reverseRead',   'Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too'
+  write(u,11)reverseRead, 'reverseRead',   'Read files reversely (anti-alphabetically), to plot coolest chain last so that it'// &
+       ' becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too'
   write(u,11)update, 'update',   'Update screen plot every 10 seconds: 0-no, 1-yes'
-  write(u,11)mergeChains, 'mergeChains',   'Merge the data from different files into one chain: 0-no (treat separately), 1-yes (default)'
-  write(u,11)wrapData, 'wrapData',   'Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)'
+  write(u,11)mergeChains, 'mergeChains',   'Merge the data from different files into one chain: 0-no (treat separately), 1-yes'// &
+       ' (default)'
+  write(u,11)wrapData, 'wrapData',   'Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is'// &
+       ' around 0)'
   write(u,11)changeVar, 'changeVar',   'Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)'
   
   
   write(u,'(/,A)')' Select what output to print to screen and write to file:'
   write(u,11)prStdOut, 'prStdOut',   'Print standard output to 1: screen, 2: text file'
-  write(u,11)prProgress, 'prProgress',   'Print general messages about the progress of the program: 0-no, 1-some, 2-more, 3-debug output'
-  write(u,11)prRunInfo, 'prRunInfo',   'Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files'
-  write(u,11)prChainInfo, 'prChainInfo',   'Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per chain (file name, plot colour, # iterations, burn-in, Lmax, # data points)'
-  write(u,11)prInitial, 'prInitial',   'Print starting values for each chain: 0-no, 1-yes, 2-add injection value, 3-add Lmax value, 4-add differences (~triples number of output lines for this part)'
-  write(u,11)prStat, 'prStat',   'Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all probability intervals'
+  write(u,11)prProgress, 'prProgress',   'Print general messages about the progress of the program: 0-no, 1-some, 2-more,'// &
+       ' 3-debug output'
+  write(u,11)prRunInfo, 'prRunInfo',   'Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only'// &
+       ' for one file (eg. if all files similar), 2-for all files'
+  write(u,11)prChainInfo, 'prChainInfo',   'Print chain info: 1-summary (tot # data points, # contributing chains),'// &
+       '  2-details per chain (file name, plot colour, # iterations, burn-in, Lmax, # data points)'
+  write(u,11)prInitial, 'prInitial',   'Print starting values for each chain: 0-no, 1-yes, 2-add injection value,'// &
+       ' 3-add Lmax value, 4-add differences (~triples number of output lines for this part)'
+  write(u,11)prStat, 'prStat',   'Print statistics: 0-no, 1-yes, for default probability interval,'// &
+       ' 2-yes, for all probability intervals'
   write(u,11)prCorr, 'prCorr',   'Print correlations: 0-no, 1-yes'
   write(u,11)prAcorr, 'prAcorr',   'Print autocorrelations: 0-no, 1-some, 2-more'
   write(u,11)nAcorr, 'nAcorr',   'Compute nAcorr steps of autocorrelations if prAcorr>0 or plAcorr>0 (default: 100)'
   write(u,11)prIval, 'prIval',   'Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both'
-  write(u,11)prConv, 'prConv',   'Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain'
-  write(u,11)saveStats, 'saveStats',   'Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS'
-  write(u,11)savePDF, 'savePDF',   'Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying'
-  write(u,11)tailoredOutput, 'tailoredOutput',   'Save (ascii) output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the hardcoded block tO in the subroutine tailored_output() in analysemcmc_tailored.f'
+  write(u,11)prConv, 'prConv',   'Print convergence information for multiple chains to screen and chains plot: 0-no,'// &
+       ' 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain'
+  write(u,11)saveStats, 'saveStats',   'Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes,'// &
+       ' 2-yes + copy in PS'
+  write(u,11)savePDF, 'savePDF',   'Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).'// &
+       '  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying'
+  write(u,11)tailoredOutput, 'tailoredOutput',   'Save (ascii) output for a specific purpose, e.g. table in a paper:'// &
+       '  0-no, tO>0: use the hardcoded block tO in the subroutine tailored_output() in analysemcmc_tailored.f'
   
   
   write(u,'(/,A)')' Select which plots to make:'
@@ -249,31 +270,44 @@ subroutine write_settingsfile
   write(u,11)plChain, 'plChain',   'Plot parameter chains: 0-no, 1-yes'
   write(u,11)plParL, 'plParL',   'Plot L vs. parameter value: 0-no, 1-yes'
   write(u,11)plJump, 'plJump',   'Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log'
-  write(u,11)plPDF1D, 'plPDF1D',   'Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.'
-  write(u,11)plPDF2D, 'plPDF2D',   'Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) or not (=0).'
+  write(u,11)plPDF1D, 'plPDF1D',   'Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram.'// &
+       ' If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.'
+  write(u,11)plPDF2D, 'plPDF2D',   'Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only,'// &
+       ' 3: contours only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) or not (=0).'
   write(u,11)plAcorr, 'plAcorr',   'Plot autocorrelations: 0-no, 1-yes'
-  write(u,11)plotSky, 'plotSky',   'Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
+  write(u,11)plotSky, 'plotSky',   'Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars,'// &
+       ' 3-full sky with stars'
   write(u,11)plAnim, 'plAnim',   'Create movie frames'
   
   
   write(u,'(/,A)')' Detailed plot settings:'
-  write(u,11)chainPlI, 'chainPlI',   'Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine, chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.'
-  write(u,11)scLogLpl, 'scLogLpl',   'Scale logL plot ranges: 0: take everything into account, including burn-in and starting values;  1: take only post-burn-in and injection values into account'
-  write(u,11)scChainsPl, 'scChainsPl',   'Scale chains plot ranges: 0: take everything into account, including burn-in;  1: take only post-burn-in and injection values into account'
-  write(u,11)plInject, 'plInject',   'Plot injection values in the chains and pdfs: 0: no,  1: yes (all pars),  2: yes (selected pars), 3-4: as 1-2 + print value in PDF panel'
+  write(u,11)chainPlI, 'chainPlI',   'Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine,'// &
+       ' chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.'
+  write(u,11)scLogLpl, 'scLogLpl',   'Scale logL plot ranges: 0: take everything into account, including burn-in'// &
+       ' and starting values;  1: take only post-burn-in and injection values into account'
+  write(u,11)scChainsPl, 'scChainsPl',   'Scale chains plot ranges: 0: take everything into account, including burn-in;'// &
+       '  1: take only post-burn-in and injection values into account'
+  write(u,11)plInject, 'plInject',   'Plot injection values in the chains and pdfs: 0: no,  1: yes (all pars),'// &
+       '  2: yes (selected pars), 3-4: as 1-2 + print value in PDF panel'
   write(u,11)plStart, 'plStart',   'Plot starting values in the chains and pdfs'
-  write(u,11)plMedian, 'plMedian',   'Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel'
-  write(u,11)plRange, 'plRange',   'Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel'
+  write(u,11)plMedian, 'plMedian',   'Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs,'// &
+       ' 3-both. 4-6: as 1-3 + write value in PDF panel'
+  write(u,11)plRange, 'plRange',   'Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs,'// &
+       ' 3-both. 4-6: as 1-3 + write value in PDF panel'
   write(u,11)plBurn, 'plBurn',   'Plot the burn-in in logL, the chains, etc.'
   write(u,11)plLmax, 'plLmax',   'Plot the position of the max logL, in the chains and pdfs'
   write(u,11)prValues, 'prValues',   'Print values (injection, median, range) in pdfs'
-  write(u,11)smooth, 'smooth',   'Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!'
+  write(u,11)smooth, 'smooth',   'Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).'// &
+       '   This is 1D only for now, and can introduce artefacts on narrow peaks!'
   write(u,11)fillPDF, 'fillPDF',   'Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched'
-  write(u,11)normPDF1D, 'normPDF1D',   'Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains'
-  write(u,11)normPDF2D, 'normPDF2D',   "'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value,  4-2D probability intervals"
+  write(u,11)normPDF1D, 'normPDF1D',   'Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different'// &
+       ' bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains'
+  write(u,11)normPDF2D, 'normPDF2D',   "'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,"// &
+       "  1-logarithmically,  2-sqrt,  3-weigted with likelihood value,  4-2D probability intervals"
   write(u,11)nAnimFrames, 'nAnimFrames',   'Number of frames for the movie'
   write(u,11)animScheme, 'animScheme',   'AnimScheme (1-3): determines what panels to show in a movie frame; see source code'
-  write(u,12)Nival,ival0, 'Nival ival0',   'Number of probability intervals,  number of the default probability interval (ival0<=Nival)'
+  write(u,12)Nival,ival0, 'Nival ival0',   'Number of probability intervals,  number of the default probability interval'// &
+       ' (ival0<=Nival)'
   do i=1,Nival
      write(u,'(F9.5)',advance="no")ivals(i)
   end do
@@ -286,52 +320,62 @@ subroutine write_settingsfile
   write(u,11)bmpYSz, 'bmpYSz',   'Y-size for bitmap (pixels):  700'
   write(u,21)PSsz,  'PSsz',    'Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap'
   write(u,21)PSrat, 'PSrat',   'Ratio for PS/PDF (PGPlot units). Default: 0.742  /   '
-  write(u,21)scFac, 'scFac',   '!!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot'
+  write(u,21)scFac, 'scFac',   '!!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y'// &
+       ' size indicated above to interpolate and smoothen the plot'
   write(u,11)unSharp, 'unSharp',   'Apply unsharp mask when creating .png plots. Default: 10.'
 
   write(u,'(/,A)')' Fonts, symbols, etc.:'
-  write(u,11)orientation, 'orientation',   'Use portrait (1) or landscape (2) for eps/pdf; mainly useful when sending a plot to a printer'
+  write(u,11)orientation, 'orientation',   'Use portrait (1) or landscape (2) for eps/pdf; mainly useful'// &
+       ' when sending a plot to a printer'
   write(u,11)fontType, 'fontType',   'Font type used for eps/pdf: 1-simple, 2-roman, 3-italic, 4-script'
-  write(u,21)fontSize1D, 'fontSize1D',   'Scale the font size for 1D plots (chains, 1D PDFs) with respect to default.  Default: 1.0'
+  write(u,21)fontSize1D, 'fontSize1D',   'Scale the font size for 1D plots (chains, 1D PDFs) with respect to default.'// &
+       '  Default: 1.0'
   write(u,21)fontSize2D, 'fontSize2D',   'Scale the font size for 2D plots (2D PDFs) with respect to default.  Default: 1.0'
-  write(u,11)chainSymbol, 'chainSymbol',   'Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-11: use a selection of open/filled symbols'
+  write(u,11)chainSymbol, 'chainSymbol',   'Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default),'// &
+       ' 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle;'// &
+       ' -10/-11: use a selection of open/filled symbols'
   
   write(u,'(/,A)')' Data settings:'
-  write(u,'(A)')' Plot MCMC parameters (plPar()):  11-2:tc/t40, 21-2:d^3/logd, 31-2:RA/dec, 41:phase, 51-4:i/psi/thJo/phJo, 61-4:Mc/eta/M1/M2, 71-3:a/th/phi for spin1, 81-3: spin2'
-  write(u,11)nPlPar, 'nPlPar',   'Number of plot parameters for 1D PDFs (and chain, jump plots, max 15).  This is ignored when savePDF=1. Put the MCMC parameters in the line below (plPars()):'
+  write(u,'(A)')' Plot MCMC parameters (plPar()):  11-2:tc/t40, 21-2:d^3/logd, 31-2:RA/dec, 41:phase, 51-4:i/psi/thJo/phJo,'// &
+       ' 61-4:Mc/eta/M1/M2, 71-3:a/th/phi for spin1, 81-3: spin2'
+  write(u,11)nPlPar, 'nPlPar',   'Number of plot parameters for 1D PDFs (and chain, jump plots, max 15).'// &
+       '  This is ignored when savePDF=1. Put the MCMC parameters in the line below (plPars()):'
   do i=1,nPlPar
      write(u,'(I3)',advance="no")plPars(i)
   end do
   write(u,*)
   write(u,12)panels(1:2), 'panels',   'Number of for 1D plots in x,y direction:  0: autodetermine'
   write(u,11)Nbin1D, 'Nbin1D',   'Number of bins for 1D PDFs:  0: autodetermine'
-  write(u,11)Nbin2Dx, 'Nbin2Dx',   'Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)'
-  write(u,11)Nbin2Dy, 'Nbin2Dy',   'Number of bins in y-direction for 2D PDFs and 2D probability ranges:  0: use Nbin2Dx, -1: use Nbin2Dx*(scr/bmp/ps)rat'
-  write(u,11)Npdf2D, 'Npdf2D',     'Number of 2D-PDF plots to make:  -1: all plots (91 for 12+2 parameters),  >0: read parameters from the lines below'
+  write(u,11)Nbin2Dx, 'Nbin2Dx',   'Number of bins in x-direction for 2D PDFs and 2D probability ranges:'// &
+       '  0: autodetermine (for both x and y)'
+  write(u,11)Nbin2Dy, 'Nbin2Dy',   'Number of bins in y-direction for 2D PDFs and 2D probability ranges:'// &
+       '  0: use Nbin2Dx, -1: use Nbin2Dx*(scr/bmp/ps)rat'
+  write(u,11)Npdf2D, 'Npdf2D',     'Number of 2D-PDF plots to make:  -1: all plots (91 for 12+2 parameters),'// &
+       '  >0: read parameters from the lines below'
   do i=1,Npdf2D
      write(u,12)PDF2Dpairs(i,1:2), 'PDF2Dpairs', 'Pairs of parameters to plot a 2D PDF for'
   end do
   close(u)
 end subroutine write_settingsfile
-!***************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
 
-!***************************************************************************************************
+!***********************************************************************************************************************************
 subroutine set_plotsettings  !Set plot settings to 'default' values
   use analysemcmc_settings
   implicit none
   
   thin = 10         !If >1, 'thin' the output; read every thin-th line 
-  Nburn = 1e5       !If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number, but it becomes the line number later on in the code.  Nburn > Nchain sets Nburn = 0.1*Nchain
+  Nburn = 1e5       !If >=0: override length of the burn-in phase, for all chains
   NburnFrac = 0.5   !If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
-  autoBurnin = -1.  !Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin.  If <0, use Npar/2.  Overrides NburnFrac.
+  autoBurnin = -1.  !Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
   maxChLen = 1e8    !Maximum chain length
-  file = 1          !Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files in the parameter 'outputdir' below.
+  file = 1          !Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.
   colour = 1        !Use colours: 0-no (grey scales), 1-yes
   quality = 0       !'Quality' of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
-  reverseRead = 0   !Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too
+  reverseRead = 0   !Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible
   update = 0        !Update screen plot every 10 seconds: 0-no, 1-yes
   mergeChains = 1   !Merge the data from different files into one chain: 0-no (treat separately), 1-yes (default)
   wrapData = 1      !Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
@@ -339,43 +383,43 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   
   prStdOut = 1      !Print standard output to 1: screen, 2: text file
   prProgress = 2    !Print general messages about the progress of the program: 0-no, 1-some, 2-more
-  prRunInfo = 0     !Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file (eg. if all files similar), 2-for all files
+  prRunInfo = 0     !Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file
   prInitial = 0     !Print injection values, starting values and their difference
   prStat = 1        !Print statistics: 0-no, 1-yes
   prCorr = 0        !Print correlations: 0-no, 1-yes
   prAcorr = 0       !Plot autocorrelations: 0-no, 1-some, 2: more
   nAcorr = 100      !Compute prAcorr steps of autocorrelations if prAcorr>0 or plAcor>0 (default: 100)
   prIval = 0        !Print interval info: 0-no, 1-yes
-  prConv = 1        !Print convergence information for multiple chains to screen and chains plot: 0-no, 1-one summary line, 2-medians, stdevs, etc. too.
+  prConv = 1        !Print convergence information for multiple chains to screen and chains plot
   saveStats = 0     !Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
-  savePDF = 0       !Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
-  tailoredOutput=0  !Save output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the hardcoded block tO in the subroutine tailored_output() in analysemcmc_tailored.f
+  savePDF = 0       !Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).
+  tailoredOutput=0  !Save output for a specific purpose, e.g. table in a paper
   
   plot = 1          !0: plot nothing at all, 1: plot the items selected below
-  scLogLpl = 1      !Scale logL plot ranges: 0: take everything into account, including burn-in and starting values;  1: take only post-burn-in and injection values into account
-  scChainsPl = 1    !Scale chains plot ranges: 0: take everything into account, including burn-in;  1: take only post-burn-in and injection values into account
+  scLogLpl = 1      !Scale logL plot ranges: 0
+  scChainsPl = 1    !Scale chains plot ranges
   plLogL = 1        !Plot log L chains: 0-no, 1-yes
   plChain = 1       !Plot parameter chains: 0-no, 1-yes
   plParL = 1        !Plot L vs. parameter value: 0-no, 1-yes
   plJump = 1        !Plot actual jump sizes
-  plPDF1D = 1       !Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.
-  plPDF2D = 2       !Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) or not (=0).
+  plPDF1D = 1       !Plot 1d posterior distributions
+  plPDF2D = 2       !Plot 2d posterior distributions
   plAcorr = 0       !Plot autocorrelations: 0-no, 1-yes
-  plotSky = 0       !Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full sky with stars'
+  plotSky = 0       !Plot 2d pdf with stars, implies plPDF2D>0
   plAnim = 0        !Plot movie frames
   
-  chainPlI = 0      !Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine, chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.
-  plInject = 1        !Plot injection values in the chains and pdfs
+  chainPlI = 0      !Plot every chainPlI-th point in chains, logL, jump plots
+  plInject = 1      !Plot injection values in the chains and pdfs
   plStart = 1       !Plot starting values in the chains and pdfs
   plMedian = 1      !Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
   plRange = 1       !Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
   plBurn = 1        !Plot the burn-in in logL, the chains, etc.
   plLmax = 0        !Plot the position of the max of logL in chains and pdfs
   prValues = 1      !Print values (injection, median, range) in pdfs
-  smooth = 3        !Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D only for now, and can introduce artefacts on narrow peaks!
+  smooth = 3        !Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?)
   fillPDF = 1       !Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
-  normPDF1D = 1     !Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains
-  normPDF2D = 0     !'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-logarithmically,  2-sqrt,  3-weigted with likelihood value
+  normPDF1D = 1     !Normalise 1D pdfs
+  normPDF2D = 0     !'Normalise' 2D pdfs; greyscale value depends on bin height
   nAnimFrames = 1    !Number of frames for the movie
   animScheme = 3   !Movie scheme: determines what panels to show in a movie frame 
   Nival = 3         !Number of probability intervals
@@ -388,14 +432,14 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   bmpYSz = 700      !Y-size for bitmap (pixels):  700
   PSsz   = 10.5     !Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap
   PSrat  = 0.742    !Ratio for PS/PDF (PGPlot units). Default: 0.742  /
-  scFac = 1.2       !Scale .png plots up by this factor, then down to the x,y size indicated above to interpolate and smoothen the plot
+  scFac = 1.2       !Scale .png plots up by this factor, then down to the x,y size indicated above
   unSharp = 10      !Apply unsharp mask when creating .png plots. Default: 10
   
   orientation = 1   !Use portrait (1) or landscape (2) for eps/pdf; mainly useful when sending a plot to a printer
   fonttype = 1      !Font type used for eps/pdf: 1-simple, 2-roman, 3-italic, 4-script
   fontsize1d = 1.   !Set plot scale for 1D plots, needs to be implemented fully
   fontsize2d = 1.   !Set plot scale for 2D plots, needs to be implemented fully. Typically, take ~1.2*fontsize1d
-  chainSymbol = 1   !Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle
+  chainSymbol = 1   !Plot symbol for the chains
   
   nPlPar = 15       !Number of plot parameters for 1D plots
   plPars(1:nPlPar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !The nPlPar plot parameters
@@ -406,11 +450,11 @@ subroutine set_plotsettings  !Set plot settings to 'default' values
   Npdf2D  = 1       !Number of 2D PDFs to make
   PDF2Dpairs(1,1:2) = (/8,9/)  !2D PDFs to plot: RA,Dec
 end subroutine set_plotsettings
-!***************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspiral.output.*)
   use basic
   use constants
@@ -440,11 +484,12 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      end if
      rewind(10)
      
-     !if(prProgress.ge.2) write(stdOut,'(A,I3,A,I3,A20)',advance="no")'    File',ic,':  '//trim(infile)//'    Using colour',colours(mod(ic-1,ncolours)+1),': '//colournames(colours(mod(ic-1,ncolours)+1))
+     !if(prProgress.ge.2) write(stdOut,'(A,I3,A,I3,A20)',advance="no")'    File',ic,':  '//trim(infile)// &
+     !     '    Using colour',colours(mod(ic-1,ncolours)+1),': '//colournames(colours(mod(ic-1,ncolours)+1))
      
      !Read the headers
      !Determine from the length of the first line whether this is output from before of after July 2009
-     !  before: first line is >80 characters long header (     Niter       Nburn    seed       null likelihood (now <d|d>)    Ndet    Ncorr   Ntemps      Tmax      Tchain   Network SNR)
+     !  before: first line is >80 characters long header (     Niter       Nburn    seed       <d|d>...
      !  after:  first line is <80 characters long version number (  SPINspiral version:    1.00)
      
      outputVersion = 0.0  !Use old format
@@ -452,14 +497,17 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      if(len_trim(firstLine).lt.80) read(firstLine,'(A21,F8.2)')tmpStr,outputVersion  !Use new format
      
      if(outputVersion > 0.5) read(10,*,end=199,err=199)tmpStr  !Read empty line between version number and first header
-     read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform,pnOrder,nMCMCpar
+     read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), &
+          nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform,pnOrder,nMCMCpar
      
      nMCMCpar0 = nMCMCpar  !< nMCMCpar may change when secondary parameters are computed
      
      read(10,*,end=199,err=199)tmpStr !Read empty line above detector info
      do i=1,ndet(ic)
-        !read(10,'(2x,A14,F18.8,4F12.2,F22.8,F17.7,3I14)') detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
-        read(10,*)detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+        !read(10,'(2x,A14,F18.8,4F12.2,F22.8,F17.7,3I14)') detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i), &
+        !t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+        read(10,*)detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i), &
+             samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
         detname = detnames(ic,i)
         !write(stdErr,'(A)')trim(detname)
         j = len_trim(detname)
@@ -480,21 +528,24 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
      else  !Set the parameter IDs of an old MCMC output file manually:
         
         !Assume 12-parameter Apostolatos:
-        if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters, assuming that an Apostolatos, 1.5-pN, 12-parameter waveform was used..."
+        if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters,"// &
+             " assuming that an Apostolatos, 1.5-pN, 12-parameter waveform was used..."
         nMCMCpar = 12  !Mc et tc ld a1 th ra de ph tJ pJ,ph_spin
         parID(1:12) = (/61,62,11,22,71,72,31,32,41,53,54,73/)
         waveform = 1
         pNorder = 1.5
         
         !Assume 12-parameter SpinTaylor:
-        !if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters, assuming that a SpinTaylor, 3.5-pN, 12-parameter waveform was used..."
+        !if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters,"// &
+        !" assuming that a SpinTaylor, 3.5-pN, 12-parameter waveform was used..."
         !nMCMCpar = 12  !
         !parID(1:12) = (//)  !Needs to be filled in before use
         !waveform = 2
         !pNorder = 3.5
         
         !Assume 15-parameter SpinTaylor:
-        !if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters, assuming that a SpinTaylor, 3.5-pN, 15-parameter waveform was used..."
+        !if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters,"// &
+        !" assuming that a SpinTaylor, 3.5-pN, 15-parameter waveform was used..."
         !nMCMCpar = 15  !
         !parID(1:15) = (//)  !Needs to be filled in before use
         !waveform = 3
@@ -545,7 +596,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
               if(parID(p).ge.11.and.parID(p).le.19) then
                  dtmpDat(p) = dble(floor(tmpDat(p)/10.d0)*10)  !'GPS base time', rounded off to the nearest 10s, 
                  t0 = dtmpDat(p)                               !  to allow x.xx labels on the plots for GPS-t0
-                 GPStime = floor(tmpDat(p)+0.05)               !Always floor, unless >x.95s. Use as 'name' to refer to this event, e.g. in file names
+                 GPStime = floor(tmpDat(p)+0.05)               !Always floor, unless >x.95s. Use e.g. in file names
               end if
            end do
         end if
@@ -558,10 +609,14 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
            end do
         end if
         
-        !allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))  !In case you ran with lon rather than RA
-        !if(i.eq.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))  !In case only the injection value is lon rather than RA
-        !if(i.ne.1) allDat(ic,revID(31),i) = real(ra2lon(dble(allDat(ic,revID(31),i)),t0))  !In case only the injection value is lon rather than RA
-        !if(i.ne.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))  !In case all but the injection value is lon rather than RA
+        !In case you ran with lon rather than RA:
+        !allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))  
+        !In case only the injection value is lon rather than RA:
+        !if(i.eq.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
+        !In case only the injection value is lon rather than RA:
+        !if(i.ne.1) allDat(ic,revID(31),i) = real(ra2lon(dble(allDat(ic,revID(31),i)),t0))
+        !In case all but the injection value is lon rather than RA:
+        !if(i.ne.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
         
         i = i+1
         if(tmpInt.ge.maxChLen) exit
@@ -572,23 +627,26 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
 199  close(10)
      ntot(ic) = i-1
      n(ic) = ntot(ic) !n can be changed in rearranging chains, ntot won't be changed
-     !if(prProgress.ge.2.and.update.ne.1) write(stdOut,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:',nint(is(ic,ntot(ic))),', burn-in:',Nburn(ic),'.'
+     !if(prProgress.ge.2.and.update.ne.1) write(stdOut,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:', &
+     !nint(is(ic,ntot(ic))),', burn-in:',Nburn(ic),'.'
   end do !do ic = 1,nchains0
   
   
   
 end subroutine read_mcmcfiles
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
 
 
 
-!************************************************************************************************************************************
-subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some of it to screen:
-  !  print MCMC run info,  determine Lmax, burn-in,  print chain info,  determine thinning for chains plots,  change/add MCMC parameters, 
-  !  determine injection, start, Lmax values of chains,  compute jumps,  construct output file name,  store data in selDat (from dat)
+!***********************************************************************************************************************************
+!>Extract info from the chains and print some of it to screen:
+!!  print MCMC run info,  determine Lmax, burn-in,  print chain info,  determine thinning for chains plots,  change/add parameters, 
+!!  determine injection, start, Lmax values of chains,  compute jumps,  construct output file name,  store data in selDat (from dat)
+!<
+subroutine mcmcruninfo(exitcode)  
   use basic
   use constants
   use analysemcmc_settings
@@ -608,7 +666,8 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   do ic = 1,nchains0
      totiter = totiter + nint(is(ic,ntot(ic)))
   end do
-  !if(prProgress.ge.2.and.update.ne.1) write(stdOut,'(A10,65x,2(A,I9),A1)')'Total:',' Lines:',sum(ntot(1:nchains0)),', iterations:',totiter
+  !if(prProgress.ge.2.and.update.ne.1) write(stdOut,'(A10,65x,2(A,I9),A1)')'Total:',' Lines:',sum(ntot(1:nchains0)),',  &
+  !iterations:',totiter
   
   
   
@@ -621,17 +680,23 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
            infile = infiles(ic)
            if(outputVersion.lt.0.5) then
               write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
-              write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(13:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
+              write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(13:99)), &
+                   trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
            else
-              write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8,  2A8,2A8,  A8,  A10,  A8,  A8, 3x,A8)') 'Chain','file name','colour','Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','<d|d>','pN','Npar','WaveForm'
-              write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8,  2I8,2F8.1,F8.3,F10.2,F8.1,I8, 3x,A)')ic,trim(infile(19:99)),trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic), &
+              write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8,  2A8,2A8,  A8,  A10,  A8,  A8, 3x,A8)') 'Chain','file name','colour', &
+                   'Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','<d|d>','pN','Npar','WaveForm'
+              write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8,  2I8,2F8.1,F8.3,F10.2,F8.1,I8, 3x,A)')ic,trim(infile(19:99)), &
+                   trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic), &
                    nCorr(ic),nTemps(ic),real(Tmax(ic)),Tchain(ic),networkSNR(ic),DoverD,pnOrder,nMCMCpar,trim(waveforms(waveform))
            end if
            
            write(stdOut,*)
-           write(stdOut,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
+           write(stdOut,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc', &
+                'Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
            do i=1,ndet(ic)
-              write(stdOut,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')trim(detnames(ic,i)),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+              write(stdOut,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')trim(detnames(ic,i)),detnr(ic,i),snr(ic,i),flow(ic,i), &
+                   fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i), &
+                   FTsize(ic,i)
            end do
            write(stdOut,*)
         end if
@@ -693,14 +758,18 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      ic = icloglmax
      i = iloglmax
      infile = infiles(ic)
-     write(stdOut,'(A,I4,2(A,I9),A,F10.3,A,F7.2,A)')'    Maximum likelihood point:   chain:',ic,' ('//trim(infile(19:99))//'),   line:',i*thin+7+ndet(ic), &
+     write(stdOut,'(A,I4,2(A,I9),A,F10.3,A,F7.2,A)')'    Maximum likelihood point:   chain:',ic,' ('//trim(infile(19:99))// &
+          '),   line:',i*thin+7+ndet(ic), &
           ',   iteration:',nint(is(ic,i)),',   max log(L):',loglmax,'  -> SNR:',sqrt(2*loglmax),'.'
      
      !Test: get parameter values for L=Lmax
      !if(prProgress.ge.3) then
-     !   write(stdOut,'(I10,F14.6,1x,2F12.7,F20.8,9F12.7)')nint(is(ic,i)),loglmax,allDat(ic,2:3,i),allDat(ic,4,i)+t0,allDat(ic,5:13,i)
+     !   write(stdOut,'(I10,F14.6,1x,2F12.7,F20.8,9F12.7)')nint(is(ic,i)),loglmax,allDat(ic,2:3,i),allDat(ic,4,i)+t0, &
+     !     allDat(ic,5:13,i)
      !   call mc_eta_2_m1_m2r(allDat(ic,2,i),allDat(ic,3,i), m1,m2)
-     !   write(stdOut,'(F9.4,F10.4,F21.6,F11.4,F10.4,F12.4,2F11.4,F12.4,3F11.4)')m1,m2,allDat(ic,4,i)+t0,exp(allDat(ic,5,i)),allDat(ic,6,i),acos(allDat(ic,7,i))*r2d,allDat(ic,8,i)*r2h,asin(allDat(ic,9,i))*r2d,allDat(ic,10,i)*r2d,asin(allDat(ic,11,i))*r2d,allDat(ic,12,i)*r2d,allDat(ic,13,i)*r2d
+     !   write(stdOut,'(F9.4,F10.4,F21.6,F11.4,F10.4,F12.4,2F11.4,F12.4,3F11.4)')m1,m2,allDat(ic,4,i)+t0,exp(allDat(ic,5,i)), &
+     !     allDat(ic,6,i),acos(allDat(ic,7,i))*r2d,allDat(ic,8,i)*r2h,asin(allDat(ic,9,i))*r2d,allDat(ic,10,i)*r2d, &
+     !     asin(allDat(ic,11,i))*r2d,allDat(ic,12,i)*r2d,allDat(ic,13,i)*r2d
      !end if
      if(prRunInfo.ge.1) write(stdOut,*)
   end if
@@ -710,7 +779,7 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   if(abs(autoBurnin).gt.1.e-10) then
      if(autoBurnin.lt.-1.e-10) autoBurnin = real(nMCMCpar0)/2.  !< The default value for autoBurnin = Npar/2
      loop1: do ic=1,nchains0
-        isburn(ic) = is(ic,ntot(ic)) !Set burn-in to last iteration, so that chain is completely excluded if condition is never fulfilled
+        isburn(ic) = is(ic,ntot(ic)) !Set burn-in to last iteration, so that chain is completely excluded if condition never met
         Nburn(ic) = ntot(ic)
         do i=2,ntot(ic) !i=1 is injection value?
            if(post(ic,i).gt.real(loglmax)-autoBurnin) then
@@ -723,7 +792,8 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   end if
   
   
-  !Determine the total number of iterations and lines in the input and data points for statistics; determine how many and which chains contribute
+  !Determine the total number of iterations and lines in the input and data points for statistics; 
+  !determine how many and which chains contribute
   totiter = 0
   totpts  = 0
   contrChains = 0
@@ -749,17 +819,22 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
         else
            write(stdOut,'(A6)',advance="no")'      '
         end if
-        write(stdOut,'(A2,I2,A1,A10,A12)',advance="no") 'Ch',ic,':',trim(infile(19:99)),', '//colournames(colours(mod(ic-1,ncolours)+1))//'.'
+        write(stdOut,'(A2,I2,A1,A10,A12)',advance="no") 'Ch',ic,':',trim(infile(19:99)), &
+             ', '//colournames(colours(mod(ic-1,ncolours)+1))//'.'
         write(stdOut,'(A,ES7.1,A,ES7.1,A1)',advance="no") '  Lines/iter: ',real(n(ic)),'/',is(ic,n(ic)),'.'
         write(stdOut,'(A,ES7.1,A,ES7.1,A1)',advance="no") '  Burn-in: ',real(Nburn(ic)),'/',isburn(ic),'.'
-        write(stdOut,'(A,F8.2,A,F6.1,A,F4.1,A1)',advance="no") '  Lmx:',loglmaxs(ic),', dLmx:',abs(loglmax-loglmaxs(ic)),'/',autoBurnin,'.'
-        write(stdOut,'(A,I3,A,I4,A1)',advance="no") ' Thin: file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))),', tot:',totthin(ic),'.'
+        write(stdOut,'(A,F8.2,A,F6.1,A,F4.1,A1)',advance="no") '  Lmx:',loglmaxs(ic),', dLmx:',abs(loglmax-loglmaxs(ic)), &
+             '/',autoBurnin,'.'
+        write(stdOut,'(A,I3,A,I4,A1)',advance="no") ' Thin: file:',nint(is(ic,n(ic))/real(n(ic)*max(thin,1))), &
+             ', tot:',totthin(ic),'.'
         write(stdOut,'(A,ES7.1,A1)') '  Data pts: ',abs(real(n(ic)-Nburn(ic))),'.'
      end if
   end do
-  if(prChainInfo.ge.1.and.update.ne.1) write(stdOut,'(4x,A, A,ES10.3, A,ES10.3, A,I4, A,ES9.2,   A,ES10.3,  A2,F5.1, A,I3,A1,I2,A1)') &
-       'All chains:','  # lines:',real(totlines), ',  # iterations:',real(totiter), ',  thinning:',nint(avgtotthin), 'x,  med.burnin:',compute_median_real(real(isburn(1:nChains0)),nChains0), &
-       ',  # dat.pts after burnin:',real(totpts),' (',real(totpts)/real(totlines)*100,'%), contrib.chains:',contrChains,'/',nchains0,'.'
+  if(prChainInfo.ge.1.and.update.ne.1) &
+       write(stdOut,'(4x,A, A,ES10.3, A,ES10.3, A,I4, A,ES9.2,   A,ES10.3,  A2,F5.1, A,I3,A1,I2,A1)') &
+       'All chains:','  # lines:',real(totlines), ',  # iterations:',real(totiter), ',  thinning:',nint(avgtotthin), &
+       'x,  med.burnin:',compute_median_real(real(isburn(1:nChains0)),nChains0),   ',  # dat.pts after burnin:',real(totpts), &
+       ' (',real(totpts)/real(totlines)*100,'%), contrib.chains:',contrChains,'/',nchains0,'.'
   
   
   
@@ -767,12 +842,16 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   !*** Determine extra thinning for logL, chain, jump plots
   if(chainPlI.le.0) then
      !if(sum(ntot(1:nchains0)).gt.maxdots) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
-     chainPlI = max(1,nint(real(sum(ntot(1:nchains0)))/real(maxdots)))  !Use ntot and nchains0, since n is low if many points are in the burn-in
+     !Use ntot and nchains0, since n is low if many points are in the burn-in:
+     chainPlI = max(1,nint(real(sum(ntot(1:nchains0)))/real(maxdots)))  
      if(prChainInfo.ge.1.and.update.eq.0) then
         if(chainPlI.gt.1) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
-           write(stdOut,'(A,I4,A,I5,A,I5,A)')'    Plotting every',chainPlI,'-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*chainPlI),'x.'
+           write(stdOut,'(A,I4,A,I5,A,I5,A)')'    Plotting every',chainPlI, &
+                '-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin), &
+                'x, for these plots it is',nint(avgtotthin*chainPlI),'x.'
         else
-           write(stdOut,'(A,I4,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.  Average total thinning remains',nint(avgtotthin),'x for these plots.'
+           write(stdOut,'(A,I4,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.'// &
+                '  Average total thinning remains',nint(avgtotthin),'x for these plots.'
         end if
      end if
      write(stdOut,*)
@@ -794,7 +873,8 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
         revID(64) = nMCMCpar + 2  !M2
         nMCMCpar = nMCMCpar + 2
         if(nMCMCpar.gt.maxMCMCpar) then
-           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar,' to at least',nMCMCpar,' in order to continue.  Aborting...'
+           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
+                ' to at least',nMCMCpar,' in order to continue.  Aborting...'
            stop
         end if
         do ic=1,nchains0
@@ -810,7 +890,8 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
         revID(62) = nMCMCpar + 2  !eta
         nMCMCpar = nMCMCpar + 2
         if(nMCMCpar.gt.maxMCMCpar) then
-           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar,' to at least',nMCMCpar,' in order to continue.  Aborting...'
+           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
+                ' to at least',nMCMCpar,' in order to continue.  Aborting...'
            stop
         end if
         do ic=1,nchains0
@@ -824,7 +905,10 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      if(revID(11)*revID(31)*revID(32)*revID(53)*revID(54).ne.0) then  !Then all of these parameters are defined
         do ic=1,nchains0
            do i=1,ntot(ic)
-              call compute_incli_polangr(allDat(ic,revID(31),i), asin(allDat(ic,revID(32),i)), real(lon2ra(dble(allDat(ic,revID(54),i)), dble(allDat(ic,revID(11),i)) + t0)), asin(allDat(ic,revID(53),i)),   allDat(ic,revID(53),i),allDat(ic,revID(54),i))  !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad)
+              !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad):
+              call compute_incli_polangr(allDat(ic,revID(31),i), asin(allDat(ic,revID(32),i)), &
+                   real(lon2ra(dble(allDat(ic,revID(54),i)), dble(allDat(ic,revID(11),i)) + t0)), asin(allDat(ic,revID(53),i)), &
+                   allDat(ic,revID(53),i),allDat(ic,revID(54),i))  
               allDat(ic,revID(53),i) = cos(allDat(ic,revID(53),i))    !i -> cos(i)
            end do
         end do !ic
@@ -838,7 +922,8 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   end if !if(changeVar.ge.1)
   
   
-  !*** Put plot data in startval and jumps.  Print initial and starting values to screen.  Startval: 1: injection value, 2: starting value, 3: Lmax value
+  !*** Put plot data in startval and jumps.  Print initial and starting values to screen.
+  !Startval: 1: injection value, 2: starting value, 3: Lmax value
   jumps = 0.
   offsetrun = 0
   if(prInitial.ne.0) then
@@ -907,7 +992,8 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   fixedpar = 0
   do ic=1,nchains
      do p=1,nMCMCpar
-        if( abs(minval(allDat(ic,p,5:n(ic))) - maxval(allDat(ic,p,5:n(ic))) ) .lt. 1.d-6) fixedpar(p) = 1  !Doesn't matter in which chain this happens
+        !Doesn't matter in which chain this happens:
+        if( abs(minval(allDat(ic,p,5:n(ic))) - maxval(allDat(ic,p,5:n(ic))) ) .lt. 1.d-6) fixedpar(p) = 1
      end do
   end do
   nfixedpar = sum(fixedpar)
@@ -944,7 +1030,8 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
      j = 1
      do ic=1,nchains
         do i=Nburn(ic)+1,n(ic)
-           selDat(1,1:nMCMCpar,j) = allDat(ic,1:nMCMCpar,i)  !selDat has the same structure as allDat, but contains only data AFTER the burn-in.
+           !selDat has the same structure as allDat, but contains only data AFTER the burn-in:
+           selDat(1,1:nMCMCpar,j) = allDat(ic,1:nMCMCpar,i)  
            j = j+1
         end do
      end do
@@ -954,14 +1041,15 @@ subroutine mcmcruninfo(exitcode)  !Extract info from the chains and print some o
   else
      allocate(selDat(nchains,maxMCMCpar,maxLine))
      do ic=1,nchains
-        selDat(ic,1:nMCMCpar,1:n(ic)-Nburn(ic)) = allDat(ic,1:nMCMCpar,Nburn(ic)+1:n(ic))  !SelDat has the same structure as allDat, but contains only info AFTER the burn-in.
+        !SelDat has the same structure as allDat, but contains only info AFTER the burn-in:
+        selDat(ic,1:nMCMCpar,1:n(ic)-Nburn(ic)) = allDat(ic,1:nMCMCpar,Nburn(ic)+1:n(ic))
         n(ic) = n(ic)-Nburn(ic) !n(ic)=0 if a chain is not contributing (in which case contrChain(ic)=0)!
      end do
      !if(prProgress.ge.1) write(stdOut,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
   end if
   
 end subroutine mcmcruninfo
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
@@ -1019,217 +1107,7 @@ end subroutine save_data
 
 
 
-
-!> \brief Define the names and symbols of the original MCMC parameters
-!<
-!************************************************************************************************************************************
-subroutine set_originalParameterNames()
-  use analysemcmc_settings
-  use general_data
-  implicit none
-  
-  parNames = ''
-  pgParNs = ''
-  pgParNss = ''
-  pgUnits = ''
-  
-  !Short ASCII names for text output:
-  parNames(11:19) = [character(len=8) :: 'tc','t40','','','','','','','']
-  parNames(21:29) = [character(len=8) :: 'dl^3','log_dl','','','','','','','']
-  parNames(31:39) = [character(len=8) :: 'RA','sin_dec','','','','','','','']
-  parNames(41:49) = [character(len=8) :: 'phase','','','','','','','','']
-  parNames(51:59) = [character(len=8) :: 'cos_i','psi','sin_thJo','ph_Jo','','','','','']
-  parNames(61:69) = [character(len=8) :: 'Mc','eta','M1','M2','','','','','']
-  parNames(71:79) = [character(len=8) :: 'spin1','cos_th1','phi1','','','','','','']
-  parNames(81:89) = [character(len=8) :: 'spin2','cos_th2','phi2','','','','','','']
-  parNames(185:199) = [character(len=8) :: 'x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15']
-  !parNames(1:9) = [character(len=8) :: '','','','','','','','','']
-  
-  
-  if(fonttype.eq.2) then  !Use 'roman-like' Greek font in PGPlot
-     
-     !Long PGPlot names (symbol + unit)
-     pgParNs(11:19) = [character(len=99) :: 't\dc\u (s)','t\d40\u (s)','','','','','','','']
-     pgParNs(21:29) = [character(len=99) :: 'd\dL\u\u3\d (Mpc)','logd\dL\u (Mpc)','','','','','','','']
-     pgParNs(31:39) = [character(len=99) :: '\(2127) (rad)','sin \(2130)','','','','','','','']
-     pgParNs(41:49) = [character(len=99) :: '\(2147)\dc\u (rad)','','','','','','','','']
-     pgParNs(51:59) = [character(len=99) :: 'cos \(2135)','\(2149) (rad)','sin \(2185)\dJ0\u','\(2147)\dJ0\u (rad)','','','','','']
-     pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
-     pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','cos \(2185)\dspin1\u','\(2147)\dspin1\u (rad)','','','','','','']
-     pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','cos \(2185)\dspin2\u','\(2147)\dspin2\u (rad)','','','','','','']
-     pgParNs(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
-     !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
-     
-     !Short PGPlot symbols (no unit)
-     pgParNss(11:19) = [character(len=99) :: 't\dc\u','t\d40\u','','','','','','','']
-     pgParNss(21:29) = [character(len=99) :: 'd\dL\u\u3\d','logd\dL\u','','','','','','','']
-     pgParNss(31:39) = [character(len=99) :: '\(2127)','sin \(2130)','','','','','','','']
-     pgParNss(41:49) = [character(len=99) :: '\(2147)\dc\u','','','','','','','','']
-     pgParNss(51:59) = [character(len=99) :: 'cos \(2135)','\(2149)','sin \(2185)\dJ0\u','\(2147)\dJ0\u','','','','','']
-     pgParNss(61:69) = [character(len=99) :: '\(2563)','\(2133)','M\d1\u','M\d2\u','','','','','']
-     pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','cos \(2185)\dspin1\u','\(2147)\dspin1\u','','','','','','']
-     pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','cos \(2185)\dspin2\u','\(2147)\dspin2\u','','','','','','']
-     pgParNss(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
-     !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
-     
-  else  !Same, but replace '\(21' with \(06' for arial-like Greek font
-     
-     !Long PGPlot names (symbol + unit)
-     pgParNs(11:19) = [character(len=99) :: 't\dc\u (s)','t\d40\u (s)','','','','','','','']
-     pgParNs(21:29) = [character(len=99) :: 'd\dL\u\u3\d (Mpc)','logd\dL\u (Mpc)','','','','','','','']
-     pgParNs(31:39) = [character(len=99) :: '\(0627) (rad)','sin \(0630)','','','','','','','']
-     pgParNs(41:49) = [character(len=99) :: '\(0647)\dc\u (rad)','','','','','','','','']
-     pgParNs(51:59) = [character(len=99) :: 'cos \(0635)','\(0649) (rad)','sin \(0685)\dJ0\u','\(0647)\dJ0\u (rad)','','','','','']
-     pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
-     pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','cos \(0685)\dspin1\u','\(0647)\dspin1\u (rad)','','','','','','']
-     pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','cos \(0685)\dspin2\u','\(0647)\dspin2\u (rad)','','','','','','']
-     pgParNs(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
-     !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
-     
-     !Short PGPlot symbols (no unit)
-     pgParNss(11:19) = [character(len=99) :: 't\dc\u','t\d40\u','','','','','','','']
-     pgParNss(21:29) = [character(len=99) :: 'd\dL\u\u3\d','logd\dL\u','','','','','','','']
-     pgParNss(31:39) = [character(len=99) :: '\(0627)','sin \(0630)','','','','','','','']
-     pgParNss(41:49) = [character(len=99) :: '\(0647)\dc\u','','','','','','','','']
-     pgParNss(51:59) = [character(len=99) :: 'cos \(0635)','\(0649)','sin \(0685)\dJ0\u','\(0647)\dJ0\u','','','','','']
-     pgParNss(61:69) = [character(len=99) :: '\(2563)','\(0633)','M\d1\u','M\d2\u','','','','','']
-     pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','cos \(0685)\dspin1\u','\(0647)\dspin1\u','','','','','','']
-     pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','cos \(0685)\dspin2\u','\(0647)\dspin2\u','','','','','','']
-     pgParNss(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
-     !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
-     
-  end if
-  
-  !PGPlot units (no names)
-  pgUnits(11:19) = [character(len=99) :: 's','s','','','','','','','']
-  pgUnits(21:29) = [character(len=99) :: 'Mpc','Mpc','','','','','','','']
-  pgUnits(31:39) = [character(len=99) :: 'rad','','','','','','','','']
-  pgUnits(41:49) = [character(len=99) :: 'rad','','','','','','','','']
-  pgUnits(51:59) = [character(len=99) :: '','rad','','rad','','','','','']
-  pgUnits(61:69) = [character(len=99) :: 'M\d\(2281)\u','','M\d\(2281)\u','M\d\(2281)\u','','','','','']
-  pgUnits(71:79) = [character(len=99) :: '','','rad','','','','','','']
-  pgUnits(81:89) = [character(len=99) :: '','','rad','','','','','','']
-  pgUnits(185:199) = [character(len=99) :: '','','','','','','','','','','','','','','']
-  !pgUnits(1:9) = [character(len=99) :: '','','','','','','','','']
-  
-     
-  !Save the original parameter names for use after they get changed
-  pgOrigParns = pgParNs
-  
-  
-  
-  
-end subroutine set_originalParameterNames
-!************************************************************************************************************************************
-
-
-
-
-
-
-!> \brief Define the names and symbols of the derived MCMC parameters
-!! e.g. d_L rather than d_L^3 or log(d_L), i rather than cos(i), etc.
-!<
-!************************************************************************************************************************************
-subroutine set_derivedParameterNames()
-  use analysemcmc_settings
-  use general_data
-  implicit none
-  
-  parNames = ''
-  pgParNs = ''
-  pgParNss = ''
-  pgUnits = ''
-  
-  !Short ASCII names for text output:
-  parNames(11:19) = [character(len=8) :: 'tc','t40','','','','','','','']
-  parNames(21:29) = [character(len=8) :: 'dl','dl','','','','','','','']
-  parNames(31:39) = [character(len=8) :: 'RA','dec','','','','','','','']
-  parNames(41:49) = [character(len=8) :: 'phase','','','','','','','','']
-  parNames(51:59) = [character(len=8) :: 'incl','psi','th_Jo','ph_Jo','','','','','']
-  parNames(61:69) = [character(len=8) :: 'Mc','eta','M1','M2','','','','','']
-  parNames(71:79) = [character(len=8) :: 'spin1','th1','phi1','','','','','','']
-  parNames(81:89) = [character(len=8) :: 'spin2','th2','phi2','','','','','','']
-  parNames(185:199) = [character(len=8) :: 'x1','x2','x3','x4','x5','x6','x7','x8','x9','x10','x11','x12','x13','x14','x15']
-  !parNames(1:9) = [character(len=8) :: '','','','','','','','','']
-  
-  
-  if(fonttype.eq.2) then  !Use 'roman-like' Greek font in PGPlot
-     
-     !Long PGPlot names (symbol + unit)
-     pgParNs(11:19) = [character(len=99) :: 't\dc\u (s)','t\d40\u (s)','','','','','','','']
-     pgParNs(21:29) = [character(len=99) :: 'd\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','','']
-     pgParNs(31:39) = [character(len=99) :: '\(2127) (h)','\(2130) (\(2218))','','','','','','','']
-     pgParNs(41:49) = [character(len=99) :: '\(2147)\dc\u (\(2218))','','','','','','','','']
-     pgParNs(51:59) = [character(len=99) :: '\(2135) (\(2218))','\(2149) (\(2218))','\(2185)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','','','','','']
-     pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
-     pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','\(2185)\dspin1\u (\(2218))','\(2147)\dspin1\u (\(2218))','','','','','','']
-     pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','\(2185)\dspin2\u (\(2218))','\(2147)\dspin2\u (\(2218))','','','','','','']
-     pgParNs(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
-     !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
-     
-     !Short PGPlot symbols (no unit)
-     pgParNss(11:19) = [character(len=99) :: 't\dc\u','t\d40\u','','','','','','','']
-     pgParNss(21:29) = [character(len=99) :: 'd\dL\u\u3\d','logd\dL\u','','','','','','','']
-     pgParNss(31:39) = [character(len=99) :: '\(2127)','\(2130)','','','','','','','']
-     pgParNss(41:49) = [character(len=99) :: '\(2147)\dc\u','','','','','','','','']
-     pgParNss(51:59) = [character(len=99) :: '\(2135)','\(2149)','\(2185)\dJ0\u','\(2147)\dJ0\u','','','','','']
-     pgParNss(61:69) = [character(len=99) :: '\(2563)','\(2133)','M\d1\u','M\d2\u','','','','','']
-     pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','\(2185)\dspin1\u','\(2147)\dspin1\u','','','','','','']
-     pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','\(2185)\dspin2\u','\(2147)\dspin2\u','','','','','','']
-     pgParNss(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
-     !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
-     
-  else  !Same, but replace '\(21' with \(06' for arial-like Greek font
-     
-     !Long PGPlot names (symbol + unit)
-     pgParNs(11:19) = [character(len=99) :: 't\dc\u (s)','t\d40\u (s)','','','','','','','']
-     pgParNs(21:29) = [character(len=99) :: 'd\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','','']
-     pgParNs(31:39) = [character(len=99) :: '\(0627) (h)','\(0630) (\(2218))','','','','','','','']
-     pgParNs(41:49) = [character(len=99) :: '\(0647)\dc\u (\(2218))','','','','','','','','']
-     pgParNs(51:59) = [character(len=99) :: '\(0635) (\(2218))','\(0649) (\(2218))','\(0685)\dJ0\u (\(2218))','\(0647)\dJ0\u (\(2218))','','','','','']
-     pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
-     pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','\(0685)\dspin1\u (\(2218))','\(0647)\dspin1\u (\(2218))','','','','','','']
-     pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','\(0685)\dspin2\u (\(2218))','\(0647)\dspin2\u (\(2218))','','','','','','']
-     pgParNs(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
-     !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
-     
-     !Short PGPlot symbols (no unit)
-     pgParNss(11:19) = [character(len=99) :: 't\dc\u','t\d40\u','','','','','','','']
-     pgParNss(21:29) = [character(len=99) :: 'd\dL\u','d\dL\u','','','','','','','']
-     pgParNss(31:39) = [character(len=99) :: '\(0627)','\(0630)','','','','','','','']
-     pgParNss(41:49) = [character(len=99) :: '\(0647)\dc\u','','','','','','','','']
-     pgParNss(51:59) = [character(len=99) :: '\(0635)','\(0649)','\(0685)\dJ0\u','\(0647)\dJ0\u','','','','','']
-     pgParNss(61:69) = [character(len=99) :: '\(2563)','\(0633)','M\d1\u','M\d2\u','','','','','']
-     pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','\(0685)\dspin1\u','\(0647)\dspin1\u','','','','','','']
-     pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','\(0685)\dspin2\u','\(0647)\dspin2\u','','','','','','']
-     pgParNss(185:199) = [character(len=99) :: 'x\d1\u','x\d2\u','x\d3\u','x\d4\u','x\d5\u','x\d6\u','x\d7\u','x\d8\u','x\d9\u','x\d10\u','x\d11\u','x\d12\u','x\d13\u','x\d14\u','x\d15\u']
-     !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
-     
-  end if
-  
-  !PGPlot units (no names)
-  pgUnits(11:19) = [character(len=99) :: 's','s','','','','','','','']
-  pgUnits(21:29) = [character(len=99) :: 'Mpc','Mpc','','','','','','','']
-  pgUnits(31:39) = [character(len=99) :: '\uh\d','\(2218)','','','','','','','']
-  pgUnits(41:49) = [character(len=99) :: '\(2218)','','','','','','','','']
-  pgUnits(51:59) = [character(len=99) :: '\(2218)','\(2218)','\(2218)','\(2218)','','','','','']
-  pgUnits(61:69) = [character(len=99) :: 'M\d\(2281)\u','','M\d\(2281)\u','M\d\(2281)\u','','','','','']
-  pgUnits(71:79) = [character(len=99) :: '','\(2218)','\(2218)','','','','','','']
-  pgUnits(81:89) = [character(len=99) :: '','\(2218)','\(2218)','','','','','','']
-  pgUnits(185:199) = [character(len=99) :: '','','','','','','','','','','','','','','']
-  !pgUnits(1:9) = [character(len=99) :: '','','','','','','','','']
-  
-     
-end subroutine set_derivedParameterNames
-!************************************************************************************************************************************
-
-
-
-
-
-
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 function lon2ra(lon, GPSsec)
   ! Compute right ascension (in radians) from longitude (radians) and GPS time (seconds). 
   ! Declination == latitude for equatorial coordinates.
@@ -1241,10 +1119,10 @@ function lon2ra(lon, GPSsec)
   
   lon2ra = mod(lon + gmst(GPSsec) + 10*tpi,tpi)
 end function lon2ra
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 function ra2lon(ra, GPSsec)
   ! Compute longitude (in radians) from right ascension (radians) and GPS time (seconds). 
   ! Declination == latitude for equatorial coordinates.
@@ -1256,10 +1134,10 @@ function ra2lon(ra, GPSsec)
   
   ra2lon = mod(ra - gmst(GPSsec) + 10*tpi,tpi)
 end function ra2lon
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 function gmst(GPSsec)
   ! Compute the 'Greenwich Mean Sidereal Time' (in radians) from GPS time (in seconds).                              
   ! See K.R. Lang (1999), p.80sqq.
@@ -1285,11 +1163,11 @@ function gmst(GPSsec)
   gmst = mod(gmst/86400.d0,1.d0)
   gmst = gmst * tpi
 end function gmst
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine dindexx(n,arr,indx)
   use basic
   
@@ -1372,10 +1250,10 @@ subroutine dindexx(n,arr,indx)
   end if
   goto 1
 end subroutine dindexx
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine rindexx(n,arr,indx)
   implicit none
   integer :: n,indx(n),m,nstack
@@ -1455,10 +1333,10 @@ subroutine rindexx(n,arr,indx)
   end if
   goto 1
 end subroutine rindexx
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine savgol(c,np,nl,nr,ld,m)
   implicit none
   integer :: ld,m,nl,np,nr,mmax
@@ -1505,10 +1383,10 @@ subroutine savgol(c,np,nl,nr,ld,m)
   end do
   
 end subroutine savgol
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine lubksb(a,n,np,indx,b)
   implicit none
   integer :: n,np,indx(n)
@@ -1538,11 +1416,11 @@ subroutine lubksb(a,n,np,indx,b)
   end do
   
 end subroutine lubksb
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine ludcmp(a,n,np,indx,d)
    implicit none
    integer :: n,np,indx(n),nmax
@@ -1601,14 +1479,14 @@ subroutine ludcmp(a,n,np,indx,d)
    end do
    
 end subroutine ludcmp
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
 
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 function drev2pi(x)        !Returns angle in radians between 0 and 2pi (double precision)
   use basic
   use constants
@@ -1617,27 +1495,27 @@ function drev2pi(x)        !Returns angle in radians between 0 and 2pi (double p
   real(double) :: x,drev2pi
   drev2pi = x - floor(x/(2*pi))*2*pi
 end function drev2pi
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 !function rev(x)        !Returns angle in radians between 0 and 2pi
 !  use constants
 !  real :: x,rev
 !  rev = x - floor(x/rpi2)*rpi2
 !end function rev
-!************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 function revper(x,per)        !Returns periodic value x between 0 and per
    implicit none
    real :: x,per,revper
    revper = x - floor(x/per)*per
 end function revper
-!************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 function revpipi(x)      !Returns angle in radians between -pi and pi
   use constants
   implicit none
@@ -1645,42 +1523,42 @@ function revpipi(x)      !Returns angle in radians between -pi and pi
   revpipi = x - floor(x/rpi2)*rpi2
   if(revpipi.gt.rpi) revpipi = revpipi - rpi2
 end function revpipi
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 function rev360(x)        !Returns angle in degrees between 0 and 360
   implicit none
   real :: x,rev360
   rev360 = x - floor(x/360.)*360.
 end function rev360
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 function rev180(x)        !Returns angle in degrees between 0 and 180
   implicit none
   real :: x,rev180
   rev180 = x - floor(x/180.)*180.
 end function rev180
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 function rev24(x)        !Returns angle in hours between 0 and 24
   implicit none
   real :: x,rev24
   rev24 = x - floor(x/24.)*24.
 end function rev24
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 function rev2pi(x)        !Returns angle in radians between 0 and 2pi
   implicit none
   real :: x,rev2pi,pi
   pi = 4*atan(1.)
   rev2pi = x - floor(x/(2.0*pi))*2.0*pi
 end function rev2pi
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 function drevpi(x)        !Returns angle in radians between 0 and pi - double
   use basic
   use constants
@@ -1689,19 +1567,19 @@ function drevpi(x)        !Returns angle in radians between 0 and pi - double
   real(double) :: x,drevpi
   drevpi = x - floor(x/pi)*pi
 end function drevpi
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 function rrevpi(x)        !Returns angle in radians between 0 and pi - real
   use constants
   implicit none
   real :: x,rrevpi
   rrevpi = x - floor(x/rpi)*rpi
 end function rrevpi
-!************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine kstwo(data1,n1,data2,n2,d,prob)  !Needs probks(), sort()
   use basic
   
@@ -1737,10 +1615,10 @@ subroutine kstwo(data1,n1,data2,n2,d,prob)  !Needs probks(), sort()
   prob=probks((en+0.12d0+0.11d0/en)*d)
   
 end subroutine kstwo
-!************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 function probks(alam)
   use basic
   
@@ -1764,9 +1642,9 @@ function probks(alam)
   probks=1.d0
   
 end function probks
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine sort(n,arr)
   use basic
   
@@ -1845,9 +1723,9 @@ subroutine sort(n,arr)
   goto 1
   
 end subroutine sort
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 function tms(a1)   !Print angle as mm:ss.s string, input in hours
   use basic
   
@@ -1866,10 +1744,10 @@ function tms(a1)   !Print angle as mm:ss.s string, input in hours
   write(tms,'(a2,a1,a4,a1)') mm,'m',ss,'s'
   
 end function tms
-!************************************************************************
+!***********************************************************************************************************************************
 
 
-!***********************************************************************
+!***********************************************************************************************************************************
 function getos() !Determine the operating system type: 1-Linux, 2-MacOSX
   use constants
   
@@ -1888,10 +1766,10 @@ function getos() !Determine the operating system type: 1-Linux, 2-MacOSX
   if(ostype(1:5).eq.'Darwi') getos = 2 !MacOSX
   
 end function getos
-!***********************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 function timestamp()  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
   use basic
   use constants
@@ -1912,12 +1790,13 @@ function timestamp()  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
   close(17)
   status = system('rm -f '//trim(fname))
 end function timestamp
-!************************************************************************
+!***********************************************************************************************************************************
 
 
 
-!************************************************************************
-subroutine pgscidark(ci0,file,whiteBG)  !Set the colour to ci, but use a darker shade if the background is black or a lighter shade if it is white
+!***********************************************************************************************************************************
+!> Set the colour to ci, but use a darker shade if the background is black or a lighter shade if it is white
+subroutine pgscidark(ci0,file,whiteBG)  
   implicit none
   integer :: ci0,ci,file,whiteBG
   real :: r,g,b,weight
@@ -1925,14 +1804,15 @@ subroutine pgscidark(ci0,file,whiteBG)  !Set the colour to ci, but use a darker 
   call pgqcr(ci,r,g,b)
   call pgscr(99,r*0.5,g*0.5,b*0.5) !Use half the RGB value to create a darker shade
   weight = 3.
-  if(file.ge.2.or.whiteBG.ge.1) call pgscr(99,(r+weight)/(weight+1.),(g+weight)/(weight+1.),(b+weight)/(weight+1.)) !Use the weighted mean of the RGB value and 1. to create a lighter shade
+  !Use the weighted mean of the RGB value and 1. to create a lighter shade:
+  if(file.ge.2.or.whiteBG.ge.1) call pgscr(99,(r+weight)/(weight+1.),(g+weight)/(weight+1.),(b+weight)/(weight+1.)) 
   call pgsci(99)
 end subroutine pgscidark
-!************************************************************************
+!***********************************************************************************************************************************
 
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine lbr2vec(l,b,r,vec)
   !Transforms longitude l, latitude b and radius r into a vector with length r.  Use r=1 for a unit vector
   use basic
@@ -1946,11 +1826,11 @@ subroutine lbr2vec(l,b,r,vec)
   vec(3) = sinb;            !`North Pole'
   vec = vec*r
 end subroutine lbr2vec
-!************************************************************************
+!***********************************************************************************************************************************
 
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 function veclen(vec) !Compute the length of a 3D cartesian vector
   use basic
   
@@ -1958,9 +1838,9 @@ function veclen(vec) !Compute the length of a 3D cartesian vector
   real(double) :: veclen,vec(3)
   veclen = dsqrt(vec(1)*vec(1) + vec(2)*vec(2) + vec(3)*vec(3))
 end function veclen
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine normvec(vec) !Normalise a 3D cartesian vector
   use basic
   
@@ -1968,11 +1848,11 @@ subroutine normvec(vec) !Normalise a 3D cartesian vector
   real(double) :: veclen,vec(3)
   vec = vec/veclen(vec)
 end subroutine normvec
-!************************************************************************
+!***********************************************************************************************************************************
 
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine mc_eta_2_m1_m2(mc,eta,m1,m2)  !Convert chirp mass and eta to m1 and m2 - double precision
   use basic
   
@@ -1989,9 +1869,9 @@ subroutine mc_eta_2_m1_m2(mc,eta,m1,m2)  !Convert chirp mass and eta to m1 and m
      m2 = mtot/2.d0 * (1.0 + dvar);
   end if
 end subroutine mc_eta_2_m1_m2
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine mc_eta_2_m1_m2r(mcr,etar,m1r,m2r)  !Convert chirp mass and eta to m1 and m2 - single precision
   use basic
   
@@ -2004,10 +1884,10 @@ subroutine mc_eta_2_m1_m2r(mcr,etar,m1r,m2r)  !Convert chirp mass and eta to m1 
   m1r = real(m1)
   m2r = real(m2)
 end subroutine mc_eta_2_m1_m2r
-!************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine m1_m2_2_mc_eta(m1,m2,mc,eta)
   use basic
   
@@ -2017,10 +1897,10 @@ subroutine m1_m2_2_mc_eta(m1,m2,mc,eta)
   eta = m1*m2/(mtot*mtot)
   mc = mtot*eta**0.6d0
 end subroutine m1_m2_2_mc_eta
-!************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine m1_m2_2_mc_etar(m1r,m2r,mcr,etar)
   use basic
   
@@ -2033,10 +1913,10 @@ subroutine m1_m2_2_mc_etar(m1r,m2r,mcr,etar)
   mcr = real(mc)
   etar = real(eta)
 end subroutine m1_m2_2_mc_etar
-!************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine ang2vec(l,b,vec)  !Convert longitude, latitude (rad) to a 3D normal vector
   !l in [0,2pi[; b in [-pi,pi]
   use basic
@@ -2048,9 +1928,9 @@ subroutine ang2vec(l,b,vec)  !Convert longitude, latitude (rad) to a 3D normal v
   vec(2) = sin(l)*cosb
   vec(3) = sin(b)
 end subroutine  ang2vec
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine vec2ang(vec,l,b)  !Convert a 3D normal vector to longitude, latitude (rad)
   !l in [0,2pi[; b in [-pi,pi]
   use basic
@@ -2062,9 +1942,9 @@ subroutine vec2ang(vec,l,b)  !Convert a 3D normal vector to longitude, latitude 
   l = atan2(vec1(2),vec1(1))
   b = asin(vec1(3))
 end subroutine  vec2ang
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 function dotproduct(vec1,vec2) !Compute the dot product of two 3D cartesian vectors
   use basic
   
@@ -2072,9 +1952,9 @@ function dotproduct(vec1,vec2) !Compute the dot product of two 3D cartesian vect
   real(double) :: dotproduct,vec1(3),vec2(3)
   dotproduct = vec1(1)*vec2(1) + vec1(2)*vec2(2) + vec1(3)*vec2(3)
 end function dotproduct
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine crossproduct(vec1,vec2,crpr) !Compute the cross (outer) product of two cartesian vectors
   use basic
   
@@ -2084,11 +1964,14 @@ subroutine crossproduct(vec1,vec2,crpr) !Compute the cross (outer) product of tw
   crpr(2) = vec1(3)*vec2(1) - vec1(1)*vec2(3)
   crpr(3) = vec1(1)*vec2(2) - vec1(2)*vec2(1)
 end subroutine crossproduct
-!************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************
-function polangle(p,o)  !Compute the polarisation angle of a source with position normal vector p and orientation normal vector o, see Apostolatos et al. 1994, Eq.5
+!***********************************************************************************************************************************
+!> Compute the polarisation angle of a source with position normal vector p and orientation normal vector o, 
+!! see Apostolatos et al. 1994, Eq.5
+!<
+function polangle(p,o)  
   use basic
   
   implicit none
@@ -2102,9 +1985,9 @@ function polangle(p,o)  !Compute the polarisation angle of a source with positio
   
   polangle = atan(denom/(numer+1.d-30))  !Take into account the degeneracy in psi, hence no atan2
 end function polangle
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 function posangle(p,o)  !Compute the position angle of a source with position normal vector p and orientation normal vector o
   use basic
   
@@ -2124,14 +2007,14 @@ function posangle(p,o)  !Compute the position angle of a source with position no
   
   posangle = acos(dotproduct(o1,z1))
 end function posangle
-!************************************************************************
+!***********************************************************************************************************************************
 
 
 !>
 !! Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
 !! All variables are angles (no cos, sin)
 !<
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) 
   use basic
   use constants
@@ -2147,18 +2030,19 @@ subroutine compute_incli_polang(pl,pb,ol,ob, i,psi)
   !i = pi2 - acos(dotproduct(p,o))  !Compute inclination angle: <0: points towards us, >0 points away from us
   !psi = polangle(p,o)         !Compute polarisation angle [-pi/2,pi/2]
   
-  i = acos(dotproduct(p,o))   !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky
+  !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky:
+  i = acos(dotproduct(p,o))   
   psi = drevpi(polangle(p,o))  !Compute polarisation angle [0,pi]
   
 end subroutine compute_incli_polang
-!************************************************************************
+!***********************************************************************************************************************************
 
 !>
 !! Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
 !! All variables are angles (no cos, sin)
 !! Single-precision wrapper for compute_incli_polang()
 !<
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine compute_incli_polangr(plr,pbr,olr,obr, ir,psir)
   use basic
   
@@ -2174,10 +2058,11 @@ subroutine compute_incli_polangr(plr,pbr,olr,obr, ir,psir)
   ir = real(i)
   psir = real(psi)
 end subroutine compute_incli_polangr
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
-subroutine compute_incli_posang(pl,pb,ol,ob, i,psi) !Compute the inclination and position angle for a source with position (pl,pb) and orientation (ol,ob)
+!***********************************************************************************************************************************
+!> Compute the inclination and position angle for a source with position (pl,pb) and orientation (ol,ob)
+subroutine compute_incli_posang(pl,pb,ol,ob, i,psi) 
   use basic
   use constants
   
@@ -2192,15 +2077,16 @@ subroutine compute_incli_posang(pl,pb,ol,ob, i,psi) !Compute the inclination and
   !i = pi2 - acos(dotproduct(p,o))  !Compute inclination angle: <0: points towards us, >0 points away from us
   !psi = drevpi(posangle(p,o))       !Compute position angle
   
-  i = acos(dotproduct(p,o))  !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky
+  !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky:
+  i = acos(dotproduct(p,o))  
   psi = posangle(p,o)         !Compute position angle
   
 end subroutine compute_incli_posang
-!************************************************************************
+!***********************************************************************************************************************************
 
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine detectorvector(d1,d2,jd)  !Determine the sky position at which the vector that connects two detectors points
   use basic
   
@@ -2220,10 +2106,10 @@ subroutine detectorvector(d1,d2,jd)  !Determine the sky position at which the ve
   call vec2ang(dvec,l,b)  !Searched point is in zenith/nadir for an observer on this location on the globe
   
 end subroutine detectorvector
-!************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine swapint(i1,i2)                        !Swap two integers
   implicit none
   integer :: i,i1,i2
@@ -2231,10 +2117,10 @@ subroutine swapint(i1,i2)                        !Swap two integers
   i1 = i2
   i2 = i
 end subroutine swapint
-!************************************************************************
+!***********************************************************************************************************************************
 
 
-!***************************************************************************************************
+!***********************************************************************************************************************************
 subroutine determine_nbin_1d(npoints,nbin)
   implicit none
   integer :: npoints,nbin
@@ -2245,9 +2131,9 @@ subroutine determine_nbin_1d(npoints,nbin)
   end if
   nbin = max(nbin,5)
 end subroutine determine_nbin_1d
-!***************************************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 function compute_median(data,ni)
   use basic
   
@@ -2263,9 +2149,9 @@ function compute_median(data,ni)
   if(mod(ni,2).eq.1) compute_median = data(indexx((ni+1)/2))                           !ni is odd
   
 end function compute_median
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 function compute_median_real(datar,ni)
   use basic
   
@@ -2278,9 +2164,9 @@ function compute_median_real(datar,ni)
   mediand = compute_median(datad,ni)
   compute_median_real = real(mediand)
 end function compute_median_real
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 function compute_stdev(data,ni,mean)  !Compute the standard deviation of a data set data(1:ni) with mean 'mean' - double
   use basic
   
@@ -2296,9 +2182,9 @@ function compute_stdev(data,ni,mean)  !Compute the standard deviation of a data 
   compute_stdev = sqrt(stdev/dble(ni-1))
   
 end function compute_stdev
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 function compute_stdev_real(datar,ni,meanr)  !Compute the standard deviation of a data set datar(1:ni) with mean 'meanr' - real
   use basic
   
@@ -2312,12 +2198,14 @@ function compute_stdev_real(datar,ni,meanr)  !Compute the standard deviation of 
   stdevd = compute_stdev(datad,ni,meand)
   compute_stdev_real = real(stdevd)
 end function compute_stdev_real
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
-!****************************************************************************************************
-function get_ran_seed(degree)  !Get a random initialisation seed for a random-numbed generator (i.e., negative integer), e.g. ran_unif().  -1e6 < seed < 0
-  !degree: degree of randomness: 0-completely (same for a ms), 1-same during an hour, 2-same during a day
+!***********************************************************************************************************************************
+!> Get a random initialisation seed for a random-numbed generator (i.e., negative integer), e.g. ran_unif().  -1e6 < seed < 0
+!! degree: degree of randomness: 0-completely (same for a ms), 1-same during an hour, 2-same during a day
+!<
+function get_ran_seed(degree)  
   
   implicit none
   integer :: get_ran_seed,seed,degree,dt(8)
@@ -2331,21 +2219,25 @@ function get_ran_seed(degree)  !Get a random initialisation seed for a random-nu
   
   get_ran_seed = -abs(mod(seed+1,999999))  !Want to return a negative number, -1e6 < seed < 0
 end function get_ran_seed
-!****************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
-!****************************************************************************************************
-function ran_unif(seed1)  !Generate a uniform random number 0 < r < 1.  Set seed1<0 to initialise the generator, seed1 is updated between calls
-  !Use two L'Ecuyer generators, period is ~10^18
-  !tab is a Bays-Durham shuffle table of length Ntab
+!***********************************************************************************************************************************
+!> Generate a uniform random number 0 < r < 1.  Set seed1<0 to initialise the generator, seed1 is updated between calls
+!! Use two L'Ecuyer generators, period is ~10^18
+!! tab is a Bays-Durham shuffle table of length Ntab
+!<
+function ran_unif(seed1)
   use basic
   
   implicit none
   integer, parameter :: im1=2147483563, ia1=40014, iq1=53668, ir1=12211 
   integer, parameter :: im2=2147483399, ia2=40692, iq2=52774, ir2= 3791
   integer, parameter :: Ntab=32,im1m1=im1-1,ndtab=1+im1m1/Ntab
-  real(double), parameter :: am1=1.d0/im1,eps=1.d-15,rnmx=1.d0-eps  !rnmx should be the largest number <1 and !=1, 1.d-15 should be safe for real(double)
+  real(double), parameter :: am1=1.d0/im1
+  real(double), parameter :: eps=1.d-15     !eps=1.d-15 should be safe for real(double)
+  real(double), parameter :: rnmx=1.d0-eps  !rnmx should be the largest number <1 and !=1
   integer, save :: seed2=123456789, tab(Ntab)=0, iy=0
   integer :: seed1,j,k
   real(double) :: ran_unif
@@ -2380,12 +2272,12 @@ function ran_unif(seed1)  !Generate a uniform random number 0 < r < 1.  Set seed
   ran_unif = min(am1*iy,rnmx)                         !Make sure r<1
   
 end function ran_unif
-!****************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
 
-!***********************************************************************
+!***********************************************************************************************************************************
 subroutine findFiles(match,nff,all,fnames,nf)  
   !Input:
   !  match:   search string to match
@@ -2406,10 +2298,11 @@ subroutine findFiles(match,nff,all,fnames,nf)
   end if
   
   tempfile = trim(homedir)//'/.findFile.tmp'
-  status = system('ls '//trim(match)//' 1> '//trim(tempfile)//' 2> /dev/null')  !Shell command to list all the files with the search string and pipe them to a temporary file
+  !Shell command to list all the files with the search string and pipe them to a temporary file:
+  status = system('ls '//trim(match)//' 1> '//trim(tempfile)//' 2> /dev/null')
   
   do i=1,nff
-     names(i)='                                                                                                   '
+     names(i)=''
   end do
   
   k=0
@@ -2464,7 +2357,7 @@ subroutine findFiles(match,nff,all,fnames,nf)
   end if
   
 end subroutine findFiles
-!***********************************************************************
+!***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
 subroutine set_currentdate_constants()

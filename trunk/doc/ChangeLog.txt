@@ -2,6 +2,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   149: sluys, 07/04/2010
+     - Split _functions.f90 in two; added _textroutines.f90
+     - Make source more compatible with standard: _functions.f90, _textroutines.f90
+     - Use new Makefile in doc/
+     - Code now compiles again with gfortran <=4.3
+     
    148: sluys, 07/04/2010
      - Make source more compatible with standard: _modules.f90, _functions.f90
    
@@ -34,7 +40,7 @@
      - Fixed statistics: convert PDF before computing statistics:
        - conversion at top of statistics()
        - add wraptypes 11-13 for wrapping around 360, 180 and 24, take care of shifting for these cases
-        
+       
    138: sluys, 06/04/2010
      - If called without command-line options and no SPINspiral.output.* found in current dir, 
        try the old names: mcmc.output.*

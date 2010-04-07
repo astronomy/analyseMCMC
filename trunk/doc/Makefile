@@ -2,9 +2,9 @@
 
 
 #No text/space after statements below! (hence #)
-#COMP = gfortran#  Use GNU Fortran compiler.  Need >= 4.4
+COMP = gfortran#  Use GNU Fortran compiler
 #COMP = gfortran-4.4.3#
-COMP = ifort#     Use Intel Fortran compiler
+#COMP = ifort#     Use Intel Fortran compiler
 #COMP = nagfor#     Use NAG Fortran compiler
 
 WARN = no
@@ -85,6 +85,7 @@ endif
 ifeq ($(COMP),nagfor)
   CFLAGS = -colour
   CFLAGS += -I$(MODDIR) -mdir $(MODDIR)
+  CFLAGS += -I/opt/NAG/lib
 endif
 
 
@@ -96,7 +97,8 @@ endif
 
 
 
-ANALYSEMCMC_OBJ = $(OBJDIR)/analyseMCMC_modules.o $(OBJDIR)/analyseMCMC_functions.o $(OBJDIR)/analyseMCMC_stats.o $(OBJDIR)/analyseMCMC_tailored.o 
+ANALYSEMCMC_OBJ = $(OBJDIR)/analyseMCMC_modules.o $(OBJDIR)/analyseMCMC_functions.o $(OBJDIR)/analyseMCMC_textroutines.o 
+ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_stats.o $(OBJDIR)/analyseMCMC_tailored.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_chains.o $(OBJDIR)/analyseMCMC_1dpdfs.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_2dpdf_skymap.o $(OBJDIR)/analyseMCMC_2dpdf_routines.o $(OBJDIR)/analyseMCMC_2dpdfs.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_animation.o $(OBJDIR)/analyseMCMC_plot.o $(OBJDIR)/analyseMCMC.o
