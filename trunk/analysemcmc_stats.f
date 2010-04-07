@@ -10,7 +10,7 @@ subroutine statistics(exitcode)
   implicit none
   integer :: c,i,ic,p,p1,p2,nr,nstat,exitcode,wraptype
   integer :: indexx(maxMCMCpar,maxChs*maxIter),index1(maxChs*maxIter)
-  real :: rev2pi,rrevpi,rev360,rev180,rev24
+  real :: revper
   real :: x1,x2,y1,y2
   real :: range1,minrange,ival,wrapival,centre,maxlogl,minlogl,shift,shIval,shIval2
   real :: medians(maxMCMCpar),mean(maxMCMCpar),var1(maxMCMCpar),var2(maxMCMCpar),corr,corr1,corr2
@@ -28,7 +28,7 @@ subroutine statistics(exitcode)
   !Convert MCMC parameters/PDFs (cos/sin->ang, rad->deg, etc):
   if(changeVar.ge.1) then
      do ic=1,nChains
-        if(prProgress.ge.1.and.ic.eq.1.and.update.eq.0) write(stdOut,'(A,$)')'.  Change vars. '
+        !if(prProgress.ge.1.and.ic.eq.1.and.update.eq.0) write(stdOut,'(A,$)')'.  Change vars. '
         do p=1,nMCMCpar
            select case(parID(p))
               
@@ -96,6 +96,8 @@ subroutine statistics(exitcode)
            cycle !No wrapping necessary
         end if
         
+        
+        !Determine 'wraptype':
         wraptype = 1                                !0-2pi (e.g. phases)
         if(parID(p).eq.52) wraptype = 2             !0-pi (polarisation angle)
         if(changeVar.ge.1) then
@@ -104,20 +106,27 @@ subroutine statistics(exitcode)
         end if
         
         
+        !Determine shift interval from wraptype:
+        select case(wraptype)
+        case(1)
+           shIval = rtpi        ! "Phase": 0-2pi
+        case(2)
+           shIval = rpi         ! Pol.angle: 0-pi
+        case(11)
+           shIval = 360.        ! "Phase": 0-360
+        case(12)
+           shIval = 180.        ! Pol.angle: 0-180
+        case(13)
+           shIval = 24.         ! RA: 0-24h
+        end select
+        shIval2 = shIval/2.     ! Shift interval/2
+        shIvals(ic,p) = shIval
+        
+        
+        
         !Make sure data are between 0 and 2pi or between 0 and pi to start with:
         do i=1,n(ic)
-           select case(wraptype)
-           case(1) 
-              selDat(ic,p,i) = rev2pi(selDat(ic,p,i))  !"Phase": 0-2pi
-           case(2) 
-              selDat(ic,p,i) = rrevpi(selDat(ic,p,i))  !Pol.angle: 0-pi
-           case(11) 
-              selDat(ic,p,i) = rev360(selDat(ic,p,i))  !"Phase": 0-360
-           case(12) 
-              selDat(ic,p,i) = rev180(selDat(ic,p,i))  !Pol.angle: 0-180
-           case(13) 
-              selDat(ic,p,i) = rev24(selDat(ic,p,i))   !RA - h: 0-24
-           end select
+           selDat(ic,p,i) = revper(selDat(ic,p,i),shIval)          !Bring selDat(i) between 0 and shIval
         end do
         call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))
         indexx(p,1:n(ic)) = index1(1:n(ic))
@@ -126,19 +135,7 @@ subroutine statistics(exitcode)
         do i=1,n(ic)
            x1 = selDat(ic,p,indexx(p,i))
            x2 = selDat(ic,p,indexx(p,mod(i+nint(n(ic)*wrapival)-1,n(ic))+1))
-           
-           select case(wraptype)
-           case(1) 
-              range1 = mod(x2 - x1 + real(20*pi),rtpi)    !"Phase": 0-2pi
-           case(2) 
-              range1 = mod(x2 - x1 + real(10*pi),rpi)     !Pol.angle: 0-pi
-           case(11) 
-              range1 = mod(x2 - x1 + real(20*180),360.0)  !"Phase": 0-360
-           case(12) 
-              range1 = mod(x2 - x1 + real(10*180),180.0)  !Pol.angle: 0-180
-           case(13) 
-              range1 = mod(x2 - x1 + real(20*12),24.0)    !RA: 0-24h
-           end select
+           range1 = mod(x2 - x1 + real(10*shIval),shIval)    !0-shIval
            
            if(range1.lt.minrange) then
               minrange = range1
@@ -151,29 +148,9 @@ subroutine statistics(exitcode)
         centre = (y1+y2)/2.
         
         
-        !Define shift interval:
-        select case(wraptype)
-        case(1)
-           shIval = rtpi    !Shift interval    -  "Phase": 0-2pi
-           shIval2 = rpi    !Shift interval/2
-        case(2)
-           shIval = rpi     !Shift interval    -  Pol.angle: 0-pi
-           shIval2 = rpi2   !Shift interval/2
-        case(11)
-           shIval = 360.    !Shift interval    -  "Phase": 0-360
-           shIval2 = 180.   !Shift interval/2
-        case(12)
-           shIval = 180.    !Shift interval    -  Pol.angle: 0-180
-           shIval2 = 90.    !Shift interval/2
-        case(13)
-           shIval = 24.     !Shift interval    -  RA: 0-24h
-           shIval2 = 12.    !Shift interval/2
-        end select
-        shIvals(ic,p) = shIval
-        
         if(y1.gt.y2) then
            wrap(ic,p) = wraptype
-           centre = mod(centre + shIval2, shIval) !Then distribution peaks close to 0/shIval, shift centre by shIval/2
+           centre = mod(centre + shIval2, shIval)   !Distribution peaks close to 0/shIval; shift centre by shIval/2
         end if
         
         
@@ -207,8 +184,10 @@ subroutine statistics(exitcode)
      
      
      
+     
+     
+     
      !Do statistics:
-     !if(prProgress.ge.2) write(stdOut,'(A)')' Calculating: statistics...'
      if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A,$)')'  Calc: stats, '
      do p=1,nMCMCpar
         !Determine the median
@@ -246,6 +225,8 @@ subroutine statistics(exitcode)
      
      
      
+     
+     
      !Compute correlations:
      if(prCorr.gt.0.or.saveStats.gt.0) then
         !write(stdOut,'(A)')' Calculating correlations...   '
@@ -265,6 +246,8 @@ subroutine statistics(exitcode)
            end do !p2
         end do !p1
      end if
+     
+     
      
      
      !Determine interval ranges:
@@ -583,7 +566,8 @@ subroutine statistics(exitcode)
   end do !ic
   
   
-  !average the Bayes factors from all chains:
+  
+  !Average the Bayes factors from all chains:
   logebayesfactortotalgeom = 0.0
   logebayesfactortotalarith = 0.0
   logebayesfactortotalharmo = 0.0

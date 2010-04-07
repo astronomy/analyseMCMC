@@ -1365,6 +1365,7 @@ end subroutine dindexx
 
 !************************************************************************************************************************************
 subroutine rindexx(n,arr,indx)
+  implicit none
   integer :: n,indx(n),m,nstack
   real :: arr(n),a
   parameter (m=7,nstack=50)
@@ -1447,6 +1448,7 @@ end subroutine rindexx
 
 !************************************************************************************************************************************
 subroutine savgol(c,np,nl,nr,ld,m)
+  implicit none
   integer :: ld,m,nl,np,nr,mmax
   real :: c(np)
   parameter (mmax=6)
@@ -1496,6 +1498,7 @@ end subroutine savgol
 
 !************************************************************************************************************************************
 subroutine lubksb(a,n,np,indx,b)
+  implicit none
   integer :: n,np,indx(n)
   real :: a(np,np),b(n)
   integer :: i,ii,j,ll
@@ -1529,61 +1532,62 @@ end subroutine lubksb
 
 !************************************************************************************************************************************
 subroutine ludcmp(a,n,np,indx,d)
- integer :: n,np,indx(n),nmax
- real :: d,a(np,np),tiny
- parameter (nmax=500,tiny=1.0e-20)
- integer :: i,imax,j,k
- real :: aamax,dum,sum,vv(nmax)
- d=1.
- do i=1,n
-    aamax=0.
-    do j=1,n
-       if (abs(a(i,j)).gt.aamax) aamax=abs(a(i,j))
-    end do
-    !if (aamax.eq.0.) pause 'singular matrix in ludcmp'
-    if(aamax.eq.0.) write(0,'(A)')' Singular matrix in ludcmp'
-    vv(i)=1./aamax
- end do
- do j=1,n
-    do i=1,j-1
-       sum=a(i,j)
-       do k=1,i-1
-          sum=sum-a(i,k)*a(k,j)
-       end do
-       a(i,j)=sum
-    end do
-    aamax=0.
-    do i=j,n
-       sum=a(i,j)
-       do k=1,j-1
-          sum=sum-a(i,k)*a(k,j)
-       end do
-       a(i,j)=sum
-       dum=vv(i)*abs(sum)
-       if (dum.ge.aamax) then
-          imax=i
-          aamax=dum
-       end if
-    end do
-    if (j.ne.imax) then
-       do k=1,n
-          dum=a(imax,k)
-          a(imax,k)=a(j,k)
-          a(j,k)=dum
-       end do
-       d=-d
-       vv(imax)=vv(j)
-    end if
-    indx(j)=imax
-    if(a(j,j).eq.0.)a(j,j)=tiny
-    if(j.ne.n) then
-       dum=1./a(j,j)
-       do i=j+1,n
-          a(i,j)=a(i,j)*dum
-       end do
-    end if
- end do
- 
+   implicit none
+   integer :: n,np,indx(n),nmax
+   real :: d,a(np,np),tiny
+   parameter (nmax=500,tiny=1.0e-20)
+   integer :: i,imax,j,k
+   real :: aamax,dum,sum,vv(nmax)
+   d=1.
+   do i=1,n
+      aamax=0.
+      do j=1,n
+         if (abs(a(i,j)).gt.aamax) aamax=abs(a(i,j))
+      end do
+      !if (aamax.eq.0.) pause 'singular matrix in ludcmp'
+      if(aamax.eq.0.) write(0,'(A)')' Singular matrix in ludcmp'
+      vv(i)=1./aamax
+   end do
+   do j=1,n
+      do i=1,j-1
+         sum=a(i,j)
+         do k=1,i-1
+            sum=sum-a(i,k)*a(k,j)
+         end do
+         a(i,j)=sum
+      end do
+      aamax=0.
+      do i=j,n
+         sum=a(i,j)
+         do k=1,j-1
+            sum=sum-a(i,k)*a(k,j)
+         end do
+         a(i,j)=sum
+         dum=vv(i)*abs(sum)
+         if (dum.ge.aamax) then
+            imax=i
+            aamax=dum
+         end if
+      end do
+      if (j.ne.imax) then
+         do k=1,n
+            dum=a(imax,k)
+            a(imax,k)=a(j,k)
+            a(j,k)=dum
+         end do
+         d=-d
+         vv(imax)=vv(j)
+      end if
+      indx(j)=imax
+      if(a(j,j).eq.0.)a(j,j)=tiny
+      if(j.ne.n) then
+         dum=1./a(j,j)
+         do i=j+1,n
+            a(i,j)=a(i,j)*dum
+         end do
+      end if
+   end do
+   
 end subroutine ludcmp
 !************************************************************************************************************************************
 
@@ -1595,8 +1599,9 @@ end subroutine ludcmp
 !************************************************************************
 function drev2pi(x)        !Returns angle in radians between 0 and 2pi (double precision)
   use constants
+  implicit none
   real*8 :: x,drev2pi
-  drev2pi = x-floor(x/(2*pi))*2*pi
+  drev2pi = x - floor(x/(2*pi))*2*pi
 end function drev2pi
 !************************************************************************
 
@@ -1604,67 +1609,85 @@ end function drev2pi
 !function rev(x)        !Returns angle in radians between 0 and 2pi
 !  use constants
 !  real :: x,rev
-!  rev = x-floor(x/rpi2)*rpi2
+!  rev = x - floor(x/rpi2)*rpi2
 !end function rev
 !************************************************************************
+
+
+!************************************************************************
+function revper(x,per)        !Returns periodic value x between 0 and per
+   implicit none
+   real :: x,per,revper
+   revper = x - floor(x/per)*per
+end function revper
+!************************************************************************
+
 
 !************************************************************************
 function revpipi(x)      !Returns angle in radians between -pi and pi
   use constants
+  implicit none
   real :: x,revpipi
-  revpipi = x-floor(x/rpi2)*rpi2
+  revpipi = x - floor(x/rpi2)*rpi2
   if(revpipi.gt.rpi) revpipi = revpipi - rpi2
 end function revpipi
 !************************************************************************
 
 !************************************************************************
 function rev360(x)        !Returns angle in degrees between 0 and 360
+  implicit none
   real :: x,rev360
-  rev360 = x-floor(x/(360.))*360.
+  rev360 = x - floor(x/360.)*360.
 end function rev360
 !************************************************************************
 
 !************************************************************************
 function rev180(x)        !Returns angle in degrees between 0 and 180
+  implicit none
   real :: x,rev180
-  rev180 = x-floor(x/(180.))*180.
+  rev180 = x - floor(x/180.)*180.
 end function rev180
 !************************************************************************
 
 !************************************************************************
 function rev24(x)        !Returns angle in hours between 0 and 24
+  implicit none
   real :: x,rev24
-  rev24 = x-floor(x/(24.))*24.
+  rev24 = x - floor(x/24.)*24.
 end function rev24
 !************************************************************************
 
 !************************************************************************
 function rev2pi(x)        !Returns angle in radians between 0 and 2pi
+  implicit none
   real :: x,rev2pi,pi
   pi = 4*atan(1.)
-  rev2pi = x-floor(x/(2.0*pi))*2.0*pi
+  rev2pi = x - floor(x/(2.0*pi))*2.0*pi
 end function rev2pi
 !************************************************************************
 
 !************************************************************************
 function drevpi(x)        !Returns angle in radians between 0 and pi - double
   use constants
+  implicit none
   real*8 :: x,drevpi
-  drevpi = x-floor(x/pi)*pi
+  drevpi = x - floor(x/pi)*pi
 end function drevpi
 !************************************************************************
 
 !************************************************************************
 function rrevpi(x)        !Returns angle in radians between 0 and pi - real
   use constants
+  implicit none
   real :: x,rrevpi
-  rrevpi = x-floor(x/rpi)*rpi
+  rrevpi = x - floor(x/rpi)*rpi
 end function rrevpi
 !************************************************************************
 
 
 !************************************************************************
 subroutine kstwo(data1,n1,data2,n2,d,prob)  !Needs probks(), sort()
+  implicit none
   integer :: n1,n2,j1,j2
   real*8 :: d,prob,data1(n1),data2(n2)
   real*8 :: d1,d2,dt,en1,en2,en,fn1,fn2,probks
@@ -1701,6 +1724,7 @@ end subroutine kstwo
 
 !************************************************************************
 function probks(alam)
+  implicit none
   real*8 :: probks,alam,eps1,eps2
   parameter (eps1=1.d-3, eps2=1.d-8)
   integer :: j
@@ -1723,6 +1747,7 @@ end function probks
 
 !************************************************************************
 subroutine sort(n,arr)
+  implicit none
   integer :: n,m,nstack
   real*8 :: arr(n)
   parameter (m=7,nstack=50)
