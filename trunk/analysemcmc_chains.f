@@ -265,25 +265,24 @@ subroutine chains(exitcode)
            ymax = max(ymax,maxval(allDat(ic,p,imin:Ntot(ic))))
         end do
         
-        if(changeVar.gt.0) then
-           if(parID(p).eq.31) then  !RA
+        if(changeVar.ge.1) then
+           select case(parID(p))
+           case(31) !RA
               if(ymin.lt.0..or.ymax.gt.24.) then
                  ymin = 0.
                  ymax = 24.
               end if
-           end if
-           if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) then  !Phases
+           case(41,54,73,83) !Phases
               if(ymin.lt.0..or.ymax.gt.360.) then
                  ymin = 0.
                  ymax = 360.
               end if
-           end if
-           if(parID(p).eq.52) then  !Psi
+           case(52) !Psi
               if(ymin.lt.0..or.ymax.gt.180.) then
                  ymin = 0.
                  ymax = 180.
               end if
-           end if
+           end select
         end if
         
         dx = abs(xmax-xmin)*0.01
@@ -330,20 +329,30 @@ subroutine chains(exitcode)
               call pgscidark(ci,file,whiteBG)
               do i=ic,Nburn(ic),chainPlI !Start at ic to reduce overplotting
                  ply = allDat(ic,p,i)
-                 if(changeVar.gt.0) then
-                    if(parID(p).eq.31) ply = rev24(ply)  !RA
-                    if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) ply = rev360(ply)
-                    if(parID(p).eq.52) ply = rev180(ply)
+                 if(changeVar.ge.1) then
+                    select case(parID(p))
+                    case(31) 
+                       ply = rev24(ply)  !RA
+                    case(41,54,73,83) 
+                       ply = rev360(ply)
+                    case(52) 
+                       ply = rev180(ply)
+                    end select
                  end if
                  call pgpoint(1,is(ic,i),ply,symbol)
               end do
               call pgsci(ci)
               do i=Nburn(ic)+ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
                  ply = allDat(ic,p,i)
-                 if(changeVar.gt.0) then
-                    if(parID(p).eq.31) ply = rev24(ply)  !RA
-                    if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) ply = rev360(ply)
-                    if(parID(p).eq.52) ply = rev180(ply)
+                 if(changeVar.ge.1) then
+                    select case(parID(p))
+                    case(31) 
+                       ply = rev24(ply)  !RA
+                    case(41,54,73,83) 
+                       ply = rev360(ply)
+                    case(52) 
+                       ply = rev180(ply)
+                    end select
                  end if
                  call pgpoint(1,is(ic,i),ply,symbol)
               end do
@@ -357,10 +366,15 @@ subroutine chains(exitcode)
         !Plot max posterior
         if(plLmax.ge.1) then
            ply = allDat(icloglmax,p,iloglmax)
-           if(changeVar.gt.0) then
-              if(parID(p).eq.31) ply = rev24(ply)  !RA
-              if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) ply = rev360(ply)
-              if(parID(p).eq.52) ply = rev180(ply)
+           if(changeVar.ge.1) then
+              select case(parID(p))
+              case(31) 
+                 ply = rev24(ply)  !RA
+              case(41,54,73,83) 
+                 ply = rev360(ply)
+              case(52) 
+                 ply = rev180(ply)
+              end select
            end if
            call pgsci(1)
            call pgpoint(1,is(icloglmax,iloglmax),ply,12)
@@ -386,25 +400,29 @@ subroutine chains(exitcode)
                  !if(ic.eq.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  plx = startval(ic,p,1) !Injection value
                  plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
-                 if(changeVar.gt.0) then
-                    if(parID(p).eq.31) plx = rev24(plx)  !RA
-                    if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) plx = rev360(plx)
-                    if(parID(p).eq.52) plx = rev180(plx)
+                 if(changeVar.ge.1) then
+                    select case(parID(p))
+                    case(31) 
+                       plx = rev24(plx)  !RA
+                    case(41,54,73,83) 
+                       plx = rev360(plx)
+                    case(52) 
+                       plx = rev180(plx)
+                    end select
                  end if
                  call pgline(2,(/-1.e20,1.e20/),(/plx,plx/))
-                 if(changeVar.gt.0) then
-                    if(parID(p).eq.31) then
+                 if(changeVar.ge.1) then
+                    select case(parID(p))
+                    case(31)
                        call pgline(2,(/-1.e20,1.e20/),(/plx-24.,plx-24./))
                        call pgline(2,(/-1.e20,1.e20/),(/plx+24.,plx+24./))
-                    end if
-                    if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) then
+                    case(41,54,73,83)
                        call pgline(2,(/-1.e20,1.e20/),(/plx-360.,plx-360./))
                        call pgline(2,(/-1.e20,1.e20/),(/plx+360.,plx+360./))
-                    end if
-                    if(parID(p).eq.52) then
+                    case(52)
                        call pgline(2,(/-1.e20,1.e20/),(/plx-180.,plx-180./))
                        call pgline(2,(/-1.e20,1.e20/),(/plx+180.,plx+180./))
-                    end if
+                    end select
                  end if
               end if
            end if
@@ -415,25 +433,29 @@ subroutine chains(exitcode)
               call pgsls(4)
               if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               plx = startval(ic,p,2) !Initial value
-              if(changeVar.gt.0) then
-                 if(parID(p).eq.31) plx = rev24(plx)
-                 if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) plx = rev360(plx)
-                 if(parID(p).eq.52) plx = rev180(plx)
+              if(changeVar.ge.1) then
+                 select case(parID(p))
+                 case(31) 
+                    plx = rev24(plx)
+                 case(41,54,73,83) 
+                    plx = rev360(plx)
+                 case(52) 
+                    plx = rev180(plx)
+                 end select
               end if
               call pgline(2,(/-1.e20,1.e20/),(/plx,plx/))
-              if(changeVar.gt.0) then
-                 if(parID(p).eq.31) then
+              if(changeVar.ge.1) then
+                 select case(parID(p))
+                 case(31)
                     call pgline(2,(/-1.e20,1.e20/),(/plx-24.,plx-24./))
                     call pgline(2,(/-1.e20,1.e20/),(/plx+24.,plx+24./))
-                 end if
-                 if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) then
+                 case(41,54,73,83)
                     call pgline(2,(/-1.e20,1.e20/),(/plx-360.,plx-360./))
                     call pgline(2,(/-1.e20,1.e20/),(/plx+360.,plx+360./))
-                 end if
-                 if(parID(p).eq.52) then
+                 case(52)
                     call pgline(2,(/-1.e20,1.e20/),(/plx-180.,plx-180./))
                     call pgline(2,(/-1.e20,1.e20/),(/plx+180.,plx+180./))
-                 end if
+                 end select
               end if
            end if
         end do !ic=1,nChains0
@@ -592,32 +614,26 @@ subroutine chains(exitcode)
            ymax = max(ymax,maxval(post(ic,Nburn(ic):Ntot(ic))))
         end do
         
-        if(changeVar.gt.0) then
-           if(parID(p).eq.31) then
+        if(changeVar.ge.1) then
+           select case(parID(p))
+           case(31)
               if(ymin.lt.0..or.ymax.gt.24.) then
                  ymin = 0.
                  ymax = 24.
               end if
-           end if
-           if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) then
-              !ymin = max(ymin,0.)
-              !ymax = min(ymax,360.)
-              !write(stdOut,'(I5,2F10.5,$)')p,ymin,ymax
-              !ymin = max(rev360(ymin),0.)
-              !ymax = min(rev360(ymax),360.)
-              !write(stdOut,'(2F10.5)')ymin,ymax
+           case(41,54,73,83)
               if(ymin.lt.0..or.ymax.gt.360.) then
                  ymin = 0.
                  ymax = 360.
               end if
-           end if
-           if(parID(p).eq.52) then
+           case(52) 
               if(ymin.lt.0..or.ymax.gt.180.) then
                  ymin = 0.
                  ymax = 180.
               end if
-           end if
+           end select
         end if
+        
         dx = abs(xmax-xmin)*0.1
         dy = abs(ymax-ymin)*0.1
         if(dx.eq.0) then
@@ -667,10 +683,15 @@ subroutine chains(exitcode)
            do i=Nburn(ic),Ntot(ic),chainPlI
               plx = allDat(ic,p,i)
               ply = post(ic,i)
-              if(changeVar.gt.0) then
-                 if(parID(p).eq.31) plx = rev24(plx)
-                 if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) plx = rev360(plx)
-                 if(parID(p).eq.52) plx = rev180(plx)
+              if(changeVar.ge.1) then
+                 select case(parID(p))
+                 case(31) 
+                    plx = rev24(plx)
+                 case(41,54,73,83) 
+                    plx = rev360(plx)
+                 case(52) 
+                    plx = rev180(plx)
+                 end select
                  !call pgpoint(1,is(ic,i),plx,1) !Plot small dots
               end if
               !call pgpoint(1,plx,ply,symbol) !Plot symbols
@@ -681,13 +702,19 @@ subroutine chains(exitcode)
         call pgsch(sch)
         call pgslw(lw)
         
-        !Plot max posterior
+        
+        !Plot max posterior:
         if(plLmax.ge.1) then
            plx = allDat(icloglmax,p,iloglmax)
-           if(changeVar.gt.0) then
-              if(parID(p).eq.31) plx = rev24(plx)
-              if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) plx = rev360(plx)
-              if(parID(p).eq.52) plx = rev180(plx)
+           if(changeVar.ge.1) then
+              select case(parID(p))
+              case(31) 
+                 plx = rev24(plx)
+              case(41,54,73,83) 
+                 plx = rev360(plx)
+              case(52) 
+                 plx = rev180(plx)
+              end select
            end if
            ply = exp(post(icloglmax,iloglmax)-ymin)
            call pgsci(1)
@@ -708,25 +735,29 @@ subroutine chains(exitcode)
                  !if(ic.eq.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
                  plx = startval(ic,p,1) !Injection value
                  plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
-                 if(changeVar.gt.0) then
-                    if(parID(p).eq.31) plx = rev24(plx)
-                    if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) plx = rev360(plx)
-                    if(parID(p).eq.52) plx = rev180(plx)
+                 if(changeVar.ge.1) then
+                    select case(parID(p))
+                    case(31) 
+                       plx = rev24(plx)
+                    case(41,54,73,83) 
+                       plx = rev360(plx)
+                    case(52) 
+                       plx = rev180(plx)
+                    end select
                  end if
                  call pgline(2,(/plx,plx/),(/-1.e20,1.e20/))
-                 if(changeVar.gt.0) then
-                    if(parID(p).eq.31) then
+                 if(changeVar.ge.1) then
+                    select case(parID(p))
+                    case(31)
                        call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/))
                        call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/))
-                    end if
-                    if(parID(p).eq.41.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) then
+                    case(41,54,73,83)
                        call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/))
                        call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/))
-                    end if
-                    if(parID(p).eq.52) then
+                    case(52)
                        call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/))
                        call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/))
-                    end if
+                    end select
                  end if
               end if
            end if

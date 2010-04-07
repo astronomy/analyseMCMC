@@ -58,7 +58,7 @@ subroutine plotpdf1d(pp,lbl)
      pp1 = 0
      do p1=1,nplvar
         read(10,*)tmpstr  !Read empty line
-        read(10,'(3I6)')ic,parIDs(p1),wrap(f,p1) !'Chain number, parameter number, and wrap'
+        read(10,'(3I6)')ic,parIDs(p1),wrap(f,p1) !'Chain number, parameter number, and wrap(type)'
         read(10,'(2E15.7)')startval(f,p1,1:2) !'True and starting value'
         read(10,'(6E15.7)')stats(f,p1,1:6) !'Stats: median, mean, absvar1, absvar2, stdev1, stdev2'
         read(10,'(5E15.7)')ranges(f,p1,1:5) !'Ranges: lower,upper limit, centre, width, relative width'
