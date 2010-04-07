@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   145: sluys, 06/04/2010
+     - Split analyseMCMC_2dpdfs.f90 into three files (added _routines.f90 and _skymap.f90),	
+       use new Makefile
+     
    144: sluys, 06/04/2010
      - Renamed source files *.f -> *.f90, using capitals for names
      - Moved source files to src/, object files to obj/, mod files to mod/

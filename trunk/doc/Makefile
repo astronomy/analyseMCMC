@@ -96,7 +96,10 @@ endif
 
 
 
-ANALYSEMCMC_OBJ = $(OBJDIR)/analyseMCMC_modules.o $(OBJDIR)/analyseMCMC_functions.o $(OBJDIR)/analyseMCMC_stats.o $(OBJDIR)/analyseMCMC_tailored.o $(OBJDIR)/analyseMCMC_chains.o $(OBJDIR)/analyseMCMC_1dpdfs.o $(OBJDIR)/analyseMCMC_2dpdfs.o $(OBJDIR)/analyseMCMC_animation.o $(OBJDIR)/analyseMCMC_plot.o $(OBJDIR)/analyseMCMC.o
+ANALYSEMCMC_OBJ = $(OBJDIR)/analyseMCMC_modules.o $(OBJDIR)/analyseMCMC_functions.o $(OBJDIR)/analyseMCMC_stats.o $(OBJDIR)/analyseMCMC_tailored.o 
+ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_chains.o $(OBJDIR)/analyseMCMC_1dpdfs.o 
+ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_2dpdf_skymap.o $(OBJDIR)/analyseMCMC_2dpdf_routines.o $(OBJDIR)/analyseMCMC_2dpdfs.o 
+ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_animation.o $(OBJDIR)/analyseMCMC_plot.o $(OBJDIR)/analyseMCMC.o
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.f90 Makefile $(SRCDIR)/analyseMCMC_modules.f90
 	$(COMP) $(CFLAGS) -c  $< -o $@
