@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   143: sluys, 06/04/2010
+     - Fixed bug introduced in r.140:
+       when converting PDFs, selDat has nChains chains, allDat has nChains0 chains
+   
    142: sluys, 06/04/2010
      - Cleaned up analysemcmc_chains.f a bit
    
