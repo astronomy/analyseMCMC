@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   148: sluys, 07/04/2010
+     - Make source more compatible with standard: _modules.f90, _functions.f90
+   
    147: sluys, 07/04/2010
      - Make sure spacing is the same as before rev.146
    
