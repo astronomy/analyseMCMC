@@ -8,10 +8,11 @@ subroutine statistics(exitcode)
   use chain_data
   use mcmcrun_data
   implicit none
-  integer :: c,i,ic,i0,p,p1,p2,nr,nstat,exitcode,wraptype
+  integer :: c,i,ic,p,p1,p2,nr,nstat,exitcode,wraptype
   integer :: indexx(maxMCMCpar,maxChs*maxIter),index1(maxChs*maxIter)
-  real :: rev2pi,x0,x1,x2,y1,y2,rrevpi
-  real :: range1,minrange,maxgap,ival,wrapival,centre,maxlogl,minlogl,shift,shIval,shIval2
+  real :: rev2pi,rrevpi,rev360,rev180,rev24
+  real :: x1,x2,y1,y2
+  real :: range1,minrange,ival,wrapival,centre,maxlogl,minlogl,shift,shIval,shIval2
   real :: medians(maxMCMCpar),mean(maxMCMCpar),var1(maxMCMCpar),var2(maxMCMCpar),corr,corr1,corr2
   
   !Need extra accuracy to compute Bayes factor
@@ -22,6 +23,56 @@ subroutine statistics(exitcode)
   !print*,precision(var),range(var)
   
   exitcode = 0
+  
+  
+  !Convert MCMC parameters/PDFs (cos/sin->ang, rad->deg, etc):
+  if(changeVar.ge.1) then
+     do ic=1,nChains
+        if(prProgress.ge.1.and.ic.eq.1.and.update.eq.0) write(stdOut,'(A,$)')'.  Change vars. '
+        do p=1,nMCMCpar
+           select case(parID(p))
+              
+           case(21) !Take cube root: d^3 -> Distance:
+              selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**c3rd
+              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**c3rd
+              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**c3rd
+              
+           case(22) !Take exp: logD -> Distance:
+              allDat(ic,p,1:Ntot(ic)) = exp(allDat(ic,p,1:Ntot(ic)))   
+              selDat(ic,p,1:n(ic)) = exp(selDat(ic,p,1:n(ic)))
+              if(ic.eq.1) startval(1:nChains0,p,1:3) = exp(startval(1:nChains0,p,1:3))
+
+           case(51,72,82) !cos -> deg:
+              allDat(ic,p,1:Ntot(ic)) = acos(allDat(ic,p,1:Ntot(ic)))*r2d
+              selDat(ic,p,1:n(ic)) = acos(selDat(ic,p,1:n(ic)))*rr2d
+              if(ic.eq.1) startval(1:nChains0,p,1:3) = acos(startval(1:nChains0,p,1:3))*rr2d
+              
+           case(31) !rad -> h:
+              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*r2h  !rad -> h
+              selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2h
+              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2h
+              
+           case(32,53) !sin -> deg:
+              allDat(ic,p,1:Ntot(ic)) = asin(allDat(ic,p,1:Ntot(ic)))*r2d
+              selDat(ic,p,1:n(ic)) = asin(selDat(ic,p,1:n(ic)))*rr2d
+              if(ic.eq.1) startval(1:nChains0,p,1:3) = asin(startval(1:nChains0,p,1:3))*rr2d
+              
+           case(41,52,54,73,83) !rad -> deg:
+              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*r2d
+              selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2d
+              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2d
+           end select
+           
+        end do !p
+        
+     end do !ic
+     
+     !Change the parameter names:
+     call set_derivedParameterNames()
+     
+  end if !if(changeVar.ge.1)
+  
+  
   
   
   !Sort all data and find the interval limits for the default probability interval for the wrapable parameters
@@ -41,19 +92,32 @@ subroutine statistics(exitcode)
              (parID(p).ne.31.and.parID(p).ne.41.and.parID(p).ne.52.and.parID(p).ne.54.and.parID(p).ne.73.and.parID(p).ne.83) ) then  !Not RA, phi_c, psi, phi_Jo, phi_1,2
            call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
-           if(parID(p).eq.31) raCentre = rpi !Plot 0-24h when not wrapping -> centre = 12h = pi
-           cycle !No wrapping
+           if(parID(p).eq.31) raCentre = rpi                      !Plot 0-24h when not wrapping -> centre = 12h = pi
+           cycle !No wrapping necessary
         end if
         
-        wraptype = 1  !0-2pi (e.g. phases)
-        if(parID(p).eq.52) wraptype = 2  !0-pi (polarisation angle)
-        
+        wraptype = 1                                !0-2pi (e.g. phases)
+        if(parID(p).eq.52) wraptype = 2             !0-pi (polarisation angle)
+        if(changeVar.ge.1) then
+           if(parID(p).eq.31) wraptype = 3          !0-24h (RA)
+           wraptype = wraptype+10                   !11,12,13 iso 1,2
+        end if
         
         
         !Make sure data are between 0 and 2pi or between 0 and pi to start with:
         do i=1,n(ic)
-           if(wraptype.eq.1) selDat(ic,p,i) = rev2pi(selDat(ic,p,i)) 
-           if(wraptype.eq.2) selDat(ic,p,i) = rrevpi(selDat(ic,p,i)) !Pol.angle
+           select case(wraptype)
+           case(1) 
+              selDat(ic,p,i) = rev2pi(selDat(ic,p,i))  !"Phase": 0-2pi
+           case(2) 
+              selDat(ic,p,i) = rrevpi(selDat(ic,p,i))  !Pol.angle: 0-pi
+           case(11) 
+              selDat(ic,p,i) = rev360(selDat(ic,p,i))  !"Phase": 0-360
+           case(12) 
+              selDat(ic,p,i) = rev180(selDat(ic,p,i))  !Pol.angle: 0-180
+           case(13) 
+              selDat(ic,p,i) = rev24(selDat(ic,p,i))   !RA - h: 0-24
+           end select
         end do
         call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))
         indexx(p,1:n(ic)) = index1(1:n(ic))
@@ -62,8 +126,20 @@ subroutine statistics(exitcode)
         do i=1,n(ic)
            x1 = selDat(ic,p,indexx(p,i))
            x2 = selDat(ic,p,indexx(p,mod(i+nint(n(ic)*wrapival)-1,n(ic))+1))
-           if(wraptype.eq.1) range1 = mod(x2 - x1 + real(20*pi),rtpi)
-           if(wraptype.eq.2) range1 = mod(x2 - x1 + real(10*pi),rpi)
+           
+           select case(wraptype)
+           case(1) 
+              range1 = mod(x2 - x1 + real(20*pi),rtpi)    !"Phase": 0-2pi
+           case(2) 
+              range1 = mod(x2 - x1 + real(10*pi),rpi)     !Pol.angle: 0-pi
+           case(11) 
+              range1 = mod(x2 - x1 + real(20*180),360.0)  !"Phase": 0-360
+           case(12) 
+              range1 = mod(x2 - x1 + real(10*180),180.0)  !Pol.angle: 0-180
+           case(13) 
+              range1 = mod(x2 - x1 + real(20*12),24.0)    !RA: 0-24h
+           end select
+           
            if(range1.lt.minrange) then
               minrange = range1
               y1 = x1
@@ -74,13 +150,25 @@ subroutine statistics(exitcode)
         end do !i
         centre = (y1+y2)/2.
         
+        
         !Define shift interval:
-        shIval = rtpi   !Shift interval
-        shIval2 = rpi   !Shift interval/2
-        if(wraptype.eq.2) then
-           shIval = rpi   !Shift interval
-           shIval2 = rpi2 !Shift interval/2
-        end if
+        select case(wraptype)
+        case(1)
+           shIval = rtpi    !Shift interval    -  "Phase": 0-2pi
+           shIval2 = rpi    !Shift interval/2
+        case(2)
+           shIval = rpi     !Shift interval    -  Pol.angle: 0-pi
+           shIval2 = rpi2   !Shift interval/2
+        case(11)
+           shIval = 360.    !Shift interval    -  "Phase": 0-360
+           shIval2 = 180.   !Shift interval/2
+        case(12)
+           shIval = 180.    !Shift interval    -  Pol.angle: 0-180
+           shIval2 = 90.    !Shift interval/2
+        case(13)
+           shIval = 24.     !Shift interval    -  RA: 0-24h
+           shIval2 = 12.    !Shift interval/2
+        end select
         shIvals(ic,p) = shIval
         
         if(y1.gt.y2) then
@@ -89,39 +177,14 @@ subroutine statistics(exitcode)
         end if
         
         
-        !See whether there's a gap in the data.  WHY is this necessary, should it work like this???
-        if(wrap(ic,p).eq.0 .and. 1.eq.2) then
-           i0 = -1
-           maxgap = -1.e30
-           do i=1,n(ic)-1
-              x1 = selDat(ic,p,indexx(p,i))
-              x2 = selDat(ic,p,indexx(p,i+1))
-              !write(stdOut,'(2I3,2I8,4F10.5)')ic,p,i,i0,x1,x2,x2-x2,maxgap
-              if(x2-x1.gt.maxgap) then
-                 maxgap = x2-x1
-                 i0 = i
-              end if
-           end do !i
-           x1 = selDat(ic,p,indexx(p,i0))
-           x2 = selDat(ic,p,indexx(p,i0+1))
-           !if(maxgap.gt.2*tpi/sqrt(real(n(ic)))) then
-           if(maxgap.gt.0.1) then 
-              x0 = (x1+x2)/2.
-              !write(stdOut,'(10F10.5)')x1,x2,(x1+x2)/2.,maxgap,ymin,ymax,centre,minrange,y1,y2
-              !if(y1.lt.y2.and.(x0.lt.y1.or.x0.gt.y2)) wrap(ic,p) = 1  !If centre of max gap is outside 90% range  WHY???
-              !if(y1.gt.y2.and.(x0.gt.y2.and.x0.lt.y1)) wrap(ic,p) = 1
-           end if
-        end if
         
-        
-        
-        !Now, wrap around anticentre
+        !Wrap around anticentre:
         shift = 0.
         
-        !For the general case of shIval (= pi or 2pi)
+        !For the general case of shIval (= pi or 2pi; 180, 360 or 24)
         if(wrap(ic,p).gt.0) shift = shIval - mod(centre + shIval2, shIval)
         shifts(ic,p) = shift
-        if(parID(p).eq.31.and.ic.eq.1) raShift = shift                         !Save RA shift to plot sky map
+        if(parID(p).eq.31.and.ic.eq.1) raShift = shift                                     !Save RA shift to plot sky map
         
         !Do the actual wrapping:
         allDat(ic,p,1:Ntot(ic))  = mod(allDat(ic,p,1:Ntot(ic))  + shift, shIval) - shift   !Original data
@@ -131,7 +194,7 @@ subroutine statistics(exitcode)
         y2 = mod(y2 + shift, shIval) - shift
         
         centre = mod(centre + shift, shIval) - shift
-        if(parID(p).eq.31.and.ic.eq.1) raCentre = centre                             !Save RA centre to plot sky map
+        if(parID(p).eq.31.and.ic.eq.1) raCentre = centre                                   !Save RA centre to plot sky map
         
         minrange = y2-y1
         call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))  !Re-sort
@@ -144,7 +207,7 @@ subroutine statistics(exitcode)
      
      
      
-     !Do statistics
+     !Do statistics:
      !if(prProgress.ge.2) write(stdOut,'(A)')' Calculating: statistics...'
      if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A,$)')'  Calc: stats, '
      do p=1,nMCMCpar
@@ -248,22 +311,18 @@ subroutine statistics(exitcode)
      
      
      
-     
-     
-     
-     
-     !Compute Bayes factor
+     !Compute Bayes factor:
      !if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A,$)')'  Bayes factor,'
      total = 0
      total2 = 0
-         total3 = 0
+     total3 = 0
      maxlogl = -1.e30
      minlogl =  1.e30
-     do i=Nburn(ic),Ntot(ic)
-        var = post(ic,i)          !Use quadruple precision
+     do i = Nburn(ic),Ntot(ic)
+        var = post(ic,i)          !Use highest precision available
         total = total + exp(-var)**(1/Tchain(ic))
         total2 = total2 + exp(var)**(1-(1/Tchain(ic)))
-                total3 = total3 + var
+        total3 = total3 + var
         maxlogl = max(post(ic,i),maxlogl)
         minlogl = min(post(ic,i),minlogl)
      end do
@@ -271,14 +330,14 @@ subroutine statistics(exitcode)
      var = total2/total
      logebayesfactor(ic) = real(log(var))
      log10bayesfactor(ic) = real(log10(var))
-         
-         if(ic.eq.nChains) then
-         deltab = 1/Tchain(ic)
-         else
-         deltab = 1/Tchain(ic) - 1/Tchain(ic+1)
-         end if
-         
-         logebayestempfactor(ic) = real((total3/(n(ic)))*deltab)
+     
+     if(ic.eq.nChains) then
+        deltab = 1/Tchain(ic)
+     else
+        deltab = 1/Tchain(ic) - 1/Tchain(ic+1)
+     end if
+     
+     logebayestempfactor(ic) = real((total3/(n(ic)))*deltab)
      !write(stdOut,'(A,4F10.3,2I9,F10.3)')'ln Bayes',logebayesfactor(ic),log10bayesfactor(ic),maxlogl,minlogl,n(ic),ic,Tchain(ic)
      write(stdOut,'(A,F10.3,I9,2F10.3,3I9)')'ln Bayes',logebayestempfactor(ic),ic,Tchain(ic),deltab,Nburn(ic),Ntot(ic),n(ic)
      
@@ -288,83 +347,12 @@ subroutine statistics(exitcode)
      
      
      
-     
-     
-     
-     !**********************************************************************************************
-     !******   CHANGE MCMC PARAMETERS   ******************************************************************
-     !**********************************************************************************************
-     
-     
-     
-     
      !Change MCMC parameters
-     if(changeVar.ge.1) then
-        if(prProgress.ge.1.and.ic.eq.i.and.update.eq.0) write(stdOut,'(A,$)')'.  Change vars. '
-        do p=1,nMCMCpar
-           !CHECK: need d^3!
-           if(parID(p).eq.22) then !Take exp
-              stdev1(p) = stdev1(p)*exp(stats(ic,p,1))  !Median  For exponential function y = exp(x), sig_y = exp(x) sig_x
-              stdev2(p) = stdev2(p)*exp(stats(ic,p,2))  !Mean
-              selDat(ic,p,1:n(ic)) = exp(selDat(ic,p,1:n(ic)))     !logD -> Distance
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = exp(startval(1:nChains0,p,1:3))
-              stats(ic,p,1:nstat) = exp(stats(ic,p,1:nstat))
-              ranges(ic,1:Nival,p,1:nr) = exp(ranges(ic,1:Nival,p,1:nr))
-           end if
-           if(parID(p).eq.51.or.parID(p).eq.72.or.parID(p).eq.82) then !cos -> deg
-              stdev1(p) = abs(-1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
-              stdev2(p) = abs(-1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
-              selDat(ic,p,1:n(ic)) = acos(selDat(ic,p,1:n(ic)))*rr2d
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = acos(startval(1:nChains0,p,1:3))*rr2d
-              stats(ic,p,1:nstat) = acos(stats(ic,p,1:nstat))*rr2d
-              ranges(ic,1:Nival,p,1:nr) = acos(ranges(ic,1:Nival,p,1:nr))*rr2d
-              do c=1,Nival
-                 y1 = ranges(ic,c,p,2)
-                 ranges(ic,c,p,2) = ranges(ic,c,p,1)  !acos is monotonously decreasing
-                 ranges(ic,c,p,1) = y1
-              end do
-           end if
-           if(parID(p).eq.31) then !rad -> h
-              stdev1(p) = stdev1(p)*rr2h
-              stdev2(p) = stdev2(p)*rr2h
-              selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2h
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2h
-              stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2h
-              ranges(ic,1:Nival,p,1:nr) = ranges(ic,1:Nival,p,1:nr)*rr2h
-              shifts(ic,p) = shifts(ic,p)*rr2h
-              shIvals(ic,p) = shIvals(ic,p)*rr2h
-              raShift = raShift*rr2h
-              raCentre = raCentre*rr2h
-           end if
-           if(parID(p).eq.32.or.parID(p).eq.53) then !sin -> deg
-              stdev1(p) = abs(1./(sqrt(max(1.-stats(ic,p,1)**2,1.e-30))) * stdev1(p))*rr2d  !Based on median
-              stdev2(p) = abs(1./(sqrt(max(1.-stats(ic,p,2)**2,1.e-30))) * stdev2(p))*rr2d  !Based on mean
-              selDat(ic,p,1:n(ic)) = asin(selDat(ic,p,1:n(ic)))*rr2d
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = asin(startval(1:nChains0,p,1:3))*rr2d
-              stats(ic,p,1:nstat) = asin(stats(ic,p,1:nstat))*rr2d
-              ranges(ic,1:Nival,p,1:nr) = asin(ranges(ic,1:Nival,p,1:nr))*rr2d
-           end if
-           if(parID(p).eq.41.or.parID(p).eq.52.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) then  !rad -> deg
-              stdev1(p) = stdev1(p)*rr2d
-              stdev2(p) = stdev2(p)*rr2d
-              selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2d
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2d
-              stats(ic,p,1:nstat) = stats(ic,p,1:nstat)*rr2d
-              ranges(ic,1:Nival,p,1:nr) = ranges(ic,1:Nival,p,1:nr)*rr2d
-              shifts(ic,p) = shifts(ic,p)*rr2d
-              shIvals(ic,p) = shIvals(ic,p)*rr2d
-           end if
-           
-           ranges(ic,1:Nival,p,3) = 0.5*(ranges(ic,1:Nival,p,1) + ranges(ic,1:Nival,p,2))
-           ranges(ic,1:Nival,p,4) = ranges(ic,1:Nival,p,2) - ranges(ic,1:Nival,p,1)
-           ranges(ic,1:Nival,p,5) = ranges(ic,1:Nival,p,4)
-           if(parID(p).eq.21.or.parID(p).eq.22 .or. parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) ranges(ic,1:Nival,p,5) = ranges(ic,1:Nival,p,4)/ranges(ic,1:Nival,p,3)  !Distance or mass
-        end do !p
-        
-        !Change the parameter names:
-        call set_derivedParameterNames()
-        
-     end if !if(changeVar.ge.1)
+     !(moved to beginning of routine)
+     
+     
+     
+     
      
      
      !Find 100% probability range
@@ -588,41 +576,40 @@ subroutine statistics(exitcode)
      
      
      
-     
-     
      !Print output for CBC Wiki:
      if(ic.eq.1.and.wikioutput.eq.1) call save_cbc_wiki_data(ic)
      
      
   end do !ic
   
-  !average the Bayes factors from all chains
-  logebayesfactortotalgeom=0.0
-  logebayesfactortotalarith=0.0
-  logebayesfactortotalharmo=0.0
-  logebayesfactortotal=0.0
-  var=0.0
-  total=0.0
-  total2=0.0
-  do ic=1,nchains0
-  var=logebayesfactor(ic)
-  !write(6,'(A,F10.3)')'ln Bayes',logebayesfactor(ic)
-  logebayesfactortotalgeom=logebayesfactortotalgeom+var
-  !write(6,'(A,F10.3)')'logebayesfactortotalgeom',logebayesfactortotalgeom
-  total=total+exp(var)
-  !write(6,'(A,F10.3)')'logebayesfactortotalarith',logebayesfactortotalarith
-  total2=total2+(exp(-var))
-  !write(6,'(A,F10.3)')'logebayesfactortotalharmo',logebayesfactortotalharmo
-  logebayesfactortotal=logebayesfactortotal+logebayestempfactor(ic)
+  
+  !average the Bayes factors from all chains:
+  logebayesfactortotalgeom = 0.0
+  logebayesfactortotalarith = 0.0
+  logebayesfactortotalharmo = 0.0
+  logebayesfactortotal = 0.0
+  var = 0.0
+  total = 0.0
+  total2 = 0.0
+  do ic = 1,nchains0
+     var = logebayesfactor(ic)
+     !write(6,'(A,F10.3)')'ln Bayes',logebayesfactor(ic)
+     logebayesfactortotalgeom = logebayesfactortotalgeom+var
+     !write(6,'(A,F10.3)')'logebayesfactortotalgeom',logebayesfactortotalgeom
+     total = total+exp(var)
+     !write(6,'(A,F10.3)')'logebayesfactortotalarith',logebayesfactortotalarith
+     total2 = total2+(exp(-var))
+     !write(6,'(A,F10.3)')'logebayesfactortotalharmo',logebayesfactortotalharmo
+     logebayesfactortotal = logebayesfactortotal+logebayestempfactor(ic)
   end do
-  logebayesfactortotalgeom=logebayesfactortotalgeom/dble(nchains)
-  total=total/dble(nchains)
-  logebayesfactortotalarith=real(log(total))
-  total2=dble(nchains)/total2
-  logebayesfactortotalharmo=real(log(total2))
+  logebayesfactortotalgeom = logebayesfactortotalgeom/dble(nchains)
+  total = total/dble(nchains)
+  logebayesfactortotalarith = real(log(total))
+  total2 = dble(nchains)/total2
+  logebayesfactortotalharmo = real(log(total2))
   
   !write(6,'(A,F10.3)')'ln Bayes Total',logebayesfactortotal
-
+  
   
   !!Compute autocorrelations:
   if(prAcorr.gt.0.or.plAcorr.gt.0) call compute_autocorrelations()
@@ -632,22 +619,7 @@ subroutine statistics(exitcode)
   
   
   !Change the original chain data:
-  if(changeVar.ge.1) then
-     do ic=1,nChains0
-        do p=1,nMCMCpar
-           if(parID(p).eq.21) allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**c3rd  !^(1/3)
-           if(parID(p).eq.22) allDat(ic,p,1:Ntot(ic)) = exp(allDat(ic,p,1:Ntot(ic)))   !exp
-           if(parID(p).eq.51.or.parID(p).eq.72.or.parID(p).eq.82) allDat(ic,p,1:Ntot(ic)) = acos(allDat(ic,p,1:Ntot(ic)))*r2d  !acos -> deg
-           if(parID(p).eq.31) allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*r2h  !rad -> h
-           if(parID(p).eq.32.or.parID(p).eq.53) allDat(ic,p,1:Ntot(ic)) = asin(allDat(ic,p,1:Ntot(ic)))*r2d  !asin -> deg
-           if(parID(p).eq.41.or.parID(p).eq.52.or.parID(p).eq.54.or.parID(p).eq.73.or.parID(p).eq.83) allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*r2d  !rad -> deg
-        end do !p
-     end do
-  end if !if(changeVar.ge.1)
-  
-  
-  
-  
+  !moved to top of the routine
   
 end subroutine statistics
 !***********************************************************************************************************************************

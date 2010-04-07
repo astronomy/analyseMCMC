@@ -2,6 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   140: sluys, 06/04/2010
+     - Fixed statistics: convert PDF before computing statistics:
+       - conversion at top of statistics()
+       - add wraptypes 11-13 for wrapping around 360, 180 and 24, take care of shifting for these cases
+        
    138: sluys, 06/04/2010
      - If called without command-line options and no SPINspiral.output.* found in current dir, 
        try the old names: mcmc.output.*
