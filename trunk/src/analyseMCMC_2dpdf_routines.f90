@@ -311,9 +311,9 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
            x2(ib) = real(ni-i+1)  !e.g. x2(b) = ni if within 68%, ni-1 if within 95%, etc, and 1 if within 99.7%
         else
            if(prProgress.ge.3.and.full(i).eq.0) then !Report the number of points in the lastly selected bin
-              if(i.eq.1) write(stdOut,'(A,$)')'Last bin:'
-              !write(stdOut,'(F6.3,I5,$)')ivals(i),nint(x1(ib))
-              write(stdOut,'(I5,$)')nint(x1(ib))
+              if(i.eq.1) write(stdOut,'(A)',advance="no")'Last bin:'
+              !write(stdOut,'(F6.3,I5)',advance="no")ivals(i),nint(x1(ib))
+              write(stdOut,'(I5)',advance="no")nint(x1(ib))
               full(i) = 1
            end if
         end if

@@ -17,8 +17,8 @@ subroutine pdfs1d(exitcode)
   character :: string*99,str*99,str1*99,str2*99,delta*19
   
   exitcode=0
-  if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1) write(stdOut,'(A,$)')'  Saving 1D pdfs'
-  if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(stdOut,'(A,$)')' 1D pdfs'
+  if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1) write(stdOut,'(A)',advance="no")'  Saving 1D pdfs'
+  if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' 1D pdfs'
 
   write(delta,'(A,I3.3,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
   if(nint(ivals(c0)*100).lt.100) write(delta,'(A,I2.2,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
@@ -27,12 +27,12 @@ subroutine pdfs1d(exitcode)
   if(Nbin1D.le.0) then
      call determine_nbin_1d(totpts,Nbin1D)
      if(prProgress.ge.2.and.plot.eq.1.and.update.eq.0) then
-        if(Nbin1D.lt.100) write(stdOut,'(A2,I2,A8,$)')' (',Nbin1D,' bins), '
-        if(Nbin1D.ge.100) write(stdOut,'(A2,I3,A8,$)')' (',Nbin1D,' bins), '
+        if(Nbin1D.lt.100) write(stdOut,'(A2,I2,A8)',advance="no")' (',Nbin1D,' bins), '
+        if(Nbin1D.ge.100) write(stdOut,'(A2,I3,A8)',advance="no")' (',Nbin1D,' bins), '
      end if
   else
      Nbin1D = max(Nbin1D,5)
-     if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(stdOut,'(A2,$)')', '
+     if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(stdOut,'(A2)',advance="no")', '
   end if
 
   !Allocate memory:

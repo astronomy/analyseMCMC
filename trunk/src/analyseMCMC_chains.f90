@@ -20,7 +20,7 @@ subroutine chains(exitcode)
   !***********************************************************************************************************************************      
   !Plot posterior chain
   if(plLogL.eq.1) then
-     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,$)')' posterior chain, '
+     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' posterior chain, '
      if(file.eq.0) then
         io = pgopen('12/xs')
         call pgsch(1.5)
@@ -161,7 +161,7 @@ subroutine chains(exitcode)
   !***********************************************************************************************************************************      
   !Plot chains for each parameter
   if(plChain.eq.1) then
-     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,$)')' parameter chains, '
+     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter chains, '
      if(file.eq.0) then
         io = pgopen('13/xs')
         sch = fontsize1d*1.5
@@ -518,7 +518,7 @@ subroutine chains(exitcode)
   !Plot L vs parameter value
   if(plParL.eq.1) then
      !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting parameter-L plot...'
-     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,$)')' parameter-L, '
+     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter-L, '
      if(file.eq.0) then
         io = pgopen('22/xs')
         sch = fontsize1d*1.5
@@ -803,7 +803,7 @@ subroutine chains(exitcode)
   !Plot jump sizes
   if(plJump.ge.1) then
      !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting jump sizes...'
-     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,$)')' jump sizes, '
+     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' jump sizes, '
      if(file.eq.0) then
         io = pgopen('18/xs')
         sch = fontsize1d*1.5
@@ -937,7 +937,7 @@ subroutine chains(exitcode)
   !Plot autocorrelations for each parameter
   if(plAcorr.gt.0) then
      !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting autocorrelations...'
-     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,$)')' autocorrelations, '
+     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' autocorrelations, '
      if(file.eq.0) then
         io = pgopen('19/xs')
         sch = fontsize1d*1.5

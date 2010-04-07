@@ -2,7 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
-   145: sluys, 06/04/2010
+   146: sluys, 07/04/2010
+     - Removed some archaic Fortran
+   
+   145: sluys, 07/04/2010
      - Split analyseMCMC_2dpdfs.f90 into three files (added _routines.f90 and _skymap.f90),	
        use new Makefile
      

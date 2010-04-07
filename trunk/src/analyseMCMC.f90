@@ -38,6 +38,7 @@
 !<
 !************************************************************************************************************************************
 program analyseMCMC
+  use basic
   use constants
   use analysemcmc_settings
   use general_data
@@ -355,11 +356,11 @@ program analyseMCMC
   
   if(prProgress.ge.2) write(stdOut,*)''
   if(plot.eq.1.and.prProgress.ge.1.and.update.eq.0) then
-     write(stdOut,'(/,A,$)')'  Plotting '
-     if(file.eq.0) write(stdOut,'(A,$)')'to screen: '
-     if(file.eq.1) write(stdOut,'(A,$)')'to png: '
-     if(file.eq.2) write(stdOut,'(A,$)')'to eps: '
-     if(file.eq.3) write(stdOut,'(A,$)')'to pdf: '
+     write(stdOut,'(/,A)',advance="no")'  Plotting '
+     if(file.eq.0) write(stdOut,'(A)',advance="no")'to screen: '
+     if(file.eq.1) write(stdOut,'(A)',advance="no")'to png: '
+     if(file.eq.2) write(stdOut,'(A)',advance="no")'to eps: '
+     if(file.eq.3) write(stdOut,'(A)',advance="no")'to pdf: '
   end if
   
   
@@ -390,7 +391,7 @@ program analyseMCMC
   
   !***********************************************************************************************************************************      
   if(plPDF2D.ge.1.and.mergeChains.eq.0) then
-     write(stdOut,'(A,$)')', (skipping 2D PDFs since mergeChains=0), '
+     write(stdOut,'(A)',advance="no")', (skipping 2D PDFs since mergeChains=0), '
      plPDF2D = 0
   end if
   
@@ -471,22 +472,22 @@ program analyseMCMC
   timestamps(9) = timestamp()
   
   if(prProgress.ge.1) then
-     write(stdOut,'(A,$)')'  Run time: '
-     write(stdOut,'(A,F5.1,A,$)')'   input:',min(abs(timestamps(2)-timestamps(1)),999.9),'s,'
-     !write(stdOut,'(A,F5.1,A,$)')'   info:',min(abs(timestamps(3)-timestamps(2)),999.9),'s,'
-     !write(stdOut,'(A,F5.1,A,$)')'   stats:',min(abs(timestamps(4)-timestamps(3)),999.9),'s,'
-     write(stdOut,'(A,F5.1,A,$)')'   stats:',min(abs(timestamps(4)-timestamps(2)),999.9),'s,'
+     write(stdOut,'(A)',advance="no")'  Run time: '
+     write(stdOut,'(A,F5.1,A)',advance="no")'   input:',min(abs(timestamps(2)-timestamps(1)),999.9_dbl),'s,'
+     !write(stdOut,'(A,F5.1,A)',advance="no")'   info:',min(abs(timestamps(3)-timestamps(2)),999.9_dbl),'s,'
+     !write(stdOut,'(A,F5.1,A)',advance="no")'   stats:',min(abs(timestamps(4)-timestamps(3)),999.9_dbl),'s,'
+     write(stdOut,'(A,F5.1,A)',advance="no")'   stats:',min(abs(timestamps(4)-timestamps(2)),999.9_dbl),'s,'
      if(plot.eq.1.and.plLogL+plChain+plJump+plACorr.gt.0) then
-        write(stdOut,'(A,F5.1,A,$)')'   chains:',min(abs(timestamps(5)-timestamps(4)),999.9),'s,'
+        write(stdOut,'(A,F5.1,A)',advance="no")'   chains:',min(abs(timestamps(5)-timestamps(4)),999.9_dbl),'s,'
      end if
      if(plot.eq.1.or.savePDF.ge.1) then
-        if(plPDF1D.ge.1) write(stdOut,'(A,F5.1,A,$)')'   1d pdfs:',min(abs(timestamps(6)-timestamps(5)),999.9),'s,'
-        if(plPDF2D.ge.1) write(stdOut,'(A,F6.1,A,$)')'   2d pdfs:',min(abs(timestamps(7)-timestamps(6)),999.9),'s,'
+        if(plPDF1D.ge.1) write(stdOut,'(A,F5.1,A)',advance="no")'   1d pdfs:',min(abs(timestamps(6)-timestamps(5)),999.9_dbl),'s,'
+        if(plPDF2D.ge.1) write(stdOut,'(A,F6.1,A)',advance="no")'   2d pdfs:',min(abs(timestamps(7)-timestamps(6)),999.9_dbl),'s,'
      end if
-     !write(stdOut,'(A,F6.1,A,$)')'   plots:',min(abs(timestamps(7)-timestamps(4)),999.9),'s,'
-     !write(stdOut,'(A,F5.1,A,$)')'   save stats:',min(abs(timestamps(8)-timestamps(7)),999.9),'s,'
-     if(plAnim.ge.1) write(stdOut,'(A,F5.1,A,$)')'   movie:',min(abs(timestamps(9)-timestamps(8)),999.9),'s,'
-     write(stdOut,'(A,F6.1,A)')'   total:',min(abs(timestamps(9)-timestamps(1)),999.9),'s.'
+     !write(stdOut,'(A,F6.1,A)',advance="no")'   plots:',min(abs(timestamps(7)-timestamps(4)),999.9_dbl),'s,'
+     !write(stdOut,'(A,F5.1,A)',advance="no")'   save stats:',min(abs(timestamps(8)-timestamps(7)),999.9_dbl),'s,'
+     if(plAnim.ge.1) write(stdOut,'(A,F5.1,A)',advance="no")'   movie:',min(abs(timestamps(9)-timestamps(8)),999.9_dbl),'s,'
+     write(stdOut,'(A,F6.1,A)')'   total:',min(abs(timestamps(9)-timestamps(1)),999.9_dbl),'s.'
   end if
   
   

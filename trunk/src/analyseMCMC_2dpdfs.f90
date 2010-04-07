@@ -25,8 +25,8 @@ subroutine pdfs2d(exitcode)
   j1 = 1
   j2 = nMCMCpar
   
-  if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1.and.plPDF1D.eq.0) write(stdOut,'(A,$)')'  Saving'
-  if(prProgress.ge.1.and.update.eq.0.and.Npdf2D.ge.0) write(stdOut,'(A,$)')'  2D pdfs: '
+  if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1.and.plPDF1D.eq.0) write(stdOut,'(A)',advance="no")'  Saving'
+  if(prProgress.ge.1.and.update.eq.0.and.Npdf2D.ge.0) write(stdOut,'(A)',advance="no")'  2D pdfs: '
   if(Npdf2D.lt.0) then
      totplots = 0
      do j=j1,j2-nfixedpar
@@ -67,10 +67,10 @@ subroutine pdfs2d(exitcode)
         Nbin2Dy = floor(10*log10(real(totpts)))         !Same as for 1D case (~50)
      end if
      if(prProgress.ge.2.and.plot.eq.1.and.update.eq.0) then
-        if(Nbin2Dx.lt.100) write(stdOut,'(A1,I2,A1,$)')'(',Nbin2Dx,'x'
-        if(Nbin2Dx.ge.100) write(stdOut,'(A1,I3,A1,$)')'(',Nbin2Dx,'x'
-        if(Nbin2Dy.lt.100) write(stdOut,'(I2,A7,$)')Nbin2Dy,' bins) '
-        if(Nbin2Dy.ge.100) write(stdOut,'(I3,A7,$)')Nbin2Dy,' bins) '
+        if(Nbin2Dx.lt.100) write(stdOut,'(A1,I2,A1)',advance="no")'(',Nbin2Dx,'x'
+        if(Nbin2Dx.ge.100) write(stdOut,'(A1,I3,A1)',advance="no")'(',Nbin2Dx,'x'
+        if(Nbin2Dy.lt.100) write(stdOut,'(I2,A7)',advance="no")Nbin2Dy,' bins) '
+        if(Nbin2Dy.ge.100) write(stdOut,'(I3,A7)',advance="no")Nbin2Dy,' bins) '
      end if
   end if
   if(Nbin2Dy.eq.0) Nbin2Dy = Nbin2Dx
@@ -126,7 +126,7 @@ subroutine pdfs2d(exitcode)
               if(p1.eq.revID(PDF2Dpairs(i,1)).and.p2.eq.revID(PDF2Dpairs(i,2))) plotthis = 1  !Use PDF2Dpairs from the input file
            end do
            if(plotthis.eq.0) cycle
-           if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,$)')trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//' '
+           if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//' '
         else
            if(p2.le.p1) cycle
            if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
@@ -227,14 +227,14 @@ subroutine pdfs2d(exitcode)
               a = (xmin+xmax)*0.5
               xmin = a - 0.5*dx
               xmax = a + 0.5*dx
-              if(prProgress.ge.3) write(stdOut,'(A,F6.1,A3,F6.1,A,$)')'  Changing RA binning range to ',xmin,' - ',xmax,' h.'
+              if(prProgress.ge.3) write(stdOut,'(A,F6.1,A3,F6.1,A)',advance="no")'  Changing RA binning range to ',xmin,' - ',xmax,' h.'
            end if
            if(abs(dx)*15.gt.dy/rat) then !Expand y
               dy = abs(dx)*rat*15
               a = (ymin+ymax)*0.5
               ymin = a - 0.5*dy
               ymax = a + 0.5*dy
-              if(prProgress.ge.3) write(stdOut,'(A,F6.1,A3,F6.1,A,$)')'  Changing declination binning range to ',ymin,' - ',ymax,' deg.'
+              if(prProgress.ge.3) write(stdOut,'(A,F6.1,A3,F6.1,A)',advance="no")'  Changing declination binning range to ',ymin,' - ',ymax,' deg.'
            end if
         end if !if(plot.eq.1 .and. project_map)
         
@@ -259,11 +259,11 @@ subroutine pdfs2d(exitcode)
            if(normPDF2D.eq.4) then
               
               !Get 2D probability ranges; identify to which range each bin belongs:
-              if(prProgress.ge.3) write(stdOut,'(A,$)')'  identifying 2D ranges...'
+              if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  identifying 2D ranges...'
               call identify_2d_ranges(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr)
               
               !Compute 2D probability areas; sum the areas of all bins:
-              if(prProgress.ge.3) write(stdOut,'(A,$)')'  computing 2D areas...'
+              if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  computing 2D areas...'
               call calc_2d_areas(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr,probArea)
               injectionranges2d(p1,p2) = injectionrange2d(z,Nbin2Dx+1,Nbin2Dy+1,startval(1,p1,1),startval(1,p2,1),tr)
               
@@ -279,7 +279,7 @@ subroutine pdfs2d(exitcode)
            end if
         end if
         if(normPDF2D.eq.3) then
-           if(prProgress.ge.3) write(stdOut,'(A,$)')'  binning 2D data...'
+           if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  binning 2D data...'
            call bindata2da(n(ic),xx(1:n(ic)),yy(1:n(ic)),zz(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin,xmax,ymin,ymax,z,tr)  !Measure amount of likelihood in each bin
         end if
         
@@ -309,6 +309,7 @@ subroutine pdfs2d(exitcode)
               ymax = 90.
            end if
            
+           
            !Force plotting boundaries (not binning boundaries)
            if(1.eq.2.and.sky_position) then
               xmin = 24.
@@ -319,11 +320,13 @@ subroutine pdfs2d(exitcode)
            
            call pgsch(sch)
            
+           
            if(project_map .and. plotSky.ge.2) then
               call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.05*sch)  !Make room for title and +90deg label
            else
               call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.033*sch)  !Make room for title.  Since sch is typically ~1.5*fontsize2d: 0.95 -> 1-0.05*fontsize ~ 1-0.03*sch
            end if
+           
            
            call pgswin(xmin,xmax,ymin,ymax)
            if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3).and.file.ge.2) then !Need dark background
@@ -336,7 +339,7 @@ subroutine pdfs2d(exitcode)
               
               !Set the colour schemes:
               if(normPDF2D.lt.4) then  !Grey scales
-                 call pgscir(0,1e9)
+                 call pgscir(0,nint(1e9))
                  call pgqcir(clr,maxclr)  !Maxclr is device-dependent
                  do i=0,maxclr-30  !Colour indices typically run 0-255, but this is device-dependent. Reserve ~0-29 for other purposes -> (maxclr-30) for these grey scales
                     x = real((maxclr-30) - i)/real(maxclr-30)          !White background
@@ -404,16 +407,19 @@ subroutine pdfs2d(exitcode)
               end if  !if(normPDF2D.eq.4)
               
               
+              
               !Plot the PDF
               if(project_map .and. plotSky.ge.2) then
-                 if(prProgress.ge.3) write(stdOut,'(A,$)')'  plotting map projection...'
+                 if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  plotting map projection...'
                  call pgimag_project(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr,map_projection)
               else
-                 if(prProgress.ge.3) write(stdOut,'(A,$)')'  plotting 2D PDF...'
+                 if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  plotting 2D PDF...'
                  !call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr) !Gives seg.fault (on amd64) - but why?
                  call pgimag_project(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr,0)  !0-no projection
               end if
-           end if
+              
+           end if  !if(plPDF2D.eq.1.or.plPDF2D.eq.2)
+           
            
            
            !Plot stars in 2D PDF (over the grey scales, but underneath contours, lines, etc)
@@ -423,6 +429,7 @@ subroutine pdfs2d(exitcode)
               call pgswin(xmin,xmax,ymin,ymax)
            end if
            call pgsci(1)
+           
         end if !if(plot.eq.1)
         
         
@@ -473,7 +480,7 @@ subroutine pdfs2d(exitcode)
            write(30,'(A)')'  2D bins:'
            do i=1,Nbin2Dx+1
               do j=1,Nbin2Dy+1
-                 write(30,'(ES15.7,$)')z(i,j)
+                 write(30,'(ES15.7)',advance="no")z(i,j)
               end do
               write(30,'(1x)')
            end do

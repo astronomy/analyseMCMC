@@ -133,58 +133,58 @@ subroutine tailored_output_0002(out,exitcode)
    
    !recovery template:
    write(runID,'(A,I1)')trim(runID),spinningRun  !spinningRun = 0,1,2 for the number of spins allowed for in the recovery template
-   write(out,'(A6,$)')trim(runID)
-   write(out,'(A,$)')trim(col)
+   write(out,'(A6)',advance="no")trim(runID)
+   write(out,'(A)',advance="no")trim(col)
    
    
    !Injection parameters:
    par = revID(22)  !Distance
    x = startval(ic,par,1)
-   write(out,'(F6.1,$)') x
-   write(out,'(A,$)')trim(col)
-   !write(out,'(A,$)')trim(col)
+   write(out,'(F6.1)',advance="no") x
+   write(out,'(A)',advance="no")trim(col)
+   !write(out,'(A)',advance="no")trim(col)
    
    
    
    
    !Accuracies:
-   write(out,'(A,$)')'     '
+   write(out,'(A)',advance="no")'     '
    
    !Chirp mass:
    par = revID(61)
    x = ranges(ic,ival0,par,4)/ranges(ic,ival0,par,3)*100 
    if(x.lt.9.95) then
-      write(out,'(F6.1,$)') x
+      write(out,'(F6.1)',advance="no") x
    else
-      write(out,'(I6,$)') nint(x)
+      write(out,'(I6)',advance="no") nint(x)
    end if
-   write(out,'(A,$)')trim(col)
+   write(out,'(A)',advance="no")trim(col)
    
    !Eta:
    par = revID(62)
    x = ranges(ic,ival0,par,4)
-   write(out,'(F7.3,$)') x
-   write(out,'(A,$)')trim(col)
+   write(out,'(F7.3)',advance="no") x
+   write(out,'(A)',advance="no")trim(col)
    
    !M1:
    par = revID(63)
    x = ranges(ic,ival0,par,4)/ranges(ic,ival0,par,3)*100 
    if(x.lt.9.95) then
-      write(out,'(F6.1,$)') x
+      write(out,'(F6.1)',advance="no") x
    else
-      write(out,'(I6,$)') nint(x)
+      write(out,'(I6)',advance="no") nint(x)
    end if
-   write(out,'(A,$)')trim(col)
+   write(out,'(A)',advance="no")trim(col)
    
    !M2:
    par = revID(64)
    x = ranges(ic,ival0,par,4)/ranges(ic,ival0,par,3)*100 
    if(x.lt.9.95) then
-      write(out,'(F6.1,$)') x
+      write(out,'(F6.1)',advance="no") x
    else
-      write(out,'(I6,$)') nint(x)
+      write(out,'(I6)',advance="no") nint(x)
    end if
-   write(out,'(A,$)')trim(col)
+   write(out,'(A)',advance="no")trim(col)
    
    
    
@@ -192,18 +192,18 @@ subroutine tailored_output_0002(out,exitcode)
    !Distance:
    par = revID(22)
    x = ranges(ic,ival0,par,4)/ranges(ic,ival0,par,3)*100
-   write(out,'(I5,$)')nint(x)
-   write(out,'(A,$)')trim(col)
+   write(out,'(I5)',advance="no")nint(x)
+   write(out,'(A)',advance="no")trim(col)
    
    !t_c:
    par = revID(11)
    x = ranges(ic,ival0,par,4)*1000 !s->ms
    if(x.lt.9.95) then
-      write(out,'(F6.1,$)') x
+      write(out,'(F6.1)',advance="no") x
    else
-      write(out,'(I6,$)') nint(x)
+      write(out,'(I6)',advance="no") nint(x)
    end if
-   write(out,'(A,$)')trim(col)
+   write(out,'(A)',advance="no")trim(col)
    
    
    
@@ -214,31 +214,31 @@ subroutine tailored_output_0002(out,exitcode)
       par = revID(71)
       x = ranges(ic,ival0,par,4)
       if(x.lt.0.0995) then
-         write(out,'(F7.3,$)') x
+         write(out,'(F7.3)',advance="no") x
       else
-         write(out,'(F7.2,$)') x
+         write(out,'(F7.2)',advance="no") x
       end if
-      write(out,'(A,$)')trim(col)
+      write(out,'(A)',advance="no")trim(col)
       
       !theta_spin1
       par = revID(72)
       x = ranges(ic,ival0,par,4)
       if(x.lt.9.95) then
-         write(out,'(F6.1,$)') x
+         write(out,'(F6.1)',advance="no") x
       else
-         write(out,'(I6,$)') nint(x)
+         write(out,'(I6)',advance="no") nint(x)
       end if
-      write(out,'(A,$)')trim(col)
+      write(out,'(A)',advance="no")trim(col)
       
       !phi_spin1
       par = revID(73)
       x = ranges(ic,ival0,par,4)
       if(x.lt.9.95) then
-         write(out,'(F6.1,$)') x
+         write(out,'(F6.1)',advance="no") x
       else
-         write(out,'(I6,$)') nint(x)
+         write(out,'(I6)',advance="no") nint(x)
       end if
-      write(out,'(A,$)')trim(col)
+      write(out,'(A)',advance="no")trim(col)
       
       
       
@@ -248,41 +248,41 @@ subroutine tailored_output_0002(out,exitcode)
          par = revID(81)
          x = ranges(ic,ival0,par,4)
          if(x.lt.0.0995) then
-            write(out,'(F7.3,$)') x
+            write(out,'(F7.3)',advance="no") x
          else
-            write(out,'(F7.2,$)') x
+            write(out,'(F7.2)',advance="no") x
          end if
-         write(out,'(A,$)')trim(col)
+         write(out,'(A)',advance="no")trim(col)
          
          !theta_spin2
          par = revID(82)
          x = ranges(ic,ival0,par,4)
          if(x.lt.9.95) then
-            write(out,'(F6.1,$)') x
+            write(out,'(F6.1)',advance="no") x
          else
-            write(out,'(I6,$)') nint(x)
+            write(out,'(I6)',advance="no") nint(x)
          end if
-         write(out,'(A,$)')trim(col)
+         write(out,'(A)',advance="no")trim(col)
          
          !phi_spin2
          par = revID(83)
          x = ranges(ic,ival0,par,4)
          if(x.lt.9.95) then
-            write(out,'(F6.1,$)') x
+            write(out,'(F6.1)',advance="no") x
          else
-            write(out,'(I6,$)') nint(x)
+            write(out,'(I6)',advance="no") nint(x)
          end if
-         write(out,'(A,$)')trim(col)
+         write(out,'(A)',advance="no")trim(col)
          
       else
          
-         write(out,'(A7,A,2(A6,A),$)')' -- ',trim(col),' -- ',trim(col),' -- ',trim(col)
+         write(out,'(A7,A,2(A6,A))',advance="no")' -- ',trim(col),' -- ',trim(col),' -- ',trim(col)
          
       end if ! 2 spins
       
    else
-      write(out,'(A7,A,2(A6,A),$)')' -- ',trim(col),' -- ',trim(col),' -- ',trim(col)
-      write(out,'(A7,A,2(A6,A),$)')' -- ',trim(col),' -- ',trim(col),' -- ',trim(col)
+      write(out,'(A7,A,2(A6,A))',advance="no")' -- ',trim(col),' -- ',trim(col),' -- ',trim(col)
+      write(out,'(A7,A,2(A6,A))',advance="no")' -- ',trim(col),' -- ',trim(col),' -- ',trim(col)
    end if ! Spins
    
    
@@ -292,11 +292,11 @@ subroutine tailored_output_0002(out,exitcode)
       par = revID(31)
       x = ranges(ic,ival0,par,4)
       if(x.lt.9.95) then
-         write(out,'(F6.1,$)') x
+         write(out,'(F6.1)',advance="no") x
       else
-         write(out,'(I6,$)') nint(x)
+         write(out,'(I6)',advance="no") nint(x)
       end if
-      write(out,'(A,$)')trim(col)
+      write(out,'(A)',advance="no")trim(col)
    end if
    
    !Dec:
@@ -304,11 +304,11 @@ subroutine tailored_output_0002(out,exitcode)
       par = revID(32)
       x = ranges(ic,ival0,par,4)
       if(x.lt.9.95) then
-         write(out,'(F6.1,$)') x
+         write(out,'(F6.1)',advance="no") x
       else
-         write(out,'(I6,$)') nint(x)
+         write(out,'(I6)',advance="no") nint(x)
       end if
-      write(out,'(A,$)')trim(col)
+      write(out,'(A)',advance="no")trim(col)
    end if
    
    !Sky position:
@@ -316,32 +316,32 @@ subroutine tailored_output_0002(out,exitcode)
    par2 = revID(32)  !Dec
    x = probAreas(par1,par2,ival0,3)  !3: area in sqare degrees
    if(x.lt.99.95d0) then
-      write(out,'(F6.1,$)') x
+      write(out,'(F6.1)',advance="no") x
    else
-      write(out,'(I6,$)') nint(x)
+      write(out,'(I6)',advance="no") nint(x)
    end if
-   write(out,'(A,$)')trim(col)
+   write(out,'(A)',advance="no")trim(col)
    
    
    !psi:
    par = revID(52)
    x = ranges(ic,ival0,par,4)
    if(x.lt.9.95) then
-      write(out,'(F6.1,$)') x
+      write(out,'(F6.1)',advance="no") x
    else
-      write(out,'(I6,$)') nint(x)
+      write(out,'(I6)',advance="no") nint(x)
    end if
-   write(out,'(A,$)')trim(col)
+   write(out,'(A)',advance="no")trim(col)
    
    !i:
    par = revID(51)
    x = ranges(ic,ival0,par,4)
    if(x.lt.9.95) then
-      write(out,'(F6.1,$)') x
+      write(out,'(F6.1)',advance="no") x
    else
-      write(out,'(I6,$)') nint(x)
+      write(out,'(I6)',advance="no") nint(x)
    end if
-   write(out,'(A,$)')trim(col)
+   write(out,'(A)',advance="no")trim(col)
    
    
    !Binary orientation:
@@ -350,11 +350,11 @@ subroutine tailored_output_0002(out,exitcode)
       par2 = revID(51)  !Inclination
       x = probAreas(par1,par2,ival0,3)  !3: area in sqare degrees
       if(x.lt.99.95d0) then
-         write(out,'(F6.1,$)') x
+         write(out,'(F6.1)',advance="no") x
       else
-         write(out,'(I6,$)') nint(x)
+         write(out,'(I6)',advance="no") nint(x)
       end if
-      write(out,'(A,$)')trim(col)
+      write(out,'(A)',advance="no")trim(col)
    end if
    
    
@@ -362,11 +362,11 @@ subroutine tailored_output_0002(out,exitcode)
    par = revID(41)
    x = ranges(ic,ival0,par,4)
    if(x.lt.9.95) then
-      write(out,'(F6.1,$)') x
+      write(out,'(F6.1)',advance="no") x
    else
-      write(out,'(I6,$)') nint(x)
+      write(out,'(I6)',advance="no") nint(x)
    end if
-   !write(out,'(A,$)')trim(col)
+   !write(out,'(A)',advance="no")trim(col)
    
    
    

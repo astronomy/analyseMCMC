@@ -29,12 +29,12 @@ subroutine animation(exitcode)
   if(Nbin1D.le.0) then
      call determine_nbin_1d(totpts,Nbin1D)
      if(prProgress.ge.2.and.plot.eq.1.and.update.eq.0) then
-        if(Nbin1D.lt.100) write(stdOut,'(A2,I2,A8,$)')' (',Nbin1D,' bins), '
-        if(Nbin1D.ge.100) write(stdOut,'(A2,I3,A8,$)')' (',Nbin1D,' bins), '
+        if(Nbin1D.lt.100) write(stdOut,'(A2,I2,A8)',advance="no")' (',Nbin1D,' bins), '
+        if(Nbin1D.ge.100) write(stdOut,'(A2,I3,A8)',advance="no")' (',Nbin1D,' bins), '
      end if
   else
      Nbin1D = max(Nbin1D,5)
-     if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(stdOut,'(A2,$)')', '
+     if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(stdOut,'(A2)',advance="no")', '
   end if
   
   
@@ -52,7 +52,7 @@ subroutine animation(exitcode)
      
      if(prProgress.ge.1.and.update.eq.0) then
         write(stdOut,*)upline !Move cursor up 1 line
-        write(stdOut,'(A,I5,A1,I5,A,I6,A,I6,A,$)')'  Plotting movie frame',iframe,'/',nAnimFrames,'  (',nplt,'/',ntot(1:nchains),' points)'
+        write(stdOut,'(A,I5,A1,I5,A,I6,A,I6,A)',advance="no")'  Plotting movie frame',iframe,'/',nAnimFrames,'  (',nplt,'/',ntot(1:nchains),' points)'
         
         !Print remaining time
         ts2 = timestamp(os)
