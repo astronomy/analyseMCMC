@@ -12,7 +12,8 @@ subroutine pdfs1d(exitcode)
   integer :: i,j,p,ic,io,pgopen,lw,exitcode,status,system
   real :: rev24,rev360,rev180
   real :: x(maxChs,maxChs*maxIter),xmin,xmax,xmin1,xmax1,xpeak,dx,ymin,ymax,sch
-  real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ysum(:),yconv(:),ycum(:)  !These depend on Nbin1D, allocate after reading input file
+  !These depend on Nbin1D, allocate after reading input file:
+  real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ysum(:),yconv(:),ycum(:)  
   real :: plshift,plx,ply,x0,norm,bindx
   character :: string*99,str*99,str1*99,str2*99,delta*19
   
@@ -36,7 +37,8 @@ subroutine pdfs1d(exitcode)
   end if
 
   !Allocate memory:
-  allocate(xbin(maxChs,Nbin1D+1),ybin(maxChs,Nbin1D+1),xbin1(Nbin1D+1),ybin1(Nbin1D+1),ysum(Nbin1D+1),yconv(Nbin1D+1),ycum(Nbin1D+1))
+  allocate(xbin(maxChs,Nbin1D+1),ybin(maxChs,Nbin1D+1),xbin1(Nbin1D+1), &
+       ybin1(Nbin1D+1),ysum(Nbin1D+1),yconv(Nbin1D+1),ycum(Nbin1D+1))
 
   if(plot.eq.1) then
      if(file.eq.0) then
@@ -117,13 +119,15 @@ subroutine pdfs1d(exitcode)
   if(savePDF.eq.1) then
      open(unit=30,action='write',form='formatted',status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__pdf1d.dat')
      write(30,'(3I6,T101,A)')nPlPar,nchains,Nbin1D,'Total number of plot parameters, total number of chains, number of bins'
-     !write(30,'(3I6,T101,A)')nPlPar-nfixedpar,nchains,Nbin1D,'Total number of plot parameters, total number of chains, number of bins'
+     !write(30,'(3I6,T101,A)')nPlPar-nfixedpar,nchains,Nbin1D,&
+     !'Total number of plot parameters, total number of chains, number of bins'
   end if
   
   do j=1,nPlPar
      p = revID(plPars(j))
      if(p.eq.0) then
-        write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))//' is not defined, check plPars() in the input file.  Skipping...'
+        write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))// &
+             ' is not defined, check plPars() in the input file.  Skipping...'
         cycle
      end if
      
@@ -170,9 +174,8 @@ subroutine pdfs1d(exitcode)
         
         !Weight with likelihood.  I should probably do something like this at the start, to get updated ranges etc.
         !y(ic,1:n(ic)) = selDat(ic,1,1:n(ic))
-        !call bindata1da(n(ic),x(ic,1:n(ic)),y(ic,1:n(ic)),1,Nbin1D,xmin1,xmax1,xbin1,ybin1) !Measure the amount of likelihood in each bin
+        !call bindata1da(n(ic),x(ic,1:n(ic)),y(ic,1:n(ic)),1,Nbin1D,xmin1,xmax1,xbin1,ybin1) !Measure amount of L in each bin
         
-        !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:d_l, 6:spin, 7:theta_SL, 8: RA, 9:dec,10:phase, 11:thetaJ0, 12:phiJ0, 13:alpha, 14:M1, 15:M2
         if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.72.or.parID(p).eq.82.or.parID(p).eq.32.or.parID(p).eq.53) then
            if(ybin1(1).gt.ybin1(2)) ybin1(1)=0.
            if(ybin1(Nbin1D).gt.ybin1(Nbin1D-1)) ybin1(Nbin1D)=0.
@@ -189,9 +192,10 @@ subroutine pdfs1d(exitcode)
               ybin1 = ybin1/norm
            else !Normalise to the height of the PDF
               if(normPDF1D.eq.2) ybin1 = ybin1/maxval(ybin1)  !Normalise to the height of the PDF
-              if(normPDF1D.eq.3) ybin1 = ybin1/(maxval(ybin1)**0.5)  !Normalise to the sqrt of the height of the PDF; Works nicely for comparing parallel-tempering chains
-                          if(normPDF1D.eq.4) ybin1 = (ybin1/maxval(ybin1))**(Tchain(ic)) !Extrapolate the true PDF from temperature chains
-                          if(normPDF1D.eq.5) ybin1 = (ybin1/maxval(ybin1))**(2.0)
+              if(normPDF1D.eq.3) ybin1 = ybin1/(maxval(ybin1)**0.5)  !Normalise to the sqrt of the height of the PDF;
+              !                                                       Works nicely for comparing parallel-tempering chains
+              if(normPDF1D.eq.4) ybin1 = (ybin1/maxval(ybin1))**(Tchain(ic)) !Extrapolate the true PDF from temperature chains
+              if(normPDF1D.eq.5) ybin1 = (ybin1/maxval(ybin1))**(2.0)
               if(ic*j.eq.1) write(stdErr,'(//,A,/)')'  *** WARNING: using non-default normalisation for PDFs ***'
            end if
         end if
@@ -206,8 +210,10 @@ subroutine pdfs1d(exitcode)
         if(savePDF.eq.1) then
            !if(savePDF.eq.1.and.fixedpar(p).eq.0) then
            if(fixedpar(p).eq.1) ybin1 = 0.  !Prevent NaNs
-           write(30,'(A)')'--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------'
-           write(30,'(3I6,T31,A10,T101,A)')ic,parID(p),wrap(ic,p),parNames(parID(p)),'Chain number, parameter ID, wrap (1/0 = y/n) and parameter name  (ic, parID(), wrap(), parNames())'
+           write(30,'(A)')'--------------------------------------------------------------------------------------------------'// &
+                '------------------------------------------------------------------------------------------------------'
+           write(30,'(3I6,T31,A10,T101,A)')ic,parID(p),wrap(ic,p),parNames(parID(p)), &
+                'Chain number, parameter ID, wrap (1/0 = y/n) and parameter name  (ic, parID(), wrap(), parNames())'
            write(30,'(2ES15.7,T101,A)')startval(ic,p,1:2),'Injection and starting value  (startval(1:2)'
            write(30,'(6ES15.7,T101,A)')stats(ic,p,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2  (stats(1:6))'
            write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p,1:5),'Ranges: lower,upper limit, centre, width, relative width  (ranges(1:5))'
@@ -271,7 +277,8 @@ subroutine pdfs1d(exitcode)
         if(file.ge.2) call pgslw(lw)
         do ic=1,nchains
            if(mergeChains.eq.0.and.contrchain(ic).eq.0) cycle
-           if(fillPDF.ge.3) call pgshs(45.0*(-1)**ic,2.0,real(ic)/real(nchains0)) !Set hatch style: angle = +-45deg, phase between 0 and 1 (1/nchains0, 2/nchains0, ...)
+           !Set hatch style: angle = +-45deg, phase between 0 and 1 (1/nchains0, 2/nchains0, ...):
+           if(fillPDF.ge.3) call pgshs(45.0*(-1)**ic,2.0,real(ic)/real(nchains0)) 
            if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
            xbin1(1:Nbin1D+1) = xbin(ic,1:Nbin1D+1)
            ybin1(1:Nbin1D+1) = ybin(ic,1:Nbin1D+1)
@@ -305,9 +312,11 @@ subroutine pdfs1d(exitcode)
               end if
               if(nchains.eq.1) call pgsci(15)
               if(plPDF1D.eq.1) then
-                 call pgpoly(Nbin1D+3,(/xbin1(1),xbin1(1:Nbin1D),xbin1(1)+plshift,xbin1(1)+plshift/),(/0.,ybin1(1:Nbin1D),ybin1(1),0./))
+                 call pgpoly(Nbin1D+3,(/xbin1(1),xbin1(1:Nbin1D),xbin1(1)+plshift,xbin1(1)+plshift/),(/0.,ybin1(1:Nbin1D), &
+                      ybin1(1),0./))
               else
-                 call verthist(Nbin1D+3,(/xbin1(1),xbin1(1:Nbin1D),xbin1(1)+plshift,xbin1(1)+plshift/),(/0.,ybin1(1:Nbin1D),ybin1(1),0./),2)
+                 call verthist(Nbin1D+3,(/xbin1(1),xbin1(1:Nbin1D),xbin1(1)+plshift,xbin1(1)+plshift/),(/0.,ybin1(1:Nbin1D), &
+                      ybin1(1),0./),2)
               end if
               !Plot pdf contour
               !call pgsci(1)
@@ -391,15 +400,25 @@ subroutine pdfs1d(exitcode)
            if(nchains.gt.1) then
               call pgslw(lw)
               call pgsls(1); call pgsci(0)
-              if(plInject.eq.1.or.plInject.eq.3) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))                    !Injection value
-              if((plInject.eq.2.or.plInject.eq.4).and.(parID(p).eq.11.or.parID(p).eq.12.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or. &
-                   parID(p).eq.71.or.parID(p).eq.81)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))  !Injection value - mass, t_c and spin only (?) - CHECK put in input file?
-              !if(plStart.ge.1) call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))                   !Starting value
-              if(plMedian.eq.1.or.plMedian.eq.3.or.plMedian.eq.4.or.plMedian.eq.6) call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))                          !Median
+              !Injection value:
+              if(plInject.eq.1.or.plInject.eq.3) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))
+              
+              !Injection value - mass, t_c and spin only (?) - CHECK put in input file?
+              if((plInject.eq.2.or.plInject.eq.4).and.(parID(p).eq.11.or.parID(p).eq.12 &
+                   .or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or. &
+                   parID(p).eq.71.or.parID(p).eq.81)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))  
+              
+              !if(plStart.ge.1) call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))                !Starting value
+              
+              !Median:
+              if(plMedian.eq.1.or.plMedian.eq.3.or.plMedian.eq.4.or.plMedian.eq.6)  &
+                   call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))
+              
+              !Ranges:
               if(plRange.eq.1.or.plRange.eq.3.or.plRange.eq.4.or.plRange.eq.6) then
-                 if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) !Left limit of 90% interval
-                 if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/)) !Right limit of 90% interval
-                 if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/-1.e20,1.e20/)) !Centre of 90% interval
+                 if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) !Left limit of interval
+                 if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/)) !Right limit of interval
+                 if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/-1.e20,1.e20/)) !Centre of interval
               end if
            end if
 
@@ -414,17 +433,22 @@ subroutine pdfs1d(exitcode)
            !Plot ranges in 1D PDF
            if((plRange.eq.1.or.plRange.eq.3.or.plRange.eq.4.or.plRange.eq.6)) then
               call pgsls(4); call pgsci(2); if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-              if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) !Left limit of 90% interval
-              if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/)) !Right limit of 90% interval
-              !if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/-1.e20,1.e20/)) !Centre of 90% interval
+              if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) !Left limit of interval
+              if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/)) !Right limit of interval
+              !if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/-1.e20,1.e20/)) !Centre of interval
            end if
            
            !Plot injection value in PDF
            !if(plInject.ge.1) then !Plot injection values
-           if(plInject.eq.1.or.plInject.eq.3.or.((plInject.eq.2.or.plInject.eq.4).and.(parID(p).eq.11.or.parID(p).eq.12.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or.parID(p).eq.71.or.parID(p).eq.81))) then
-              if(mergeChains.ne.1.or.ic.le.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+           if(plInject.eq.1.or.plInject.eq.3.or.((plInject.eq.2.or.plInject.eq.4).and.(parID(p).eq.11.or.parID(p).eq.12 &
+                .or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or.parID(p).eq.71.or.parID(p).eq.81))) then
+              if(mergeChains.ne.1.or.ic.le.1) then 
+                 !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 
+                 !(but they have for the starting values, why?)
                  call pgsls(2); call pgsci(1)
-                 if(plLmax.eq.0) call pgsls(3)  !Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?)
+                 
+                 !Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?)
+                 if(plLmax.eq.0) call pgsls(3)  
                  plx = startval(ic,p,1)
                  if(wrap(ic,p).ne.0) plx = mod(plx + shifts(ic,p), shIvals(ic,p)) - shifts(ic,p)
                  call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Injection value
@@ -454,7 +478,9 @@ subroutine pdfs1d(exitcode)
               write(str,'(A,F7.3,A5,F7.3)')trim(pgParNs(parID(p)))//': mdl:',startval(ic,p,1),' med:',stats(ic,p,1)
               if(prIval.ge.1) then
                  if(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6) then
-                    if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then  !Distance, Mc, M1, M2
+                    
+                    !Distance, Mc, M1, M2:
+                    if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then  
                        write(str,'(A,F6.2,A1)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)*100,'%'
                     else
                        write(str,'(A,F7.3)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)
@@ -463,14 +489,16 @@ subroutine pdfs1d(exitcode)
               end if
            else  !if nPlPar>=5
               str = ' '
-              if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then  !Distacnce, Mc,M1,M2
+              if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then  !Distance, Mc,M1,M2
                  if(plInject.eq.3.or.plInject.eq.4) write(str,'(A,F7.3)')trim(str)//' mdl:',startval(ic,p,1)
                  if(plMedian.eq.4.or.plMedian.eq.5.or.plMedian.eq.6) write(str,'(A,F8.3)')trim(str)//' med:',stats(ic,p,1)
-                 if(prIval.ge.1.and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6)) write(str,'(A,F6.2,A1)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)*100,'%'
+                 if(prIval.ge.1.and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6))  &
+                      write(str,'(A,F6.2,A1)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)*100,'%'
               else
                  if(plInject.eq.3.or.plInject.eq.4) write(str,'(A,F7.3)')trim(str)//' mdl:',startval(ic,p,1)
                  if(plMedian.eq.4.or.plMedian.eq.5.or.plMedian.eq.6) write(str,'(A,F8.3)')trim(str)//' med:',stats(ic,p,1)
-                 if(prIval.ge.1.and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6)) write(str,'(A,F7.3)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)
+                 if(prIval.ge.1.and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6))  &
+                      write(str,'(A,F7.3)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)
               end if
               call pgsch(sch*1.2)
               call pgptxt(xmin+0.05*dx,ymax*(1.0-0.1*fontsize1d),0.,0.,trim(pgParNss(parID(p))))
@@ -541,7 +569,8 @@ subroutine pdfs1d(exitcode)
               !call pgptxt(ranges(ic,c0,p,3),ymax,0.,0.5,trim(str)) !Align with centre of 90%-probability range
               call pgptxt((xmin+xmax)/2.,ymax,0.,0.5,trim(str)) !Centre
               call pgsci(2)
-              if(plRange.eq.1.or.plRange.eq.3.or.plRange.eq.4.or.plRange.eq.6) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,2)/),(/0.99*ymax,0.99*ymax/))  !Plot line at top over 90%-probability width
+              if(plRange.eq.1.or.plRange.eq.3.or.plRange.eq.4.or.plRange.eq.6)  &
+                   call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,2)/),(/0.99*ymax,0.99*ymax/))  !Plot line at top over P.range
               call pgsci(1)
            end if
         end if
@@ -576,12 +605,14 @@ subroutine pdfs1d(exitcode)
      
      if(file.ge.2) then
         if(file.eq.3) then
-           status = system('eps2pdf '//trim(outputdir)//'/pdfs.eps -o '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.pdf >& /dev/null')
+           status = system('eps2pdf '//trim(outputdir)//'/pdfs.eps -o '// &
+                trim(outputdir)//'/'//trim(outputname)//'__pdfs.pdf >& /dev/null')
            if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         end if
         status = system('mv -f '//trim(outputdir)//'/pdfs.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.eps')
      else if(file.eq.1) then
-        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf1d)//' '//trim(outputdir)//'/pdfs.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.png')
+        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf1d)//' '// &
+             trim(outputdir)//'/pdfs.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.png')
         if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f '//trim(outputdir)//'/pdfs.ppm')
      end if
@@ -593,7 +624,7 @@ subroutine pdfs1d(exitcode)
   
   
 end subroutine pdfs1d
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
@@ -603,7 +634,7 @@ end subroutine pdfs1d
 
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine bindata1d(n,x,norm,nbin,xmin1,xmax1,xbin,ybin)  !Count the number of points in each bin (1D)
   ! x - input: data, n points
   ! norm - input: normalise (1) or not (0)
@@ -648,10 +679,10 @@ subroutine bindata1d(n,x,norm,nbin,xmin1,xmax1,xbin,ybin)  !Count the number of 
   if(norm.eq.1) ybin = ybin/(sum(ybin)+1.e-30)
   
 end subroutine bindata1d
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine bindata1da(n,x,y,norm,nbin,xmin1,xmax1,xbin,ybin)  !Measure the amount of likelihood in each bin (1D)
   ! x - input: data, n points
   ! y - input: "weight" (likelihood), n points
@@ -697,11 +728,11 @@ subroutine bindata1da(n,x,y,norm,nbin,xmin1,xmax1,xbin,ybin)  !Measure the amoun
   end if
 
 end subroutine bindata1da
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine verthist(n,x,y,style)  !Plot a 1D vertical histogram.  x is the left of the bin!
   implicit none
   integer :: j,n,style
@@ -740,9 +771,9 @@ subroutine verthist(n,x,y,style)  !Plot a 1D vertical histogram.  x is the left 
   end if
   
 end subroutine verthist
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine horzhist(n,x,y)  !Plot a 1D horizontal histogram
   implicit none
   integer :: j,n
@@ -755,10 +786,10 @@ subroutine horzhist(n,x,y)  !Plot a 1D horizontal histogram
   end do
   call pgline(2,x(n-1:n),(/y(n-1),y(n-1)/))
 end subroutine horzhist
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine smoothpdf1d(ybin,nbin,smooth)
   implicit none
   integer :: nbin,smooth,i,i0,i1,i00
@@ -820,4 +851,4 @@ subroutine smoothpdf1d(ybin,nbin,smooth)
   
   ybin = ybin1
 end subroutine smoothpdf1d
-!************************************************************************************************************************************
+!***********************************************************************************************************************************

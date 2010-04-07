@@ -1,5 +1,6 @@
 !> \mainpage Documentation analyseMCMC
-!! AnalyseMCMC is a Fortran code that can be used to analyse the output of <a href="http://www.phys.ualberta.ca/~sluys/index.php?title=SPINspiral">SPINspiral</a>.
+!! AnalyseMCMC is a Fortran code that can be used to analyse the output of 
+!! <a href="http://www.phys.ualberta.ca/~sluys/index.php?title=SPINspiral">SPINspiral</a>.
 !! 
 !! \file analysemcmc.f
 !! \brief Contains analyseMCMC main routine
@@ -36,7 +37,7 @@
 
 !> \brief Main routine of AnalyseMCMC
 !<
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 program analyseMCMC
   use basic
   use constants
@@ -49,7 +50,7 @@ program analyseMCMC
   
   implicit none
   integer :: i,ic,io,iargc,exitcode,tempintarray(99),getos,get_ran_seed,status,system
-  real*8 :: timestamp,timestamps(9)  !< Time the progress of the code.
+  real(double) :: timestamp,timestamps(9)  !> Time the progress of the code.
   character :: infile*99
   logical :: ex
   
@@ -143,7 +144,8 @@ program analyseMCMC
         write(stdErr,'(A)')'  No files matching  SPINspiral.output.*.00  were found in the current directory.'
         write(stdErr,'(A)')'  I will try the old file names  mcmc.output.*.00  instead.'
         call findFiles('mcmc.output.*.00',maxChs,1,infiles,nchains0)
-        if(nchains0.eq.0) call quit_program('No valid input files were found in the current directory.  Please specify input files manually.')
+        if(nchains0.eq.0) call quit_program('No valid input files were found in the current directory.'// &
+             '  Please specify input files manually.')
      end if
   else
      do ic = 1,nchains0
@@ -156,7 +158,8 @@ program analyseMCMC
      end do
   end if
   
-  if(nchains0.gt.maxChs) write(stdErr,'(A,I3,A)')'  *** WARNING:  Too many input files (chains), please increase maxChs in analysemcmc_modules.f. Only',maxChs,' files can be read.'
+  if(nchains0.gt.maxChs) write(stdErr,'(A,I3,A)')'  *** WARNING:  Too many input files (chains),'// &
+       ' please increase maxChs in analysemcmc_modules.f. Only',maxChs,' files can be read.'
   nchains0 = min(nchains0,maxChs)
   
   
@@ -164,8 +167,12 @@ program analyseMCMC
   
   !Some of the stuff below will have to go to the input file
   
-  maxdots = 25000  !~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much and eps/pdf files from becoming huge.  Use this to autoset chainPlI
-  whiteBG = 1                 !Use a white background in screen and bitmap plots: 0-no (black), 1-yes.  Used to be in input file, redundant I'd say.
+  !~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much 
+  !  and eps/pdf files from becoming huge.  Use this to autoset chainPlI
+  maxdots = 25000  
+  
+  !Use a white background in screen and bitmap plots: 0-no (black), 1-yes.  Used to be in input file.
+  whiteBG = 1                 
   
   !Determine plot sizes and ratios:   (ratio ~ y/x and usually < 1 ('landscape'))
   bmpsz = real(bmpXSz-1)/85. * scFac !Make png larger, so that convert interpolates and makes the plot smoother
@@ -287,9 +294,9 @@ program analyseMCMC
   
   
   
-  !*******************************************************************************************************************************
-  !***   READ INPUT FILE(S)   ****************************************************************************************************
-  !*******************************************************************************************************************************
+  !*********************************************************************************************************************************
+  !***   READ INPUT FILE(S)   ******************************************************************************************************
+  !*********************************************************************************************************************************
   
 101 continue
   !Read the input files:
@@ -337,9 +344,9 @@ program analyseMCMC
   
   
   
-  ! **********************************************************************************************************************************
-  ! ***  DO STATISTICS   *************************************************************************************************************
-  ! **********************************************************************************************************************************
+  ! ********************************************************************************************************************************
+  ! ***  DO STATISTICS   ***********************************************************************************************************
+  ! ********************************************************************************************************************************
   
   timestamps(3) = timestamp()
   
@@ -351,9 +358,9 @@ program analyseMCMC
   
   
   
-  ! **********************************************************************************************************************************
-  ! ***  CREATE PLOTS   **************************************************************************************************************
-  ! **********************************************************************************************************************************
+  ! ********************************************************************************************************************************
+  ! ***  CREATE PLOTS   ************************************************************************************************************
+  ! ********************************************************************************************************************************
   
   timestamps(4) = timestamp()
   
@@ -368,7 +375,7 @@ program analyseMCMC
   
   
   
-  !***********************************************************************************************************************************      
+  !*********************************************************************************************************************************
   !Plot (1d) chains: logL, parameter chains, jumps, etc.
   if(plot.eq.1) then
      exitcode = 0
@@ -380,7 +387,7 @@ program analyseMCMC
   
   
   
-  !***********************************************************************************************************************************      
+  !*********************************************************************************************************************************
   !Plot pdfs (1d)
   if(plPDF1D.ge.1) then
      exitcode = 0
@@ -392,7 +399,7 @@ program analyseMCMC
   
   
   
-  !***********************************************************************************************************************************      
+  !*********************************************************************************************************************************
   if(plPDF2D.ge.1.and.mergeChains.eq.0) then
      write(stdOut,'(A)',advance="no")', (skipping 2D PDFs since mergeChains=0), '
      plPDF2D = 0
@@ -415,7 +422,7 @@ program analyseMCMC
   
   
   
-  !***********************************************************************************************************************************      
+  !*********************************************************************************************************************************
   
   if(saveStats.ge.1.and.nchains.gt.1) then
      write(stdErr,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
@@ -442,7 +449,7 @@ program analyseMCMC
      !if(exitcode.ne.0) goto 9999
   end if
   
-  !***********************************************************************************************************************************      
+  !*********************************************************************************************************************************
   
   timestamps(8) = timestamp()
   
@@ -502,9 +509,11 @@ program analyseMCMC
   if(prStdOut.ge.2) then
      status = system('mv -f '//trim(stdOutFile)//' '//trim(outputdir)//'/'//trim(outputname)//'__output.txt')
      if(status.eq.0) then
-        write(6,'(/,A,/)')'  AnalyseMCMC:  saved standard output to '//trim(outputdir)//'/'//trim(outputname)//'__output.txt'  !Should be 6, not stdOut
+        !Should be 6, not stdOut:
+        write(6,'(/,A,/)')'  AnalyseMCMC:  saved standard output to '//trim(outputdir)//'/'//trim(outputname)//'__output.txt'
      else
-        write(stdErr,'(/,A)')'  AnalyseMCMC:  Error saving standard output to '//trim(outputdir)//'/'//trim(outputname)//'__output.txt'
+        write(stdErr,'(/,A)')'  AnalyseMCMC:  Error saving standard output to '// &
+             trim(outputdir)//'/'//trim(outputname)//'__output.txt'
         !write(stdErr,'(A,/)')'                Check the file '//trim(stdOutFile)
         status = system('rm -f '//trim(stdOutFile))
         write(stdErr,*)
@@ -512,7 +521,7 @@ program analyseMCMC
   end if
   
 end program analyseMCMC
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 

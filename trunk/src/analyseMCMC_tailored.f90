@@ -63,7 +63,8 @@ end subroutine tailored_output
 
 !***********************************************************************************************************************************
 subroutine tailored_output_0002(out,exitcode)
-   !< Output format for methods paper 2010
+   !> Output format for methods paper 2010
+   use basic
    use constants
    use analysemcmc_settings
    use general_data
@@ -74,7 +75,7 @@ subroutine tailored_output_0002(out,exitcode)
    implicit none
    integer :: out,exitcode
    integer :: par,par1,par2,ic
-   real*8 :: x
+   real(double) :: x
    character :: runID*99,col*99,row*99
    logical :: sky_position,binary_orientation
    

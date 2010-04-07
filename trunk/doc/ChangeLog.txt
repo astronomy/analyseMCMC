@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   150: sluys, 07/04/2010
+     - Make source more compatible with standard
+     - nagfor now compiles the code without complaints
+   
    149: sluys, 07/04/2010
      - Split _functions.f90 in two; added _textroutines.f90
      - Make source more compatible with standard: _functions.f90, _textroutines.f90

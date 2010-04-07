@@ -1,6 +1,8 @@
 ! Compute statistics for analysemcmc
 
+!***********************************************************************************************************************************
 subroutine statistics(exitcode)
+  use basic
   use constants
   use analysemcmc_settings
   use general_data
@@ -16,8 +18,9 @@ subroutine statistics(exitcode)
   real :: medians(maxMCMCpar),mean(maxMCMCpar),var1(maxMCMCpar),var2(maxMCMCpar),corr,corr1,corr2
   
   !Need extra accuracy to compute Bayes factor
-  !real*8 :: var,total,total2,total3,deltab
-  real(kind=selected_real_kind(18,4931)) :: var,total,total2,total3,deltab  !Precision of 18, exponential range of 4931 - max gfortran supports?
+  !real(double) :: var,total,total2,total3,deltab
+  !Precision of 18, exponential range of 4931 - max gfortran supports? - yes, but not with all compilers...
+  real(kind=selected_real_kind(18,4931)) :: var,total,total2,total3,deltab  
   
   exitcode = 0
   
@@ -86,7 +89,8 @@ subroutine statistics(exitcode)
      if(prProgress.ge.2.and.ic.eq.1.and.wrapData.ge.1) write(stdOut,'(A)',advance="no")'  Wrap data. '
      do p=1,nMCMCpar
         if(wrapData.eq.0 .or. &
-             (parID(p).ne.31.and.parID(p).ne.41.and.parID(p).ne.52.and.parID(p).ne.54.and.parID(p).ne.73.and.parID(p).ne.83) ) then  !Not RA, phi_c, psi, phi_Jo, phi_1,2
+             (parID(p).ne.31.and.parID(p).ne.41.and.parID(p).ne.52.and.parID(p).ne.54.and.parID(p).ne.73.and.parID(p).ne.83) ) &
+             then  !Not RA, phi_c, psi, phi_Jo, phi_1,2
            call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
            if(parID(p).eq.31) raCentre = rpi                      !Plot 0-24h when not wrapping -> centre = 12h = pi
@@ -174,7 +178,8 @@ subroutine statistics(exitcode)
         call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))  !Re-sort
         indexx(p,1:n(ic)) = index1(1:n(ic))
         
-        if(abs( abs( minval(selDat(ic,p,1:n(ic))) - maxval(selDat(ic,p,1:n(ic))) ) - shIval) .lt. 1.e-3)  wrap(ic,p) = 1   !If centre is around shIval2, still needs to be flagged 'wrap' to plot PDF
+        !If centre is around shIval2, still needs to be flagged 'wrap' to plot PDF:
+        if(abs( abs( minval(selDat(ic,p,1:n(ic))) - maxval(selDat(ic,p,1:n(ic))) ) - shIval) .lt. 1.e-3)  wrap(ic,p) = 1   
      end do !p
      ! End wrapping data
      
@@ -235,7 +240,7 @@ subroutine statistics(exitcode)
               if(fixedpar(p1)+fixedpar(p2).eq.0) then
                  do i=1,n(ic)
                     !corrs(p1,p2) = corrs(p1,p2) + (selDat(ic,p1,i) - medians(p1))*(selDat(ic,p2,i) - medians(p2))  !Use median
-                    corrs(p1,p2) = corrs(p1,p2) + (selDat(ic,p1,i) - mean(p1))*(selDat(ic,p2,i) - mean(p2)) !Use mean; hardly differs from median method
+                    corrs(p1,p2) = corrs(p1,p2) + (selDat(ic,p1,i) - mean(p1))*(selDat(ic,p2,i) - mean(p2)) !Use mean (~median)
                  end do
                  !corrs(p1,p2) = corrs(p1,p2) / (stdev1(p1)*stdev1(p2)*(n(ic)-1))  !Use median
                  corrs(p1,p2) = corrs(p1,p2) / (stdev2(p1)*stdev2(p2)*(n(ic)-1))  !Use mean
@@ -281,7 +286,8 @@ subroutine statistics(exitcode)
            ranges(ic,c,p,3) = centre
            ranges(ic,c,p,4) = y2-y1
            ranges(ic,c,p,5) = ranges(ic,c,p,4)
-           if(parID(p).eq.21.or.parID(p).eq.22 .or. parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  !Distance or mass
+           if(parID(p).eq.21.or.parID(p).eq.22 .or. parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) &
+                ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  !Distance or mass
         end do !p
      end do !c
      !if(prProgress.ge.2) write(stdOut,'(A34,F8.4)')'.  Standard probability interval: ',ivals(ival0)
@@ -345,7 +351,8 @@ subroutine statistics(exitcode)
               ranges(ic,c,p,3) = 0.5*(ranges(ic,c,p,1) + ranges(ic,c,p,2))
               ranges(ic,c,p,4) = ranges(ic,c,p,2) - ranges(ic,c,p,1)
               ranges(ic,c,p,5) = ranges(ic,c,p,4)
-              if(parID(p).eq.21.or.parID(p).eq.22 .or. parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  !Distance or mass
+              if(parID(p).eq.21.or.parID(p).eq.22 .or. parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) &
+                   ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  !Distance or mass
            end do
         end if
      end do
@@ -378,9 +385,12 @@ subroutine statistics(exitcode)
      
      
      if(prProgress+prStat+prIval+prConv.gt.0.and.ic.eq.1) then
-        write(stdOut,'(/,A,2(A,F7.2))',advance="no")'  Bayes factor:   ','log_e(B_SN) =',logebayesfactor(ic),',  log_10(B_SN) =',log10bayesfactor(ic)
-        !write(stdOut,'(8x,A,3(A,F7.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),',  log_10(Lmax) =',startval(ic,1,3)/log(10.),',  -> SNR =',sqrt(2*startval(ic,1,3)),'.'
-        write(stdOut,'(8x,A,3(A,F7.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',loglmax,',  log_10(Lmax) =',loglmax/log(10.),',  -> SNR =',sqrt(2*loglmax),'.'
+        write(stdOut,'(/,A,2(A,F7.2))',advance="no")'  Bayes factor:   ','log_e(B_SN) =',logebayesfactor(ic), &
+             ',  log_10(B_SN) =',log10bayesfactor(ic)
+        !write(stdOut,'(8x,A,3(A,F7.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),', &
+        !log_10(Lmax) =',startval(ic,1,3)/log(10.),',  -> SNR =',sqrt(2*startval(ic,1,3)),'.'
+        write(stdOut,'(8x,A,3(A,F7.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',loglmax, &
+             ',  log_10(Lmax) =',loglmax/log(10.),',  -> SNR =',sqrt(2*loglmax),'.'
      end if
      
      
@@ -390,11 +400,13 @@ subroutine statistics(exitcode)
         do c=1,Nival
            if(c.ne.c0.and.prStat.lt.2) cycle
            if(c.gt.1.and.prStat.ge.2) write(stdOut,*)
-           write(stdOut,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)')'Param.  ','model','median','mean','Lmax','stdev1','stdev2','abvar1','abvar2',  &
+           write(stdOut,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)')'Param.  ','model','median','mean','Lmax', &
+                'stdev1','stdev2','abvar1','abvar2',  &
                 'rng_c','rng1','rng2','drng','d/drng','delta','ok?','result (',ivals(c)*100,'%)'
            do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle  !Varying parameters only
-              write(stdOut,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4)',advance="no")parNames(parID(p)),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absVar1(p),  &
+              write(stdOut,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4)',advance="no")parNames(parID(p)),startval(ic,p,1), &
+                   stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absVar1(p),  &
                    absVar2(p),ranges(ic,c,p,3),ranges(ic,c,p,1),ranges(ic,c,p,2),ranges(ic,c,p,4),  &
                    2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt centre of range
               if(startval(ic,p,1).ge.ranges(ic,c,p,1).and.startval(ic,p,1).le.ranges(ic,c,p,2)) then
@@ -429,9 +441,12 @@ subroutine statistics(exitcode)
            write(stdOut,'(A10,2x,2F9.4)',advance="no")parNames(parID(p)),startval(ic,p,1),stats(ic,p,1)
            do c=1,Nival
               if(mergeChains.eq.0) then
-                 write(stdOut,'(2x,2F9.4,F6.3)',advance="no")ranges(ic,c,p,3),ranges(ic,c,p,4),min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),9.999) !Defined with centre of prob. range, need some extra security to print correctly
+                 !Defined with centre of prob. range, need some extra security to print correctly:
+                 write(stdOut,'(2x,2F9.4,F6.3)',advance="no")ranges(ic,c,p,3),ranges(ic,c,p,4), &
+                      min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),9.999) 
               else
-                 write(stdOut,'(2x,2F9.4,F6.3)',advance="no")ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+                 write(stdOut,'(2x,2F9.4,F6.3)',advance="no")ranges(ic,c,p,3),ranges(ic,c,p,4), &
+                      2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
               end if
               if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
                  write(stdOut,'(A3)',advance="no")'y '
@@ -505,7 +520,8 @@ subroutine statistics(exitcode)
               if(fixedpar(p).eq.1) cycle  !Varying parameters only
               write(stdOut,'(A10,2x)',advance="no")parNames(parID(p))
               do c=1,Nival
-                 write(stdOut,'(5x,A1,F8.3,2(A,F7.3),A)',advance="no")'$',stats(ic,p,1),'_{-',abs(stats(ic,p,1)-ranges(ic,c,p,1)),'}^{+',abs(stats(ic,p,1)-ranges(ic,c,p,2)),'}$'
+                 write(stdOut,'(5x,A1,F8.3,2(A,F7.3),A)',advance="no")'$',stats(ic,p,1), &
+                      '_{-',abs(stats(ic,p,1)-ranges(ic,c,p,1)),'}^{+',abs(stats(ic,p,1)-ranges(ic,c,p,2)),'}$'
               end do
               write(stdOut,*)
            end do
@@ -528,7 +544,8 @@ subroutine statistics(exitcode)
         corr1 = 0.1
         corr2 = 0.5
         write(stdOut,'(/,A)',advance="no")'  Correlations  '
-        write(stdOut,'(A,3(F4.2,A))')'  (weak [',corr1,'<abs(cor)<',corr2,']: in lower triangle,  strong [abs(cor)>',corr2,']: in upper triangle):'
+        write(stdOut,'(A,3(F4.2,A))')'  (weak [',corr1,'<abs(cor)<',corr2,']: in lower triangle,  strong [abs(cor)>', &
+             corr2,']: in upper triangle):'
         write(stdOut,'(A8)',advance="no")''
         do p=1,nMCMCpar
            if(fixedpar(p).eq.0) write(stdOut,'(A7)',advance="no")trim(parNames(parID(p)))
@@ -633,9 +650,11 @@ subroutine save_stats(exitcode)  !Save statistics to file
   write(o,'(6x,4A12,A12,A5, A8,A22,A8)')'totiter','totlines','totpts','totburn','nChains','used','seed','<d|d>','ndet'
   write(o,'(6x,4I12,I12,I5, I8,F22.10,I8)')totiter,totlines,totpts,totlines-totpts,nChains0,contrChains,seed(ic),DoverD,ndet(ic)
   write(o,*)
-  write(o,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
+  write(o,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)', &
+       'Sample length','Sample rate','Sample size','FT size'
   do i=1,ndet(ic)
-     write(o,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detnames(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+     write(o,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detnames(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i), &
+          t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
   end do
   write(o,*)
   
@@ -648,7 +667,8 @@ subroutine save_stats(exitcode)  !Save statistics to file
   
   do p=1,nMCMCpar
      if(fixedpar(p).eq.0) then
-        write(o,'(A8,7F12.6)')parNames(parID(p)),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),stdev1(p),stdev2(p),absVar1(p),absVar2(p)
+        write(o,'(A8,7F12.6)')parNames(parID(p)),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),stdev1(p),stdev2(p),absVar1(p), &
+             absVar2(p)
      else
         write(o,'(A8,7F12.6)')parNames(parID(p)),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),0.,0.,0.,0.
      end if
@@ -691,9 +711,11 @@ subroutine save_stats(exitcode)  !Save statistics to file
   do p=1,nMCMCpar
      write(o,'(A8)',advance="no")trim(parNames(parID(p)))
      do c=1,Nival
-        !write(o,'(2x,2F11.6,F6.3)',advance="no")ranges(ic,c,p,1),ranges(ic,c,p,2),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+        !write(o,'(2x,2F11.6,F6.3)',advance="no")ranges(ic,c,p,1),ranges(ic,c,p,2), &
+        !2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
         if(fixedpar(p).eq.0) then
-           write(o,'(2x,2F12.6,F7.3)',advance="no")ranges(ic,c,p,3),ranges(ic,c,p,4),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+           write(o,'(2x,2F12.6,F7.3)',advance="no")ranges(ic,c,p,3),ranges(ic,c,p,4), &
+                2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
         else
            write(o,'(2x,2F12.6,F7.3)',advance="no")0.,0.,99.999
         end if
@@ -729,8 +751,10 @@ subroutine save_stats(exitcode)  !Save statistics to file
      p2 = revID(PDF2Dpairs(p,2))
      if(p1*p2.eq.0) cycle
      if(parID(p1)*parID(p2).eq.0) then
-        if(parID(p1).eq.0) write(stdErr,'(/,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter '//trim(parNames(parID(p1)))//' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
-        if(parID(p2).eq.0) write(stdErr,'(/,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter '//trim(parNames(parID(p2)))//' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
+        if(parID(p1).eq.0) write(stdErr,'(/,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter '//trim(parNames(parID(p1)))// &
+             ' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
+        if(parID(p2).eq.0) write(stdErr,'(/,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter '//trim(parNames(parID(p2)))// &
+             ' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
         stop
      end if
      write(o,'(2I4,2(2x,A8))',advance="no")p1,p2,trim(parNames(parID(p1))),trim(parNames(parID(p2)))
@@ -748,7 +772,8 @@ subroutine save_stats(exitcode)  !Save statistics to file
   
   
   close(o) !Statistics output file
-  if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
+  if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat -o '// &
+       trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
   !write(stdOut,*)
   if(prProgress.ge.1) then
      if(saveStats.eq.1) write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat'
@@ -777,8 +802,10 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   write(o,'(A)')trim(outputname)
   
   write(o,'(//,A,/)')'GENERAL INFORMATION:'
-  write(o,'(6x,7A12,5A22)')'nChains','used','totiter','totlines','totpts','totburn','seed','<d|d>','ln(Bayes_total_arith)','ln(Bayes_total_harmo)','ln(Bayes_total_geom)','ln(Bayes_total_temp)'
-  write(o,'(6x,7I12,F22.5,4F22.5)')nchains0,contrChains,totiter,totlines,totpts,totlines-totpts,seed(1),DoverD,logebayesfactortotalarith,logebayesfactortotalharmo,logebayesfactortotalgeom,logebayesfactortotal
+  write(o,'(6x,7A12,5A22)')'nChains','used','totiter','totlines','totpts','totburn','seed','<d|d>','ln(Bayes_total_arith)', &
+       'ln(Bayes_total_harmo)','ln(Bayes_total_geom)','ln(Bayes_total_temp)'
+  write(o,'(6x,7I12,F22.5,4F22.5)')nchains0,contrChains,totiter,totlines,totpts,totlines-totpts,seed(1),DoverD, &
+       logebayesfactortotalarith,logebayesfactortotalharmo,logebayesfactortotalgeom,logebayesfactortotal
 
   
   write(o,'(//,A,/)')'EVIDENCES:'
@@ -789,7 +816,8 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   
   close(o) !Bayes output file
   
-  if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__bayes.ps')
+  if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat -o '// &
+       trim(outputdir)//'/'//trim(outputname)//'__bayes.ps')
   !write(stdOut,*)
   if(prProgress.ge.1) then
      if(saveStats.eq.1) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat'
@@ -822,7 +850,8 @@ subroutine save_cbc_wiki_data(ic)
   !Print output for CBC Wiki:
   o = 20
   write(wikifilename,'(A)')trim(outputname)//'__wiki.dat'
-  open(unit=o,form='formatted',status='replace',action='write',position='rewind',file=trim(outputdir)//'/'//trim(wikifilename),iostat=io)
+  open(unit=o,form='formatted',status='replace',action='write',position='rewind',file=trim(outputdir)//'/'//trim(wikifilename), &
+       iostat=io)
   if(io.ne.0) then
      write(stdErr,'(A)')'  Error opening '//trim(wikifilename)//', aborting...'
      stop
@@ -838,8 +867,14 @@ subroutine save_cbc_wiki_data(ic)
   
   !Injection values:
   write(o,'(///,A)')'== Injection values =='
-  write(o,'(A)')"|| '''Detectors'''  || '''M1'''     || '''M2'''     || '''Mc'''     || '''&eta;'''  || '''time'''      || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                  ||  (Mo)        || (Mo)         || (Mo)         ||              ||  (s)            ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
+  write(o,'(A)')"|| '''Detectors'''  || '''M1'''     || '''M2'''     || '''Mc'''     || '''&eta;'''  || '''time'''      ||"// &
+       " '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   ||"// &
+       " '''incl'''   || '''pol.'''   ||"// &
+       " '''details'''                                                                                     ||"
+  write(o,'(A)')"||                  ||  (Mo)        || (Mo)         || (Mo)         ||              ||  (s)            ||"// &
+       "              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        ||"// &
+       " (rad)        || (rad)        ||"// &
+       "                                                                                                   ||"
   
   write(o,'(A4)',advance="no")'||  '
   do i=1,4
@@ -875,12 +910,17 @@ subroutine save_cbc_wiki_data(ic)
   
   !Bayes factor:
   write(o,'(///,A)')'== Bayes Factors =='
-  write(o,'(A)')"|| '''Code'''                                     || '''Model'''                                                || '''Detectors'''  || '''log_e Bayes Factor'''    || '''log_10 Bayes Factor'''    || '''Details'''                                                           ||"
+  write(o,'(A)')"|| '''Code'''                                     ||"// &
+       " '''Model'''                                                || '''Detectors'''  || '''log_e Bayes Factor'''    ||"// &
+       " '''log_10 Bayes Factor'''    || '''Details'''                                                           ||"
   
   write(o,'(A3,A47)',advance="no")'|| ','[http://tinyurl.com/SPINspiral SPINspiral]     '
-  if(spinningRun.eq.0) write(o,'(A3,A59)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr//'pN non-spinning vs. Gaussian noise '
-  if(spinningRun.eq.1) write(o,'(A3,A59)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr//'pN one spin vs. Gaussian noise     '
-  if(spinningRun.eq.2) write(o,'(A3,A59)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr//'pN two spins vs. Gaussian noise    '
+  if(spinningRun.eq.0) write(o,'(A3,A59)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr// &
+       'pN non-spinning vs. Gaussian noise '
+  if(spinningRun.eq.1) write(o,'(A3,A59)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr// &
+       'pN one spin vs. Gaussian noise     '
+  if(spinningRun.eq.2) write(o,'(A3,A59)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr// &
+       'pN two spins vs. Gaussian noise    '
   write(o,'(A)',advance="no")'||  '
   do i=1,4
      if(i.le.ndet(ic)) then
@@ -899,8 +939,14 @@ subroutine save_cbc_wiki_data(ic)
   
   !Medians:
   write(o,'(///,A)')'== Medians =='
-  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 || '''Detectors'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                                                ||                                                ||                  || (Mo)         ||              ||  (s)         ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
+  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 ||"// &
+       " '''Detectors'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||"// &
+       "'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   ||"// &
+       " '''details'''                                                                                     ||"
+  write(o,'(A)')"||                                                ||                                                ||"// &
+       "                  || (Mo)         ||              ||  (s)         ||              || (rad)        ||              ||"// &
+       " (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||"// &
+       "                                                                                                   ||"
   write(o,'(A3,A47)',advance="no")'|| ','[http://tinyurl.com/SPINspiral SPINspiral]     '
   if(spinningRun.eq.0) write(o,'(A3,A47)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr//'pN non-spinning '
   if(spinningRun.eq.1) write(o,'(A3,A47)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr//'pN one spin     '
@@ -937,8 +983,14 @@ subroutine save_cbc_wiki_data(ic)
   
   !Means:
   write(o,'(///,A)')'== Means =='
-  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 || '''Detectors'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                                                ||                                                ||                  || (Mo)         ||              ||  (s)         ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
+  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 ||"// &
+       " '''Detectors'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||"// &
+       "'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   ||"// &
+       " '''details'''                                                                                     ||"
+  write(o,'(A)')"||                                                ||                                                ||"// &
+       "                  || (Mo)         ||              ||  (s)         ||              || (rad)        ||              ||"// &
+       " (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||"// &
+       "                                                                                                   ||"
   write(o,'(A3,A47)',advance="no")'|| ','[http://tinyurl.com/SPINspiral SPINspiral]     '
   if(spinningRun.eq.0) write(o,'(A3,A47)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr//'pN non-spinning '
   if(spinningRun.eq.1) write(o,'(A3,A47)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr//'pN one spin     '
@@ -974,8 +1026,14 @@ subroutine save_cbc_wiki_data(ic)
   
   !Lmax:
   write(o,'(///,A)')'== Maximum-likelihood points =='
-  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 || '''Detectors'''  ||'''log(L)'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                                                ||                                                ||                  ||              || (Mo)         ||              ||  (s)         ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
+  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 ||"// &
+       " '''Detectors'''  ||'''log(L)'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''||"// &
+       " '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   ||"// &
+       " '''details'''                                                                                     ||"
+  write(o,'(A)')"||                                                ||                                                ||"// &
+       "                  ||              || (Mo)         ||              ||  (s)         ||              || (rad)        ||"// &
+       "              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||"// &
+       "                                                                                                   ||"
   write(o,'(A3,A47)',advance="no")'|| ','[http://tinyurl.com/SPINspiral SPINspiral]     '
   if(spinningRun.eq.0) write(o,'(A3,A47)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr//'pN non-spinning '
   if(spinningRun.eq.1) write(o,'(A3,A47)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr//'pN one spin     '
@@ -1016,8 +1074,14 @@ subroutine save_cbc_wiki_data(ic)
   
   !Stdev:
   write(o,'(///,A)')'== Standard deviations =='
-  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 || '''Detectors'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                                                ||                                                ||                  || (Mo)         ||              ||  (s)         ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
+  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 ||"// &
+       " '''Detectors'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||"// &
+       "'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   ||"// &
+       " '''details'''                                                                                     ||"
+  write(o,'(A)')"||                                                ||                                                ||"// &
+       "                  || (Mo)         ||              ||  (s)         ||              || (rad)        ||              ||"// &
+       " (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||"// &
+       "                                                                                                   ||"
   write(o,'(A3,A47)',advance="no")'|| ','[http://tinyurl.com/SPINspiral SPINspiral]     '
   if(spinningRun.eq.0) write(o,'(A3,A47)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr//'pN non-spinning '
   if(spinningRun.eq.1) write(o,'(A3,A47)',advance="no")'|| ',trim(waveforms(waveform))//' '//pnstr//'pN one spin     '
@@ -1052,8 +1116,18 @@ subroutine save_cbc_wiki_data(ic)
   
   !2-sigma range:
   write(o,'(///,A)')'== 2-sigma probability ranges =='
-  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 || '''Detectors'''  || '''Mc'''              || '''&eta;'''           || '''time'''            || '''spin1'''           || '''&theta;1'''        || '''spin2'''           || '''&theta;2'''        || '''Distance'''        || '''R.A.'''            || '''Dec.'''            || '''incl.'''           || '''pol.'''            || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                                                ||                                                ||                  || (Mo)                  ||                       ||  (s)                  ||                       || (rad)                 ||                       || (rad)                 || (Mpc)                 || (rad)                 || (rad)                 || (rad)                 || (rad)                 ||                                                                                                   ||"
+  write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 ||"// &
+       " '''Detectors'''  || '''Mc'''              || '''&eta;'''           || '''time'''            ||"// &
+       " '''spin1'''           || '''&theta;1'''        || '''spin2'''           || '''&theta;2'''        ||"// &
+       " '''Distance'''        || '''R.A.'''            || '''Dec.'''            || '''incl.'''           ||"// &
+       " '''pol.'''            ||"// &
+       " '''details'''                                                                                     ||"
+  write(o,'(A)')"||                                                ||                                                ||"// &
+       "                  || (Mo)                  ||                       ||  (s)                  ||"// &
+       "                       || (rad)                 ||                       || (rad)                 ||"// &
+       " (Mpc)                 || (rad)                 || (rad)                 || (rad)                 ||"// &
+       " (rad)                 ||"// &
+       "                                                                                                   ||"
   c = 0
   do i=1,Nival
      if(abs(ivals(i)-0.9545).lt.0.0001) c = i
@@ -1113,8 +1187,14 @@ subroutine save_cbc_wiki_data(ic)
   
   !Injection values:
   write(o,'(///,A)')'== Injection values =='
-  write(o,'(A)')"|| '''Detectors'''  || '''M1'''     || '''M2'''     || '''Mc'''     || '''&eta;'''  || '''time'''      || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   || '''incl'''   || '''pol.'''   || '''details'''                                                                                     ||"
-  write(o,'(A)')"||                  ||  (Mo)        || (Mo)         || (Mo)         ||              ||  (s)            ||              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        || (rad)        || (rad)        ||                                                                                                   ||"
+  write(o,'(A)')"|| '''Detectors'''  || '''M1'''     || '''M2'''     || '''Mc'''     || '''&eta;'''  || '''time'''      ||"// &
+       " '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   ||"// &
+       " '''incl'''   || '''pol.'''   ||"// &
+       " '''details'''                                                                                     ||"
+  write(o,'(A)')"||                  ||  (Mo)        || (Mo)         || (Mo)         ||              ||  (s)            ||"// &
+       "              || (rad)        ||              || (rad)        || (Mpc)        || (rad)        || (rad)        ||"// &
+       " (rad)        || (rad)        ||"// &
+       "                                                                                                   ||"
   
   write(o,'(A4)',advance="no")'||  '
   do i=1,4
@@ -1177,6 +1257,7 @@ end subroutine save_cbc_wiki_data
 !<
 !***********************************************************************************************************************************
 subroutine compute_convergence()
+  use basic
   use constants
   use analysemcmc_settings
   use general_data
@@ -1188,7 +1269,8 @@ subroutine compute_convergence()
   integer :: i,ic,p,nn,nn1
   integer :: lowVar(maxMCMCpar),nLowVar,highVar(maxMCMCpar),nHighVar,nmeanRelVar,nRhat,IDs(maxMCMCpar),nUsedPar
   real :: dx
-  real*8 :: chMean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar),totRhat,meanRelVar,compute_median
+  real(double) :: chMean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar)
+  real(double) :: totRhat,meanRelVar,compute_median
   character :: ch
   
   if(contrChains.le.1) then
@@ -1196,8 +1278,10 @@ subroutine compute_convergence()
      return
   end if
   
-  !< Determine the number of points to use for the computation of R-hat
-  !<  Since we need a fixed number of points for all chains, take nn = the minimum of (the length of each chain after the burn-in) and use the last nn data points of each chain
+  !> Determine the number of points to use for the computation of R-hat
+  !!  Since we need a fixed number of points for all chains, take 
+  !! nn = the minimum of (the length of each chain after the burn-in) and use the last nn data points of each chain
+  !<
   nn = nint(1e9)
   do ic=1,nChains0
      if(contrChain(ic).eq.0) cycle  !Contributing chains only
@@ -1288,7 +1372,8 @@ subroutine compute_convergence()
      meanRelVar = 1.d0
      nmeanRelVar = 0
      do p=1,nMCMCpar
-        if(fixedpar(p).eq.0 .and.abs(chVar1(ic,p)).gt.1.e-30) then  !Take only the parameters that were fitted and have a variance > 0
+        !Take only the parameters that were fitted and have a variance > 0:
+        if(fixedpar(p).eq.0 .and.abs(chVar1(ic,p)).gt.1.e-30) then
            if(chVar1(ic,p).lt.0.5*chVar(p)) lowVar(p) = 1  !Too (?) low variance, mark it
            if(chVar1(ic,p).gt.2*chVar(p))  highVar(p) = 1  !Too (?) high variance, mark it
            meanRelVar = meanRelVar * chVar1(ic,p)/chVar(p) !Multiply in order to take the geometric mean
@@ -1308,7 +1393,8 @@ subroutine compute_convergence()
            nUsedPar = nUsedPar + 1
         end if
      end do
-     meanRelVar = meanRelVar**(1.d0/dble(nmeanRelVar)) !Take geometric mean of (the variance of each chain, relative to the total variance)
+     !Take geometric mean of (the variance of each chain, relative to the total variance):
+     meanRelVar = meanRelVar**(1.d0/dble(nmeanRelVar)) 
      
      !Print and flag mean variance and variances for each chain:
      if(prConv.ge.3) then
@@ -1419,7 +1505,8 @@ subroutine compute_autocorrelations()
      
      j1 = Ntot(ic)/nAcorr   !Step size to get nAcorr autocorrelations per parameter - don't waste any CPU
      if(j1.lt.1) then
-        write(stdErr,'(A)')"  *** WARNING:  nAcorr too small or nAcorr too large to compute autocorrelations properly. I can't use all data points and the results may not be what you expect ***"
+        write(stdErr,'(A)')"  *** WARNING:  nAcorr too small or nAcorr too large to compute autocorrelations properly."// &
+             " I can't use all data points and the results may not be what you expect ***"
         j1 = 1
      end if
      

@@ -1,20 +1,23 @@
 ! Create animations for analysemcmc
 
 
+!***********************************************************************************************************************************
 subroutine animation(exitcode)
+  use basic
   use constants
   use analysemcmc_settings
   use general_data
   use mcmcrun_data
   use chain_data
   use plot_data
+  
   implicit none
   integer :: c,i,ic,io,p,iframe,nplt,pgopen,lw,n1,n2,exitcode,status,system
   integer :: index(maxMCMCpar,maxChs*maxIter),small_anim
   real :: range,range1,range2,drange,minrange,centre,median,plshift,ival,norm
   real :: x(maxChs,maxChs*maxIter),x1,x2,xmin,xmax,xmin1,xmax1,dx,y1,y2,ymin,ymax,dy,sch
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:)    !These depend on Nbin1D, allocate after reading input file
-  real*8 :: ts1,ts2,timestamp
+  real(double) :: ts1,ts2,timestamp
   character :: framename*99,tms*8,str*99
   
   exitcode = 0
@@ -46,17 +49,20 @@ subroutine animation(exitcode)
   allocate(xbin(maxChs,Nbin1D+1),ybin(maxChs,Nbin1D+1),xbin1(Nbin1D+1),ybin1(Nbin1D+1))
   
   !nAnimFrames = nAnimFrames-1
-  if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,I5,A,I6,A,/)')'  Creating animation using',nAnimFrames,' frames and',maxval(ntot(1:nchains)),' points..'
+  if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,I5,A,I6,A,/)')'  Creating animation using',nAnimFrames,' frames and', &
+       maxval(ntot(1:nchains)),' points..'
   do iframe = 0,nAnimFrames
      nplt = nint(real(iframe)/real(nAnimFrames)*maxval(ntot(1:nchains)))  !This is the line number, not the iteration number
      
      if(prProgress.ge.1.and.update.eq.0) then
         write(stdOut,*)upline !Move cursor up 1 line
-        write(stdOut,'(A,I5,A1,I5,A,I6,A,I6,A)',advance="no")'  Plotting movie frame',iframe,'/',nAnimFrames,'  (',nplt,'/',ntot(1:nchains),' points)'
+        write(stdOut,'(A,I5,A1,I5,A,I6,A,I6,A)',advance="no")'  Plotting movie frame',iframe,'/',nAnimFrames, &
+             '  (',nplt,'/',ntot(1:nchains),' points)'
         
         !Print remaining time
         ts2 = timestamp(os)
-        if(prProgress.ge.1.and.file.eq.1) write(stdOut,'(A,A9)')'   Est.time left:',tms((ts2-ts1)*(nAnimFrames-iframe)/3600.d0)                 !Use the system clock
+        !Use the system clock:
+        if(prProgress.ge.1.and.file.eq.1) write(stdOut,'(A,A9)')'   Est.time left:',tms((ts2-ts1)*(nAnimFrames-iframe)/3600.d0)
         ts1 = ts2
      end if
      
@@ -77,8 +83,9 @@ subroutine animation(exitcode)
         !print*,x(ic,index(p,1:nplt-Nburn(ic)))
         
         if(mod(nplt-Nburn(ic),2).eq.0) then
-           !median = 0.5*(allDat(ic,p,index(p,(nplt-Nburn(ic))/2)) + allDat(ic,p,index(p,(nplt-Nburn(ic))/2+1)))  !Centre = nb + (n-nb)/2 = (n+nb)/2
-           median = 0.5*(x(ic,index(p,(nplt-Nburn(ic))/2)) + x(ic,index(p,(nplt-Nburn(ic))/2+1)))  !Centre = nb + (n-nb)/2 = (n+nb)/2
+           !Centre = nb + (n-nb)/2 = (n+nb)/2:
+           !median = 0.5*(allDat(ic,p,index(p,(nplt-Nburn(ic))/2)) + allDat(ic,p,index(p,(nplt-Nburn(ic))/2+1)))  
+           median = 0.5*(x(ic,index(p,(nplt-Nburn(ic))/2)) + x(ic,index(p,(nplt-Nburn(ic))/2+1)))
         else
            !median = allDat(ic,p,index(p,(nplt-Nburn(ic)+1)/2))
            median = x(ic,index(p,(nplt-Nburn(ic)+1)/2))
@@ -112,7 +119,8 @@ subroutine animation(exitcode)
         range1 = y1
         range2 = y2
         drange = y2-y1
-        if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or.parID(p).eq.71.or.parID(p).eq.81) drange = drange/((y1+y2)/2.)
+        if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64 &
+             .or.parID(p).eq.71.or.parID(p).eq.81) drange = drange/((y1+y2)/2.)
         
         !print*,'ranges:',range1,range2,drange
      end if
@@ -132,10 +140,14 @@ subroutine animation(exitcode)
      if(file.eq.0) call pgpap(scrSz*0.75,scrRat)
      
      if(small_anim.eq.1) then
-        if(file.eq.1) call pgpap(12.,0.75)   !for ~500x350, change convert below.  Make the output image twice as big, rescale in the end
+        !for ~500x350, change convert below.  Make the output image twice as big, rescale in the end:
+        if(file.eq.1) call pgpap(12.,0.75)   
      else
-        !if(file.eq.1) call pgpap(20.,0.72)   !for 850x612, change convert below.  1:1.388 for mpeg, make the output image twice as big, rescale in the end
-        if(file.ge.1) call pgpap(24.08,0.72) !for 1024x738, change convert below. 1:1.388 for mpeg, make the output image twice as big, rescale in the end
+        !for 850x612, change convert below.  1:1.388 for mpeg, make the output image twice as big, rescale in the end:
+        !if(file.eq.1) call pgpap(20.,0.72)  
+        
+        !for 1024x738, change convert below. 1:1.388 for mpeg, make the output image twice as big, rescale in the end:
+        if(file.ge.1) call pgpap(24.08,0.72) 
      end if
      
      call pgsch(1.)
@@ -149,7 +161,7 @@ subroutine animation(exitcode)
      
      
      
-     !***********************************************************************************************************************************      
+     !******************************************************************************************************************************
      !Plot chain for this parameter
      
      
@@ -220,7 +232,8 @@ subroutine animation(exitcode)
         call pgsci(6)
         if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
         !if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-        if(plBurn.ge.1.and.isburn(ic).lt.is(ic,max(min(nplt,ntot(ic)),1) )) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+        if(plBurn.ge.1.and.isburn(ic).lt.is(ic,max(min(nplt,ntot(ic)),1) ))  &
+             call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
         call pgsci(2)
         call pgsls(4)
         if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
@@ -244,7 +257,7 @@ subroutine animation(exitcode)
      
      
      
-     !***********************************************************************************************************************************            
+     !******************************************************************************************************************************
      !Plot log(L)
      
      if(animScheme.eq.3) then
@@ -304,7 +317,8 @@ subroutine animation(exitcode)
            !call pgline(2,(/real(Nburn(ic)),real(Nburn(ic))/),(/-1.e20,1.e20/))
            !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))              !Burn-in
            !if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,max(min(nplt,ntot(ic)),1) )) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,max(min(nplt,ntot(ic)),1) ))  &
+                call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
            
            !print*,ic,nplt,isburn(ic),is(ic,nplt),is(ic,max(min(nplt,ntot(ic)),1) )
            
@@ -330,7 +344,7 @@ subroutine animation(exitcode)
      
      
      
-     !***********************************************************************************************************************************            
+     !******************************************************************************************************************************
      !Plot 1D pdf
      !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')'  - pdf'
      
@@ -417,7 +431,8 @@ subroutine animation(exitcode)
         !print*,'Plot PDF'
         !Plot 1D PDF
         do ic=1,nchains
-           if(fillPDF.ge.3) call pgshs(45.0*(-1)**ic,1.0,real(ic)/real(nchains0)) !Set hatch style: angle = +-45deg, phase between 0 and 1 (1/nchains0, 2/nchains0, ...)
+           !Set hatch style: angle = +-45deg, phase between 0 and 1 (1/nchains0, 2/nchains0, ...)
+           if(fillPDF.ge.3) call pgshs(45.0*(-1)**ic,1.0,real(ic)/real(nchains0)) 
            if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
            xbin1(1:Nbin1D+1) = xbin(ic,1:Nbin1D+1)
            ybin1(1:Nbin1D+1) = ybin(ic,1:Nbin1D+1)
@@ -437,7 +452,8 @@ subroutine animation(exitcode)
                  if(parID(p).eq.31) plshift = 24. !RA in hours
               end if
               if(nchains.eq.1) call pgsci(15)
-              call pgpoly(Nbin1D+3,(/xbin1(1),xbin1(1:Nbin1D),xbin1(1)+plshift,xbin1(1)+plshift/),(/0.,ybin1(1:Nbin1D),ybin1(1),0./))
+              call pgpoly(Nbin1D+3,(/xbin1(1),xbin1(1:Nbin1D),xbin1(1)+plshift,xbin1(1)+plshift/), &
+                   (/0.,ybin1(1:Nbin1D),ybin1(1),0./))
               call pgsci(1)
               if(nchains.eq.1) call pgsci(2)
               call pgline(Nbin1D,xbin1(1:Nbin1D),ybin1(1:Nbin1D))
@@ -516,7 +532,8 @@ subroutine animation(exitcode)
         call pgsci(1)
         ic = 1
         if(animScheme.eq.1) then
-           if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or.parID(p).eq.71.or.parID(p).eq.81) then
+           if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or. &
+                parID(p).eq.71.or.parID(p).eq.81) then
               write(str,'(A,F7.3,A5,F7.3,A9,F6.2,A1)')'mdl:',startval(ic,p,1),' med:',median,' \(2030):',drange*100,'%'
            else
               write(str,'(A,F7.3,A5,F7.3,A9,F7.3)')'mdl:',startval(ic,p,1),' med:',median,' \(2030):',drange
@@ -550,7 +567,8 @@ subroutine animation(exitcode)
            if(nint(ival*100.).lt.100) write(str,'(A,I2,A)')'\(2030)\d',nint(ival*100.),'%\u:'
            call pgptxt(0.04,0.65,0.,0.,trim(str))
            write(str,'(F7.3)')max(drange,0.001)
-           if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or.parID(p).eq.71.or.parID(p).eq.81) write(str,'(F6.2,A1)')max(drange*100,0.01),'%' 
+           if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or. &
+                parID(p).eq.71.or.parID(p).eq.81) write(str,'(F6.2,A1)')max(drange*100,0.01),'%' 
            call pgptxt(0.55,0.65,0.,0.,trim(str)) 
            
            call pgsch(1.)
@@ -613,7 +631,7 @@ subroutine animation(exitcode)
         end if
      end if  !if(nplt.gt.Nburn(ic)) 
      
-     !************************************************************************************************************************************
+     !******************************************************************************************************************************
      
      
      
@@ -626,9 +644,11 @@ subroutine animation(exitcode)
      if(file.ge.1) then
         call pgend
         if(small_anim.eq.1) then
-           status = system('convert -resize 500 -depth 8 -unsharp '//trim(unSharppdf1d)//' analysemcmc_frame.ppm '//trim(framename))  !Rescale the output frame
+           status = system('convert -resize 500 -depth 8 -unsharp '//trim(unSharppdf1d)// &
+                ' analysemcmc_frame.ppm '//trim(framename))  !Rescale the output frame
         else
-           status = system('convert -resize 1024x738 -depth 8 -unsharp '//trim(unSharppdf1d)//' analysemcmc_frame.ppm '//trim(framename))  !Rescale the output frame
+           status = system('convert -resize 1024x738 -depth 8 -unsharp '//trim(unSharppdf1d)// &
+                ' analysemcmc_frame.ppm '//trim(framename))  !Rescale the output frame
         end if
         if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f analysemcmc_frame.ppm')

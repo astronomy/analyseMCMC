@@ -4,7 +4,7 @@
 
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine bindata2dold(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Count the number of points in each bin
   !x - input: data, n points
   !norm - input: normalise (1) or not (0)
@@ -90,10 +90,10 @@ subroutine bindata2dold(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !C
   tr(6) = dy
   
 end subroutine bindata2dold
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Compute bin number rather than search for it ~10x faster
   !x - input: data, n points
   !norm - input: normalise (1) or not (0)
@@ -140,9 +140,11 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Comp
      !   if(by.eq.0.or.by.eq.nybin+1) by = max(min(by,nybin),1)  !Treat an error of 1 y bin as round-off
      !   
      !   if(bx.lt.0.or.bx.gt.nxbin+1) then
-     !      !write(stdErr,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for X data point',i,' (',x(i),').  I found bin',bx,', but it should lie between 1 and',nxbin,'.'
+     !      !write(stdErr,'(A,I7,A2,F8.3,A,I4,A,I4,A1)') &
+     !'  Bindata2d:  error for X data point',i,' (',x(i),').  I found bin',bx,', but it should lie between 1 and',nxbin,'.'
      !   else if(by.lt.0.or.by.gt.nybin+1) then
-     !      !write(stdErr,'(A,I7,A2,F8.3,A,I4,A,I4,A1)')'  Bindata2d:  error for Y data point',i,' (',y(i),').  I found bin',by,', but it should lie between 1 and',nybin,'.'
+     !      !write(stdErr,'(A,I7,A2,F8.3,A,I4,A,I4,A1)') &
+     !'  Bindata2d:  error for Y data point',i,' (',y(i),').  I found bin',by,', but it should lie between 1 and',nybin,'.'
      !   else
      !      z(bx,by) = z(bx,by) + 1.
      !   end if
@@ -165,10 +167,10 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Comp
   end if
   
 end subroutine bindata2d
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)  !Measure the amount of likelihood in each bin
   !x,y - input: data, n points
   !z - input: amount for each point (x,y)
@@ -224,8 +226,10 @@ subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)  !
      do by=1,nybin
         zz(bx,by) = 0.
         do i=1,n
-           !if(x(i).ge.xbin(bx).and.x(i).lt.xbin(bx+1) .and. y(i).ge.ybin(by).and.y(i).lt.ybin(by+1)) zz(bx,by) = zz(bx,by) + 1.
-           if(x(i).ge.xbin(bx).and.x(i).lt.xbin(bx+1) .and. y(i).ge.ybin(by).and.y(i).lt.ybin(by+1)) zz(bx,by) = zz(bx,by) + exp(z(i) - zmin)
+           !if(x(i).ge.xbin(bx).and.x(i).lt.xbin(bx+1) .and. y(i).ge.ybin(by).and.y(i).lt.ybin(by+1))  &
+           !zz(bx,by) = zz(bx,by) + 1.
+           if(x(i).ge.xbin(bx).and.x(i).lt.xbin(bx+1) .and. y(i).ge.ybin(by).and.y(i).lt.ybin(by+1))  &
+                zz(bx,by) = zz(bx,by) + exp(z(i) - zmin)
            !write(stdOut,'(2I4,8F10.5)')bx,by,x(i),xbin(bx),xbin(bx+1),y(i),ybin(by),ybin(by+1),zz(bx,by),z(i)
         end do
         zztot = zztot + zz(bx,by) 
@@ -254,12 +258,12 @@ subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)  !
   tr(6) = dy
   
 end subroutine bindata2da
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   !Get the 2d probability intervals; z lies between 1 (in 100% range) and ni (in lowest-% range, e.g. 90%)
   use constants
@@ -273,7 +277,8 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   !Weight number of points in each bin by bin size for position/orientation plots
   do iy = 1,ny
      if(changeVar.ge.1) then
-        if((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
+        if((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) then  
+           !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
            y = tr(4) + tr(6)*iy
            if(parID(p1).eq.31) then
               if(abs(y).le.90.) then
@@ -286,7 +291,8 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
                  z(1:nx,iy) = z(1:nx,iy)/(abs(sin(y*rd2r))+1.e-30)
               else  !This can happen when the PDF lies close to the pole
                  z(1:nx,iy) = 0.
-                 !write(stdErr,'(//,A,//)')'  *** identify_2d_ranges:  sin(y)<0.  Please check whether the if(y.ge.0..and.y.lt.180.) statement works properly ***'
+                 !write(stdErr,'(//,A,//)')'  *** identify_2d_ranges:  sin(y)<0. '// &
+                 !' Please check whether the if(y.ge.0..and.y.lt.180.) statement works properly ***'
               end if
            end if
         end if
@@ -323,11 +329,11 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   
   z = reshape(x2, (/nx,ny/))  ! z lies between 1 and ni
 end subroutine identify_2d_ranges
-!************************************************************************
+!***********************************************************************************************************************************
 
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 !Compute 2D probability areas
 subroutine calc_2d_areas(p1,p2,ni,nx,ny,z,tr,area)
   use constants
@@ -344,7 +350,8 @@ subroutine calc_2d_areas(p1,p2,ni,nx,ny,z,tr,area)
         dx = tr(2)
         dy = tr(6)
         if(changeVar.ge.1) then
-           if((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) then  !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
+           if((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) then  
+              !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
               y = tr(4) + tr(6)*iy
               if(parID(p1).eq.31) then
                  dx = dx*cos(y*rd2r)
@@ -365,10 +372,10 @@ subroutine calc_2d_areas(p1,p2,ni,nx,ny,z,tr,area)
      end do !iy
   end do !ix
 end subroutine calc_2d_areas
-!************************************************************************
+!***********************************************************************************************************************************
 
 
-!************************************************************************
+!***********************************************************************************************************************************
 function injectionrange2d(z,nx,ny,injectionx,injectiony,tr)
   !Get the smallest probability area in which the injection values lie
   implicit none
@@ -385,7 +392,7 @@ function injectionrange2d(z,nx,ny,injectionx,injectiony,tr)
      injectionrange2d = nint(z(ix,iy))
   end if
 end function injectionrange2d
-!************************************************************************
+!***********************************************************************************************************************************
 
 
 

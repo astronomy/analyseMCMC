@@ -21,7 +21,6 @@ subroutine pdfs2d(exitcode)
   countplots = 0
   ic = 1 !Can only do one chain
   
-  !Columns in dat(): 1:logL 2:mc, 3:eta, 4:tc, 5:logdl, 6:spin, 7:kappa, 8: RA, 9:sindec,10:phase, 11:sinthJ0, 12:phiJ0, 13:alpha, 14:M1, 15:M2
   j1 = 1
   j2 = nMCMCpar
   
@@ -32,14 +31,17 @@ subroutine pdfs2d(exitcode)
      do j=j1,j2-nfixedpar
         totplots = totplots + j - j1
      end do
-     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,I3,A,I3,A,/)')'  *all* ',totplots,' 2D PDFs for the all combinations of the',j2-j1+1-nfixedpar,' non-fixed parameters: '
+     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,I3,A,I3,A,/)')'  *all* ',totplots, &
+          ' 2D PDFs for the all combinations of the',j2-j1+1-nfixedpar,' non-fixed parameters: '
   end if
   
   
   !Check consistency of PDF2Dpairs():
   do i=1,Npdf2D
-     if(revID(PDF2Dpairs(i,1)).eq.0) write(stdErr,'(/,A)')'  * Warning:  pdfs2d():  parameter '//trim(parNames(PDF2Dpairs(i,1)))//' is not defined, check plPars() in the input file.  Skipping...'
-     if(revID(PDF2Dpairs(i,2)).eq.0) write(stdErr,'(/,A)')'  * Warning:  pdfs2d():  parameter '//trim(parNames(PDF2Dpairs(i,2)))//' is not defined, check plPars() in the input file.  Skipping...'
+     if(revID(PDF2Dpairs(i,1)).eq.0) write(stdErr,'(/,A)')'  * Warning:  pdfs2d():  parameter '// &
+          trim(parNames(PDF2Dpairs(i,1)))//' is not defined, check plPars() in the input file.  Skipping...'
+     if(revID(PDF2Dpairs(i,2)).eq.0) write(stdErr,'(/,A)')'  * Warning:  pdfs2d():  parameter '// &
+          trim(parNames(PDF2Dpairs(i,2)))//' is not defined, check plPars() in the input file.  Skipping...'
   end do
   
   
@@ -113,7 +115,8 @@ subroutine pdfs2d(exitcode)
   
   if(savePDF.eq.1) then
      open(unit=30,action='write',form='formatted',status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__pdf2d.dat')
-     write(30,'(5I6,T101,A)')j1,j2,1,Nbin2Dx,Nbin2Dy,'Plot parameter 1,2, total number of chains, number of bins x,y  (j1,j2,(1),Nbin2Dx,Nbin2Dy)'
+     write(30,'(5I6,T101,A)')j1,j2,1,Nbin2Dx,Nbin2Dy,'Plot parameter 1,2, total number of chains, number of bins x,y '// &
+          ' (j1,j2,(1),Nbin2Dx,Nbin2Dy)'
   end if
   
   npdf=0 !Count iterations to open windows with different numbers
@@ -126,13 +129,15 @@ subroutine pdfs2d(exitcode)
               if(p1.eq.revID(PDF2Dpairs(i,1)).and.p2.eq.revID(PDF2Dpairs(i,2))) plotthis = 1  !Use PDF2Dpairs from the input file
            end do
            if(plotthis.eq.0) cycle
-           if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//' '
+           if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")trim(parNames(parID(p1)))//'-'// &
+                trim(parNames(parID(p2)))//' '
         else
            if(p2.le.p1) cycle
            if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
            if(stdOut.lt.10) then
               write(stdOut,*)upline !Move cursor up 1 line
-              if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(F7.1,A)')real(countplots+1)/real(totplots)*100,'%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                      '
+              if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(F7.1,A)')real(countplots+1)/real(totplots)*100, &
+                   '%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                      '
            end if
         end if
         
@@ -143,11 +148,14 @@ subroutine pdfs2d(exitcode)
         project_map = .false.
         if(parID(p1).eq.31.and.parID(p2).eq.32) sky_position = .true.
         if(parID(p1).eq.52.and.parID(p2).eq.51) binary_orientation = .true.
-        if(sky_position .and. plotSky.ge.1) project_map = .true.  !Make a special sky plot (i.e., plot stars or use projection) if plotSky>0 and RA,Dec are plotted
+        
+        !Make a special sky plot (i.e., plot stars or use projection) if plotSky>0 and RA,Dec are plotted:
+        if(sky_position .and. plotSky.ge.1) project_map = .true.
         
         
         if(plot.eq.1) then
-           write(outputbasefile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
+           write(outputbasefile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'// &
+                trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
            
            if(file.eq.0) then
               npdf=npdf+1
@@ -227,18 +235,23 @@ subroutine pdfs2d(exitcode)
               a = (xmin+xmax)*0.5
               xmin = a - 0.5*dx
               xmax = a + 0.5*dx
-              if(prProgress.ge.3) write(stdOut,'(A,F6.1,A3,F6.1,A)',advance="no")'  Changing RA binning range to ',xmin,' - ',xmax,' h.'
+              if(prProgress.ge.3) write(stdOut,'(A,F6.1,A3,F6.1,A)',advance="no")'  Changing RA binning range to ' &
+                   ,xmin,' - ',xmax,' h.'
            end if
            if(abs(dx)*15.gt.dy/rat) then !Expand y
               dy = abs(dx)*rat*15
               a = (ymin+ymax)*0.5
               ymin = a - 0.5*dy
               ymax = a + 0.5*dy
-              if(prProgress.ge.3) write(stdOut,'(A,F6.1,A3,F6.1,A)',advance="no")'  Changing declination binning range to ',ymin,' - ',ymax,' deg.'
+              if(prProgress.ge.3) write(stdOut,'(A,F6.1,A3,F6.1,A)',advance="no")'  Changing declination binning range to ' &
+                   ,ymin,' - ',ymax,' deg.'
            end if
         end if !if(plot.eq.1 .and. project_map)
         
-        !Force plotting and binning boundaries  CHECK: lose this? - yes: these are the binning ranges, not the plotting ranges; Don't necessarily want to bin the whole sky when plotting it.
+        !Force plotting and binning boundaries  
+        !> \todo CHECK: lose this? - yes: these are the binning ranges, not the plotting ranges; 
+        !!Don't necessarily want to bin the whole sky when plotting it.
+        !<
         if(1.eq.2.and.wrapData.eq.0.and.sky_position) then
            xmin = 0.
            xmax = 24.
@@ -250,8 +263,8 @@ subroutine pdfs2d(exitcode)
         !Bin data and 'normalise' 2D PDF
         if(normPDF2D.le.2.or.normPDF2D.eq.4) then
            
-           !Bin data:
-           call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin,xmax,ymin,ymax,z,tr)  !Compute bin number rather than find it, ~10x faster
+           !Bin data:  compute bin number rather than find it, ~10x faster:
+           call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin,xmax,ymin,ymax,z,tr)  
            
            if(normPDF2D.eq.1) z = max(0.,log10(z + 1.e-30))
            if(normPDF2D.eq.2) z = max(0.,sqrt(z + 1.e-30))
@@ -268,9 +281,12 @@ subroutine pdfs2d(exitcode)
               injectionranges2d(p1,p2) = injectionrange2d(z,Nbin2Dx+1,Nbin2Dy+1,startval(1,p1,1),startval(1,p2,1),tr)
               
               do i=1,Nival
-                 if(prIval.ge.1.and.prProgress.ge.2 .and. (sky_position .or. binary_orientation)) then  !For sky position and orientation only
-                    if(i.eq.1) write(stdOut,'(/,1x,A10,A13,3A23)')'Nr.','Ival frac.','Area (sq.deg) ','Circ. area rad. (deg) ','Fraction of sky '
-                    write(stdOut,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probArea(i),sqrt(probArea(i)/pi)*2,probArea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
+                 if(prIval.ge.1.and.prProgress.ge.2 .and. (sky_position .or. binary_orientation)) then  
+                    !For sky position and orientation only:
+                    if(i.eq.1) write(stdOut,'(/,1x,A10,A13,3A23)')'Nr.','Ival frac.','Area (sq.deg) ', &
+                         'Circ. area rad. (deg) ','Fraction of sky '
+                    write(stdOut,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probArea(i),sqrt(probArea(i)/pi)*2, &
+                         probArea(i)*(pi/180.)**2/(4*pi)  !4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
                  end if
                  probAreas(p1,p2,i,1) = probArea(i)*(pi/180.)**2/(4*pi)  !Fraction of the sky
                  probAreas(p1,p2,i,2) = sqrt(probArea(i)/pi)*2           !Equivalent diameter
@@ -280,7 +296,8 @@ subroutine pdfs2d(exitcode)
         end if
         if(normPDF2D.eq.3) then
            if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  binning 2D data...'
-           call bindata2da(n(ic),xx(1:n(ic)),yy(1:n(ic)),zz(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin,xmax,ymin,ymax,z,tr)  !Measure amount of likelihood in each bin
+           !Measure amount of likelihood in each bin:
+           call bindata2da(n(ic),xx(1:n(ic)),yy(1:n(ic)),zz(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin,xmax,ymin,ymax,z,tr)
         end if
         
         
@@ -324,7 +341,8 @@ subroutine pdfs2d(exitcode)
            if(project_map .and. plotSky.ge.2) then
               call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.05*sch)  !Make room for title and +90deg label
            else
-              call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.033*sch)  !Make room for title.  Since sch is typically ~1.5*fontsize2d: 0.95 -> 1-0.05*fontsize ~ 1-0.03*sch
+              call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.033*sch)  !Make room for title.  
+              !Since sch is typically ~1.5*fontsize2d: 0.95 -> 1-0.05*fontsize ~ 1-0.03*sch
            end if
            
            
@@ -341,7 +359,8 @@ subroutine pdfs2d(exitcode)
               if(normPDF2D.lt.4) then  !Grey scales
                  call pgscir(0,nint(1e9))
                  call pgqcir(clr,maxclr)  !Maxclr is device-dependent
-                 do i=0,maxclr-30  !Colour indices typically run 0-255, but this is device-dependent. Reserve ~0-29 for other purposes -> (maxclr-30) for these grey scales
+                 do i=0,maxclr-30  !Colour indices typically run 0-255, but this is device-dependent. 
+                    !Reserve ~0-29 for other purposes -> (maxclr-30) for these grey scales
                     x = real((maxclr-30) - i)/real(maxclr-30)          !White background
                     call pgscr(30+i,x,x,x)
                  end do
@@ -467,14 +486,20 @@ subroutine pdfs2d(exitcode)
         
         !Save binned 2D PDF data
         if(savePDF.eq.1) then
-           write(30,'(A)')'--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------'
-           write(30,'(3I6,T26,2A15,T101,A)')ic,parID(p1),parID(p2),parNames(parID(p1)),parNames(parID(p2)),'Chain number, parameter ID 1,2 and parameter names  (ic,parID(1:2),parNames(1:2))'
+           write(30,'(A)')'--------------------------------------------------------------------------------------------------'// &
+                '------------------------------------------------------------------------------------------------------'
+           write(30,'(3I6,T26,2A15,T101,A)')ic,parID(p1),parID(p2),parNames(parID(p1)),parNames(parID(p2)), &
+                'Chain number, parameter ID 1,2 and parameter names  (ic,parID(1:2),parNames(1:2))'
            write(30,'(2ES15.7,T101,A)')startval(ic,p1,1:2),'Injection and starting value p1  (startval(1,1:2))'
            write(30,'(2ES15.7,T101,A)')startval(ic,p2,1:2),'Injection and starting value p2  (startval(2,1:2))'
-           write(30,'(6ES15.7,T101,A)')stats(ic,p1,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p1  (stats(1,1:6))'
-           write(30,'(6ES15.7,T101,A)')stats(ic,p2,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p2  (stats(2,1:6))'
-           write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p1,1:5),'Ranges: lower,upper limit, centre, width, relative width for p1  (ranges(1,1:5))'
-           write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p2,1:5),'Ranges: lower,upper limit, centre, width, relative width for p2  (ranges(1,1:5))'
+           write(30,'(6ES15.7,T101,A)')stats(ic,p1,1:6), &
+                'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p1  (stats(1,1:6))'
+           write(30,'(6ES15.7,T101,A)')stats(ic,p2,1:6), &
+                'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p2  (stats(2,1:6))'
+           write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p1,1:5), &
+                'Ranges: lower,upper limit, centre, width, relative width for p1  (ranges(1,1:5))'
+           write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p2,1:5), &
+                'Ranges: lower,upper limit, centre, width, relative width for p2  (ranges(1,1:5))'
            write(30,'(4ES15.7,T101,A)')xmin,xmax,ymin,ymax,'Xmin,Xmax,Ymin,Ymax of PDF  (xmin,xmax,ymin,ymax)'
            write(30,'(6ES15.7,T101,A)')tr,'Tr; transformation matrix used by PGPlot to project data  (tr)'
            write(30,'(A)')'  2D bins:'
@@ -514,19 +539,25 @@ subroutine pdfs2d(exitcode)
               
               !Plot injection value in 2D PDF
               if((plInject.eq.1.or.plInject.eq.3).and.(.not.project_map) .or. &
-                   ((plInject.eq.2.or.plInject.eq.4) .and. (parID(p1).eq.61.and.parID(p2).eq.62).or.(parID(p1).eq.63.and.parID(p2).eq.64)) ) then
+                   ((plInject.eq.2.or.plInject.eq.4) .and.  &
+                   (parID(p1).eq.61.and.parID(p2).eq.62).or.(parID(p1).eq.63.and.parID(p2).eq.64)) ) then
                  
-                 if(mergeChains.ne.1.or.ic.le.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+                 !> \todo The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 
+                 !! (but they have for the starting values, why?)
+                 !<
+                 if(mergeChains.ne.1.or.ic.le.1) then 
                     !x
                     call pgsls(2); call pgsci(1)
-                    if(plLmax.eq.0) call pgsls(3)  !Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?)
+                    !Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?)
+                    if(plLmax.eq.0) call pgsls(3)  
                     plx = startval(ic,p1,1)
                     if(wrap(ic,p1).ne.0) plx = mod(plx + shifts(ic,p1), shIvals(ic,p1)) - shifts(ic,p1)
                     call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Injection value
                     
                     !y
                     call pgsls(2); call pgsci(1)
-                    if(plLmax.eq.0) call pgsls(3)  !Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?)
+                    !Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?)
+                    if(plLmax.eq.0) call pgsls(3)  
                     ply = startval(ic,p2,1)
                     if(wrap(ic,p2).ne.0) ply = mod(ply + shifts(ic,p2), shIvals(ic,p2)) - shifts(ic,p2)
                     call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !Injection value
@@ -620,7 +651,8 @@ subroutine pdfs2d(exitcode)
            
            
            !Print 2D probability ranges in plot title
-           if(prIval.ge.1.and.normPDF2D.eq.4.and. (sky_position .or. binary_orientation)) then  !For sky position and orientation only
+           !For sky position and orientation only:
+           if(prIval.ge.1.and.normPDF2D.eq.4.and. (sky_position .or. binary_orientation)) then  
               string = ' '
               do c = 1,Nival
                  write(ivalstr,'(F5.1,A1)')ivals(c)*100,'%'
@@ -693,14 +725,16 @@ subroutine pdfs2d(exitcode)
            !Convert plot
            if(file.eq.1) then
               call pgend
-              if(countplots.eq.Npdf2D) then !Convert the last plot in the foreground, so that the process finishes before deleting the original file
-                 status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)//' '//trim(tempfile)//' '// &
-                      trim(outputbasefile)//'.png')
+              if(countplots.eq.Npdf2D) then 
+                 !Convert the last plot in the foreground, so that the process finishes before deleting the original file
+                 status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)//' '// &
+                      trim(tempfile)//' '//trim(outputbasefile)//'.png')
               else !in the background
-                 status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)//' '//trim(tempfile)//' '// &
-                      trim(outputbasefile)//'.png &')
+                 status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)//' '// &
+                      trim(tempfile)//' '//trim(outputbasefile)//'.png &')
               end if
-              if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
+              if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'// &
+                   trim(parNames(parID(p2)))
            end if
            
            !if(file.ge.2.and.multipagefile) call pgpage
@@ -708,7 +742,8 @@ subroutine pdfs2d(exitcode)
               call pgend
               if(file.eq.3) then
                  status = system('eps2pdf '//trim(tempfile)//' &> /dev/null')
-                 if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
+                 if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'// &
+                      trim(parNames(parID(p2)))
               end if
            end if
            
@@ -724,10 +759,13 @@ subroutine pdfs2d(exitcode)
      if(file.ne.1) call pgend
      !if(file.ge.2.and.multipagefile) then
      !   if(abs(j2-j1).le.1) then
-     !      if(file.eq.3) status = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(parNames(parID(j1)))//'-'//trim(parNames(parID(j2)))//'.pdf  &> /dev/null')
-     !      status = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'//trim(parNames(parID(j1)))//'-'//trim(parNames(parID(j2)))//'.eps')
+     !      if(file.eq.3) status = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'// &
+     !trim(parNames(parID(j1)))//'-'//trim(parNames(parID(j2)))//'.pdf  &> /dev/null')
+     !      status = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'// &
+     !trim(parNames(parID(j1)))//'-'//trim(parNames(parID(j2)))//'.eps')
      !   else
-     !      if(file.eq.3) status = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.pdf  &> /dev/null')
+     !      if(file.eq.3) status = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)// &
+     !'__pdf2d.pdf  &> /dev/null')
      !      status = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.eps')
      !   end if
      !end if
@@ -744,7 +782,8 @@ subroutine pdfs2d(exitcode)
               if(Npdf2D.ge.0) then
                  plotthis = 0  !Determine to plot or save this combination of j1/j2 or p1/p2
                  do i=1,Npdf2D
-                    if(p1.eq.revID(PDF2Dpairs(i,1)).and.p2.eq.revID(PDF2Dpairs(i,2))) plotthis = 1  !Use PDF2Dpairs from the input file
+                    !Use PDF2Dpairs from the input file:
+                    if(p1.eq.revID(PDF2Dpairs(i,1)).and.p2.eq.revID(PDF2Dpairs(i,2))) plotthis = 1  
                  end do
                  if(plotthis.eq.0) cycle
               else
@@ -753,7 +792,8 @@ subroutine pdfs2d(exitcode)
                        if(p1.eq.p2) then
                           write(51,'(A)')'<td></td>'
                        else
-                          write(outputbasefile,'(A)') trim(outputname)//'__pdf2d__'//trim(parNames(parID(p2)))//'-'//trim(parNames(parID(p1)))
+                          write(outputbasefile,'(A)') trim(outputname)//'__pdf2d__'// &
+                               trim(parNames(parID(p2)))//'-'//trim(parNames(parID(p1)))
                           write(51,'(A)')'<td>'
                           write(51,'(A)')'  <a href="'//trim(outputbasefile)//'.png">'
                           write(51,'(A)')'    <img src="'//trim(outputbasefile)//'_thumb.png">'
@@ -772,12 +812,16 @@ subroutine pdfs2d(exitcode)
               status = system('rm -f '//trim(tempfile))
               
               if(html.ge.1) then
-                 if(countplots.eq.Npdf2D) then !Convert the last plot in the foreground, so that the process finishes before deleting the original file
-                    status = system('convert -resize 200x200 '//trim(outputdir)//'/'//trim(outputbasefile)//'.png '//trim(outputdir)//'/'//trim(outputbasefile)//'_thumb.png')
+                 !Convert the last plot in the foreground, so that the process finishes before deleting the original file:
+                 if(countplots.eq.Npdf2D) then 
+                    status = system('convert -resize 200x200 '//trim(outputdir)//'/'//trim(outputbasefile)//'.png '// &
+                         trim(outputdir)//'/'//trim(outputbasefile)//'_thumb.png')
                  else
-                    status = system('convert -resize 200x200 '//trim(outputdir)//'/'//trim(outputbasefile)//'.png '//trim(outputdir)//'/'//trim(outputbasefile)//'_thumb.png &')
+                    status = system('convert -resize 200x200 '//trim(outputdir)//'/'//trim(outputbasefile)//'.png '// &
+                         trim(outputdir)//'/'//trim(outputbasefile)//'_thumb.png &')
                  end if
-                 if(status.ne.0) write(stdErr,'(A)')'  Error creating thumbnail for '//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
+                 if(status.ne.0) write(stdErr,'(A)')'  Error creating thumbnail for '//trim(parNames(parID(p1)))//'-'// &
+                      trim(parNames(parID(p2)))
                  
                  write(51,'(A)')'<td>'
                  write(51,'(A)')'  <a href="'//trim(outputbasefile)//'.png">'
@@ -808,7 +852,7 @@ subroutine pdfs2d(exitcode)
   
   
 end subroutine pdfs2d
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 

@@ -17,7 +17,7 @@ subroutine chains(exitcode)
   
   
   
-  !***********************************************************************************************************************************      
+  !*********************************************************************************************************************************
   !Plot posterior chain
   if(plLogL.eq.1) then
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' posterior chain, '
@@ -110,9 +110,11 @@ subroutine chains(exitcode)
      do ic=1,nChains0
         call pgsci(1)
         call pgsls(2)
-        if(abs(post(ic,1)).gt.1.e-4) call pgline(2,(/-1.e20,1.e20/),(/post(ic,1),post(ic,1)/))  !Plot injection value, only if injection was done
+        !Plot injection value, only if injection was done:
+        if(abs(post(ic,1)).gt.1.e-4) call pgline(2,(/-1.e20,1.e20/),(/post(ic,1),post(ic,1)/))  
         call pgsci(colours(mod(ic-1,ncolours)+1))
-        if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/)) !Vertical line at burn-in
+        !Vertical line at burn-in:
+        if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/)) 
         call pgsls(4)
         call pgline(2,(/-1.e20,1.e20/),(/post(ic,2),post(ic,2)/))  !Horizontal dotted line at starting value
      end do
@@ -129,13 +131,15 @@ subroutine chains(exitcode)
      call pgend
      if(file.ge.2) then
         if(file.eq.3) then
-           status = system('eps2pdf '//trim(outputdir)//'/posterior.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__posterior.pdf   >& /dev/null')
+           status = system('eps2pdf '//trim(outputdir)//'/posterior.eps  -o '//trim(outputdir)//'/'//trim(outputname)// &
+                '__posterior.pdf   >& /dev/null')
            if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         end if
         status = system('mv -f '//trim(outputdir)//'/posterior.eps '//trim(outputdir)//'/'//trim(outputname)//'__posterior.eps')
      end if
      if(file.eq.1) then
-        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharplogl)//' '//trim(outputdir)//'/posterior.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__posterior.png')
+        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharplogl)//' '//trim(outputdir)// &
+             '/posterior.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__posterior.png')
         if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f '//trim(outputdir)//'/posterior.ppm')
         !if(status.ne.0) write(stdErr,'(A)')'  Error removing file',status
@@ -158,7 +162,7 @@ subroutine chains(exitcode)
   
   
   
-  !***********************************************************************************************************************************      
+  !*********************************************************************************************************************************
   !Plot chains for each parameter
   if(plChain.eq.1) then
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter chains, '
@@ -238,7 +242,8 @@ subroutine chains(exitcode)
      do j=1,nPlPar
         p = revID(plPars(j))
         if(p.eq.0) then
-           write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))//' is not defined, check plPars() in the input file.  Skipping...'
+           write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))// &
+                ' is not defined, check plPars() in the input file.  Skipping...'
            cycle
         end if
         
@@ -396,8 +401,10 @@ subroutine chains(exitcode)
            
            !Plot injection values in chains
            if(plInject.ge.1) then
-              if(mergeChains.ne.1.or.ic.eq.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
-                 !if(ic.eq.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+              if(mergeChains.ne.1.or.ic.eq.1) then 
+                 !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1
+                 !(but they have for the starting values, why?)
+                 
                  plx = startval(ic,p,1) !Injection value
                  plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
                  if(changeVar.ge.1) then
@@ -480,18 +487,20 @@ subroutine chains(exitcode)
      call pgend
      if(file.ge.2) then
         if(file.eq.3) then
-           status = system('eps2pdf '//trim(outputdir)//'/chains.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__chains.pdf   >& /dev/null')
+           status = system('eps2pdf '//trim(outputdir)//'/chains.eps  -o '//trim(outputdir)//'/'//trim(outputname)// &
+                '__chains.pdf   >& /dev/null')
            if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         end if
         status = system('mv -f '//trim(outputdir)//'/chains.eps '//trim(outputdir)//'/'//trim(outputname)//'__chains.eps')
      end if
      if(file.eq.1) then
-        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)//'/chains.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__chains.png')
+        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)// &
+             '/chains.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__chains.png')
         if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f '//trim(outputdir)//'/chains.ppm')
      end if
   end if !if(plChain.eq.1)
-  !***********************************************************************************************************************************      
+  !*********************************************************************************************************************************
   
   
   
@@ -514,7 +523,7 @@ subroutine chains(exitcode)
   
   
   
-  !***********************************************************************************************************************************      
+  !*********************************************************************************************************************************
   !Plot L vs parameter value
   if(plParL.eq.1) then
      !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting parameter-L plot...'
@@ -595,7 +604,8 @@ subroutine chains(exitcode)
      do j=1,nPlPar
         p = revID(plPars(j))
         if(p.eq.0) then
-           write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))//' is not defined, check plPars() in the input file.  Skipping...'
+           write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))// &
+                ' is not defined, check plPars() in the input file.  Skipping...'
            cycle
         end if
         
@@ -731,8 +741,9 @@ subroutine chains(exitcode)
            
            !Plot injection values
            if(plInject.ge.1) then
-              if(mergeChains.ne.1.or.ic.eq.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
-                 !if(ic.eq.1) then !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 (but they have for the starting values, why?)
+              if(mergeChains.ne.1.or.ic.eq.1) then 
+                 !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 
+                 ! (but they have for the starting values, why?)
                  plx = startval(ic,p,1) !Injection value
                  plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
                  if(changeVar.ge.1) then
@@ -780,13 +791,15 @@ subroutine chains(exitcode)
      call pgend
      if(file.ge.2) then
         if(file.eq.3) then
-           status = system('eps2pdf '//trim(outputdir)//'/parlogl.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.pdf   >& /dev/null')
+           status = system('eps2pdf '//trim(outputdir)//'/parlogl.eps  -o '//trim(outputdir)//'/'//trim(outputname)// &
+                '__parlogl.pdf   >& /dev/null')
            if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         end if
         status = system('mv -f '//trim(outputdir)//'/parlogl.eps '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.eps')
      end if
      if(file.eq.1) then
-        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)//'/parlogl.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.png')
+        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)// &
+             '/parlogl.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__parlogl.png')
         if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f '//trim(outputdir)//'/parlogl.ppm')
      end if
@@ -799,7 +812,7 @@ subroutine chains(exitcode)
   
   
   
-  !***********************************************************************************************************************************            
+  !*********************************************************************************************************************************
   !Plot jump sizes
   if(plJump.ge.1) then
      !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting jump sizes...'
@@ -837,7 +850,8 @@ subroutine chains(exitcode)
      do j=1,nPlPar
         p = revID(plPars(j))
         if(p.eq.0) then
-           write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))//' is not defined, check plPars() in the input file.  Skipping...'
+           write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))// &
+                ' is not defined, check plPars() in the input file.  Skipping...'
            cycle
         end if
         
@@ -915,13 +929,15 @@ subroutine chains(exitcode)
      call pgend
      if(file.ge.2) then
         if(file.eq.3) then
-           status = system('eps2pdf '//trim(outputdir)//'/jumps.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__jumps.pdf   >& /dev/null')
+           status = system('eps2pdf '//trim(outputdir)//'/jumps.eps  -o '//trim(outputdir)//'/'//trim(outputname)// &
+                '__jumps.pdf   >& /dev/null')
            if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         end if
         status = system('mv -f '//trim(outputdir)//'/jumps.eps '//trim(outputdir)//'/'//trim(outputname)//'__jumps.eps')
      end if
      if(file.eq.1) then
-        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)//'/jumps.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__jumps.png')
+        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)// &
+             '/jumps.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__jumps.png')
         if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f '//trim(outputdir)//'/jumps.ppm')
      end if
@@ -933,7 +949,7 @@ subroutine chains(exitcode)
   
   
   
-  !***********************************************************************************************************************************      
+  !*********************************************************************************************************************************
   !Plot autocorrelations for each parameter
   if(plAcorr.gt.0) then
      !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting autocorrelations...'
@@ -973,7 +989,8 @@ subroutine chains(exitcode)
      do j=1,nPlPar
         p = revID(plPars(j))
         if(p.eq.0) then
-           write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))//' is not defined, check plPars() in the input file.  Skipping...'
+           write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))// &
+                ' is not defined, check plPars() in the input file.  Skipping...'
            cycle
         end if
         
@@ -1023,7 +1040,8 @@ subroutine chains(exitcode)
         call pgsci(1)
         call pgsls(1)
         !write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', mean length:',sum(lAcorrs(1:nChains0,p))/real(nChains0)
-        write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', med. length:',compute_median_real(lAcorrs(1:nChains0,p),nChains0)
+        write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', med. length:', &
+             compute_median_real(lAcorrs(1:nChains0,p),nChains0)
         call pgmtxt('T',1.,0.5,0.5,trim(title))
      end do
      
@@ -1040,13 +1058,15 @@ subroutine chains(exitcode)
      call pgend
      if(file.ge.2) then
         if(file.eq.3) then
-           status = system('eps2pdf '//trim(outputdir)//'/acorrs.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.pdf   >& /dev/null')
+           status = system('eps2pdf '//trim(outputdir)//'/acorrs.eps  -o '//trim(outputdir)//'/'//trim(outputname)// &
+                '__acorrs.pdf   >& /dev/null')
            if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         end if
         status = system('mv -f '//trim(outputdir)//'/acorrs.eps '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.eps')
      end if
      if(file.eq.1) then
-        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)//'/acorrs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.png')
+        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)//' '//trim(outputdir)// &
+             '/acorrs.ppm  '//trim(outputdir)//'/'//trim(outputname)//'__acorrs.png')
         if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
         status = system('rm -f '//trim(outputdir)//'/acorrs.ppm')
      end if
@@ -1054,4 +1074,4 @@ subroutine chains(exitcode)
   
   
 end subroutine chains
-!***********************************************************************************************************************************      
+!***********************************************************************************************************************************

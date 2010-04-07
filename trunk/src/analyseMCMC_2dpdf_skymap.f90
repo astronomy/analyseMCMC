@@ -2,14 +2,16 @@
 !! Routines to plot a 2D PDF on a sky map
 !<
 
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine plotthesky(bx1,bx2,by1,by2,raShift)
+  use basic
   use constants
   use plot_data
+  
   implicit none
   integer, parameter :: ns=9110, nsn=80
   integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,spld,n,prslbl,rv
-  real*8 :: ra(ns),dec(ns),dx1,dx2,dy,ra1,dec1,drev2pi,par
+  real(double) :: ra(ns),dec(ns),dx1,dx2,dy,ra1,dec1,drev2pi,par
   real :: pma,pmd,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
   real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,bx1,bx2,by1,by2,x,y,mlim,raShift
   character :: cn(100)*3,con(100)*20,name*10,sn(ns)*10,snam(nsn)*10,sni*10,getsname*10,mult,var*9
@@ -119,7 +121,6 @@ subroutine plotthesky(bx1,bx2,by1,by2,raShift)
            y1 = real(dec(c(i,j))*r2d)
            x2 = real(ra(c(i,j+1))*r2d)
            y2 = real(dec(c(i,j+1))*r2d)
-           !if((x1*x1+y1*y1.le.prinf.or.x2*x2+y2*y2.le.prinf).and.(x2-x1)**2+(y2-y1)**2.le.90.**2) & !Not too far from centre and each other 
            if((x2-x1)**2+(y2-y1)**2.le.90.**2)  call pgline(2,(/x1,x2/),(/y1,y2/))  !Not too far from centre and each other 
         end do
         if(constx(i).lt.bx1.or.constx(i).gt.bx2.or.consty(i).lt.by1.or.consty(i).gt.by2) cycle
@@ -148,7 +149,8 @@ subroutine plotthesky(bx1,bx2,by1,by2,raShift)
            call pgsch(schfac*schlbl)
            sni = sn(i)
            !if(sni(1:1).eq.'\') call pgsch(schlbl*max(1.33,schfac))  !Greek letters need larger font
-           if(sni(1:1).eq.char(92)) call pgsch(schlbl*max(1.33,schfac))  !Greek letters need larger font.  Char(92) is a \, but this way it doesn't mess up emacs' parentheses count
+           if(sni(1:1).eq.char(92)) call pgsch(schlbl*max(1.33,schfac))  !Greek letters need larger font.
+           !Char(92) is a \, but this way it doesn't mess up emacs' parentheses count
            call pgsci(14)
            if(vm(i).lt.sllim) then
               if((plstar.eq.2.or.plstar.eq.5)) call pgtext(x+0.02*sz1,y+0.02*sz1,sn(i))
@@ -184,9 +186,9 @@ subroutine plotthesky(bx1,bx2,by1,by2,raShift)
   call pgscr(4,r4,g4,b4)
   
 end subroutine plotthesky
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 function getsname(name)               !Get star name from bsc info
   use analysemcmc_settings
   implicit none
@@ -256,9 +258,9 @@ function getsname(name)               !Get star name from bsc info
   end if
   return
 end function getsname
-!************************************************************************
+!***********************************************************************************************************************************
 
-!************************************************************************
+!***********************************************************************************************************************************
 function getmag(m,mlim)  !Determine size of stellar 'disk'
   real :: getmag,m,m1,mlim
   m1 = m
@@ -269,12 +271,12 @@ function getmag(m,mlim)  !Determine size of stellar 'disk'
   !getmag = max(mlim-m1+0.5,0.)+0.5
   return
 end function getmag
-!************************************************************************
+!***********************************************************************************************************************************
 
 
 
 
-!*****************************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)  !Clone of pgimag, use projection if projection > 0
   use constants
   use general_data
@@ -416,12 +418,12 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)  !Clone
   call pgebuf      !Release buffer
   
 end subroutine pgimag_project
-!*****************************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
 
-!*****************************************************************************************************************************************************
+!***********************************************************************************************************************************
 subroutine project_skymap(x,y,raCentre,projection)  !Project a sky map, using projection 'projection'
   use constants
   implicit none
@@ -435,7 +437,7 @@ subroutine project_skymap(x,y,raCentre,projection)  !Project a sky map, using pr
      !Convergence is relatively fast, somewhat slower near poles
      
      delta = 1.e-6        !Radians
-     maxIter = 100        !3 iterations typically suffice, need safety hatch anyway (e.g. when very close (or even slightly beyond) pole)
+     maxIter = 100        !3 iterations typically suffice, need safety hatch anyway (e.g. when very close to/just beyond the pole)
      siny  = sin(y*rd2r)
      th2 = y*rd2r
      dth2 = 1.e30
@@ -462,4 +464,4 @@ subroutine project_skymap(x,y,raCentre,projection)  !Project a sky map, using pr
   end if
   
 end subroutine project_skymap
-!*****************************************************************************************************************************************************
+!***********************************************************************************************************************************
