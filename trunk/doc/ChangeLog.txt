@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   151: sluys, 07/04/2010
+     - Save a proper default Makefile
+   
    150: sluys, 07/04/2010
      - Make source more compatible with standard
      - nagfor now compiles the code without complaints

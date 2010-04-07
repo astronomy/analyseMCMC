@@ -8,9 +8,9 @@ COMP = gfortran#  Use GNU Fortran compiler
 #COMP = nagfor#     Use NAG Fortran compiler
 
 WARN = no
-WARN = yes#  'yes#' to compile with debug options
+#WARN = yes#  'yes#' to compile with compile-time warnings
 RUNCHECK = no
-RUNCHECK = yes#  'yes#' to compile with runtime-check options
+#RUNCHECK = yes#  'yes#' to compile with runtime-check options
 
 #General:
 CFLAGS = -O2
@@ -73,7 +73,7 @@ ifneq (,$(filter $(COMP),gfortran gfortran-4.4.3))
       CFLAGS += -fmax-errors=10
    endif
    CFLAGS += -I$(MODDIR) -J$(MODDIR)
-   CFLAGS += -ffree-line-length-none
+   #CFLAGS += -ffree-line-length-none
 endif
 ifeq ($(COMP),gfortran-4.4.3)
    CFLAGS += -fbacktrace
