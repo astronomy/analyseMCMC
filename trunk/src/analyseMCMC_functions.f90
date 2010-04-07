@@ -300,7 +300,7 @@ subroutine write_settingsfile
   do i=1,nPlPar
      write(u,'(I3)',advance="no")plPars(i)
   end do
-  write(u,*)''
+  write(u,*)
   write(u,12)panels(1:2), 'panels',   'Number of for 1D plots in x,y direction:  0: autodetermine'
   write(u,11)Nbin1D, 'Nbin1D',   'Number of bins for 1D PDFs:  0: autodetermine'
   write(u,11)Nbin2Dx, 'Nbin2Dx',   'Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine (for both x and y)'
@@ -988,19 +988,19 @@ subroutine save_data(exitcode)  !Save after-burnin data to file
      if(parID(p).eq.52) write(o,'(A10)',advance="no")'psi'
      !write(o,'(A10)',advance="no")trim(parNames(parID(p)))
   end do
-  write(o,*)''
+  write(o,*)
   !  do p=1,nMCMCpar
   !    write(o,'(F10.5)',advance="no")startval(1,p,1)
   !  end do
-  !  write(o,*)''
-  !  write(o,*)''
+  !  write(o,*)
+  !  write(o,*)
   
   !  do ic=1,nChains0
   do i=1,n(1)
      do p=1,nMCMCpar
         write(o,'(F10.5)',advance="no")selDat(1,p,i)
      end do
-     write(o,*)''
+     write(o,*)
   end do
   !  end do
   
@@ -2360,7 +2360,7 @@ subroutine findFiles(match,nff,all,fnames,nf)
         do i=1,k
            write(6,'(I5,A3,A)')i,':  ',trim(names(i))
         end do
-        write(6,*)''
+        write(6,*)
         write(6,'(A,I3)')'  Enter the number of the file you want to select: 1 -',k
         write(6,'(A,I3,A1)')'    (max',nff,')'
         write(6,'(A)')'      or:   0 - to select all files in the list'

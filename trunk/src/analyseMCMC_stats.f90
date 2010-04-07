@@ -73,7 +73,7 @@ subroutine statistics(exitcode)
   
   
   !Sort all data and find the interval limits for the default probability interval for the wrapable parameters
-  if(prProgress.ge.2) write(stdOut,*)''
+  if(prProgress.ge.2) write(stdOut,*)
   shift = 0.
   wrap = 0
   raShift = 0.
@@ -415,14 +415,14 @@ subroutine statistics(exitcode)
         do c=1,Nival
            write(stdOut,'(F20.4,A9)',advance="no")ivals(c),''
         end do
-        write(stdOut,*)''
+        write(stdOut,*)
         
         write(stdOut,'(A10,2x,2A9)',advance="no")'Param.  ','model','median'
         do c=1,Nival
            !write(stdOut,'(2x,2A9,A8)',advance="no")'rng1','rng2','in rnge'
            write(stdOut,'(2x,3A9)',advance="no")'centre','delta','in rnge'
         end do
-        write(stdOut,*)''
+        write(stdOut,*)
         do p=1,nMCMCpar
            !if(stdev1(p).lt.1.d-20) cycle
            if(fixedpar(p).eq.1) cycle  !Varying parameters only
@@ -453,44 +453,44 @@ subroutine statistics(exitcode)
         do c=1,Nival
            write(stdOut,'(F14.3,A1,A9)',advance="no")ivals(c)*100,'%',''
         end do
-        write(stdOut,*)''
+        write(stdOut,*)
         
         write(stdOut,'(A11,1x,4A10)',advance="no")'Parameter','median','mean','Lmax','stdev'
         do c=1,Nival
            write(stdOut,'(5x,A8,4x,A7)',advance="no")'x','dx'
         end do
-        write(stdOut,*)''
+        write(stdOut,*)
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle  !Varying parameters only
            write(stdOut,'(A10,2x,4F10.3)',advance="no")parNames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            do c=1,Nival
               write(stdOut,'(5x,F8.3,A4,F7.3)',advance="no")ranges(ic,c,p,3),' +- ',0.5d0*ranges(ic,c,p,4)
            end do
-           write(stdOut,*)''
+           write(stdOut,*)
         end do
-        write(stdOut,*)''
+        write(stdOut,*)
         
         !Print intervals as low-high:
         write(stdOut,'(A61)',advance="no")'Interval:'
         do c=1,Nival
            write(stdOut,'(F14.3,A1,A9)',advance="no")ivals(c)*100,'%',''
         end do
-        write(stdOut,*)''
+        write(stdOut,*)
         
         write(stdOut,'(A11,1x,4A10)',advance="no")'Parameter','median','mean','Lmax','stdev'
         do c=1,Nival
            write(stdOut,'(6x,A8,3x,A7)',advance="no")'min','max'
         end do
-        write(stdOut,*)''
+        write(stdOut,*)
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle  !Varying parameters only
            write(stdOut,'(A10,2x,4F10.3)',advance="no")parNames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            do c=1,Nival
               write(stdOut,'(6x,F8.3,A3,F7.3)',advance="no")ranges(ic,c,p,1),' - ',ranges(ic,c,p,2)
            end do
-           write(stdOut,*)''
+           write(stdOut,*)
         end do
-        write(stdOut,*)''
+        write(stdOut,*)
         
         
         !Print intervals as x -dx1 +dx2 in LaTeX format:
@@ -499,7 +499,7 @@ subroutine statistics(exitcode)
            do c=1,Nival
               write(stdOut,'(F27.3,A1,A9)',advance="no")ivals(c)*100,'%',''
            end do
-           write(stdOut,*)''
+           write(stdOut,*)
            
            do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle  !Varying parameters only
@@ -507,9 +507,9 @@ subroutine statistics(exitcode)
               do c=1,Nival
                  write(stdOut,'(5x,A1,F8.3,2(A,F7.3),A)',advance="no")'$',stats(ic,p,1),'_{-',abs(stats(ic,p,1)-ranges(ic,c,p,1)),'}^{+',abs(stats(ic,p,1)-ranges(ic,c,p,2)),'}$'
               end do
-              write(stdOut,*)''
+              write(stdOut,*)
            end do
-           write(stdOut,*)''
+           write(stdOut,*)
         end if
         
      end if
@@ -533,7 +533,7 @@ subroutine statistics(exitcode)
         do p=1,nMCMCpar
            if(fixedpar(p).eq.0) write(stdOut,'(A7)',advance="no")trim(parNames(parID(p)))
         end do
-        write(stdOut,*)''
+        write(stdOut,*)
         do p1=1,nMCMCpar
            if(fixedpar(p1).eq.1) cycle  !Varying parameters only
            write(stdOut,'(A8)',advance="no")trim(parNames(parID(p1)))
@@ -632,12 +632,12 @@ subroutine save_stats(exitcode)  !Save statistics to file
   write(o,'(//,A,/)')'GENERAL INFORMATION:'
   write(o,'(6x,4A12,A12,A5, A8,A22,A8)')'totiter','totlines','totpts','totburn','nChains','used','seed','<d|d>','ndet'
   write(o,'(6x,4I12,I12,I5, I8,F22.10,I8)')totiter,totlines,totpts,totlines-totpts,nChains0,contrChains,seed(ic),DoverD,ndet(ic)
-  write(o,*)''
+  write(o,*)
   write(o,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
   do i=1,ndet(ic)
      write(o,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detnames(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
   end do
-  write(o,*)''
+  write(o,*)
   
   write(o,'(A,I11)')' t0:',nint(t0)
   
@@ -653,7 +653,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
         write(o,'(A8,7F12.6)')parNames(parID(p)),startval(ic,p,1),stats(ic,p,1),stats(ic,p,2),0.,0.,0.,0.
      end if
   end do
-  write(o,*)''
+  write(o,*)
   
   
   !Print correlations:
@@ -663,7 +663,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
   do p=1,nMCMCpar
      write(o,'(A10)',advance="no")trim(parNames(parID(p)))
   end do
-  write(o,*)''
+  write(o,*)
   do p1=1,nMCMCpar
      write(o,'(A9)',advance="no")trim(parNames(parID(p1)))
      do p2=1,nMCMCpar
@@ -680,16 +680,16 @@ subroutine save_stats(exitcode)  !Save statistics to file
   do c=1,Nival
      write(o,'(F21.5,A14)',advance="no")ivals(c),''
   end do
-  write(o,*)''
+  write(o,*)
   
-  write(o,'(A8,2x)',advance="no")'param.'
+  write(o,'(A8)',advance="no")'param.'
   do c=1,Nival
      !write(o,'(2x,2A9,A8)',advance="no")'rng1','rng2','in rnge'
      write(o,'(2x,2A12,A9)',advance="no")'centre','delta','in rnge'
   end do
-  write(o,*)''
+  write(o,*)
   do p=1,nMCMCpar
-     write(o,'(A8,2x)',advance="no")trim(parNames(parID(p)))
+     write(o,'(A8)',advance="no")trim(parNames(parID(p)))
      do c=1,Nival
         !write(o,'(2x,2F11.6,F6.3)',advance="no")ranges(ic,c,p,1),ranges(ic,c,p,2),2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
         if(fixedpar(p).eq.0) then
@@ -703,7 +703,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
            write(o,'(A2)',advance="no")'N'
         end if
      end do
-     write(o,*)''
+     write(o,*)
   end do
   
   
@@ -712,18 +712,18 @@ subroutine save_stats(exitcode)  !Save statistics to file
   write(o,'(///,A,/)')'2D PROBABILITY INTERVALS:'
   write(o,'(A,I5)')'Npdf2D: ',Npdf2D
   write(o,'(A,2I5)')'Nbin2Dx,Nbin2Dy: ',Nbin2Dx,Nbin2Dy
-  !write(o,*)''
+  !write(o,*)
   write(o,'(A28)',advance="no")'Interval:'
   do c=1,Nival
      write(o,'(F19.5)',advance="no")ivals(c)
   end do
-  write(o,*)''
+  write(o,*)
   
   write(o,'(A9,A19)',advance="no")'params.',''
   do c=1,Nival
      write(o,'(A16,A3)',advance="no")'delta','in'
   end do
-  write(o,*)''
+  write(o,*)
   do p=1,Npdf2D
      p1 = revID(PDF2Dpairs(p,1))
      p2 = revID(PDF2Dpairs(p,2))
@@ -733,7 +733,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
         if(parID(p2).eq.0) write(stdErr,'(/,A,/,A,//)')'  ***  ERROR:  save_stats():  parameter '//trim(parNames(parID(p2)))//' not defined, check PDF2Dpairs in the input file ***','  Aborting...'
         stop
      end if
-     write(o,'(2I4,2(2x,A8),2x)',advance="no")p1,p2,trim(parNames(parID(p1))),trim(parNames(parID(p2)))
+     write(o,'(2I4,2(2x,A8))',advance="no")p1,p2,trim(parNames(parID(p1))),trim(parNames(parID(p2)))
      do c=1,Nival
         write(o,'(2x,F14.8)',advance="no")probareas(p1,p2,c,1)
         if(c.ge.Nival+1-injectionranges2d(p1,p2) .and. injectionranges2d(p1,p2).ne.0) then
@@ -742,14 +742,14 @@ subroutine save_stats(exitcode)  !Save statistics to file
            write(o,'(A3)',advance="no")'n'
         end if
      end do
-     write(o,*)''
+     write(o,*)
   end do
   
   
   
   close(o) !Statistics output file
   if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
-  !write(stdOut,*)''
+  !write(stdOut,*)
   if(prProgress.ge.1) then
      if(saveStats.eq.1) write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat'
      if(saveStats.eq.2) write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat,ps'
@@ -790,7 +790,7 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   close(o) !Bayes output file
   
   if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat -o '//trim(outputdir)//'/'//trim(outputname)//'__bayes.ps')
-  !write(stdOut,*)''
+  !write(stdOut,*)
   if(prProgress.ge.1) then
      if(saveStats.eq.1) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat'
      if(saveStats.eq.2) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat,ps'
@@ -1249,7 +1249,7 @@ subroutine compute_convergence()
   
   !Print means per chain:
   if(prConv.ge.1) then
-     write(stdOut,*)''
+     write(stdOut,*)
      write(stdOut,'(A14)',advance="no")''
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  !Varying parameters only
@@ -1273,7 +1273,7 @@ subroutine compute_convergence()
            if(fixedpar(p).eq.1) cycle  !Varying parameters only
            write(stdOut,'(F9.5)',advance="no")avgMean(p)
         end do
-        write(stdOut,*)''
+        write(stdOut,*)
         
      end if !if(prConv.ge.3)
   end if !if(prConv.ge.1)
@@ -1327,7 +1327,7 @@ subroutine compute_convergence()
         if(meanRelVar.lt.0.5) ch = '*'
         if(meanRelVar.gt.2.0) ch = '#'
         write(stdOut,'(F8.3,A1)',advance="no")meanRelVar,ch
-        write(stdOut,*)''
+        write(stdOut,*)
      end if !if(prConv.ge.3)
   end do
   
@@ -1339,8 +1339,8 @@ subroutine compute_convergence()
         if(fixedpar(p).eq.1) cycle  !Varying parameters only
         write(stdOut,'(F9.4)',advance="no")chVar(p)
      end do
-     write(stdOut,*)''
-     write(stdOut,*)''
+     write(stdOut,*)
+     write(stdOut,*)
   end if !if(prConv.ge.3)
   
   !Print the variances within chains and between chains:

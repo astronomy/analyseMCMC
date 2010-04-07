@@ -354,7 +354,7 @@ program analyseMCMC
   
   timestamps(4) = timestamp()
   
-  if(prProgress.ge.2) write(stdOut,*)''
+  if(prProgress.ge.2) write(stdOut,*)
   if(plot.eq.1.and.prProgress.ge.1.and.update.eq.0) then
      write(stdOut,'(/,A)',advance="no")'  Plotting '
      if(file.eq.0) write(stdOut,'(A)',advance="no")'to screen: '
@@ -428,7 +428,7 @@ program analyseMCMC
      exitcode = 0
      call save_stats(exitcode)
      if(exitcode.ne.0) goto 9999
-     write(stdOut,*)''
+     write(stdOut,*)
   end if !if(saveStats.ge.1.and.nchains.eq.1) then
   
   
@@ -467,7 +467,7 @@ program analyseMCMC
   deallocate(selDat)
 9998 continue
   deallocate(allDat,post,prior)
-  !if(prProgress.ge.1) write(stdOut,*)''
+  !if(prProgress.ge.1) write(stdOut,*)
   
   timestamps(9) = timestamp()
   
@@ -493,7 +493,7 @@ program analyseMCMC
   
   if(html.ge.1) close(51)
   
-  write(stdOut,*)''
+  write(stdOut,*)
   
   !Save standard-output file under final name:
   if(prStdOut.ge.2) then
