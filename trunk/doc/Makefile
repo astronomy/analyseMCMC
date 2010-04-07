@@ -1,75 +1,139 @@
+# Compile AnalyseMCMC
 
-COMP = ifort
 
-#To develop code  (don't mix -check bounds with -O>0!):
-#To debug code:
-#CFLAGS = -free -O0  -vec-report0 -g
+#No text/space after statements below! (hence #)
+#COMP = gfortran#  Use GNU Fortran compiler.  Need >= 4.4
+#COMP = gfortran-4.4.3#
+COMP = ifort#     Use Intel Fortran compiler
+#COMP = nagfor#     Use NAG Fortran compiler
 
-#To optimise code by hand (memory):
-CFLAGS = -free -O0  -vec-report0 -traceback -warn all -check all -check noarg_temp_created -nogen-interfaces 
+WARN = no
+WARN = yes#  'yes#' to compile with debug options
+RUNCHECK = no
+RUNCHECK = yes#  'yes#' to compile with runtime-check options
 
-#To use optimum run speed (~12s compile/link time):
-#CFLAGS = -free -O2 -vec-report0 -traceback
-#CFLAGS = -free -O3 -ipo -vec-report0 -traceback
-#CFLAGS = -free -arch SSE2 -O3 -vec-report0 -traceback
-##CFLAGS = -free -arch SSE2 -O3 -ipo -vec-report0 -traceback
+#General:
+CFLAGS = -O2
+#CFLAGS = -O3
+LFLAGS = -lpgplot 
+
+
+
+# Directories for the source, object, module, libary and executable files:
+SRCDIR = src
+OBJDIR = obj
+MODDIR = mod
+EXEDIR = .
+
+
+
+
+#ifort:
+ifeq ($(COMP),ifort)
+   #To develop code  (don't mix -check bounds with -O>0!):
+   ifeq ($(WARN),yes)
+      CFLAGS = -O0 -warn all
+   endif
+   ifeq ($(RUNCHECK),yes)
+      CFLAGS += -check all -check noarg_temp_created
+   endif
+   CFLAGS += -vec-report0 -traceback 
+   CFLAGS += -module $(MODDIR) -I$(MODDIR)
+
+   #To debug code:
+   #CFLAGS += -free -O0  -vec-report0 -g
+
+   #To use optimum run speed
+   #CFLAGS += -free -O3 -vec-report0 -traceback
+   #CFLAGS += -free -O3 -arch SSE2 -vec-report0 -traceback           #SSE2 needs -lsvml
+   ##CFLAGS += -free -O3 -arch SSE2 -ipo -vec-report0 -traceback
+
+   #CFLAGS += -xsse4.1
+   #CFLAGS += -xhost
+   #CFLAGS += -static
+   #CFLAGS += -prof-gen -prof-dir./  #Don't use -ipo. Run the code thus compiled (a few times) and use -prof-use below for the final version
+   #CFLAGS += -prof-use -prof-dir./
+
+   CFLAGS += -nogen-interfaces  #For ifort v.11
+
+   #CFLAGS += -ipo
+   #LFLAGS += -ipo -vec-report0
+endif
 
 
 #gfortran: similar in speed to ifort, but file reading is ~2.5x slower!
-#COMP = gfortran
-COMP = gfortran-4.4.3
-CFLAGS = -O0 -ffree-form -ffree-line-length-none  -Wall -fmax-errors=10 -fbounds-check -fbacktrace
-CFLAGS = -O2 -ffree-form -ffree-line-length-none
+#ifeq ($(COMP),gfortran)
+ifneq (,$(filter $(COMP),gfortran gfortran-4.4.3))
+   ifeq ($(WARN),yes)
+      CFLAGS = -O0 -Wall
+   endif
+   ifeq ($(RUNCHECK),yes)
+      CFLAGS += -fbounds-check
+      #CFLAGS += -fcheck-array-temporaries  #Doesn't seem to work...
+      CFLAGS += -fmax-errors=10
+   endif
+   CFLAGS += -I$(MODDIR) -J$(MODDIR)
+   CFLAGS += -ffree-line-length-none
+endif
+ifeq ($(COMP),gfortran-4.4.3)
+   CFLAGS += -fbacktrace
+endif
 
 
-#Gentoo:
-#LFLAGS = -lpgplot_ifort -lX11 -lm -lifcore -limf -lirc -lsvml -lifport -Xlinker 
-#LFLAGS = -ipo -vec-report0 -lpgplot_ifort -L/usr/X11R6/lib -lX11 -lm -lifcore -limf -lirc -lsvml -lifport -Xlinker 
-#LFLAGS = -lpgplot_ifort -L/usr/X11R6/lib -lX11 -lm -L/opt/intel/fc/10.0.026/lib -lifcore -limf -lirc -lsvml -lifport -Xlinker 
-LFLAGS = -lpgplot
+
+#NAGfort:
+ifeq ($(COMP),nagfor)
+  CFLAGS = -colour
+  CFLAGS += -I$(MODDIR) -mdir $(MODDIR)
+endif
 
 
 
 
 
-#STDOBJ = functions.o
-ANALYSEMCMC_OBJ = analysemcmc_modules.o analysemcmc_functions.o analysemcmc_stats.o analysemcmc_tailored.o analysemcmc_chains.o analysemcmc_1dpdfs.o analysemcmc_2dpdfs.o analysemcmc_animation.o analysemcmc_plot.o analysemcmc.o
 
-#.f.o: 
-#	$(COMP) $(CFLAGS) -c $?
 
-%.o: %.f Makefile analysemcmc_modules.f
-	$(COMP) $(CFLAGS) -c  $<
 
-analysemcmc:
+
+
+ANALYSEMCMC_OBJ = $(OBJDIR)/analyseMCMC_modules.o $(OBJDIR)/analyseMCMC_functions.o $(OBJDIR)/analyseMCMC_stats.o $(OBJDIR)/analyseMCMC_tailored.o $(OBJDIR)/analyseMCMC_chains.o $(OBJDIR)/analyseMCMC_1dpdfs.o $(OBJDIR)/analyseMCMC_2dpdfs.o $(OBJDIR)/analyseMCMC_animation.o $(OBJDIR)/analyseMCMC_plot.o $(OBJDIR)/analyseMCMC.o
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.f90 Makefile $(SRCDIR)/analyseMCMC_modules.f90
+	$(COMP) $(CFLAGS) -c  $< -o $@
+
+analyseMCMC:
 
 exit:
 
-all: comp_pdfs analysemcmc mcmcstats #plotdata plotsignal 
+all: compPDFs analyseMCMC MCMCstats #plotdata plotsignal 
 
 
 
-analysemcmc: Makefile ${ANALYSEMCMC_OBJ}
-	$(COMP) -o analysemcmc $(LFLAGS) $(STDOBJ) ${ANALYSEMCMC_OBJ}
+analyseMCMC: Makefile ${ANALYSEMCMC_OBJ}
+	$(COMP) -o $(EXEDIR)/analyseMCMC $(LFLAGS) $(STDOBJ) ${ANALYSEMCMC_OBJ}
 
-comp_pdfs: Makefile $(STDOBJ) comp_pdfs_functions.o comp_pdfs.o
-	$(COMP) $(LFLAGS) -o comp_pdfs $(STDOBJ) comp_pdfs_functions.o comp_pdfs.o
+compPDFs: Makefile $(STDOBJ) $(OBJDIR)/compPDFs_functions.o $(OBJDIR)/compPDFs.o
+	$(COMP) $(LFLAGS) -o $(EXEDIR)/compPDFs $(STDOBJ) $(OBJDIR)/compPDFs_functions.o $(OBJDIR)/compPDFs.o
 
-plotspectrum: Makefile $(STDOBJ) plotspectrum.o
-	$(COMP) $(LFLAGS) -o plotspectrum $(STDOBJ) plotspectrum.o
+plotspectrum: Makefile $(STDOBJ) $(OBJDIR)/plotspectrum.o
+	$(COMP) $(LFLAGS) -o $(EXEDIR)/$(OBJDIR)/plotspectrum $(STDOBJ) $(OBJDIR)/plotspectrum.o
 
-plotsignal: Makefile $(STDOBJ) plotsignal.o
-	$(COMP) $(LFLAGS) -o plotsignal $(STDOBJ) plotsignal.o
+plotsignal: Makefile $(STDOBJ) $(OBJDIR)/plotsignal.o
+	$(COMP) $(LFLAGS) -o $(EXEDIR)/$(OBJDIR)/plotsignal $(STDOBJ) $(OBJDIR)/plotsignal.o
 
-mcmcstats: Makefile $(STDOBJ) mcmcstats.o
-	$(COMP) $(LFLAGS) -o mcmcstats $(STDOBJ) mcmcstats.o
+MCMCstats: Makefile $(STDOBJ) $(OBJDIR)/MCMCstats.o
+	$(COMP) $(LFLAGS) -o $(EXEDIR)/MCMCstats $(STDOBJ) $(OBJDIR)/MCMCstats.o
 
+dirs:
+	@if [ ! -e $(OBJDIR) ]; then mkdir ${OBJDIR}; fi 
+	@if [ ! -e $(MODDIR) ]; then mkdir ${MODDIR}; fi
+	@if [ ! -e $(EXEDIR) ]; then mkdir ${EXEDIR}; fi
 
 clean:
-	rm -f *.o *.mod
+	rm -f $(OBJDIR)/*.o $(MODDIR)/*.mod
 
 cleanwarnings:
-	rm -f *__genmod.f90 *__genmod.mod
+	rm -f $(SRCDIR)/*__genmod.f90 $(MODDIR)/*__genmod.mod
 
 
 
