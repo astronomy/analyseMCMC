@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   152: sluys, 08/04/2010
+     - Fixed dependency on analyseMCMC_modules.f90 in Makefile
+     - Added way to report svn revision number in code (see if it works)
+   
    151: sluys, 07/04/2010
      - Save a proper default Makefile
    

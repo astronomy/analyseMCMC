@@ -39,6 +39,7 @@
 !<
 !***********************************************************************************************************************************
 program analyseMCMC
+  use svn_revision
   use basic
   use constants
   use analysemcmc_settings
@@ -53,6 +54,9 @@ program analyseMCMC
   real(double) :: timestamp,timestamps(9)  !> Time the progress of the code.
   character :: infile*99
   logical :: ex
+  
+  !character :: svnrevision*99
+  !svnrevision = 'test'
   
   outputdir = '.'     !Directory where output is saved (either relative or absolute path)
   wikioutput = 1      !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
@@ -278,13 +282,14 @@ program analyseMCMC
   
   
   if(prChainInfo.ge.1) then
+     write(stdOut,'(A)',advance="no")'  AnalyseMCMC, svn revision: '//trim(svnrevision)//'.'
      if(nchains0.eq.1) then
-        write(stdOut,'(A)')'  Analysing 1 chain from SPINspiral'
+        write(stdOut,'(A)')'  Analysing 1 chain from SPINspiral,'
      else
-        write(stdOut,'(A,I3,A)')'  Analysing',nchains0,' chains from SPINspiral'
+        write(stdOut,'(A,I3,A)')'  Analysing',nchains0,' chains from SPINspiral,'
      end if
-     write(stdOut,'(A)',advance='no')'  from '//trim(username)//'@'//trim(hostname)//':'//trim(workdir)
-     write(stdOut,'(A)')'  at '//trim(currentdatestr)//' '//trim(currenttimestr)//' ('//trim(currenttimezonestr)//').'
+     write(stdOut,'(A)',advance='no')'  in '//trim(username)//'@'//trim(hostname)//':'//trim(workdir)//'/'
+     write(stdOut,'(A)')',  at '//trim(currentdatestr)//' '//trim(currenttimestr)//' ('//trim(currenttimezonestr)//').'
   end if
   nchains = nchains0
   

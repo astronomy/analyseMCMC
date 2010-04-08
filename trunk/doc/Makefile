@@ -1,6 +1,9 @@
 # Compile AnalyseMCMC
 
 
+.PHONY: clean cleanwarnings exit
+
+
 #No text/space after statements below! (hence #)
 COMP = gfortran#  Use GNU Fortran compiler
 #COMP = gfortran-4.4.3#
@@ -54,7 +57,7 @@ ifeq ($(COMP),ifort)
    #CFLAGS += -prof-gen -prof-dir./  #Don't use -ipo. Run the code thus compiled (a few times) and use -prof-use below for the final version
    #CFLAGS += -prof-use -prof-dir./
 
-   CFLAGS += -nogen-interfaces  #For ifort v.11
+   CFLAGS += -nogen-interfaces #For ifort v.11
 
    #CFLAGS += -ipo
    #LFLAGS += -ipo -vec-report0
@@ -70,9 +73,9 @@ ifneq (,$(filter $(COMP),gfortran gfortran-4.4.3))
    ifeq ($(RUNCHECK),yes)
       CFLAGS += -fbounds-check
       #CFLAGS += -fcheck-array-temporaries  #Doesn't seem to work...
-      CFLAGS += -fmax-errors=10
    endif
    CFLAGS += -I$(MODDIR) -J$(MODDIR)
+   CFLAGS += -fmax-errors=10
    #CFLAGS += -ffree-line-length-none
 endif
 ifeq ($(COMP),gfortran-4.4.3)
@@ -97,14 +100,17 @@ endif
 
 
 
+STDOBJ = $(OBJDIR)/svn_revision.o
 ANALYSEMCMC_OBJ = $(OBJDIR)/analyseMCMC_modules.o $(OBJDIR)/analyseMCMC_functions.o $(OBJDIR)/analyseMCMC_textroutines.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_stats.o $(OBJDIR)/analyseMCMC_tailored.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_chains.o $(OBJDIR)/analyseMCMC_1dpdfs.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_2dpdf_skymap.o $(OBJDIR)/analyseMCMC_2dpdf_routines.o $(OBJDIR)/analyseMCMC_2dpdfs.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_animation.o $(OBJDIR)/analyseMCMC_plot.o $(OBJDIR)/analyseMCMC.o
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.f90 Makefile $(SRCDIR)/analyseMCMC_modules.f90
-	$(COMP) $(CFLAGS) -c  $< -o $@
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.f90 Makefile $(SRCDIR)/svn_revision.f90
+	$(COMP) $(CFLAGS) -c $< -o $@
+
 
 analyseMCMC:
 
@@ -113,21 +119,29 @@ exit:
 all: compPDFs analyseMCMC MCMCstats #plotdata plotsignal 
 
 
+$(OBJDIR)/$(ANALYSEMCMC_OBJ): $(SRCDIR)/analyseMCMC_modules.f90  #All analyseMCMC*.o files depend on analyseMCMC_modules.f90
 
-analyseMCMC: Makefile ${ANALYSEMCMC_OBJ}
+analyseMCMC: $(STDOBJ) ${ANALYSEMCMC_OBJ}
 	$(COMP) -o $(EXEDIR)/analyseMCMC $(LFLAGS) $(STDOBJ) ${ANALYSEMCMC_OBJ}
 
-compPDFs: Makefile $(STDOBJ) $(OBJDIR)/compPDFs_functions.o $(OBJDIR)/compPDFs.o
+compPDFs: $(STDOBJ) $(OBJDIR)/compPDFs_functions.o $(OBJDIR)/compPDFs.o
 	$(COMP) $(LFLAGS) -o $(EXEDIR)/compPDFs $(STDOBJ) $(OBJDIR)/compPDFs_functions.o $(OBJDIR)/compPDFs.o
 
-plotspectrum: Makefile $(STDOBJ) $(OBJDIR)/plotspectrum.o
+plotspectrum: $(STDOBJ) $(OBJDIR)/plotspectrum.o
 	$(COMP) $(LFLAGS) -o $(EXEDIR)/$(OBJDIR)/plotspectrum $(STDOBJ) $(OBJDIR)/plotspectrum.o
 
-plotsignal: Makefile $(STDOBJ) $(OBJDIR)/plotsignal.o
+plotsignal: $(STDOBJ) $(OBJDIR)/plotsignal.o
 	$(COMP) $(LFLAGS) -o $(EXEDIR)/$(OBJDIR)/plotsignal $(STDOBJ) $(OBJDIR)/plotsignal.o
 
-MCMCstats: Makefile $(STDOBJ) $(OBJDIR)/MCMCstats.o
+MCMCstats: $(STDOBJ) $(OBJDIR)/MCMCstats.o
 	$(COMP) $(LFLAGS) -o $(EXEDIR)/MCMCstats $(STDOBJ) $(OBJDIR)/MCMCstats.o
+
+$(SRCDIR)/svn_revision.f90: .svn/entries   #.svn/entries changes when committing/updating
+	@echo 'Generating '$(SRCDIR)'/svn_revision.f90'
+	@echo '!svn_revision.f90: temporary source file created by Makefile to report the svn revision' > $(SRCDIR)/svn_revision.f90
+	@echo 'module svn_revision' >> $(SRCDIR)/svn_revision.f90
+	@echo "   character, parameter :: svnrevision*99 = '"`svnversion`"'" >> $(SRCDIR)/svn_revision.f90
+	@echo 'end module svn_revision' >> $(SRCDIR)/svn_revision.f90
 
 dirs:
 	@if [ ! -e $(OBJDIR) ]; then mkdir ${OBJDIR}; fi 
@@ -135,7 +149,7 @@ dirs:
 	@if [ ! -e $(EXEDIR) ]; then mkdir ${EXEDIR}; fi
 
 clean:
-	rm -f $(OBJDIR)/*.o $(MODDIR)/*.mod
+	rm -f $(OBJDIR)/*.o $(MODDIR)/*.mod $(SRCDIR)/svn_revision.f90
 
 cleanwarnings:
 	rm -f $(SRCDIR)/*__genmod.f90 $(MODDIR)/*__genmod.mod
