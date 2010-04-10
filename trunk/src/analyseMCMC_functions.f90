@@ -31,10 +31,10 @@ subroutine setconstants
   stdErr = 0  !Standard error unit
   stdOut = 6  !Standard output unit - screen
   
-  !Define detector abbreviations here (don't forget to change detabbrs() in the module constants in analysemcmc_modules.f):
+  !Define detector abbreviations here (don't forget to change detabbrs() in the module constants in analyseMCMC_modules.f90):
   detabbrs = (/'H1','L1','V ','H2'/)
   
-  !Define waveforms here (don't forget to change waveforms() in the module constants in analysemcmc_modules.f):
+  !Define waveforms here (don't forget to change waveforms() in the module constants in analyseMCMC_modules.f90):
   waveforms(0) = 'Unknown'
   waveforms(1) = 'Apostolatos'
   waveforms(2) = 'SpinTaylor12'
@@ -214,7 +214,7 @@ subroutine write_settingsfile
 21 format(F10.5,1x,A19,5x,A)
 31 format(ES10.2,1x,A19,5x,A)
   
-  write(u,'(A,/)')' Input file for analysemcmc.f'
+  write(u,'(A,/)')' Input file for AnalyseMCMC'
   
   
   write(u,'(/,A)')' Basic options:'
@@ -263,7 +263,7 @@ subroutine write_settingsfile
   write(u,11)savePDF, 'savePDF',   'Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).'// &
        '  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying'
   write(u,11)tailoredOutput, 'tailoredOutput',   'Save (ascii) output for a specific purpose, e.g. table in a paper:'// &
-       '  0-no, tO>0: use the hardcoded block tO in the subroutine tailored_output() in analysemcmc_tailored.f'
+       '  0-no, tO>0: use the hardcoded block tO in the subroutine tailored_output() in analyseMCMC_tailored.f90'
   
   
   write(u,'(/,A)')' Select which plots to make:'

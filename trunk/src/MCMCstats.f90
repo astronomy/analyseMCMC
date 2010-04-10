@@ -1,4 +1,4 @@
-!mcmcstats.f: Read MCMC statistics output file created by plotspins, and reduce data.
+!mcmcstats.f: Read MCMC statistics output file created by AnalyseMCMC, and reduce data.
 
 program mcmcstats
   implicit none
@@ -144,7 +144,7 @@ program mcmcstats
      if(prinput.eq.1) write(6,'(A)')''
      read(o,*)bla,nival(f)
      if(prinput.eq.1) write(6,'(A,I3)')' Nival: ',nival(f)
-     nival(f) = nival(f) + 1  !Since 100% interval is not counted in plotspins
+     nival(f) = nival(f) + 1  !Since 100% interval is not counted in AnalyseMCMC
      read(o,*),bla,ivals(f,1:nival(f))
      if(prinput.eq.1) write(6,'(A22,10(F20.5,14x))')'Interval:',ivals(f,1:nival(f))
      

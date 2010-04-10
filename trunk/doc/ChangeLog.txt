@@ -2,6 +2,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   154: sluys, 10/04/2010
+     - Renamed analyseMCMC.f90 to analyseMCMC_main.f90; updated doc/Makefile
+   
    153: sluys, 10/04/2010
      - Found a (fool-proof?) solution for maximum-precision kind in module basic
      - Added src/nagfor.f90 to (limited) runs with nagfor (minor Makefile update)

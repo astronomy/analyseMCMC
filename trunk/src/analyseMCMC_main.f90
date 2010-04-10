@@ -2,7 +2,7 @@
 !! AnalyseMCMC is a Fortran code that can be used to analyse the output of 
 !! <a href="http://www.phys.ualberta.ca/~sluys/index.php?title=SPINspiral">SPINspiral</a>.
 !!
-!! \file analyseMCMC.f90
+!! \file analyseMCMC_main.f90
 !! 
 !! \brief Contains analyseMCMC main routine
 !!
@@ -162,7 +162,7 @@ program analyseMCMC
   end if
   
   if(nchains0.gt.maxChs) write(stdErr,'(A,I3,A)')'  *** WARNING:  Too many input files (chains),'// &
-       ' please increase maxChs in analysemcmc_modules.f. Only',maxChs,' files can be read.'
+       ' please increase maxChs in analyseMCMC_modules.f90. Only',maxChs,' files can be read.'
   nchains0 = min(nchains0,maxChs)
   
   

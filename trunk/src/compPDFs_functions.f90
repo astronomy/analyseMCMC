@@ -779,7 +779,7 @@ end subroutine write_inputfile
 !! e.g. d_L rather than d_L^3 or log(d_L), i rather than cos(i), etc.
 !<
 !************************************************************************************************************************************
-subroutine set_derivedParameterNames()  !Taken from and keep in sync with analysemcmc_functions.f
+subroutine set_derivedParameterNames()  !Taken from and keep in sync with analyseMCMC_functions.f90
   use comp_pdfs_settings
   use comp_pdfs_data
   implicit none
