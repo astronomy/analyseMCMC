@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   156: sluys, 10/04/2010
+     - Updated reporting of code version: create routine iso module
+     - Updated Makefile
+     
    155: sluys, 10/04/2010
      - Added optimise switch to Makefile
      - Remedied some compiler warnings about uninitialised variables throughout the code

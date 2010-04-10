@@ -23,6 +23,8 @@ module basic
    integer, parameter :: maxint = max(selected_int_kind(9),selected_int_kind(18),selected_int_kind(38),selected_int_kind(99)) 
    integer, parameter :: maxreal = max(selected_real_kind(6),selected_real_kind(15),selected_real_kind(18), &
         selected_real_kind(31),selected_real_kind(33),selected_real_kind(99))
+   
+   integer :: stdOut,stdErr
 end module basic
 !***********************************************************************************************************************************
 
@@ -58,7 +60,7 @@ module constants
   
   implicit none
   save
-  integer :: os,stdOut,stdErr
+  integer :: os
   real(double) :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
   real :: rpi,rtpi,rpi2,rr2d,rd2r,rr2h,rh2r,rc3rd
   character :: upline*4,detabbrs(4)*2,waveforms(0:9)*99,currentdatestr*10,currenttimestr*8,currenttimezonestr*9

@@ -38,7 +38,6 @@
 
 !***********************************************************************************************************************************
 program analyseMCMC
-  use svn_revision
   use basic
   use constants
   use analysemcmc_settings
@@ -129,6 +128,12 @@ program analyseMCMC
      if(io.ne.0) call quit_program('Error opening output file '//trim(stdOutFile))
   end if
   write(stdOut,*)
+  
+  !Print code version:
+  if(prChainInfo.ge.1) then
+     write(stdOut,'(A)', advance="no")'  AnalyseMCMC, '
+     call print_code_version
+  end if
   
   if(html.ge.1) then  !Write standardised HTML output
      open(unit=51,action='write',form='formatted',status='replace',file=trim(outputdir)//'/index.html',iostat=io)
@@ -281,13 +286,12 @@ program analyseMCMC
   
   
   if(prChainInfo.ge.1) then
-     write(stdOut,'(A)',advance="no")'  AnalyseMCMC, svn revision: '//trim(svnrevision)//'.'
      if(nchains0.eq.1) then
-        write(stdOut,'(A)')'  Analysing 1 chain from SPINspiral,'
+        write(stdOut,'(A)', advance="no")'  Analysing 1 chain from SPINspiral,'
      else
-        write(stdOut,'(A,I3,A)')'  Analysing',nchains0,' chains from SPINspiral,'
+        write(stdOut,'(A,I3,A)', advance="no")'  Analysing',nchains0,' chains from SPINspiral,'
      end if
-     write(stdOut,'(A)',advance='no')'  in '//trim(username)//'@'//trim(hostname)//':'//trim(workdir)//'/'
+     write(stdOut,'(A)', advance='no')'  in '//trim(username)//'@'//trim(hostname)//':'//trim(workdir)//'/'
      write(stdOut,'(A)')',  at '//trim(currentdatestr)//' '//trim(currenttimestr)//' ('//trim(currenttimezonestr)//').'
   end if
   nchains = nchains0
