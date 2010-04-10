@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   157: sluys, 10/04/2010
+     - Replaced non-standard functions/routines getenv(), iargc(), getarg()
+     - Use system_clock() to produce timestamps
+   
    156: sluys, 10/04/2010
      - Updated reporting of code version: create routine iso module
      - Updated Makefile

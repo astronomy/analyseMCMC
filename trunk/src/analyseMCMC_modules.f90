@@ -63,7 +63,7 @@ module constants
   integer :: os
   real(double) :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
   real :: rpi,rtpi,rpi2,rr2d,rd2r,rr2h,rh2r,rc3rd
-  character :: upline*4,detabbrs(4)*2,waveforms(0:9)*99,currentdatestr*10,currenttimestr*8,currenttimezonestr*9
+  character :: upline*4,detabbrs(4)*2,waveforms(0:9)*99,currentdatestr*19,currenttimestr*19,currenttimezonestr*19
   character(len=99) :: homedir,workdir,hostname,username,stdOutFile
 end module constants
 !***********************************************************************************************************************************

@@ -44,10 +44,10 @@ subroutine setconstants
   
   upline = char(27)//'[2A'  !Printing this makes the cursor move up one line (actually two lines, since a hard return is included)
   
-  call getenv('HOME',homedir)  !Get the current user's home directory
-  call getenv('PWD',workdir)        !Set workdir  = $PWD
-  call getenv('HOSTNAME',hostname)  !Set hostname = $HOSTNAME  !Apparently not always exported
-  call getenv('USER',username)      !Set username = $USER
+  call get_environment_variable('HOME',homedir)       !Get the current user's home directory
+  call get_environment_variable('PWD',workdir)        !Set workdir  = $PWD
+  call get_environment_variable('HOSTNAME',hostname)  !Set hostname = $HOSTNAME  !Apparently not always exported
+  call get_environment_variable('USER',username)      !Set username = $USER
   
   i1 = index(workdir,trim(homedir))
   if(i1.gt.0.and.i1.lt.99) then
@@ -1780,31 +1780,16 @@ end function getos
 
 
 !***********************************************************************************************************************************
-function timestamp()  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
+function timestamp()  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC, mod countmax
   use basic
   use constants
   
   implicit none
   real(double) :: timestamp
-  integer :: status,system,io
-  character :: fname*99
+  integer :: count,countmax,countrate
   
-  fname = trim(homedir)//'/.analysemcmc_timestamp'
-  if(os.eq.1) then !Linux
-     status = system('date +%s.%N >& '//trim(fname))
-  else
-     status = system('date +%s >& '//trim(fname)) !%N for fractional seconds doesn't work on MacOS!!! (But it does with GNU date)
-  end if
-  
-  open(unit=17,status='old',file=trim(fname),iostat=io)
-  if(io.ne.0) then  !Something went wrong - return 0
-     write(stdErr,'(A)')'  Warning:  timeStamp(): timing does not work.'
-     timestamp = 0.0_dbl
-     return
-  end if
-  read(17,*)timestamp
-  close(17)
-  status = system('rm -f '//trim(fname))
+  call system_clock(count,countrate,countmax)
+  timestamp = dble(mod(count+countmax,countmax))/dble(countrate)
 end function timestamp
 !***********************************************************************************************************************************
 
@@ -2392,9 +2377,9 @@ subroutine set_currentdate_constants()
   implicit none
   integer :: dt(8)
   real(double) :: tz
-  character :: tmpstr*99,tzstr*9,signstr
+  character :: tzstr*9,signstr
   
-  call date_and_time(tmpstr,tmpstr,tmpstr,dt)
+  call date_and_time(currentdatestr,currenttimestr,currenttimezonestr,dt)
   
   write(currentdatestr,'(I2.2,A1,I2.2,A1,I4.4)')dt(3),'/',dt(2),'/',dt(1)
   write(currenttimestr,'(I2.2,A1,I2.2,A1,I2.2)')dt(5),':',dt(6),':',dt(7)

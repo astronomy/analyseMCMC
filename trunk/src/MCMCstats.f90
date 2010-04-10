@@ -46,7 +46,7 @@ program mcmcstats
      paprat = 0.75
   end if
   
-  nf = iargc()
+  nf = command_argument_count()
   if(nf.eq.0) then
      write(*,'(/,A,/)')'  Syntax:  mcmcstats <file1 file2 ...>'
      stop
@@ -76,7 +76,7 @@ program mcmcstats
   o = 20
   !write(6,*)''
   do f=1,nf
-     call getarg(f,infile)
+     call get_command_argument(f,infile)
      if(prinput.eq.0) write(6,'(A,$)')' Reading file: '//trim(infile)
      if(prinput.eq.1) write(6,'(A)')' Reading file: '//trim(infile)
      open(unit=o, form='formatted', status='old',file=trim(infile))

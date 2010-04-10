@@ -48,7 +48,7 @@ program analyseMCMC
   use chain_data
   
   implicit none
-  integer :: i,ic,io,iargc,exitcode,tempintarray(99),getos,get_ran_seed,status,system
+  integer :: i,ic,io,exitcode,tempintarray(99),getos,get_ran_seed,status,system
   real(double) :: timestamp,timestamps(9)  ! Time the progress of the code.
   character :: infile*99
   logical :: ex,timing
@@ -145,7 +145,7 @@ program analyseMCMC
   
   
   !Get command-line arguments
-  nchains0 = iargc()
+  nchains0 = command_argument_count()
   if(nchains0.lt.1) then  !No command-line arguments - select all files SPINspiral.output.*.00 in the current dir
      call findFiles('SPINspiral.output.*.00',maxChs,1,infiles,nchains0)
      if(nchains0.eq.0) then
@@ -158,9 +158,9 @@ program analyseMCMC
   else
      do ic = 1,nchains0
         if(reverseRead.eq.0) then
-           call getarg(ic,infile) !Read file name from the command-line arguments
+           call get_command_argument(ic,infile) !Read file name from the command-line arguments
         else
-           call getarg(nchains0-ic+1,infile) !Read file name from the command-line arguments in reverse order
+           call get_command_argument(nchains0-ic+1,infile) !Read file name from the command-line arguments in reverse order
         end if
         infiles(ic) = infile
      end do
@@ -292,7 +292,7 @@ program analyseMCMC
         write(stdOut,'(A,I3,A)', advance="no")'  Analysing',nchains0,' chains from SPINspiral,'
      end if
      write(stdOut,'(A)', advance='no')'  in '//trim(username)//'@'//trim(hostname)//':'//trim(workdir)//'/'
-     write(stdOut,'(A)')',  at '//trim(currentdatestr)//' '//trim(currenttimestr)//' ('//trim(currenttimezonestr)//').'
+     write(stdOut,'(A)')',  on '//trim(currentdatestr)//', '//trim(currenttimestr)//' ('//trim(currenttimezonestr)//').'
   end if
   nchains = nchains0
   

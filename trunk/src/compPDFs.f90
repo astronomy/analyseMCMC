@@ -9,8 +9,8 @@ program comp_pdfs
   character :: lbl*99,outname*99,exts(0:3)*4
   
   write(*,*)
-  if(iargc().eq.1) then
-     call getarg(1,settingsfile)
+  if(command_argument_count().eq.1) then
+     call get_command_argument(1,settingsfile)
   else
      write(*,'(A,/)')'  Syntax:  comp_pdfs <input_file>'
      stop
