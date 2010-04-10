@@ -5,19 +5,20 @@
 
 
 #No text/space after statements below! (hence #)
-COMP = gfortran#  Use GNU Fortran compiler
+COMP = ifort#              # Use Intel Fortran compiler
+COMP = gfortran#           # Use GNU Fortran compiler (reads ~3x slower from disc than ifort!)
 #COMP = gfortran-4.4.3#
-#COMP = ifort#     Use Intel Fortran compiler
-#COMP = nagfor#     Use NAG Fortran compiler
+#COMP = nagfor#            # Use NAG Fortran compiler
 
-WARN = no
-#WARN = yes#  'yes#' to compile with compile-time warnings
-RUNCHECK = no
-#RUNCHECK = yes#  'yes#' to compile with runtime-check options
+#WARN = yes#               # to compile with compile-time warnings
+#RUNCHECK = yes#           # to compile with runtime-check options
+#OPTIMISE = yes#           # to compile with some extra run-time optimisation (sets RUNCHECK=no)
+
+
 
 #General:
+CFLAGS = -O0
 CFLAGS = -O2
-#CFLAGS = -O3
 LFLAGS = -lpgplot 
 
 
@@ -34,62 +35,74 @@ EXEDIR = .
 #ifort:
 ifeq ($(COMP),ifort)
    #To develop code  (don't mix -check bounds with -O>0!):
-   ifeq ($(WARN),yes)
-      CFLAGS = -O0 -warn all
-   endif
    ifeq ($(RUNCHECK),yes)
-      CFLAGS += -check all -check noarg_temp_created
+      CFLAGS = -O0 -check all -check noarg_temp_created
    endif
-   CFLAGS += -vec-report0 -traceback 
+   CFLAGS += -traceback 
+   ifeq ($(OPTIMISE),yes)
+      CFLAGS = -O3
+
+      #CFLAGS += -arch SSE2  #SSE2 needs -lsvml  (?)
+
+      #CFLAGS += -xsse4.1
+      #CFLAGS += -xhost
+      #CFLAGS += -static
+      #CFLAGS += -prof-gen -prof-dir./  #Don't use -ipo. Run the code thus compiled (a few times) and use -prof-use below for the final version
+      #CFLAGS += -prof-use -prof-dir./
+
+      #CFLAGS += -ipo
+      #LFLAGS += -ipo -vec-report0
+   endif
+   ifeq ($(WARN),yes)
+      CFLAGS += -warn all
+   endif
+   CFLAGS += -vec-report0
    CFLAGS += -module $(MODDIR) -I$(MODDIR)
 
    #To debug code:
-   #CFLAGS += -free -O0  -vec-report0 -g
-
-   #To use optimum run speed
-   #CFLAGS += -free -O3 -vec-report0 -traceback
-   #CFLAGS += -free -O3 -arch SSE2 -vec-report0 -traceback           #SSE2 needs -lsvml
-   ##CFLAGS += -free -O3 -arch SSE2 -ipo -vec-report0 -traceback
-
-   #CFLAGS += -xsse4.1
-   #CFLAGS += -xhost
-   #CFLAGS += -static
-   #CFLAGS += -prof-gen -prof-dir./  #Don't use -ipo. Run the code thus compiled (a few times) and use -prof-use below for the final version
-   #CFLAGS += -prof-use -prof-dir./
+   #CFLAGS += -O0  -vec-report0 -g
 
    CFLAGS += -nogen-interfaces #For ifort v.11
 
-   #CFLAGS += -ipo
-   #LFLAGS += -ipo -vec-report0
 endif
 
 
-#gfortran: similar in speed to ifort, but file reading is ~2.5x slower!
+#gfortran:
 #ifeq ($(COMP),gfortran)
 ifneq (,$(filter $(COMP),gfortran gfortran-4.4.3))
-   ifeq ($(WARN),yes)
-      CFLAGS = -O0 -Wall
-   endif
    ifeq ($(RUNCHECK),yes)
-      CFLAGS += -fbounds-check
+      CFLAGS = -O0 -fbounds-check
       #CFLAGS += -fcheck-array-temporaries  #Doesn't seem to work...
+   endif
+   ifeq ($(COMP),gfortran-4.4.3)
+      CFLAGS += -fbacktrace
+   endif
+   ifeq ($(OPTIMISE),yes)
+      CFLAGS = -O3 
+   endif
+   ifeq ($(WARN),yes)
+      CFLAGS += -Wall
    endif
    CFLAGS += -I$(MODDIR) -J$(MODDIR)
    CFLAGS += -fmax-errors=10
-   #CFLAGS += -ffree-line-length-none
-endif
-ifeq ($(COMP),gfortran-4.4.3)
-   CFLAGS += -fbacktrace
 endif
 
 
 
 #NAGfort:
 ifeq ($(COMP),nagfor)
-  CFLAGS = -colour
-  CFLAGS += -gline -C=all
-  CFLAGS += -I$(MODDIR) -mdir $(MODDIR)
-  CFLAGS += -I/opt/NAG/lib
+   ifeq ($(RUNCHECK),yes)
+      CFLAGS = -O0  -C=all -gline
+   endif
+   ifeq ($(OPTIMISE),yes)
+      CFLAGS = -O4
+   endif
+   ifeq ($(WARN),yes)
+      #CFLAGS += 
+   endif
+   CFLAGS += -colour
+   CFLAGS += -I$(MODDIR) -mdir $(MODDIR)
+   #CFLAGS += -I/opt/NAG/lib
 endif
 
 

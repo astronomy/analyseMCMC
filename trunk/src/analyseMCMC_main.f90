@@ -50,7 +50,7 @@ program analyseMCMC
   
   implicit none
   integer :: i,ic,io,iargc,exitcode,tempintarray(99),getos,get_ran_seed,status,system
-  real(double) :: timestamp,timestamps(9)  !> Time the progress of the code.
+  real(double) :: timestamp,timestamps(9)  ! Time the progress of the code.
   character :: infile*99
   logical :: ex,timing
   
@@ -64,7 +64,7 @@ program analyseMCMC
   os = getos()                !1-Linux, 2-MacOS
   timestamps(1) = timestamp()
   timing = .false.
-  if(abs(timestamps(1)).gt.1.e-6_dbl .and. abs(timestamps(1)).lt.1.e6_dbl) timing = .true.
+  if(abs(timestamps(1)).gt.1.e-6_dbl .and. abs(timestamps(1)).lt.1.e20_dbl) timing = .true.
   
   
   call set_plotsettings()     !Set plot settings to 'default' values

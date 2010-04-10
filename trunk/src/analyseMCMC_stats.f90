@@ -136,7 +136,9 @@ subroutine statistics(exitcode)
         call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))
         indexx(p,1:n(ic)) = index1(1:n(ic))
         
-        minrange = 1.e30
+        y1 = 0.
+        y2 = 0.
+        minrange = huge(minrange)
         do i=1,n(ic)
            x1 = selDat(ic,p,indexx(p,i))
            x2 = selDat(ic,p,indexx(p,mod(i+nint(n(ic)*wrapival)-1,n(ic))+1))
@@ -266,7 +268,9 @@ subroutine statistics(exitcode)
         
         if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(F6.3)',advance="no")ival
         do p=1,nMCMCpar
-           minrange = 1.e30
+           y1 = 0.
+           y2 = 0.
+           minrange = huge(minrange)
            !write(stdOut,'(A8,4x,4F10.5,I4)')parNames(parID(p)),y1,y2,minrange,centre,wrap(ic,p)
            do i=1,floor(n(ic)*(1.-ival))
               x1 = selDat(ic,p,indexx(p,i))

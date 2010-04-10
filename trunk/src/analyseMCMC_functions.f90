@@ -1430,6 +1430,9 @@ subroutine ludcmp(a,n,np,indx,d)
    parameter (nmax=500,tiny=1.0e-20)
    integer :: i,imax,j,k
    real :: aamax,dum,sum,vv(nmax)
+   
+   imax = 0
+   
    d=1.
    do i=1,n
       aamax=0.
@@ -2158,8 +2161,11 @@ function compute_median(data,ni)
   call dindexx(ni,data,indexx)
   
   !Determine the median:
-  if(mod(ni,2).eq.0) compute_median = 0.5*(data(indexx(ni/2)) + data(indexx(ni/2+1)))  !ni is even
-  if(mod(ni,2).eq.1) compute_median = data(indexx((ni+1)/2))                           !ni is odd
+  if(mod(ni,2).eq.0) then
+     compute_median = 0.5*(data(indexx(ni/2)) + data(indexx(ni/2+1)))  !ni is even
+  else
+     compute_median = data(indexx((ni+1)/2))                           !ni is odd
+  end if
   
 end function compute_median
 !***********************************************************************************************************************************

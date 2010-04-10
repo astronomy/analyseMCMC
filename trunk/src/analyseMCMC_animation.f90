@@ -73,6 +73,13 @@ subroutine animation(exitcode)
      
      !print*,iframe,nplt,Nburn(ic),maxval(is(ic,:))
      
+     !Determine interval ranges
+     c = c0
+     ival = ivals(c)
+     
+     range1 = 0.
+     range2 = 0.
+        
      !Determine median and ranges for this selection of the chain (Nburn:nplt)
      if(nplt.gt.Nburn(ic)) then
         
@@ -93,11 +100,9 @@ subroutine animation(exitcode)
         !print*,'median:',median
         
         
-        !Determine interval ranges
-        c = c0
-        ival = ivals(c)
-        
-        minrange = 1.e30
+        minrange = huge(minrange)
+        y1 = 0.
+        y2 = 0.
         !do i=1,floor(nplt*(1.-ival))
         do i=1,floor((nplt-Nburn(ic))*(1.-ival))
            !x1 = allDat(ic,p,index(p,i))

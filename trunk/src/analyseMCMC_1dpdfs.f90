@@ -232,7 +232,8 @@ subroutine pdfs1d(exitcode)
         xmin = xmin - 0.1*dx
         xmax = xmax + 0.1*dx
         ymin = 0.
-        ymax = 1.e-20
+        ymax = tiny(ymax)
+        xpeak = 0.
         !print*,xmin,xmax,ymin,ymax
         do ic=1,nchains
            if(mergeChains.eq.0.and.contrchain(ic).eq.0) cycle

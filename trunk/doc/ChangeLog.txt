@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   155: sluys, 10/04/2010
+     - Added optimise switch to Makefile
+     - Remedied some compiler warnings about uninitialised variables throughout the code
+   
    154: sluys, 10/04/2010
      - Renamed analyseMCMC.f90 to analyseMCMC_main.f90; updated doc/Makefile
    

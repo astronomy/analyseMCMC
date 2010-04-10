@@ -863,7 +863,6 @@ subroutine chains(exitcode)
         do ic=1,nChains0
            xmin = 0.
            xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
-           dx = abs(xmax-xmin)*0.01
            if(plJump.eq.1) then
               ymin = min(ymin,minval(jumps(ic,p,2:Ntot(ic))))
               ymax = max(ymax,maxval(jumps(ic,p,2:Ntot(ic))))
@@ -876,10 +875,10 @@ subroutine chains(exitcode)
               ymin = -6.
               ymax = 1.
            end do
-           !print*,p-1,ymin,ymax,dy
-           dy = abs(ymax-ymin)*0.05
-           if(dy.lt.1.e-10) dy = ymin*0.1
         end do
+        dx = abs(xmax-xmin)*0.01
+        dy = abs(ymax-ymin)*0.05
+        if(dy.lt.1.e-10) dy = ymin*0.1
         
         call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
         if(plJump.eq.1) call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0) !lin
