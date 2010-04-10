@@ -1,6 +1,13 @@
-! Compute statistics for analysemcmc
+!> \file analyseMCMC_stats.f90
+!! \brief Compute statistics for analyseMCMC
+!<
+
 
 !***********************************************************************************************************************************
+!> \brief Compute basic statistics for analyseMCMC
+!! \retval exitcode Status code
+!! \retval other Results are returned using a number of modules
+!<
 subroutine statistics(exitcode)
   use basic
   use constants
@@ -9,6 +16,7 @@ subroutine statistics(exitcode)
   use stats_data
   use chain_data
   use mcmcrun_data
+  
   implicit none
   integer :: c,i,ic,p,p1,p2,nr,nstat,exitcode,wraptype
   integer :: indexx(maxMCMCpar,maxChs*maxIter),index1(maxChs*maxIter)
@@ -16,11 +24,7 @@ subroutine statistics(exitcode)
   real :: x1,x2,y1,y2
   real :: range1,minrange,ival,wrapival,centre,maxlogl,minlogl,shift,shIval,shIval2
   real :: medians(maxMCMCpar),mean(maxMCMCpar),var1(maxMCMCpar),var2(maxMCMCpar),corr,corr1,corr2
-  
-  !Need extra accuracy to compute Bayes factor
-  !real(double) :: var,total,total2,total3,deltab
-  !Precision of 18, exponential range of 4931 - max gfortran supports? - yes, but not with all compilers...
-  real(kind=selected_real_kind(18,4931)) :: var,total,total2,total3,deltab  
+  real(kind=maxreal) :: var,total,total2,total3,deltab  !Need extra accuracy to compute Bayes factor
   
   exitcode = 0
   
@@ -1246,7 +1250,9 @@ end subroutine save_cbc_wiki_data
 
 !***********************************************************************************************************************************
 !>
-!!  Check convergence for multiple chains. This works only for fixed chain length, so take the min N
+!!  \brief Check convergence for multiple chains. 
+!!
+!!  This works only for fixed chain length, so take the min N
 !!  This is probably taken from (at least equal to):
 !!    Brooks & Gelman, Journal of Computational and Graphical Statistics, Vol.7, Nr.4, p.434-455, 1998:
 !!    "General Methods for Monitoring Convergence of Iterative Simulations"

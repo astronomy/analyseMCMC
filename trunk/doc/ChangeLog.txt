@@ -2,6 +2,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   153: sluys, 10/04/2010
+     - Found a (fool-proof?) solution for maximum-precision kind in module basic
+     - Added src/nagfor.f90 to (limited) runs with nagfor (minor Makefile update)
+     - Added status checking when opening (trivial) temporary files
+     - Added some comments
+   
    152: sluys, 08/04/2010
      - Fixed dependency on analyseMCMC_modules.f90 in Makefile
      - Added way to report svn revision number in code (see if it works)

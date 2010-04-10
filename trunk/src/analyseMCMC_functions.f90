@@ -1,4 +1,6 @@
-!Functions for analysemcmc.f
+!> \file analyseMCMC_functions.f90
+!! \brief General routines and functions for analyseMCMC
+!<
 
 
 !***********************************************************************************************************************************
@@ -1752,12 +1754,17 @@ function getos() !Determine the operating system type: 1-Linux, 2-MacOSX
   use constants
   
   implicit none
-  integer :: status,system,getos
+  integer :: status,system,getos,io
   character :: ostype*25,filename*99
   
   filename = trim(homedir)//'/.analysemcmc.uname.temp'
   status = system('uname &> '//trim(filename)) !This should return "Linux" or "Darwin"
-  open(unit=16,file=trim(filename), status='old', form='formatted')
+  open(unit=16,file=trim(filename), status='old', form='formatted',iostat=io)
+  if(io.ne.0) then  !Something went wrong - guess Linux
+     write(stdErr,'(A)')'  Warning:  getOS(): cannot determine OS - guessing Linux...'
+     getos = 1
+     return
+  end if
   read(16,'(A)')ostype
   close(16, status = 'delete')
   
@@ -1776,7 +1783,7 @@ function timestamp()  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
   
   implicit none
   real(double) :: timestamp
-  integer :: status,system
+  integer :: status,system,io
   character :: fname*99
   
   fname = trim(homedir)//'/.analysemcmc_timestamp'
@@ -1785,7 +1792,13 @@ function timestamp()  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC
   else
      status = system('date +%s >& '//trim(fname)) !%N for fractional seconds doesn't work on MacOS!!! (But it does with GNU date)
   end if
-  open(unit=17,status='old',file=trim(fname))
+  
+  open(unit=17,status='old',file=trim(fname),iostat=io)
+  if(io.ne.0) then  !Something went wrong - return 0
+     write(stdErr,'(A)')'  Warning:  timeStamp(): timing does not work.'
+     timestamp = 0.0_dbl
+     return
+  end if
   read(17,*)timestamp
   close(17)
   status = system('rm -f '//trim(fname))
@@ -2289,7 +2302,7 @@ subroutine findFiles(match,nff,all,fnames,nf)
   
   use constants
   implicit none
-  integer :: i,j,k,fnum,nf,nff,status,system,all
+  integer :: i,j,k,fnum,nf,nff,status,system,all,io
   character :: match*(*),names(nff)*99,fnames(nff)*99,tempfile*99
   
   if(len_trim(homedir).eq.99) then
@@ -2306,7 +2319,13 @@ subroutine findFiles(match,nff,all,fnames,nf)
   end do
   
   k=0
-  open(10,file=trim(tempfile), status='old', form='formatted') !Read the temp file and delete it when closing
+  open(10,file=trim(tempfile), status='old', form='formatted',iostat=io) !Read the temp file and delete it when closing
+  if(io.ne.0) then
+     write(stdErr,'(A)')'  Warning:  findFiles(): cannot list files in current directory...'
+     fnames = ''
+     nf = 0
+     return
+  end if
   rewind(10)
   do i=1,nff
      read(10,'(A99)',end=100) names(i)
@@ -2396,5 +2415,6 @@ subroutine quit_program(message)  !Print a message and stop the execution of the
   stop
 end subroutine quit_program
 !***********************************************************************************************************************************
+
 
 

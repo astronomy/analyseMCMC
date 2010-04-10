@@ -87,6 +87,7 @@ endif
 #NAGfort:
 ifeq ($(COMP),nagfor)
   CFLAGS = -colour
+  CFLAGS += -gline -C=all
   CFLAGS += -I$(MODDIR) -mdir $(MODDIR)
   CFLAGS += -I/opt/NAG/lib
 endif
@@ -106,6 +107,10 @@ ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_stats.o $(OBJDIR)/analyseMCMC_tailored.
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_chains.o $(OBJDIR)/analyseMCMC_1dpdfs.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_2dpdf_skymap.o $(OBJDIR)/analyseMCMC_2dpdf_routines.o $(OBJDIR)/analyseMCMC_2dpdfs.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_animation.o $(OBJDIR)/analyseMCMC_plot.o $(OBJDIR)/analyseMCMC.o
+
+ifeq ($(COMP),nagfor)
+  ANALYSEMCMC_OBJ += $(OBJDIR)/nagfor.o
+endif
 
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.f90 Makefile $(SRCDIR)/svn_revision.f90

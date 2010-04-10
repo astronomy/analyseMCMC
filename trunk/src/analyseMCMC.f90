@@ -1,8 +1,9 @@
 !> \mainpage Documentation analyseMCMC
 !! AnalyseMCMC is a Fortran code that can be used to analyse the output of 
 !! <a href="http://www.phys.ualberta.ca/~sluys/index.php?title=SPINspiral">SPINspiral</a>.
+!!
+!! \file analyseMCMC.f90
 !! 
-!! \file analysemcmc.f
 !! \brief Contains analyseMCMC main routine
 !!
 !! I/O units used:
@@ -29,14 +30,12 @@
 !! 
 !! 51: Output: HTML main file
 !! 
+!! This program replaces plotspins.
 !<
 
-! This program replaces plotspins.
 
 
 
-!> \brief Main routine of AnalyseMCMC
-!<
 !***********************************************************************************************************************************
 program analyseMCMC
   use svn_revision
@@ -53,19 +52,19 @@ program analyseMCMC
   integer :: i,ic,io,iargc,exitcode,tempintarray(99),getos,get_ran_seed,status,system
   real(double) :: timestamp,timestamps(9)  !> Time the progress of the code.
   character :: infile*99
-  logical :: ex
+  logical :: ex,timing
   
-  !character :: svnrevision*99
-  !svnrevision = 'test'
   
   outputdir = '.'     !Directory where output is saved (either relative or absolute path)
   wikioutput = 1      !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
   map_projection = 1  !Choose map projection: 1-Mollweide
   html = 0            !Produce HTML output
   
-  call setconstants           !Define mathematical constants
+  call setconstants()         !Define mathematical constants
   os = getos()                !1-Linux, 2-MacOS
   timestamps(1) = timestamp()
+  timing = .false.
+  if(abs(timestamps(1)).gt.1.e-6_dbl .and. abs(timestamps(1)).lt.1.e6_dbl) timing = .true.
   
   
   call set_plotsettings()     !Set plot settings to 'default' values
@@ -310,7 +309,7 @@ program analyseMCMC
   if(exitcode.ne.0) goto 9998
   
   !Get and print some basic chain statistics:
-  timestamps(2) = timestamp()
+  if(timing) timestamps(2) = timestamp()
   exitcode = 0
   call mcmcruninfo(exitcode)
   
@@ -353,7 +352,7 @@ program analyseMCMC
   ! ***  DO STATISTICS   ***********************************************************************************************************
   ! ********************************************************************************************************************************
   
-  timestamps(3) = timestamp()
+  if(timing) timestamps(3) = timestamp()
   
   exitcode = 0
   call statistics(exitcode)
@@ -367,7 +366,7 @@ program analyseMCMC
   ! ***  CREATE PLOTS   ************************************************************************************************************
   ! ********************************************************************************************************************************
   
-  timestamps(4) = timestamp()
+  if(timing) timestamps(4) = timestamp()
   
   if(prProgress.ge.2) write(stdOut,*)
   if(plot.eq.1.and.prProgress.ge.1.and.update.eq.0) then
@@ -387,7 +386,7 @@ program analyseMCMC
      call chains(exitcode)
      if(exitcode.ne.0) goto 9999
   end if
-  timestamps(5) = timestamp()
+  if(timing) timestamps(5) = timestamp()
   
   
   
@@ -399,7 +398,7 @@ program analyseMCMC
      call pdfs1d(exitcode)
      if(exitcode.ne.0) goto 9999
   end if !if(plPDF1D.ge.1)
-  timestamps(6) = timestamp()
+  if(timing) timestamps(6) = timestamp()
   
   
   
@@ -422,7 +421,7 @@ program analyseMCMC
      if(prProgress.ge.1.and.update.eq.0.and.plot.gt.0) write(stdOut,'(A,/)')' done.  '
   end if
   
-  timestamps(7) = timestamp()  
+  if(timing) timestamps(7) = timestamp()  
   
   
   
@@ -456,7 +455,7 @@ program analyseMCMC
   
   !*********************************************************************************************************************************
   
-  timestamps(8) = timestamp()
+  if(timing) timestamps(8) = timestamp()
   
   if(plAnim.ge.1) then
      exitcode = 0
@@ -484,25 +483,29 @@ program analyseMCMC
   deallocate(allDat,post,prior)
   !if(prProgress.ge.1) write(stdOut,*)
   
-  timestamps(9) = timestamp()
+  if(timing) then
+     timestamps(9) = timestamp()
   
-  if(prProgress.ge.1) then
-     write(stdOut,'(A)',advance="no")'  Run time: '
-     write(stdOut,'(A,F5.1,A)',advance="no")'   input:',min(abs(timestamps(2)-timestamps(1)),999.9_dbl),'s,'
-     !write(stdOut,'(A,F5.1,A)',advance="no")'   info:',min(abs(timestamps(3)-timestamps(2)),999.9_dbl),'s,'
-     !write(stdOut,'(A,F5.1,A)',advance="no")'   stats:',min(abs(timestamps(4)-timestamps(3)),999.9_dbl),'s,'
-     write(stdOut,'(A,F5.1,A)',advance="no")'   stats:',min(abs(timestamps(4)-timestamps(2)),999.9_dbl),'s,'
-     if(plot.eq.1.and.plLogL+plChain+plJump+plACorr.gt.0) then
-        write(stdOut,'(A,F5.1,A)',advance="no")'   chains:',min(abs(timestamps(5)-timestamps(4)),999.9_dbl),'s,'
+     if(prProgress.ge.1) then
+        write(stdOut,'(A)',advance="no")'  Run time: '
+        write(stdOut,'(A,F5.1,A)',advance="no")'   input:',min(abs(timestamps(2)-timestamps(1)),999.9_dbl),'s,'
+        !write(stdOut,'(A,F5.1,A)',advance="no")'   info:',min(abs(timestamps(3)-timestamps(2)),999.9_dbl),'s,'
+        !write(stdOut,'(A,F5.1,A)',advance="no")'   stats:',min(abs(timestamps(4)-timestamps(3)),999.9_dbl),'s,'
+        write(stdOut,'(A,F5.1,A)',advance="no")'   stats:',min(abs(timestamps(4)-timestamps(2)),999.9_dbl),'s,'
+        if(plot.eq.1.and.plLogL+plChain+plJump+plACorr.gt.0) then
+           write(stdOut,'(A,F5.1,A)',advance="no")'   chains:',min(abs(timestamps(5)-timestamps(4)),999.9_dbl),'s,'
+        end if
+        if(plot.eq.1.or.savePDF.ge.1) then
+           if(plPDF1D.ge.1) write(stdOut,'(A,F5.1,A)',advance="no") &
+                '   1d pdfs:',min(abs(timestamps(6)-timestamps(5)),999.9_dbl),'s,'
+           if(plPDF2D.ge.1) write(stdOut,'(A,F6.1,A)',advance="no") &
+                '   2d pdfs:',min(abs(timestamps(7)-timestamps(6)),999.9_dbl),'s,'
+        end if
+        !write(stdOut,'(A,F6.1,A)',advance="no")'   plots:',min(abs(timestamps(7)-timestamps(4)),999.9_dbl),'s,'
+        !write(stdOut,'(A,F5.1,A)',advance="no")'   save stats:',min(abs(timestamps(8)-timestamps(7)),999.9_dbl),'s,'
+        if(plAnim.ge.1) write(stdOut,'(A,F5.1,A)',advance="no")'   movie:',min(abs(timestamps(9)-timestamps(8)),999.9_dbl),'s,'
+        write(stdOut,'(A,F6.1,A)')'   total:',min(abs(timestamps(9)-timestamps(1)),999.9_dbl),'s.'
      end if
-     if(plot.eq.1.or.savePDF.ge.1) then
-        if(plPDF1D.ge.1) write(stdOut,'(A,F5.1,A)',advance="no")'   1d pdfs:',min(abs(timestamps(6)-timestamps(5)),999.9_dbl),'s,'
-        if(plPDF2D.ge.1) write(stdOut,'(A,F6.1,A)',advance="no")'   2d pdfs:',min(abs(timestamps(7)-timestamps(6)),999.9_dbl),'s,'
-     end if
-     !write(stdOut,'(A,F6.1,A)',advance="no")'   plots:',min(abs(timestamps(7)-timestamps(4)),999.9_dbl),'s,'
-     !write(stdOut,'(A,F5.1,A)',advance="no")'   save stats:',min(abs(timestamps(8)-timestamps(7)),999.9_dbl),'s,'
-     if(plAnim.ge.1) write(stdOut,'(A,F5.1,A)',advance="no")'   movie:',min(abs(timestamps(9)-timestamps(8)),999.9_dbl),'s,'
-     write(stdOut,'(A,F6.1,A)')'   total:',min(abs(timestamps(9)-timestamps(1)),999.9_dbl),'s.'
   end if
   
   

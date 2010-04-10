@@ -1,20 +1,33 @@
-!Modules for analysemcmc
+!> \file analyseMCMC_modules.f90
+!! \brief Modules used by analyseMCMC
+!<
+
 
 
 !***********************************************************************************************************************************
-!> Module with data types, etc.
+!> \brief Module with data types, etc.
 !<
 module basic
    implicit none
-   integer, parameter :: double = selected_real_kind(15,307)
-   integer, parameter :: dbl = selected_real_kind(15,307)
-   integer, parameter :: long = selected_int_kind(18)
-   integer, parameter :: lng = selected_int_kind(18)
+   
+   ! Determine real double-precision kind for the current compiler/OS:
+   integer, parameter :: double = selected_real_kind(15,307),  dbl = double
+   
+   ! Determine integer double-precision kind for the current compiler/OS:
+   integer, parameter :: long = selected_int_kind(18),  lng = long
+   
+   ! Determine maximum-precision kinds for the current compiler/OS:
+   !   selected_int/real_kind return negative integers for unsupported precision, and supposedly larger values for supported kinds
+   !   with larger precision.  Int 9,18 are standard int,long; real 6,15 are standard single,double precision.  Larger precisions
+   !   used are found in some compilers, except 99, which I made up.
+   integer, parameter :: maxint = max(selected_int_kind(9),selected_int_kind(18),selected_int_kind(38),selected_int_kind(99)) 
+   integer, parameter :: maxreal = max(selected_real_kind(6),selected_real_kind(15),selected_real_kind(18), &
+        selected_real_kind(31),selected_real_kind(33),selected_real_kind(99))
 end module basic
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> Module with settings from the input file (e.g. analysemcmc.dat)
+!> \brief Module with settings from the input file (e.g. analysemcmc.dat)
 !<
 module analysemcmc_settings
   implicit none
@@ -38,7 +51,7 @@ end module analysemcmc_settings
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> Module with (currently) mathematical and string constants
+!> \brief Module with (currently) mathematical and string constants
 !<
 module constants
   use basic
@@ -54,7 +67,7 @@ end module constants
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> Module with Markov-chain data from the SPINspiral output files
+!> \brief Module with Markov-chain data from the SPINspiral output files
 !< 
 module general_data
   use basic
@@ -82,7 +95,7 @@ end module general_data
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> Module with MCMC run data from the SPINspiral output files
+!> \brief Module with MCMC run data from the SPINspiral output files
 !< 
 module mcmcrun_data
   use basic
@@ -106,7 +119,7 @@ end module mcmcrun_data
 
 
 !***********************************************************************************************************************************
-!> Module with generated statistics
+!> \brief Module with generated statistics
 !< 
 module stats_data
   use analysemcmc_settings
@@ -120,7 +133,7 @@ end module stats_data
 
 
 !***********************************************************************************************************************************
-!> Module with plot settings
+!> \brief Module with plot settings
 !< 
 module plot_data
   use analysemcmc_settings
@@ -135,7 +148,7 @@ end module plot_data
 
 
 !***********************************************************************************************************************************
-!> Module with secondary Markov-chain data
+!> \brief Module with secondary Markov-chain data
 !< 
 module chain_data
   use general_data
