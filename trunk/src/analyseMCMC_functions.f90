@@ -932,7 +932,7 @@ subroutine mcmcruninfo(exitcode)
      if(prInitial.eq.1) write(stdOut,'(/,A)')'  Starting values for the chains:'
      if(prInitial.eq.2) write(stdOut,'(/,A)')'  Injection and starting values for the chains:'
      if(prInitial.ge.3) write(stdOut,'(/,A)')'  Injection, starting and Lmax values for the chains:'
-     write(stdOut,'(5x,A10)',advance="no")''
+     write(stdOut,'(5x,A10,A9)',advance="no")'','log Post'
      do p=1,nMCMCpar
         write(stdOut,'(A9)',advance="no")trim(parNames(parID(p)))
      end do
@@ -946,6 +946,7 @@ subroutine mcmcruninfo(exitcode)
      if(prInitial.ne.0) then 
         if(ic.eq.1.and.prInitial.ge.2) then
            write(stdOut,'(4x,A11)',advance="no")'Injection:  '
+           write(stdOut,'(F9.4)',advance="no")post(ic,1)
            do p=1,nMCMCpar
               write(stdOut,'(F9.4)',advance="no")startval(1,p,1)
            end do
@@ -955,12 +956,14 @@ subroutine mcmcruninfo(exitcode)
         if(abs((sum(startval(ic,1:nMCMCpar,1))-sum(startval(ic,1:nMCMCpar,2)))/sum(startval(ic,1:nMCMCpar,1))).gt.1.e-10) then
            offsetrun = 1
            write(stdOut,'(I4,A1,A10)',advance="no")ic,':','  Start: '
+           write(stdOut,'(F9.4)',advance="no")post(ic,2)
            do p=1,nMCMCpar
               write(stdOut,'(F9.4)',advance="no")startval(ic,p,2)
            end do
            write(stdOut,*)
            if(prInitial.ge.4) then
               write(stdOut,'(5x,A10)',advance="no")'Diff:  '
+              write(stdOut,'(F9.4)',advance="no")abs(post(ic,1)-post(ic,2))
               do p=1,nMCMCpar
                  write(stdOut,'(F9.4)',advance="no")abs(startval(ic,p,1)-startval(ic,p,2))
               end do
@@ -971,12 +974,14 @@ subroutine mcmcruninfo(exitcode)
   end do
   if(prInitial.ge.3) then
      write(stdOut,'(5x,A10)',advance="no")'Lmax:  '
+     write(stdOut,'(F9.4)',advance="no")post(icloglmax,iloglmax)
      do p=1,nMCMCpar
         write(stdOut,'(F9.4)',advance="no")startval(1,p,3)
      end do
      write(stdOut,*)
      if(prInitial.ge.4) then
         write(stdOut,'(5x,A10)',advance="no")'Diff:  '
+        write(stdOut,'(F9.4)',advance="no")abs(post(ic,1)-post(icloglmax,iloglmax))
         do p=1,nMCMCpar
            write(stdOut,'(F9.4)',advance="no")abs(startval(1,p,1)-startval(1,p,3))
         end do

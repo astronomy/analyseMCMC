@@ -22,7 +22,7 @@ subroutine animation(exitcode)
   
   exitcode = 0
   
-  ts1 = timestamp(os)
+  ts1 = timestamp()
   write(stdOut,*)
   !p = 1 !Parameter to plot: 1-Mc
   p = plAnim
@@ -60,7 +60,7 @@ subroutine animation(exitcode)
              '  (',nplt,'/',ntot(1:nchains),' points)'
         
         !Print remaining time
-        ts2 = timestamp(os)
+        ts2 = timestamp()
         !Use the system clock:
         if(prProgress.ge.1.and.file.eq.1) write(stdOut,'(A,A9)')'   Est.time left:',tms((ts2-ts1)*(nAnimFrames-iframe)/3600.d0)
         ts1 = ts2

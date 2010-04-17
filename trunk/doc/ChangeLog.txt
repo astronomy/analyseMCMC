@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   158: sluys, 16/04/2010
+     - Add log posterior to starting values for chains (prInitial>0); use prInitial>1 
+       for injection value
+   
    157: sluys, 10/04/2010
      - Replaced non-standard functions/routines getenv(), iargc(), getarg()
      - Use system_clock() to produce timestamps
