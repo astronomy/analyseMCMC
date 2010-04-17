@@ -655,8 +655,10 @@ subroutine save_stats(exitcode)  !Save statistics to file
   
   !Print general run and detector info:
   write(o,'(//,A,/)')'GENERAL INFORMATION:'
-  write(o,'(6x,4A12,A12,A5, A8,A22,A8)')'totiter','totlines','totpts','totburn','nChains','used','seed','<d|d>','ndet'
-  write(o,'(6x,4I12,I12,I5, I8,F22.10,I8)')totiter,totlines,totpts,totlines-totpts,nChains0,contrChains,seed(ic),DoverD,ndet(ic)
+  write(o,'(6x,4A12,A12,A5, A8,A22,A8,A10,A12)')'totiter','totlines','totpts','totburn','nChains','used','seed', &
+       '<d|d>','ndet','NetSNR','logPostInj'
+  write(o,'(6x,4I12,I12,I5, I8,F22.10,I8,F10.2,F12.4)')totiter,totlines,totpts,totlines-totpts,nChains0,contrChains,seed(ic), &
+       DoverD,ndet(ic),networkSNR(ic),post(ic,1)
   write(o,*)
   write(o,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc','Sample start (GPS)', &
        'Sample length','Sample rate','Sample size','FT size'

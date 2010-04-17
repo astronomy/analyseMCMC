@@ -2,8 +2,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   159: sluys, 16/04/2010
+     - Added Net SNR and injection log posterior to __statistics.dat
+     
    158: sluys, 16/04/2010
-     - Add log posterior to starting values for chains (prInitial>0); use prInitial>1 
+     - Added log posterior to starting values for chains (prInitial>0); use prInitial>1 
        for injection value
    
    157: sluys, 10/04/2010
