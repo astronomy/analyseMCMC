@@ -40,6 +40,7 @@ subroutine setconstants
   waveforms(2) = 'SpinTaylor12'
   waveforms(3) = 'SpinTaylor15'
   waveforms(4) = 'PPN'
+  waveforms(5) = 'PhenSpinInspiralRD'
   waveforms(9) = 'Ana.L'
   
   upline = char(27)//'[2A'  !Printing this makes the cursor move up one line (actually two lines, since a hard return is included)
@@ -468,7 +469,7 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
   implicit none
   integer :: i,tmpInt,io,ic,j,exitcode,readerror,p
   character :: tmpStr*99,detname*14,firstLine*999,infile*99
-  real(double) :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar)!,lon2ra,ra2lon
+  real(double) :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar),lon2ra,ra2lon
   
   exitcode = 0
   readerror = 0
@@ -612,7 +613,8 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
         end if
         
         !In case you ran with lon rather than RA:
-        !allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))  
+        !allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
+		!allDat(ic,revID(31),i) = real(ra2lon(dble(allDat(ic,revID(31),i)),t0))  
         !In case only the injection value is lon rather than RA:
         !if(i.eq.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
         !In case only the injection value is lon rather than RA:
@@ -1074,7 +1076,7 @@ subroutine save_data(exitcode)  !Save after-burnin data to file
   
   exitcode = 0
   o = 20 !Output port
-  open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__data.dat')
+  open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__data.txt')
   
   do p=1,nMCMCpar
      if(parID(p).eq.61) write(o,'(A10)',advance="no")'mchirp'

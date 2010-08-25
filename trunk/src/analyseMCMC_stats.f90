@@ -650,7 +650,7 @@ subroutine save_stats(exitcode)  !Save statistics to file
   exitcode = 0
   ic = 1 !Use chain 1
   o = 20 !Output port
-  open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__statistics.dat')
+  open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__statistics.txt')
   write(o,'(A)')trim(outputname)
   
   !Print general run and detector info:
@@ -782,12 +782,12 @@ subroutine save_stats(exitcode)  !Save statistics to file
   
   
   close(o) !Statistics output file
-  if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat -o '// &
+  if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.txt -o '// &
        trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
   !write(stdOut,*)
   if(prProgress.ge.1) then
-     if(saveStats.eq.1) write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat'
-     if(saveStats.eq.2) write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.dat,ps'
+     if(saveStats.eq.1) write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.txt'
+     if(saveStats.eq.2) write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.txt,ps'
   end if
   
 end subroutine save_stats
@@ -808,7 +808,7 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   exitcode = 0
   !ic = 1 !Use chain 1
   o = 20 !Output port
-  open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__bayes.dat')
+  open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__bayes.txt')
   write(o,'(A)')trim(outputname)
   
   write(o,'(//,A,/)')'GENERAL INFORMATION:'
@@ -826,12 +826,12 @@ subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file
   
   close(o) !Bayes output file
   
-  if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat -o '// &
+  if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.txt -o '// &
        trim(outputdir)//'/'//trim(outputname)//'__bayes.ps')
   !write(stdOut,*)
   if(prProgress.ge.1) then
-     if(saveStats.eq.1) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat'
-     if(saveStats.eq.2) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputdir)//'/'//trim(outputname)//'__bayes.dat,ps'
+     if(saveStats.eq.1) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputdir)//'/'//trim(outputname)//'__bayes.txt'
+     if(saveStats.eq.2) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputdir)//'/'//trim(outputname)//'__bayes.txt,ps'
   end if
   
 end subroutine save_bayes
@@ -859,7 +859,7 @@ subroutine save_cbc_wiki_data(ic)
   
   !Print output for CBC Wiki:
   o = 20
-  write(wikifilename,'(A)')trim(outputname)//'__wiki.dat'
+  write(wikifilename,'(A)')trim(outputname)//'__wiki.txt'
   open(unit=o,form='formatted',status='replace',action='write',position='rewind',file=trim(outputdir)//'/'//trim(wikifilename), &
        iostat=io)
   if(io.ne.0) then
