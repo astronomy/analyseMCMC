@@ -94,16 +94,29 @@ end subroutine bindata2dold
 
 
 !***********************************************************************************************************************************
-subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Compute bin number rather than search for it ~10x faster
-  !x - input: data, n points
-  !norm - input: normalise (1) or not (0)
-  !nbin - input: number of bins
-  !xmin, xmax - in/output: set xmin=xmax to auto-determine
+!> \brief Bin data in 2 dimensions - computing the bin number rather than searching for it is ~10x faster
+!! \param n  Number of input data points (integer)
+!! \param x  Input data: x values (real)
+!! \param y  Input data: y values (real)
+!! \param norm  Normalise the bins (1) or not (0) (integer)
+!! \param nxbin  Desired number of bins in the x direction
+!! \param nybin  Desired number of bins in the y direction
+!! \param xmin1  Lower limit for the binning range in the x direction - autodetermine if xmin1=xmax1 (real)
+!! \param xmax1  Upper limit for the binning range in the x direction - autodetermine if xmin1=xmax1 (real)
+!! \param ymin1  Lower limit for the binning range in the y direction - autodetermine if ymin1=ymax1 (real)
+!! \param ymax1  Upper limit for the binning range in the y direction - autodetermine if ymin1=ymax1 (real)
+!! \retval z     Binned data set z(nxbin,nybin) (real)
+!! \retval tr    Transformation elements for pgplot tr(6) (real)
+!<
+subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)
   
   implicit none
-  integer :: i,n,bx,by,nxbin,nybin,norm
-  real :: x(n),y(n),z(nxbin+1,nybin+1)
-  real :: xmin,xmax,ymin,ymax,dx,dy,xmin1,xmax1,ymin1,ymax1,tr(6)
+  integer, intent(in) :: n, nxbin,nybin, norm
+  real, intent(in) :: x(n),y(n)
+  real, intent(inout) :: xmin1,xmax1,ymin1,ymax1
+  real, intent(out) :: z(nxbin+1,nybin+1),tr(6)
+  integer :: i,bx,by
+  real :: xmin,xmax,ymin,ymax,dx,dy
   
   xmin = xmin1
   xmax = xmax1
@@ -401,3 +414,46 @@ end function injectionrange2d
 
 
 
+!***********************************************************************************************************************************
+!> \brief Find the fraction of non-zero bins for which more than frac*8 of their neighbours are smaller
+!! \param nxbin  Desired number of bins in the x direction
+!! \param nybin  Desired number of bins in the y direction
+!! \param z     Binned data set z(nxbin,nybin) (real)
+!<
+subroutine check_binned_data(nxbin,nybin,z)
+  
+  implicit none
+  integer, intent(in) :: nxbin,nybin
+  real, intent(in) :: z(nxbin+1,nybin+1)
+  
+  integer :: n,bx,by,bbx,bby,count,nsb
+  real :: frac
+  
+  frac = 1.0
+  
+  n = 0
+  count = 0
+  do bx = 2,nxbin-1
+     do by = 2,nybin-1
+        
+        if(z(bx,by).lt.1.e-30) cycle  !Don't do empty bins
+        
+        nsb = 0
+        !print*,bx,by,z(bx,by)
+        do bbx = -1,1
+           do bby = -1,1
+              if(bbx.eq.0.and.bby.eq.0) cycle
+              if(z(bx+bbx,by+bby).lt.z(bx,by)) nsb = nsb + 1  !If the neigbouring bin is smaller, count it
+              !if(z(bx+bbx,by+bby).lt.1.e-30) nsb = nsb + 1  !If the neigbouring bin is empty, count it
+           end do
+        end do
+        
+        n = n+1
+        if(nsb.ge.nint(frac*real(8))) count = count+1
+        
+     end do
+  end do
+  
+  write(6,'(//,A,F10.2,2I6,3I8,F10.4,//)') 'Check_binned_data:',frac,nxbin,nybin,(nxbin-2)*(nybin-2),n,count,real(count)/real(n)
+  
+end subroutine check_binned_data

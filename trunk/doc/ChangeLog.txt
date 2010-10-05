@@ -2,6 +2,13 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   162: sluys, 05/11/2010
+     - Experimenting with a self-consistency test for 2D bin sizes
+     - Added some comments
+   
+   161: sluys, 05/11/2010
+     - Fixed minor typo
+     
    159: sluys, 16/04/2010
      - Added Net SNR and injection log posterior to __statistics.dat
      

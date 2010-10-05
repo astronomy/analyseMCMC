@@ -612,15 +612,22 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
            end do
         end if
         
-        !In case you ran with lon rather than RA:
-        !allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
-		!allDat(ic,revID(31),i) = real(ra2lon(dble(allDat(ic,revID(31),i)),t0))  
-        !In case only the injection value is lon rather than RA:
-        !if(i.eq.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
-        !In case only the injection value is lon rather than RA:
-        !if(i.ne.1) allDat(ic,revID(31),i) = real(ra2lon(dble(allDat(ic,revID(31),i)),t0))
-        !In case all but the injection value is lon rather than RA:
-        !if(i.ne.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
+        
+        if(1.eq.2) then
+           !In case you ran with lon rather than RA:
+           allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
+           !allDat(ic,revID(31),i) = real(ra2lon(dble(allDat(ic,revID(31),i)),t0))  
+           
+           !In case only the injection value is lon rather than RA:
+           if(i.eq.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
+           
+           !In case only the injection value is lon rather than RA:
+           if(i.ne.1) allDat(ic,revID(31),i) = real(ra2lon(dble(allDat(ic,revID(31),i)),t0))
+           
+           !In case all but the injection value is lon rather than RA:
+           if(i.ne.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
+        end if
+        
         
         i = i+1
         if(tmpInt.ge.maxChLen) exit

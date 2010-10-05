@@ -1,12 +1,13 @@
-!> \mainpage Documentation analyseMCMC
+!> \file analyseMCMC_main.f90  AnalyseMCMC main routine
+!! 
+!! \mainpage Documentation AnalyseMCMC
 !! AnalyseMCMC is a Fortran code that can be used to analyse the output of 
 !! <a href="http://www.phys.ualberta.ca/~sluys/index.php?title=SPINspiral">SPINspiral</a>.
 !!
-!! \file analyseMCMC_main.f90
 !! 
-!! \brief Contains analyseMCMC main routine
+!! 
 !!
-!! I/O units used:
+!! \par I/O units used:
 !! 
 !!  0: StdErr
 !!  6: StdOut
@@ -30,6 +31,7 @@
 !! 
 !! 51: Output: HTML main file
 !! 
+!! \par 
 !! This program replaces plotspins.
 !<
 
@@ -37,6 +39,7 @@
 
 
 !***********************************************************************************************************************************
+!> \brief Main routine
 program analyseMCMC
   use basic
   use constants

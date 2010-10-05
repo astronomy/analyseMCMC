@@ -16,6 +16,7 @@ subroutine pdfs2d(exitcode)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
   character :: string*99,str*99,tempfile*99,ivalstr*99,delta*19,outputbasefile*199
   logical :: project_map,sky_position,binary_orientation
+  !real :: xmin1,xmax1,ymin1,ymax1
   
   exitcode = 0
   countplots = 0
@@ -264,7 +265,27 @@ subroutine pdfs2d(exitcode)
         if(normPDF2D.le.2.or.normPDF2D.eq.4) then
            
            !Bin data:  compute bin number rather than find it, ~10x faster:
-           call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin,xmax,ymin,ymax,z,tr)  
+           call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin,xmax,ymin,ymax,z,tr)
+           
+           !Test
+           !call check_binned_data(Nbin2Dx,Nbin2Dy,z)
+           
+           !do Nbin2Dx = 10,200,10
+           !   Nbin2Dy = Nbin2Dx
+           !   xmin1 = xmin
+           !   xmax1 = xmax
+           !   ymin1 = ymin
+           !   ymax1 = ymax
+           !   
+           !   !Bin data:  compute bin number rather than find it, ~10x faster:
+           !   call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin1,xmax1,ymin1,ymax1,z,tr)
+           !   
+           !   !Test!
+           !   call check_binned_data(Nbin2Dx,Nbin2Dy,z)
+           !   
+           !end do
+           !stop
+           
            
            if(normPDF2D.eq.1) z = max(0.,log10(z + 1.e-30))
            if(normPDF2D.eq.2) z = max(0.,sqrt(z + 1.e-30))
@@ -294,7 +315,7 @@ subroutine pdfs2d(exitcode)
               end do
            end if
         end if
-        if(normPDF2D.eq.3) then
+        if(normPDF2D.eq.3) then  ! Weight by likelihood value
            if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  binning 2D data...'
            !Measure amount of likelihood in each bin:
            call bindata2da(n(ic),xx(1:n(ic)),yy(1:n(ic)),zz(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin,xmax,ymin,ymax,z,tr)
