@@ -14,10 +14,10 @@ subroutine set_originalParameterNames()
    
    !Short ASCII names for text output:
    parNames(11:19)   = (/'tc      ','t40     ','        ','        ','        ','        ','        ','        ','        '/)
-   parNames(21:29)   = (/'dl^3    ','log_dl  ','        ','        ','        ','        ','        ','        ','        '/)
-   parNames(31:39)   = (/'RA      ','sin_dec ','        ','        ','        ','        ','        ','        ','        '/)
+   parNames(21:29)   = (/'dl^3    ','log_dl  ','dl      ','        ','        ','        ','        ','        ','        '/)
+   parNames(31:39)   = (/'RA      ','sin_dec ','dec     ','        ','        ','        ','        ','        ','        '/)
    parNames(41:49)   = (/'phase   ','        ','        ','        ','        ','        ','        ','        ','        '/)
-   parNames(51:59)   = (/'cos_i   ','psi     ','sin_thJo','ph_Jo   ','        ','        ','        ','        ','        '/)
+   parNames(51:59)   = (/'cos_i   ','psi     ','sin_thJo','ph_Jo   ','i       ','        ','        ','        ','        '/)
    parNames(61:69)   = (/'Mc      ','eta     ','M1      ','M2      ','        ','        ','        ','        ','        '/)
    parNames(71:79)   = (/'spin1   ','cos_th1 ','phi1    ','        ','        ','        ','        ','        ','        '/)
    parNames(81:89)   = (/'spin2   ','cos_th2 ','phi2    ','        ','        ','        ','        ','        ','        '/)
@@ -34,9 +34,11 @@ subroutine set_originalParameterNames()
       
       pgParNs(21) = 'd\dL\u\u3\d (Mpc)'
       pgParNs(22) = 'logd\dL\u (Mpc)'
+      pgParNs(23) = 'd\dL\u (Mpc)'
       
       pgParNs(31) = '\(2127) (rad)'
       pgParNs(32) = 'sin \(2130)'
+      pgParNs(33) = '\(2130) (rad)'
       
       pgParNs(41) = '\(2147)\dc\u (rad)'
       
@@ -44,6 +46,7 @@ subroutine set_originalParameterNames()
       pgParNs(52) = '\(2149) (rad)'
       pgParNs(53) = 'sin \(2185)\dJ0\u'
       pgParNs(54) = '\(2147)\dJ0\u (rad)'
+      pgParNs(55) = '\(2135) (rad)'
       
       pgParNs(61) = '\(2563) (M\d\(2281)\u)'
       pgParNs(62) = '\(2133)'
@@ -82,9 +85,11 @@ subroutine set_originalParameterNames()
       
       pgParNss(21) = 'd\dL\u\u3\d'
       pgParNss(22) = 'logd\dL\u'
+      pgParNss(23) = 'd\dL\u'
       
       pgParNss(31) = '\(2127)'
       pgParNss(32) = 'sin \(2130)'
+      pgParNss(33) = '\(2130)'
       
       pgParNss(41) = '\(2147)\dc\u'
       
@@ -92,6 +97,7 @@ subroutine set_originalParameterNames()
       pgParNss(52) = '\(2149)'
       pgParNss(53) = 'sin \(2185)\dJ0\u'
       pgParNss(54) = '\(2147)\dJ0\u'
+      pgParNss(55) = '\(2135)'
       
       pgParNss(61) = '\(2563)'
       pgParNss(62) = '\(2133)'
@@ -132,9 +138,11 @@ subroutine set_originalParameterNames()
       
       pgParNs(21) = 'd\dL\u\u3\d (Mpc)'
       pgParNs(22) = 'logd\dL\u (Mpc)'
+      pgParNs(23) = 'd\dL\u (Mpc)'
       
       pgParNs(31) = '\(0627) (rad)'
       pgParNs(32) = 'sin \(0630)'
+      pgParNs(33) = '\(0630) (rad)'
       
       pgParNs(41) = '\(0647)\dc\u (rad)'
       
@@ -142,6 +150,7 @@ subroutine set_originalParameterNames()
       pgParNs(52) = '\(0649) (rad)'
       pgParNs(53) = 'sin \(0685)\dJ0\u'
       pgParNs(54) = '\(0647)\dJ0\u (rad)'
+      pgParNs(55) = '\(0635) (rad)'
       
       pgParNs(61) = '\(2563) (M\d\(2281)\u)'
       pgParNs(62) = '\(0633)'
@@ -180,9 +189,11 @@ subroutine set_originalParameterNames()
       
       pgParNss(21) = 'd\dL\u\u3\d'
       pgParNss(22) = 'logd\dL\u'
+      pgParNss(23) = 'd\dL\u'
       
       pgParNss(31) = '\(0627)'
       pgParNss(32) = 'sin \(0630)'
+      pgParNss(33) = '\(0630)'
       
       pgParNss(41) = '\(0647)\dc\u'
       
@@ -190,6 +201,7 @@ subroutine set_originalParameterNames()
       pgParNss(52) = '\(0649)'
       pgParNss(53) = 'sin \(0685)\dJ0\u'
       pgParNss(54) = '\(0647)\dJ0\u'
+      pgParNss(55) = '\(0635)'
       
       pgParNss(61) = '\(2563)'
       pgParNss(62) = '\(0633)'
@@ -229,13 +241,16 @@ subroutine set_originalParameterNames()
    
    pgUnits(21) = 'Mpc'
    pgUnits(22) = 'Mpc'
+   pgUnits(23) = 'Mpc'
    
    pgUnits(31) = 'rad'
+   pgUnits(33) = 'rad'
    
    pgUnits(41) = 'rad'
 
    pgUnits(52) = 'rad'
    pgUnits(54) = 'rad'
+   pgUnits(55) = 'rad'
    
    pgUnits(61) = 'M\d\(2281)\u'
    pgUnits(63) = 'M\d\(2281)\u'
@@ -276,10 +291,10 @@ subroutine set_derivedParameterNames()
    
    !Short ASCII names for text output:
    parNames(11:19)   = (/'tc      ','t40     ','        ','        ','        ','        ','        ','        ','        '/)
-   parNames(21:29)   = (/'dl      ','dl      ','        ','        ','        ','        ','        ','        ','        '/)
-   parNames(31:39)   = (/'RA      ','dec     ','        ','        ','        ','        ','        ','        ','        '/)
+   parNames(21:29)   = (/'dl      ','dl      ','dl      ','        ','        ','        ','        ','        ','        '/)
+   parNames(31:39)   = (/'RA      ','dec     ','dec     ','        ','        ','        ','        ','        ','        '/)
    parNames(41:49)   = (/'phase   ','        ','        ','        ','        ','        ','        ','        ','        '/)
-   parNames(51:59)   = (/'incl    ','psi     ','th_Jo   ','ph_Jo   ','        ','        ','        ','        ','        '/)
+   parNames(51:59)   = (/'incl    ','psi     ','th_Jo   ','ph_Jo   ','incl    ','        ','        ','        ','        '/)
    parNames(61:69)   = (/'Mc      ','eta     ','M1      ','M2      ','        ','        ','        ','        ','        '/)
    parNames(71:79)   = (/'spin1   ','th1     ','phi1    ','        ','        ','        ','        ','        ','        '/)
    parNames(81:89)   = (/'spin2   ','th2     ','phi2    ','        ','        ','        ','        ','        ','        '/)
@@ -296,9 +311,11 @@ subroutine set_derivedParameterNames()
       
       pgParNs(21) = 'd\dL\u (Mpc)'
       pgParNs(22) = 'd\dL\u (Mpc)'
+      pgParNs(23) = 'd\dL\u (Mpc)'
       
       pgParNs(31) = '\(2127) (h)'
       pgParNs(32) = '\(2130) (\(2218))'
+      pgParNs(33) = '\(2130) (\(2218))'
       
       pgParNs(41) = '\(2147)\dc\u (\(2218))'
       
@@ -306,6 +323,7 @@ subroutine set_derivedParameterNames()
       pgParNs(52) = '\(2149) (\(2218))'
       pgParNs(53) = '\(2185)\dJ0\u (\(2218))'
       pgParNs(54) = '\(2147)\dJ0\u (\(2218))'
+      pgParNs(55) = '\(2135) (\(2218))'
       
       pgParNs(61) = '\(2563) (M\d\(2281)\u)'
       pgParNs(62) = '\(2133)'
@@ -344,9 +362,11 @@ subroutine set_derivedParameterNames()
       
       pgParNss(21) = 'd\dL\u\u3\d'
       pgParNss(22) = 'logd\dL\u'
+      pgParNss(21) = 'd\dL\u'
       
       pgParNss(31) = '\(2127)'
       pgParNss(32) = '\(2130)'
+      pgParNss(33) = '\(2130)'
       
       pgParNss(41) = '\(2147)\dc\u'
       
@@ -354,6 +374,7 @@ subroutine set_derivedParameterNames()
       pgParNss(52) = '\(2149)'
       pgParNss(53) = '\(2185)\dJ0\u'
       pgParNss(54) = '\(2147)\dJ0\u'
+      pgParNss(51) = '\(2135)'
       
       pgParNss(61) = '\(2563)'
       pgParNss(62) = '\(2133)'
@@ -395,9 +416,11 @@ subroutine set_derivedParameterNames()
       
       pgParNs(21) = 'd\dL\u (Mpc)'
       pgParNs(22) = 'd\dL\u (Mpc)'
+      pgParNs(23) = 'd\dL\u (Mpc)'
       
       pgParNs(31) = '\(0627) (h)'
       pgParNs(32) = '\(0630) (\(2218))'
+      pgParNs(33) = '\(0630) (\(2218))'
       
       pgParNs(41) = '\(0647)\dc\u (\(2218))'
       
@@ -405,6 +428,7 @@ subroutine set_derivedParameterNames()
       pgParNs(52) = '\(0649) (\(2218))'
       pgParNs(53) = '\(0685)\dJ0\u (\(2218))'
       pgParNs(54) = '\(0647)\dJ0\u (\(2218))'
+      pgParNs(55) = '\(0635) (\(2218))'
       
       pgParNs(61) = '\(2563) (M\d\(2281)\u)'
       pgParNs(62) = '\(0633)'
@@ -443,9 +467,11 @@ subroutine set_derivedParameterNames()
       
       pgParNss(21) = 'd\dL\u\u3\d'
       pgParNss(22) = 'logd\dL\u'
+      pgParNss(23) = 'd\dL\u'
       
       pgParNss(31) = '\(0627)'
       pgParNss(32) = '\(0630)'
+      pgParNss(33) = '\(0630)'
       
       pgParNss(41) = '\(0647)\dc\u'
       
@@ -453,6 +479,7 @@ subroutine set_derivedParameterNames()
       pgParNss(52) = '\(0649)'
       pgParNss(53) = '\(0685)\dJ0\u'
       pgParNss(54) = '\(0647)\dJ0\u'
+      pgParNss(55) = '\(0635)'
       
       pgParNss(61) = '\(2563)'
       pgParNss(62) = '\(0633)'
@@ -492,9 +519,11 @@ subroutine set_derivedParameterNames()
    
    pgUnits(21) = 'Mpc'
    pgUnits(22) = 'Mpc'
+   pgUnits(23) = 'Mpc'
    
    pgUnits(31) = '\uh\d'
    pgUnits(32) = '\(2218)'
+   pgUnits(33) = '\(2218)'
    
    pgUnits(41) = '\(2218)'
    
@@ -502,6 +531,7 @@ subroutine set_derivedParameterNames()
    pgUnits(52) = '\(2218)'
    pgUnits(53) = '\(2218)'
    pgUnits(54) = '\(2218)'
+   pgUnits(55) = '\(2218)'
    
    pgUnits(61) = 'M\d\(2281)\u'
    pgUnits(63) = 'M\d\(2281)\u'

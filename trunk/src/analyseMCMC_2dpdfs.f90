@@ -148,6 +148,7 @@ subroutine pdfs2d(exitcode)
         binary_orientation = .false.
         project_map = .false.
         if(parID(p1).eq.31.and.parID(p2).eq.32) sky_position = .true.
+        if(parID(p1).eq.31.and.parID(p2).eq.33) sky_position = .true.
         if(parID(p1).eq.52.and.parID(p2).eq.51) binary_orientation = .true.
         
         !Make a special sky plot (i.e., plot stars or use projection) if plotSky>0 and RA,Dec are plotted:

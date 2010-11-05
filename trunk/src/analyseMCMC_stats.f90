@@ -61,7 +61,7 @@ subroutine statistics(exitcode)
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = asin(selDat(ic,p,1:n(ic)))*rr2d
               if(ic.eq.1) startval(1:nChains0,p,1:3) = asin(startval(1:nChains0,p,1:3))*rr2d
               
-           case(41,52,54,73,83) !rad -> deg:
+           case(33,41,52,54,55,73,83) !rad -> deg:
               allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*r2d
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2d
               if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2d
