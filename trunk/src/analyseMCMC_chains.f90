@@ -1,5 +1,8 @@
-!Plot chains (posterior, parameters, jumps, etc.) for analysemcmc
+!> \file analyseMCMC_chains.f90  Plot chains (posterior, parameters, jumps, etc.) for analyseMCMC
 
+
+!***********************************************************************************************************************************
+!> \brief  Plot chains (posterior, parameters, jumps, etc.) for analyseMCMC
 subroutine chains(exitcode)
   use constants
   use analysemcmc_settings
@@ -8,7 +11,8 @@ subroutine chains(exitcode)
   use plot_data
   use chain_data
   implicit none
-  integer :: i,j,pgopen,imin,ci,lw,symbol,io,ic,p,status,system,exitcode
+  integer, intent(out) :: exitcode
+  integer :: i,j,pgopen,imin,ci,lw,symbol,io,ic,p,status,system
   real :: rev360,rev24,rev180,compute_median_real
   real :: dx,dy,xmin,xmax,ymin,ymax,sch,plx,ply
   character :: title*99
@@ -45,7 +49,8 @@ subroutine chains(exitcode)
      call pginitl(colour,file,whiteBG)
      !call pgsubp(1,2)
      
-     if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.94) !To make room for title
+     call pgsvp(0.08,0.92,0.06,0.94) !Need wider margin for title on right
+     if(quality.eq.0) call pgsvp(0.08,0.92,0.06,0.94) !To make room for title
      
      ic = 1
      p=1
@@ -76,10 +81,12 @@ subroutine chains(exitcode)
      dy = abs(ymax-ymin)*0.05
      
      call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
-     call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
+     !call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
+     call plot_posterior_snr_axes(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
+     
      if(abs(startval(1,1,1)-startval(1,1,2))/abs(startval(1,1,1)).gt.1.e-10) then
         call pgsls(4)
-        call pgbox('',0.0,0,'G',0.0,0)
+        call pgbox('',0.0,0,'G',0.0,0)  ! Plot a grid of horizontal lines
         call pgsls(1)
      end if
      
@@ -120,7 +127,9 @@ subroutine chains(exitcode)
      end do
      call pgsci(1)
      call pgsls(1)
-     call pgmtxt('T',0.5,0.1,0.1,'log Posterior')
+     !call pgmtxt('T',0.5,0.1,0.1,'log Posterior')
+     call pgmtxt('L',2.0,0.5,0.5,'log Posterior')
+     call pgmtxt('R',2.5,0.5,0.5,'\(2267)(2logP) \(0248) SNR')
      
      if(quality.eq.0) then
         !call pgsch(sch*0.8)
@@ -1074,3 +1083,73 @@ subroutine chains(exitcode)
   
 end subroutine chains
 !***********************************************************************************************************************************
+
+
+
+
+
+
+
+
+
+!***********************************************************************************************************************************
+!> \brief  Plot the vertical axes for the log Posterior plot: logP on the left, sqrt(2logP)~SNR on the right
+subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
+  implicit none
+  real, intent(in) :: itermin,itermax,logpmin,logpmax
+  integer :: i,imin,imax, tick_omi, n
+  real :: snrmin,snrmax,dsnr,snr, dlogp,logp, ntick0,tick_om,dtick, tick
+  real :: len, dist, ori
+  character :: label*19,fmt*19
+  
+  call pgbox('BCNTS',0.0,0,'BNTS',0.0,0)  ! No right border
+  call pgbox('',0.0,0,'C',0.0,0)          ! Right border without ticks, labels
+  
+  dlogp = itermin                         ! Remove 'unused variable' compiler warning
+  dlogp = logpmax - logpmin
+  snrmin = sqrt(max(logpmin*2,0.))
+  snrmax = sqrt(logpmax*2)
+  dsnr = snrmax-snrmin
+  
+  
+  ntick0 = 4.                                      ! ~ desired number of ticks
+  tick_om = 10.**(floor(log10(abs(dsnr/ntick0))))  ! Order of magnitude of distance between ticks
+  tick_omi = nint(log10(tick_om))
+  dtick = nint(dsnr/ntick0 / tick_om) * tick_om    ! Distance between ticks
+  
+  imin = floor(snrmin/dtick)
+  imax = ceiling(snrmax/dtick)
+  
+  len  = 0.5  ! Tick length
+  dist = 0.3  ! Distance axis - label
+  ori  = 0.0  ! Orientation (0-360 degrees)
+  
+  ! Format for snr label:
+  n = abs(tick_omi)
+  if(tick_omi.lt.0) then
+     write(fmt,'(A2,I1,A1,I1,A1)')'(F',n+3,'.',n,')'
+  else if(tick_omi.le.6) then
+     write(fmt,'(A2,I1,A1)')'(I',tick_omi,')'
+  else
+     write(fmt,'(A)')'(ES7.1)'
+  end if
+  
+  ! Print ticks and labels:
+  do i=imin,imax
+     snr = i*dtick
+     logp = (snr**2)/2.
+     tick = (logp - logpmin)/dlogp
+     if(tick.lt.0..or.tick.gt.1.) cycle
+     
+     if(tick_omi.lt.0) then
+        write(label,trim(fmt)) snr
+     else
+        write(label,trim(fmt)) nint(snr)
+     end if
+     
+     call pgtick(itermax,logpmin,itermax,logpmax, tick, len, 0.0, dist, ori, trim(label))
+  end do
+  
+end subroutine plot_posterior_snr_axes
+!***********************************************************************************************************************************
+
