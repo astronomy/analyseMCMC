@@ -1,40 +1,41 @@
-!> \file analyseMCMC_functions.f90
-!! \brief General routines and functions for analyseMCMC
-!<
+!> \file analyseMCMC_functions.f90  General routines and functions for analyseMCMC
 
 
 !***********************************************************************************************************************************
+!> \brief  Define the constants
 subroutine setconstants
   use constants
   
   implicit none
   integer :: i1,i2
   
-  pi =  4*atan(1.d0)  !pi
-  tpi = 2*pi          !2pi
-  pi2 = 0.5d0*pi      !pi/2
-  r2d = 180.d0/pi     !rad->deg
-  d2r = pi/180.d0     !deg->rad
-  r2h = 12.d0/pi      !rad->hr
-  h2r = pi/12.d0      !hr->rad
-  c3rd = 1.d0/3.d0    !1/3     
+  ! Double precision:
+  pi =  4*atan(1.d0)  ! pi
+  tpi = 2*pi          ! 2pi
+  pi2 = 0.5d0*pi      ! pi/2
+  r2d = 180.d0/pi     ! rad->deg
+  d2r = pi/180.d0     ! deg->rad
+  r2h = 12.d0/pi      ! rad->hr
+  h2r = pi/12.d0      ! hr->rad
+  c3rd = 1.d0/3.d0    ! 1/3     
   
-  rpi = 4*atan(1.)    !pi      
-  rtpi = 2*rpi        !2pi     
-  rpi2 = 0.5*rpi      !pi/2    
-  rr2d = 180./rpi     !rad->deg
-  rd2r = rpi/180.     !deg->rad
-  rr2h = 12./rpi      !rad->hr 
-  rh2r = rpi/12.      !hr->rad 
-  rc3rd = 1./3.       !1/3     
+  ! Single precision:
+  rpi = 4*atan(1.)    ! pi      
+  rtpi = 2*rpi        ! 2pi     
+  rpi2 = 0.5*rpi      ! pi/2    
+  rr2d = 180./rpi     ! rad->deg
+  rd2r = rpi/180.     ! deg->rad
+  rr2h = 12./rpi      ! rad->hr 
+  rh2r = rpi/12.      ! hr->rad 
+  rc3rd = 1./3.       ! 1/3     
   
-  stdErr = 0  !Standard error unit
-  stdOut = 6  !Standard output unit - screen
+  stdErr = 0  ! Standard error unit
+  stdOut = 6  ! Standard output unit - screen
   
-  !Define detector abbreviations here (don't forget to change detabbrs() in the module constants in analyseMCMC_modules.f90):
+  ! Define detector abbreviations here (don't forget to change detabbrs() in the module constants in analyseMCMC_modules.f90):
   detabbrs = (/'H1','L1','V ','H2'/)
   
-  !Define waveforms here (don't forget to change waveforms() in the module constants in analyseMCMC_modules.f90):
+  ! Define waveforms here (don't forget to change waveforms() in the module constants in analyseMCMC_modules.f90):
   waveforms(0) = 'Unknown'
   waveforms(1) = 'Apostolatos'
   waveforms(2) = 'SpinTaylor12'
@@ -43,12 +44,12 @@ subroutine setconstants
   waveforms(5) = 'PhenSpinInspiralRD'
   waveforms(9) = 'Ana.L'
   
-  upline = char(27)//'[2A'  !Printing this makes the cursor move up one line (actually two lines, since a hard return is included)
+  upline = char(27)//'[2A'   ! Printing this makes the cursor move up one line (actually two lines, since a hard return is included)
   
-  call get_environment_variable('HOME',homedir)       !Get the current user's home directory
-  call get_environment_variable('PWD',workdir)        !Set workdir  = $PWD
-  call get_environment_variable('HOSTNAME',hostname)  !Set hostname = $HOSTNAME  !Apparently not always exported
-  call get_environment_variable('USER',username)      !Set username = $USER
+  call get_environment_variable('HOME',homedir)       ! Get the current user's home directory
+  call get_environment_variable('PWD',workdir)        ! Set workdir  = $PWD
+  call get_environment_variable('HOSTNAME',hostname)  ! Set hostname = $HOSTNAME  !Apparently not always exported
+  call get_environment_variable('USER',username)      ! Set username = $USER
   
   i1 = index(workdir,trim(homedir))
   if(i1.gt.0.and.i1.lt.99) then
@@ -63,6 +64,7 @@ end subroutine setconstants
 
 
 !***********************************************************************************************************************************
+!> \brief  Read the settings file (called analysemcmc.dat by default)
 subroutine read_settingsfile
   use basic
   use constants
@@ -74,7 +76,7 @@ subroutine read_settingsfile
   real(double) :: dblvar
   filename = 'analysemcmc.dat'
   
-  !dblvar is used when a (possibly) large integer is expected; read it as double, then convert to integer
+  ! dblvar is used when a (possibly) large integer is expected; read it as double, then convert to integer
   
   u = 15
   open(unit=u,form='formatted',status='old',action='read',file=trim(filename),iostat=io)
@@ -202,6 +204,7 @@ end subroutine read_settingsfile
 
 
 !***********************************************************************************************************************************
+!> \brief  Write a copy of the settings file (called analysemcmc.used by default)
 subroutine write_settingsfile
   use analysemcmc_settings
   implicit none
@@ -366,7 +369,8 @@ end subroutine write_settingsfile
 
 
 !***********************************************************************************************************************************
-subroutine set_plotsettings  !Set plot settings to 'default' values
+!> \brief  Set plot settings to 'default' values
+subroutine set_plotsettings
   use analysemcmc_settings
   implicit none
   
@@ -458,7 +462,10 @@ end subroutine set_plotsettings
 
 
 !***********************************************************************************************************************************
-subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspiral.output.*)
+!> \brief  Read the SPINspiral output files (SPINspiral.output.*)
+!!
+!! \retval exitcode  Exit status code (0=ok)
+subroutine read_mcmcfiles(exitcode)
   use basic
   use constants
   use analysemcmc_settings
@@ -467,7 +474,8 @@ subroutine read_mcmcfiles(exitcode)  !Read the SPINspiral output files (SPINspir
   use chain_data
   
   implicit none
-  integer :: i,tmpInt,io,ic,j,exitcode,readerror,p
+  integer, intent(out) :: exitcode
+  integer :: i,tmpInt,io,ic,j,readerror,p
   character :: tmpStr*99,detname*14,firstLine*999,infile*99
   real(double) :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar),lon2ra,ra2lon
   
@@ -653,10 +661,20 @@ end subroutine read_mcmcfiles
 
 
 !***********************************************************************************************************************************
-!>Extract info from the chains and print some of it to screen:
-!!  print MCMC run info,  determine Lmax, burn-in,  print chain info,  determine thinning for chains plots,  change/add parameters, 
-!!  determine injection, start, Lmax values of chains,  compute jumps,  construct output file name,  store data in selDat (from dat)
-!<
+!> \brief Extract info from the chains and print some of it to screen
+!!
+!! \retval exitcode  Exit status code (0=ok)
+!! 
+!!  \par
+!!  print MCMC run info:
+!!  - determine Lmax, burn-in,  
+!!  - print chain info,  
+!!  - determine thinning for chains plots,  
+!!  - change/add parameters, 
+!!  - determine injection, start, Lmax values of chains,  
+!!  - compute jumps,  
+!!  - construct output file name,  
+!!  - store data in selDat (from dat)
 subroutine mcmcruninfo(exitcode)  
   use basic
   use constants
@@ -667,7 +685,8 @@ subroutine mcmcruninfo(exitcode)
   use plot_data
   
   implicit none
-  integer :: i,ic,j,p,exitcode,maxLine
+  integer, intent(out) :: exitcode
+  integer :: i,ic,j,p,maxLine
   real :: avgtotthin,compute_median_real
   real(double) :: lon2ra,gmst
   character :: infile*99
@@ -1070,7 +1089,10 @@ end subroutine mcmcruninfo
 
 
 !***********************************************************************************************************************************
-subroutine save_data(exitcode)  !Save after-burnin data to file  
+!> \brief  Save post-burnin data to file (__data.txt)
+!!
+!! \retval exitcode  Exit status code (0=ok)
+subroutine save_data(exitcode)
   use constants
   use analysemcmc_settings
   use general_data
@@ -1079,7 +1101,8 @@ subroutine save_data(exitcode)  !Save after-burnin data to file
   use plot_data
   
   implicit none
-  integer :: i,o,exitcode,p
+  integer, intent(out) :: exitcode
+  integer :: i,o,p
   
   exitcode = 0
   o = 20 !Output port
@@ -1124,45 +1147,61 @@ end subroutine save_data
 
 
 !***********************************************************************************************************************************
+!> \brief  Compute right ascension (in radians) from longitude (radians) and GPS time (seconds)
+!!
+!! \param lon     Longitude
+!! \param GPSsec  GPS time in seconds
+!!
+!! - Declination == latitude for equatorial coordinates.
 function lon2ra(lon, GPSsec)
-  ! Compute right ascension (in radians) from longitude (radians) and GPS time (seconds). 
-  ! Declination == latitude for equatorial coordinates.
   use basic
   use constants
   
   implicit none
-  real(double) :: lon2ra,lon,GPSsec,gmst
+  real(double), intent(in) :: lon,GPSsec
+  real(double) :: lon2ra,gmst
   
   lon2ra = mod(lon + gmst(GPSsec) + 10*tpi,tpi)
+  
 end function lon2ra
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
+!> \brief  Compute longitude (in radians) from right ascension (radians) and GPS time (seconds)
+!!
+!! \param ra      Right Ascension
+!! \param GPSsec  GPS time in seconds
+!!
+!! - Declination == latitude for equatorial coordinates.
 function ra2lon(ra, GPSsec)
-  ! Compute longitude (in radians) from right ascension (radians) and GPS time (seconds). 
-  ! Declination == latitude for equatorial coordinates.
   use basic
   use constants
   
   implicit none
-  real(double) :: ra2lon,ra,GPSsec,gmst
+  real(double), intent(in) :: ra,GPSsec
+  real(double) :: ra2lon,gmst
   
   ra2lon = mod(ra - gmst(GPSsec) + 10*tpi,tpi)
+  
 end function ra2lon
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
+!> \brief  Compute the 'Greenwich Mean Sidereal Time' (in radians) from GPS time (in seconds)
+!!
+!! \param GPSsec  GPS time in seconds
+!!
+!! \see K.R. Lang (1999), p.80sqq.
 function gmst(GPSsec)
-  ! Compute the 'Greenwich Mean Sidereal Time' (in radians) from GPS time (in seconds).                              
-  ! See K.R. Lang (1999), p.80sqq.
   use basic
   use constants
   
   implicit none
+  real(double), intent(in) :: GPSsec
   real(double) :: gmst,seconds,days,centuries,secCurrentDay
-  real(double) :: gps0,leapseconds,GPSsec
+  real(double) :: gps0,leapseconds
   
   gps0 = 630720013.d0 !GPS time at 1/1/2000 at midnight
   leapseconds = 32.d0 !At Jan 1st 2000
@@ -1506,7 +1545,8 @@ end subroutine ludcmp
 
 
 !***********************************************************************************************************************************
-function drev2pi(x)        !Returns angle in radians between 0 and 2pi (double precision)
+!> \brief  Returns angle in radians between 0 and 2pi (double precision)
+function drev2pi(x)
   use basic
   use constants
   
@@ -1517,7 +1557,8 @@ end function drev2pi
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!function rev(x)        !Returns angle in radians between 0 and 2pi
+!> \brief  Returns angle in radians between 0 and 2pi
+!function rev(x)
 !  use constants
 !  real :: x,rev
 !  rev = x - floor(x/rpi2)*rpi2
@@ -1526,7 +1567,8 @@ end function drev2pi
 
 
 !***********************************************************************************************************************************
-function revper(x,per)        !Returns periodic value x between 0 and per
+!> \brief  Returns periodic value x between 0 and per
+function revper(x,per)
    implicit none
    real :: x,per,revper
    revper = x - floor(x/per)*per
@@ -1535,7 +1577,8 @@ end function revper
 
 
 !***********************************************************************************************************************************
-function revpipi(x)      !Returns angle in radians between -pi and pi
+!> \brief  Returns angle in radians between -pi and pi
+function revpipi(x)
   use constants
   implicit none
   real :: x,revpipi
@@ -1545,7 +1588,8 @@ end function revpipi
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-function rev360(x)        !Returns angle in degrees between 0 and 360
+!> \brief  Returns angle in degrees between 0 and 360
+function rev360(x)
   implicit none
   real :: x,rev360
   rev360 = x - floor(x/360.)*360.
@@ -1553,7 +1597,8 @@ end function rev360
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-function rev180(x)        !Returns angle in degrees between 0 and 180
+!> \brief  Returns angle in degrees between 0 and 180
+function rev180(x)
   implicit none
   real :: x,rev180
   rev180 = x - floor(x/180.)*180.
@@ -1561,7 +1606,8 @@ end function rev180
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-function rev24(x)        !Returns angle in hours between 0 and 24
+!> \brief  Returns angle in hours between 0 and 24
+function rev24(x)
   implicit none
   real :: x,rev24
   rev24 = x - floor(x/24.)*24.
@@ -1569,7 +1615,8 @@ end function rev24
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-function rev2pi(x)        !Returns angle in radians between 0 and 2pi
+!> \brief  Returns angle in radians between 0 and 2pi
+function rev2pi(x)
   implicit none
   real :: x,rev2pi,pi
   pi = 4*atan(1.)
@@ -1578,7 +1625,8 @@ end function rev2pi
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-function drevpi(x)        !Returns angle in radians between 0 and pi - double
+!> \brief  Returns angle in radians between 0 and pi - double
+function drevpi(x)
   use basic
   use constants
   
@@ -1589,7 +1637,8 @@ end function drevpi
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-function rrevpi(x)        !Returns angle in radians between 0 and pi - real
+!> \brief  Returns angle in radians between 0 and pi - real
+function rrevpi(x)
   use constants
   implicit none
   real :: x,rrevpi
@@ -1745,7 +1794,8 @@ end subroutine sort
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-function tms(a1)   !Print angle as mm:ss.s string, input in hours
+!> \brief  Print angle as mm:ss.s string, input in hours
+function tms(a1)
   use basic
   
   implicit none
@@ -1767,7 +1817,8 @@ end function tms
 
 
 !***********************************************************************************************************************************
-function getos() !Determine the operating system type: 1-Linux, 2-MacOSX
+!> \brief  Determine the operating system type: 1-Linux, 2-MacOSX
+function getos()
   use constants
   
   implicit none
@@ -1794,7 +1845,8 @@ end function getos
 
 
 !***********************************************************************************************************************************
-function timestamp()  !Get time stamp in seconds since 1970-01-01 00:00:00 UTC, mod countmax
+!> \brief  Get time stamp in seconds since 1970-01-01 00:00:00 UTC, mod countmax
+function timestamp()
   use basic
   use constants
   
@@ -1810,7 +1862,7 @@ end function timestamp
 
 
 !***********************************************************************************************************************************
-!> Set the colour to ci, but use a darker shade if the background is black or a lighter shade if it is white
+!> \brief Set the colour to ci, but use a darker shade if the background is black or a lighter shade if it is white
 subroutine pgscidark(ci0,file,whiteBG)  
   implicit none
   integer :: ci0,ci,file,whiteBG
@@ -1828,8 +1880,8 @@ end subroutine pgscidark
 
 
 !***********************************************************************************************************************************
+!> \brief  Transforms longitude l, latitude b and radius r into a vector with length r.  Use r=1 for a unit vector
 subroutine lbr2vec(l,b,r,vec)
-  !Transforms longitude l, latitude b and radius r into a vector with length r.  Use r=1 for a unit vector
   use basic
   
   implicit none
@@ -1846,7 +1898,8 @@ end subroutine lbr2vec
 
 
 !***********************************************************************************************************************************
-function veclen(vec) !Compute the length of a 3D cartesian vector
+!> \brief  Compute the length of a 3D cartesian vector
+function veclen(vec)
   use basic
   
   implicit none
@@ -1856,7 +1909,8 @@ end function veclen
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-subroutine normvec(vec) !Normalise a 3D cartesian vector
+!> \brief  Normalise a 3D cartesian vector
+subroutine normvec(vec)
   use basic
   
   implicit none
@@ -1868,7 +1922,8 @@ end subroutine normvec
 
 
 !***********************************************************************************************************************************
-subroutine mc_eta_2_m1_m2(mc,eta,m1,m2)  !Convert chirp mass and eta to m1 and m2 - double precision
+!> \brief  Convert chirp mass and eta to m1 and m2 - double precision
+subroutine mc_eta_2_m1_m2(mc,eta,m1,m2)
   use basic
   
   implicit none
@@ -1887,7 +1942,8 @@ end subroutine mc_eta_2_m1_m2
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-subroutine mc_eta_2_m1_m2r(mcr,etar,m1r,m2r)  !Convert chirp mass and eta to m1 and m2 - single precision
+!> \brief  Convert chirp mass and eta to m1 and m2 - single precision
+subroutine mc_eta_2_m1_m2r(mcr,etar,m1r,m2r)
   use basic
   
   implicit none
@@ -1903,6 +1959,7 @@ end subroutine mc_eta_2_m1_m2r
 
 
 !***********************************************************************************************************************************
+!> \brief  Convert M1,M2 to Mchirp, eta  (double precision)
 subroutine m1_m2_2_mc_eta(m1,m2,mc,eta)
   use basic
   
@@ -1916,6 +1973,7 @@ end subroutine m1_m2_2_mc_eta
 
 
 !***********************************************************************************************************************************
+!> \brief  Convert M1,M2 to Mchirp, eta  (single precision)
 subroutine m1_m2_2_mc_etar(m1r,m2r,mcr,etar)
   use basic
   
@@ -1932,8 +1990,11 @@ end subroutine m1_m2_2_mc_etar
 
 
 !***********************************************************************************************************************************
-subroutine ang2vec(l,b,vec)  !Convert longitude, latitude (rad) to a 3D normal vector
-  !l in [0,2pi[; b in [-pi,pi]
+!> \brief  Convert longitude, latitude (rad) to a 3D normal vector
+!!
+!! - l in [0,2pi[
+!! - b in [-pi,pi]
+subroutine ang2vec(l,b,vec)
   use basic
   
   implicit none
@@ -1946,8 +2007,11 @@ end subroutine  ang2vec
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-subroutine vec2ang(vec,l,b)  !Convert a 3D normal vector to longitude, latitude (rad)
-  !l in [0,2pi[; b in [-pi,pi]
+!> \brief  Convert a 3D normal vector to longitude, latitude (rad)
+!!
+!! - l in [0,2pi[
+!! - b in [-pi,pi]
+subroutine vec2ang(vec,l,b)
   use basic
   
   implicit none
@@ -1960,7 +2024,8 @@ end subroutine  vec2ang
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-function dotproduct(vec1,vec2) !Compute the dot product of two 3D cartesian vectors
+!> \brief  Compute the dot product of two 3D cartesian vectors
+function dotproduct(vec1,vec2)
   use basic
   
   implicit none
@@ -1970,7 +2035,8 @@ end function dotproduct
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-subroutine crossproduct(vec1,vec2,crpr) !Compute the cross (outer) product of two cartesian vectors
+!> \brief  Compute the cross (outer) product of two cartesian vectors
+subroutine crossproduct(vec1,vec2,crpr)
   use basic
   
   implicit none
@@ -1983,9 +2049,8 @@ end subroutine crossproduct
 
 
 !***********************************************************************************************************************************
-!> Compute the polarisation angle of a source with position normal vector p and orientation normal vector o, 
-!! see Apostolatos et al. 1994, Eq.5
-!<
+!> \brief Compute the polarisation angle of a source with position normal vector p and orientation normal vector o
+!! \see Apostolatos et al. 1994, Eq.5
 function polangle(p,o)  
   use basic
   
@@ -2003,7 +2068,8 @@ end function polangle
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-function posangle(p,o)  !Compute the position angle of a source with position normal vector p and orientation normal vector o
+!> \brief  Compute the position angle of a source with position normal vector p and orientation normal vector o
+function posangle(p,o)
   use basic
   
   implicit none
@@ -2025,11 +2091,11 @@ end function posangle
 !***********************************************************************************************************************************
 
 
-!>
-!! Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
-!! All variables are angles (no cos, sin)
-!<
+
 !***********************************************************************************************************************************
+!> \brief  Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
+!! 
+!! - all variables are angles (no cos, sin)
 subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) 
   use basic
   use constants
@@ -2052,12 +2118,11 @@ subroutine compute_incli_polang(pl,pb,ol,ob, i,psi)
 end subroutine compute_incli_polang
 !***********************************************************************************************************************************
 
-!>
-!! Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
-!! All variables are angles (no cos, sin)
-!! Single-precision wrapper for compute_incli_polang()
-!<
 !***********************************************************************************************************************************
+!> \brief  Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
+!! 
+!! - all variables are angles (no cos, sin)
+!! - single-precision wrapper for compute_incli_polang()
 subroutine compute_incli_polangr(plr,pbr,olr,obr, ir,psir)
   use basic
   
@@ -2075,14 +2140,17 @@ subroutine compute_incli_polangr(plr,pbr,olr,obr, ir,psir)
 end subroutine compute_incli_polangr
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
-!> Compute the inclination and position angle for a source with position (pl,pb) and orientation (ol,ob)
+!> \brief  Compute the inclination and position angle for a source with position (pl,pb) and orientation (ol,ob)
+!!
+!! - pl,ol in [0,2pi[
+!! - pb,ob in [-pi,pi]
 subroutine compute_incli_posang(pl,pb,ol,ob, i,psi) 
   use basic
   use constants
   
   implicit none
-  !pl,ol in [0,2pi[;  pb,ob in [-pi,pi]
   real(double) :: pl,pb,ol,ob
   real(double) :: p(3),o(3),i,dotproduct,psi,posangle!,drevpi
   
@@ -2102,7 +2170,8 @@ end subroutine compute_incli_posang
 
 
 !***********************************************************************************************************************************
-subroutine detectorvector(d1,d2,jd)  !Determine the sky position at which the vector that connects two detectors points
+!> \brief  Determine the sky position at which the vector that connects two detectors points
+subroutine detectorvector(d1,d2,jd)
   use basic
   
   implicit none
@@ -2125,7 +2194,8 @@ end subroutine detectorvector
 
 
 !***********************************************************************************************************************************
-subroutine swapint(i1,i2)                        !Swap two integers
+!> \brief  Swap two integers
+subroutine swapint(i1,i2)
   implicit none
   integer :: i,i1,i2
   i = i1
@@ -2136,6 +2206,7 @@ end subroutine swapint
 
 
 !***********************************************************************************************************************************
+!> \brief  Determine the number of 1D bins to use from the number of points
 subroutine determine_nbin_1d(npoints,nbin)
   implicit none
   integer :: npoints,nbin
@@ -2149,6 +2220,7 @@ end subroutine determine_nbin_1d
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
+!> \brief  Compute the median of a data array (double precision)
 function compute_median(data,ni)
   use basic
   
@@ -2170,6 +2242,7 @@ end function compute_median
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
+!> \brief  Compute the median of a data array (single precision)
 function compute_median_real(datar,ni)
   use basic
   
@@ -2185,7 +2258,8 @@ end function compute_median_real
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-function compute_stdev(data,ni,mean)  !Compute the standard deviation of a data set data(1:ni) with mean 'mean' - double
+!> \brief  Compute the standard deviation of a data set data(1:ni) with mean 'mean'  (double precision)
+function compute_stdev(data,ni,mean)
   use basic
   
   implicit none
@@ -2203,7 +2277,8 @@ end function compute_stdev
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-function compute_stdev_real(datar,ni,meanr)  !Compute the standard deviation of a data set datar(1:ni) with mean 'meanr' - real
+!> \brief  Compute the standard deviation of a data set datar(1:ni) with mean 'meanr'  (single precision)
+function compute_stdev_real(datar,ni,meanr)
   use basic
   
   implicit none
@@ -2220,13 +2295,16 @@ end function compute_stdev_real
 
 
 !***********************************************************************************************************************************
-!> Get a random initialisation seed for a random-numbed generator (i.e., negative integer), e.g. ran_unif().  -1e6 < seed < 0
-!! degree: degree of randomness: 0-completely (same for a ms), 1-same during an hour, 2-same during a day
-!<
+!> \brief  Get a random initialisation seed for a random-numbed generator (i.e., negative integer)
+!! 
+!! \param degree  Degree of randomness: 0-completely (same for a ms), 1-same during an hour, 2-same during a day
+!! 
+!! Use for e.g. ran_unif().  -1e6 < seed < 0
 function get_ran_seed(degree)  
   
   implicit none
-  integer :: get_ran_seed,seed,degree,dt(8)
+  integer, intent(in) :: degree
+  integer :: get_ran_seed,seed,dt(8)
   character :: tmpstr*10
   
   call date_and_time(tmpstr,tmpstr,tmpstr,dt)  !dt: 1-year, 2-month, 3-day, 5-hour, 6-minute, 7-second, 8-millisecond
@@ -2242,14 +2320,18 @@ end function get_ran_seed
 
 
 !***********************************************************************************************************************************
-!> Generate a uniform random number 0 < r < 1.  Set seed1<0 to initialise the generator, seed1 is updated between calls
-!! Use two L'Ecuyer generators, period is ~10^18
-!! tab is a Bays-Durham shuffle table of length Ntab
-!<
+!> \brief  Generate a uniform random number 0 < r < 1
+!! 
+!! \param seed1  Seed;  set seed1<0 to initialise the generator, seed1 is updated between calls
+!! 
+!! - use two L'Ecuyer generators, period is ~10^18
+!! - tab is a Bays-Durham shuffle table of length Ntab
 function ran_unif(seed1)
   use basic
   
   implicit none
+  integer, intent(inout) :: seed1
+  integer :: j,k
   integer, parameter :: im1=2147483563, ia1=40014, iq1=53668, ir1=12211 
   integer, parameter :: im2=2147483399, ia2=40692, iq2=52774, ir2= 3791
   integer, parameter :: Ntab=32,im1m1=im1-1,ndtab=1+im1m1/Ntab
@@ -2257,7 +2339,6 @@ function ran_unif(seed1)
   real(double), parameter :: eps=1.d-15     !eps=1.d-15 should be safe for real(double)
   real(double), parameter :: rnmx=1.d0-eps  !rnmx should be the largest number <1 and !=1
   integer, save :: seed2=123456789, tab(Ntab)=0, iy=0
-  integer :: seed1,j,k
   real(double) :: ran_unif
   
   if(seed1.le.0) then                                 !'Initialise' generator
@@ -2296,15 +2377,14 @@ end function ran_unif
 
 
 !***********************************************************************************************************************************
+!> \brief  Find files in the current working directory
+!!
+!! \param match    Search string to match
+!! \param nff      Maximum number of files to return
+!! \param all      All files?  0-select manually from list, 1-always return all files in list
+!! \retval fnames  Array that contains the files found; make sure it has the same length as the array in the calling programme
+!! \retval nf      The actual number of files returned in fnames ( = min(number found, nff))
 subroutine findFiles(match,nff,all,fnames,nf)  
-  !Input:
-  !  match:   search string to match
-  !  nff:     maximum number of files to return
-  !  all:     0-select manually from list, 1-always return all files in list
-  !Output:
-  !  fnames:  array that contains the files found; make sure it has the same length as the array in the calling programme
-  !  nf:      the actual number of files returned in fnames ( = min(number found, nff))
-  
   use constants
   implicit none
   integer :: i,j,k,fnum,nf,nff,status,system,all,io
@@ -2384,6 +2464,7 @@ end subroutine findFiles
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
+!> \brief  Define constants that contain the current date or time
 subroutine set_currentdate_constants()
   use basic
   use constants
@@ -2409,11 +2490,12 @@ end subroutine set_currentdate_constants
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-subroutine quit_program(message)  !Print a message and stop the execution of the current program
+!> \brief  Print a message and stop the execution of the current program
+subroutine quit_program(message)
   use basic
   use constants
   implicit none
-  character :: message*(*)
+  character, intent(in) :: message*(*)
   
   write(stdErr,'(/,A)')'  '//trim(message)
   write(stdErr,'(A,/)')'  Aborting...'

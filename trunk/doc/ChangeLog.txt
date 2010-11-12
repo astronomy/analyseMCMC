@@ -1,6 +1,10 @@
 
+
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
+   
+   168: sluys, 12/11/2010
+     - Adding Doxygen comments; added Doxyfile to svn
    
    167: sluys, 12/11/2010
      - Added subticks to plot_posterior_snr_axes()

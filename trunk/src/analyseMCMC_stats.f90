@@ -1,13 +1,11 @@
-!> \file analyseMCMC_stats.f90
-!! \brief Compute statistics for analyseMCMC
-!<
+!> \file analyseMCMC_stats.f90  Compute statistics for analyseMCMC
 
 
 !***********************************************************************************************************************************
 !> \brief Compute basic statistics for analyseMCMC
-!! \retval exitcode Status code
-!! \retval other Results are returned using a number of modules
-!<
+!! 
+!! \retval exitcode  Exit status code
+!! - other Results are returned using a number of modules
 subroutine statistics(exitcode)
   use basic
   use constants
@@ -637,7 +635,10 @@ end subroutine statistics
 
 
 !***********************************************************************************************************************************
-subroutine save_stats(exitcode)  !Save statistics to file  
+!> \brief  Save statistics to file  
+!! 
+!! \retval exitcode  Exit status code
+subroutine save_stats(exitcode)
   use constants
   use analysemcmc_settings
   use general_data
@@ -795,7 +796,10 @@ end subroutine save_stats
 
 
 !***********************************************************************************************************************************
-subroutine save_bayes(exitcode)  !Save Bayes-factor statistics to file  
+!> \brief  Save Bayes-factor statistics to file  
+!! 
+!! \retval exitcode  Exit status code
+subroutine save_bayes(exitcode)
   use constants
   use analysemcmc_settings
   use general_data
@@ -842,6 +846,9 @@ end subroutine save_bayes
 
 
 !***********************************************************************************************************************************
+!> \brief  Save data in CBC wiki format
+!!
+!! \param ic  Chain number
 subroutine save_cbc_wiki_data(ic)
   use constants
   use analysemcmc_settings
@@ -851,7 +858,8 @@ subroutine save_cbc_wiki_data(ic)
   use mcmcrun_data
   implicit none
   
-  integer :: c,i,ic,io,o,p,p1,parr(maxMCMCpar)
+  integer, intent(in) :: ic
+  integer :: c,i,io,o,p,p1,parr(maxMCMCpar)
   real :: x,rev2pi,rrevpi,x1,x2
   character :: url*99,gps*19,xs11*11,xs20*20,ans,wikifilename*99,pnstr*3
   
@@ -1255,18 +1263,17 @@ end subroutine save_cbc_wiki_data
 
 
 !***********************************************************************************************************************************
-!>
-!!  \brief Check convergence for multiple chains. 
+!> \brief  Check convergence for multiple chains. 
 !!
-!!  This works only for fixed chain length, so take the min N
-!!  This is probably taken from (at least equal to):
-!!    Brooks & Gelman, Journal of Computational and Graphical Statistics, Vol.7, Nr.4, p.434-455, 1998:
-!!    "General Methods for Monitoring Convergence of Iterative Simulations"
-!!    http://www.jstor.org/pss/1390675 (for purchase)
-!!    http://www.stat.columbia.edu/~gelman/research/published/brooksgelman.pdf (Author's website)
-!!    See Eq.1.1,  where:  B/n := meanVar  and  W := chVar
-!!  \todo:  do we need unwrapped data for this? - probably not, since the different chains are wrapped in the same way
-!<
+!! - This works only for fixed chain length, so take the min N
+!! - This is probably taken from (at least equal to):
+!!   - Brooks & Gelman, Journal of Computational and Graphical Statistics, Vol.7, Nr.4, p.434-455, 1998:
+!!   - "General Methods for Monitoring Convergence of Iterative Simulations"
+!!   - http://www.jstor.org/pss/1390675 (for purchase)
+!!   - http://www.stat.columbia.edu/~gelman/research/published/brooksgelman.pdf (Author's website)
+!!   - See Eq.1.1,  where:  B/n := meanVar  and  W := chVar
+!! 
+!! \todo  do we need unwrapped data for this? - probably not, since the different chains are wrapped in the same way
 !***********************************************************************************************************************************
 subroutine compute_convergence()
   use basic
@@ -1484,12 +1491,11 @@ end subroutine compute_convergence
 
 
 !***********************************************************************************************************************************
+!> \brief  Compute autocorrelations
+!!
+!! - use the original nChains0 chains and allDat()
+!! - results are printed to stdout if prAcorr>0
 subroutine compute_autocorrelations()
-  !> Compute autocorrelations
-  !! Use the original nChains0 chains and allDat()
-  !! Results are printed to stdout if prAcorr>0
-  !< 
-  
   use constants
   use mcmcrun_data
   use chain_data

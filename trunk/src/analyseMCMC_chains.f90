@@ -3,6 +3,8 @@
 
 !***********************************************************************************************************************************
 !> \brief  Plot chains (posterior, parameters, jumps, etc.) for analyseMCMC
+!!
+!! \retval exitcode  Exit status code (0=ok)
 subroutine chains(exitcode)
   use constants
   use analysemcmc_settings
@@ -1094,11 +1096,16 @@ end subroutine chains
 
 !***********************************************************************************************************************************
 !> \brief  Plot the vertical axes for the log Posterior plot: logP on the left, sqrt(2logP)~SNR on the right
+!!
+!! \param itermin  Minimum iteration number in plot (horizontal axis)
+!! \param itermax  Maximum iteration number in plot (horizontal axis)
+!! \param logpmin  Minimum log Posterior in plot (vertical axis)
+!! \param logpmax  Maximum log Posterior in plot (vertical axis)
 subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
   implicit none
   real, intent(in) :: itermin,itermax,logpmin,logpmax
   integer :: i,imin,imax, tick_omi, n
-  real :: snrmin,snrmax,dsnr,snr, dlogp,logp, ntick0,tick_om,dtick, tick
+  real :: logpmin0,snrmin,snrmax,dsnr,snr, dlogp,logp, ntick0,tick_om,dtick, tick
   real :: len, dist, ori
   character :: label*19,fmt*19
   
@@ -1106,8 +1113,9 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
   call pgbox('',0.0,0,'C',0.0,0)          ! Right border without ticks, labels
   
   dlogp = itermin                         ! Remove 'unused variable' compiler warning
-  dlogp = logpmax - logpmin
-  snrmin = sqrt(max(logpmin*2,0.))
+  logpmin0 = max(logpmin,0.)
+  dlogp = logpmax - logpmin0
+  snrmin = sqrt(max(logpmin0*2,0.))
   snrmax = sqrt(logpmax*2)
   dsnr = snrmax-snrmin
   
@@ -1139,7 +1147,7 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
   do i=imin,imax
      snr = i*dtick
      logp = (snr**2)/2.
-     tick = (logp - logpmin)/dlogp
+     tick = (logp - logpmin0)/dlogp
      if(tick.lt.0..or.tick.gt.1.) cycle
      
      if(tick_omi.lt.0) then
@@ -1148,7 +1156,7 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
         write(label,trim(fmt)) nint(snr)
      end if
      
-     call pgtick(itermax,logpmin,itermax,logpmax, tick, len, 0.0, dist, ori, trim(label))
+     call pgtick(itermax,logpmin0,itermax,logpmax, tick, len, 0.0, dist, ori, trim(label))
   end do
   
   
@@ -1160,10 +1168,10 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
   do i=imin,imax
      snr = i*tick_om
      logp = (snr**2)/2.
-     tick = (logp - logpmin)/dlogp
+     tick = (logp - logpmin0)/dlogp
      if(tick.lt.0..or.tick.gt.1.) cycle
      
-     call pgtick(itermax,logpmin,itermax,logpmax, tick, len, 0.0, dist, ori, '')
+     call pgtick(itermax,logpmin0,itermax,logpmax, tick, len, 0.0, dist, ori, '')
   end do
   
 end subroutine plot_posterior_snr_axes

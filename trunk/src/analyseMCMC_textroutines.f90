@@ -1,7 +1,8 @@
+!> \file analyseMCMC_textroutines.f90  Text functions and routines for analyseMCMC
 
+
+!***********************************************************************************************************************************
 !> \brief Define the names and symbols of the original MCMC parameters
-!<
-!************************************************************************************************************************************
 subroutine set_originalParameterNames()
    use analysemcmc_settings
    use general_data
@@ -277,17 +278,17 @@ subroutine set_originalParameterNames()
    
    
 end subroutine set_originalParameterNames
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
 
 
 
+!***********************************************************************************************************************************
 !> \brief Define the names and symbols of the derived MCMC parameters
-!! e.g. d_L rather than d_L^3 or log(d_L), i rather than cos(i), etc.
-!<
-!************************************************************************************************************************************
+!!
+!! - e.g. d_L rather than d_L^3 or log(d_L), i rather than cos(i), etc.
 subroutine set_derivedParameterNames()
    use analysemcmc_settings
    use general_data
@@ -565,7 +566,7 @@ subroutine set_derivedParameterNames()
    
    
 end subroutine set_derivedParameterNames
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 

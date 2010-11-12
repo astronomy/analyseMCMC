@@ -1,12 +1,9 @@
-!> \file analyseMCMC_modules.f90
-!! \brief Modules used by analyseMCMC
-!<
+!> \file analyseMCMC_modules.f90  Modules used by analyseMCMC
 
 
 
 !***********************************************************************************************************************************
 !> \brief Module with data types, etc.
-!<
 module basic
    implicit none
    
@@ -30,14 +27,13 @@ end module basic
 
 !***********************************************************************************************************************************
 !> \brief Module with settings from the input file (e.g. analysemcmc.dat)
-!<
 module analysemcmc_settings
   implicit none
   save
-  integer, parameter :: maxNival=5    !< maxNival: Maximum number of probability intervals that can be used
-  integer, parameter :: maxChs=25     !< macChs: Maximum number of chains that can be read
-  integer, parameter :: maxMCMCpar=17 !< MaxMCMCpar: MCMCpar+secondary parameters, e.g. 12+2(M1M2) = 14 for 12 par; 17 for 15 par
-  integer, parameter :: nParDB=199     !< nParDB: size of the parameter database
+  integer, parameter :: maxNival=5    ! maxNival: Maximum number of probability intervals that can be used
+  integer, parameter :: maxChs=25     ! macChs: Maximum number of chains that can be read
+  integer, parameter :: maxMCMCpar=17 ! MaxMCMCpar: MCMCpar+secondary parameters, e.g. 12+2(M1M2) = 14 for 12 par; 17 for 15 par
+  integer, parameter :: nParDB=199     ! nParDB: size of the parameter database
   integer :: plPars(maxMCMCpar),nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D,PDF2Dpairs(250,2),panels(2)
   integer :: thin,Nburn(maxChs),reverseRead,update,mergeChains,wrapData,changeVar,maxChLen
   integer :: file,colour,orientation,quality,fonttype
@@ -54,7 +50,6 @@ end module analysemcmc_settings
 
 !***********************************************************************************************************************************
 !> \brief Module with (currently) mathematical and string constants
-!<
 module constants
   use basic
   
@@ -70,14 +65,13 @@ end module constants
 
 !***********************************************************************************************************************************
 !> \brief Module with Markov-chain data from the SPINspiral output files
-!< 
 module general_data
   use basic
   use analysemcmc_settings
   
   implicit none
   save
-  integer, parameter :: maxIter=150000                    !< maxIter: Maximum number of iterations (output lines) that can be stored
+  integer, parameter :: maxIter=150000                    ! maxIter: Maximum number of iterations (output lines) that can be stored
   integer, parameter :: nr1=5,nstat1=10,ndets=4
   integer :: n(maxChs),ntot(maxChs),iloglmax,icloglmax,c0,nchains,nchains0
   integer :: fixedpar(maxMCMCpar),nfixedpar,contrchains,contrchain(maxChs)
@@ -98,7 +92,6 @@ end module general_data
 
 !***********************************************************************************************************************************
 !> \brief Module with MCMC run data from the SPINspiral output files
-!< 
 module mcmcrun_data
   use basic
   use analysemcmc_settings
@@ -122,7 +115,6 @@ end module mcmcrun_data
 
 !***********************************************************************************************************************************
 !> \brief Module with generated statistics
-!< 
 module stats_data
   use analysemcmc_settings
   implicit none
@@ -136,7 +128,6 @@ end module stats_data
 
 !***********************************************************************************************************************************
 !> \brief Module with plot settings
-!< 
 module plot_data
   use analysemcmc_settings
   implicit none
@@ -151,7 +142,6 @@ end module plot_data
 
 !***********************************************************************************************************************************
 !> \brief Module with secondary Markov-chain data
-!< 
 module chain_data
   use general_data
   implicit none
