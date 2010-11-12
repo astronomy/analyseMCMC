@@ -56,12 +56,12 @@ subroutine set_originalParameterNames()
       pgParNs(71) = 'a\dspin1\u'
       pgParNs(72) = 'cos \(2185)\dspin1\u'
       pgParNs(73) = '\(2147)\dspin1\u (rad)'
-	  pgParNs(74) = '\(2185)\dspin1\u (rad)'
+          pgParNs(74) = '\(2185)\dspin1\u (rad)'
       
       pgParNs(81) = 'a\dspin2\u'
       pgParNs(82) = 'cos \(2185)\dspin2\u'
       pgParNs(83) = '\(2147)\dspin2\u (rad)'
-	  pgParNs(84) = '\(2185)\dspin2\u (rad)'
+          pgParNs(84) = '\(2185)\dspin2\u (rad)'
       
       pgParNs(185) = 'x\d1\u'
       pgParNs(186) = 'x\d2\u'
@@ -109,12 +109,12 @@ subroutine set_originalParameterNames()
       pgParNss(71) = 'a\dspin1\u'
       pgParNss(72) = 'cos \(2185)\dspin1\u'
       pgParNss(73) = '\(2147)\dspin1\u'
-	  pgParNss(74) = '\(2185)\dspin1\u'
+          pgParNss(74) = '\(2185)\dspin1\u'
       
       pgParNss(81) = 'a\dspin2\u'
       pgParNss(82) = 'cos \(2185)\dspin2\u'
       pgParNss(83) = '\(2147)\dspin2\u'
-	  pgParNss(84) = '\(2185)\dspin2\u'
+          pgParNss(84) = '\(2185)\dspin2\u'
       
       pgParNss(185) = 'x\d1\u'
       pgParNss(186) = 'x\d2\u'
@@ -164,12 +164,12 @@ subroutine set_originalParameterNames()
       pgParNs(71) = 'a\dspin1\u'
       pgParNs(72) = 'cos \(0685)\dspin1\u'
       pgParNs(73) = '\(0647)\dspin1\u (rad)'
-	  pgParNs(74) = '\(0685)\dspin1\u (rad)'
+          pgParNs(74) = '\(0685)\dspin1\u (rad)'
       
       pgParNs(81) = 'a\dspin2\u'
       pgParNs(82) = 'cos \(0685)\dspin2\u'
       pgParNs(83) = '\(0647)\dspin2\u (rad)'
-	  pgParNs(84) = '\(0685)\dspin2\u (rad)'
+          pgParNs(84) = '\(0685)\dspin2\u (rad)'
       
       pgParNs(185) = 'x\d1\u'
       pgParNs(186) = 'x\d2\u'
@@ -218,11 +218,11 @@ subroutine set_originalParameterNames()
       pgParNss(72) = 'cos \(0685)\dspin1\u'
       pgParNss(73) = '\(0647)\dspin1\u'
       pgParNss(74) = '\(0685)\dspin1\u'
-	  
+          
       pgParNss(81) = 'a\dspin2\u'
       pgParNss(82) = 'cos \(0685)\dspin2\u'
       pgParNss(83) = '\(0647)\dspin2\u'
-	  pgParNss(84) = '\(0685)\dspin2\u'
+          pgParNss(84) = '\(0685)\dspin2\u'
       
       pgParNss(185) = 'x\d1\u'
       pgParNss(186) = 'x\d2\u'
@@ -342,12 +342,12 @@ subroutine set_derivedParameterNames()
       pgParNs(71) = 'a\dspin1\u'
       pgParNs(72) = '\(2185)\dspin1\u (\(2218))'
       pgParNs(73) = '\(2147)\dspin1\u (\(2218))'
-	  pgParNs(74) = '\(2185)\dspin1\u (\(2218))'
+          pgParNs(74) = '\(2185)\dspin1\u (\(2218))'
       
       pgParNs(81) = 'a\dspin2\u'
       pgParNs(82) = '\(2185)\dspin2\u (\(2218))'
       pgParNs(83) = '\(2147)\dspin2\u (\(2218))'
-	  pgParNs(84) = '\(2185)\dspin2\u (\(2218))'
+          pgParNs(84) = '\(2185)\dspin2\u (\(2218))'
       
       pgParNs(185) = 'x\d1\u'
       pgParNs(186) = 'x\d2\u'
@@ -395,12 +395,12 @@ subroutine set_derivedParameterNames()
       pgParNss(71) = 'a\dspin1\u'
       pgParNss(72) = '\(2185)\dspin1\u'
       pgParNss(73) = '\(2147)\dspin1\u'
-	  pgParNss(74) = '\(2185)\dspin1\u'
+          pgParNss(74) = '\(2185)\dspin1\u'
       
       pgParNss(81) = 'a\dspin2\u'
       pgParNss(82) = '\(2185)\dspin2\u'
       pgParNss(83) = '\(2147)\dspin2\u'
-	  pgParNss(84) = '\(2185)\dspin2\u'
+          pgParNss(84) = '\(2185)\dspin2\u'
 
       pgParNss(185) = 'x\d1\u'
       pgParNss(186) = 'x\d2\u'
@@ -451,12 +451,12 @@ subroutine set_derivedParameterNames()
       pgParNs(71) = 'a\dspin1\u'
       pgParNs(72) = '\(0685)\dspin1\u (\(2218))'
       pgParNs(73) = '\(0647)\dspin1\u (\(2218))'
-	  pgParNs(74) = '\(0685)\dspin1\u (\(2218))'
+          pgParNs(74) = '\(0685)\dspin1\u (\(2218))'
       
       pgParNs(81) = 'a\dspin2\u'
       pgParNs(82) = '\(0685)\dspin2\u (\(2218))'
       pgParNs(83) = '\(0647)\dspin2\u (\(2218))'
-	  pgParNs(84) = '\(0685)\dspin2\u (\(2218))'
+          pgParNs(84) = '\(0685)\dspin2\u (\(2218))'
       
       pgParNs(185) = 'x\d1\u'
       pgParNs(186) = 'x\d2\u'
@@ -504,12 +504,12 @@ subroutine set_derivedParameterNames()
       pgParNss(71) = 'a\dspin1\u'
       pgParNss(72) = '\(0685)\dspin1\u'
       pgParNss(73) = '\(0647)\dspin1\u'
-	  pgParNss(74) = '\(0685)\dspin1\u'
+          pgParNss(74) = '\(0685)\dspin1\u'
       
       pgParNss(81) = 'a\dspin2\u'
       pgParNss(82) = '\(0685)\dspin2\u'
       pgParNss(83) = '\(0647)\dspin2\u'
-	  pgParNss(84) = '\(0685)\dspin2\u'
+          pgParNss(84) = '\(0685)\dspin2\u'
 
       pgParNss(185) = 'x\d1\u'
       pgParNss(186) = 'x\d2\u'

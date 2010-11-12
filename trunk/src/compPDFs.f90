@@ -53,6 +53,10 @@ program comp_pdfs
      if(dim.eq.1.and.type.eq.2) rat  = 0.925 !4x3 for poster
      !if(dim.eq.1.and.type.eq.3) rat  = 0.82 !for talk (beamer)
      if(type.eq.3) rat  = 0.82 !for talk (beamer), 1&2D
+     if(frames(2).lt.3) then
+        rat = rat/3.*frames(2) ! Only one-two rows
+        fontsize = fontsize * 3 / real(frames(2))
+     end if
   end if
   
   
@@ -163,7 +167,8 @@ program comp_pdfs
   
   exts = [character(len=4) :: '    ','.png','.eps','.pdf'] !Extensions for the different file types
   if(dim.eq.1) write(outname,'(A,I1,A)')trim(outnamebase)//'__',dim,'d'//exts(file)
-  if(dim.eq.2) write(outname,'(A,I1,A)')trim(outnamebase)//'__',dim,'d__'//trim(parNames(plpars2d(1)))//'-'//trim(parNames(plpars2d(2)))//exts(file)
+  if(dim.eq.2) write(outname,'(A,I1,A)')trim(outnamebase)//'__',dim,'d__'//trim(parNames(plpars2d(1)))//'-'// &
+       trim(parNames(plpars2d(2)))//exts(file)
   if(file.eq.1) then
      !if(dim.eq.1) i = system('convert -depth 8 plot.ppm comp_pdfs1d.png')
      !if(dim.eq.2) i = system('convert -depth 8 plot.ppm comp_pdfs2d__'//trim(parNames(plpars2d(1)))//'-'//trim(parNames(plpars2d(2)))//'.png')
@@ -182,5 +187,5 @@ program comp_pdfs
   if(file.ge.1) write(*,'(/,A,/)')'  Plot saved as '//trim(outname)
   
 end program comp_pdfs
-!***************************************************************************************************
+!***********************************************************************************************************************************
 

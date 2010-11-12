@@ -2,7 +2,7 @@
 !! 
 !! \mainpage Documentation AnalyseMCMC
 !! AnalyseMCMC is a Fortran code that can be used to analyse the output of 
-!! <a href="http://www.phys.ualberta.ca/~sluys/index.php?title=SPINspiral">SPINspiral</a>.
+!! <a href="http://www.astro.ru.nl/~sluys/index.php?title=SPINspiral">SPINspiral</a>.
 !!
 !! 
 !! 
@@ -33,7 +33,6 @@
 !! 
 !! \par 
 !! This program replaces plotspins.
-!<
 
 
 
@@ -64,6 +63,7 @@ program analyseMCMC
   
   call setconstants()         !Define mathematical constants
   os = getos()                !1-Linux, 2-MacOS
+  timestamps = 0.0_dbl
   timestamps(1) = timestamp()
   timing = .false.
   if(abs(timestamps(1)).gt.1.e-6_dbl .and. abs(timestamps(1)).lt.1.e20_dbl) timing = .true.

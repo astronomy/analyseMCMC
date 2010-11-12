@@ -2,6 +2,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   165: sluys, 12/11/2010
+     - Apply silly 132-character limit to MCMCstats, compPDFs
+     - Updated Makefile
+     
    162: sluys, 05/11/2010
      - Experimenting with a self-consistency test for 2D bin sizes
      - Added some comments

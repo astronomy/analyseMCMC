@@ -2,7 +2,7 @@
 !To do: put file reading in separate routines
 
 
-!***************************************************************************************************
+!***********************************************************************************************************************************
 module comp_pdfs_settings
   implicit none
   save
@@ -13,10 +13,10 @@ module comp_pdfs_settings
   real :: fontsize
   character :: fnames(nfmax)*99,dirnames(nfmax)*99,outnamebase*99,settingsfile*99
 end module comp_pdfs_settings
-!***************************************************************************************************
+!***********************************************************************************************************************************
 
 
-!***************************************************************************************************
+!***********************************************************************************************************************************
 !> Module with general data and data from the analyseMCMC output files
 !< 
 module comp_pdfs_data
@@ -27,12 +27,12 @@ module comp_pdfs_data
   character :: parNames(nParDB)*8,pgUnits(nParDB)*99,pgParNs(nParDB)*99,pgParNss(nParDB)*99,pgOrigParns(nParDB)*99
   
 end module comp_pdfs_data
-!***************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
 
-!***************************************************************************************************
+!***********************************************************************************************************************************
 subroutine plotpdf1d(pp,lbl)
   use comp_pdfs_settings
   use comp_pdfs_data
@@ -45,6 +45,9 @@ subroutine plotpdf1d(pp,lbl)
   
   
   detnan = 0 !Used to detect NaNs
+  pp1 = 0
+  xpeak = -huge(xpeak)
+  
   do f=1,nf
      fname = fnames(f)
      if(fname(1:3).eq.'   ') cycle
@@ -92,7 +95,8 @@ subroutine plotpdf1d(pp,lbl)
      return
   end if
   
-  if(sum(detnan).gt.0) write(*,'(A)')'  Warning:  I think I detected NaNs and set them to zero in the PDF for '//trim(parNames(parIDs(pp)))//'.'
+  if(sum(detnan).gt.0) write(*,'(A)')'  Warning:  I think I detected NaNs and set them to zero in the PDF for ' &
+       //trim(parNames(parIDs(pp)))//'.'
   
   
   
@@ -200,7 +204,8 @@ subroutine plotpdf1d(pp,lbl)
            x = ranges(f,pp1,5)
            if(pId.eq.61.or.pId.eq.63.or.pId.eq.64.or.pId.eq.21.or.pId.eq.22.or.pId.eq.71.or.pId.eq.81) x = x*100
            write(str,'(F10.3)')x
-           if(pId.eq.61.or.pId.eq.63.or.pId.eq.64.or.pId.eq.21.or.pId.eq.22.or.pId.eq.71.or.pId.eq.81) write(str,'(A)')trim(str)//'%'
+           if(pId.eq.61.or.pId.eq.63.or.pId.eq.64.or.pId.eq.21.or.pId.eq.22.or.pId.eq.71.or.pId.eq.81) &
+                write(str,'(A)')trim(str)//'%'
            
            if(x.lt.0.01) write(str,'(F6.4)')x
            if(x.ge.0.01.and.x.lt.0.1) write(str,'(F5.3)')x
@@ -298,7 +303,7 @@ subroutine plotpdf1d(pp,lbl)
   
   
 end subroutine plotpdf1d
-!***************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
@@ -310,15 +315,17 @@ end subroutine plotpdf1d
 
 
 
-!***************************************************************************************************
+!***********************************************************************************************************************************
 subroutine plotpdf2d(pID1,pID2,lbl)
   use comp_pdfs_settings
   use comp_pdfs_data
   implicit none
   integer, parameter :: np=15,nbinx1=500,nbiny1=500
-  integer :: pID1,pID2,bx,by,pID1a,pID2a,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2,nchains,nbinx(nf),nbiny(nf),ic,lw,c,foundit
+  integer :: pID1,pID2,bx,by,pID1a,pID2a,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2
+  integer :: nchains,nbinx(nf),nbiny(nf),ic,lw,c,foundit
   integer :: identical
-  real :: startval(nf,np,2,2),stats(nf,np,2,6),ranges(nf,np,2,5),xmin1(nf,np,2),xmax1(nf,np,2),ymin1(nf,np,2),ymax1(nf,np,2),x
+  real :: startval(nf,np,2,2),stats(nf,np,2,6),ranges(nf,np,2,5)
+  real :: xmin1(nf,np,2),xmax1(nf,np,2),ymin1(nf,np,2),ymax1(nf,np,2),x
   real :: xmin,xmax,ymin,ymax,dx,dy,z(nf,nbinx1,nbiny1),z1(nbinx1,nbiny1),tr(nf,np*np,6),cont(11)
   character :: fname*99,lbl*99,str*99,tmpstr
   
@@ -342,7 +349,8 @@ subroutine plotpdf2d(pID1,pID2,lbl)
            p12 = p12+1
            read(10,*,iostat=io)tmpstr
            if(io.ne.0) then
-              write(0,'(A)')'  End of file '//trim(fname)//' reached, parameter combination '//trim(parNames(pID1))//'-'//trim(parNames(pID2))//' not found,  skipping...'
+              write(0,'(A)')'  End of file '//trim(fname)//' reached, parameter combination '//trim(parNames(pID1))//'-'// &
+                   trim(parNames(pID2))//' not found,  skipping...'
               cycle dof
            end if
            read(10,'(3I6)')ic,pID1a,pID2a !'Chain number and parameter ID 1,2'
@@ -467,7 +475,8 @@ subroutine plotpdf2d(pID1,pID2,lbl)
            x = ranges(f,pp12,1,5)
            if(pId1.eq.61.or.pId1.eq.63.or.pId1.eq.64.or.pId1.eq.21.or.pId1.eq.22.or.pId1.eq.71.or.pId1.eq.81) x = x*100
            write(str,'(F10.3)')x
-           if(pId1.eq.61.or.pId1.eq.63.or.pId1.eq.64.or.pId1.eq.21.or.pId1.eq.22.or.pId1.eq.71.or.pId1.eq.81) write(str,'(A)')trim(str)//'%'
+           if(pId1.eq.61.or.pId1.eq.63.or.pId1.eq.64.or.pId1.eq.21.or.pId1.eq.22.or.pId1.eq.71.or.pId1.eq.81) &
+                write(str,'(A)')trim(str)//'%'
            
            if(x.lt.0.01) write(str,'(F6.4)')x
            if(x.ge.0.01.and.x.lt.0.1) write(str,'(F5.3)')x
@@ -542,7 +551,7 @@ subroutine plotpdf2d(pID1,pID2,lbl)
   call pgmtxt('T',-1.5,0.05,0.,trim(lbl))
   
 end subroutine plotpdf2d
-!***************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
@@ -553,17 +562,19 @@ end subroutine plotpdf2d
 
 
 
-!***************************************************************************************************
-!subroutine plotwave(fname1,fname2)
+!***********************************************************************************************************************************
 subroutine plotwave(fname1,thingy,lbl)
+  use basic
   implicit none
   integer, parameter :: nf=1,n1=1e6
   integer :: i,f,n(nf),io,thingy,lw
   integer :: nfrx,nfry
   real :: xwinmin,xwinmax,ywinmin,ywinmax
   real :: t(nf,n1),h(nf,n1),dx,dy,xmin,xmax,ymin,ymax
-  real*8 :: t1,t0,m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
+  real(double) :: t1,t0,m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
   character :: fname*99,fname1*99,fname2*99,bla,lbl*99
+  
+  t0 = 0.0_dbl
   
   do f=1,nf
      fname = fname1
@@ -646,11 +657,11 @@ subroutine plotwave(fname1,thingy,lbl)
   
   
 end subroutine plotwave
-!***************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
-!***************************************************************************************************
+!***********************************************************************************************************************************
 subroutine read_inputfile
   use comp_pdfs_settings
   implicit none
@@ -699,11 +710,11 @@ subroutine read_inputfile
     
     close(u)
 end subroutine read_inputfile
-!***************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
-!***************************************************************************************************
+!***********************************************************************************************************************************
 subroutine write_inputfile
   use comp_pdfs_settings
   implicit none
@@ -728,7 +739,8 @@ subroutine write_inputfile
   write(u,11)file, 'file',   'Output file type: 0:screen, 1: png, 2:eps, 3:pdf'
   write(u,11)type, 'type',   'Type of plot:  1: default, 2: poster, 3: talk'
   write(u,11)dim, 'dim',   'Dimension of PDF: 1 or 2'
-  write(u,11)pltrue, 'pltrue',   'Plot true values for 1D or 2D plots:  0-no, 1-yes, 2-use different line styles for multiple sets of true values'
+  write(u,11)pltrue, 'pltrue',   &
+       'Plot true values for 1D or 2D plots:  0-no, 1-yes, 2-use different line styles for multiple sets of true values'
   write(u,11)plmedian, 'plmedian',   'Plot medians for 1D or 2D plots, only if reading 1 file'
   write(u,11)plrange, 'plrange',   'Plot ranges  for 1D or 2D plots, only if reading 1 file: 0-no, 1:plot lines, 2:plot numbers too'
   write(u,11)clr, 'clr',   'Use colour: 0-B/W, 1-colour, 2-grey scales'
@@ -740,7 +752,8 @@ subroutine write_inputfile
   write(u,'(//,A)')' 1D plot options:'
   write(u,'(A)')'   Number of frames in 1D plot: (w, h  or  x, y)  (frames):'
   write(u,12)frames
-  write(u,'(A)')"   Labels of the plot parameters for the 1d frames (plpars)  (need at least one for each frame.  0-don't plot panel):  "
+  write(u,'(A)') &
+       "   Labels of the plot parameters for the 1d frames (plpars)  (need at least one for each frame.  0-don't plot panel):  "
   write(u,13)plpars !Array of size 20
   
   
@@ -771,7 +784,7 @@ subroutine write_inputfile
   write(u,*)
   close(u)
 end subroutine write_inputfile
-!***************************************************************************************************
+!***********************************************************************************************************************************
 
 
 
@@ -808,10 +821,14 @@ subroutine set_derivedParameterNames()  !Taken from and keep in sync with analys
      pgParNs(21:29) = [character(len=99) :: 'd\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','','']
      pgParNs(31:39) = [character(len=99) :: '\(2127) (h)','\(2130) (\(2218))','','','','','','','']
      pgParNs(41:49) = [character(len=99) :: '\(2147)\dc\u (\(2218))','','','','','','','','']
-     pgParNs(51:59) = [character(len=99) :: '\(2135) (\(2218))','\(2149) (\(2218))','\(2185)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','','','','','']
-     pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
-     pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','\(2185)\dspin1\u (\(2218))','\(2147)\dspin1\u (\(2218))','','','','','','']
-     pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','\(2185)\dspin2\u (\(2218))','\(2147)\dspin2\u (\(2218))','','','','','','']
+     pgParNs(51:59) = [character(len=99) :: &
+          '\(2135) (\(2218))','\(2149) (\(2218))','\(2185)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','','','','','']
+     pgParNs(61:69) = [character(len=99) :: &
+          '\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
+     pgParNs(71:79) = [character(len=99) :: &
+          'a\dspin1\u','\(2185)\dspin1\u (\(2218))','\(2147)\dspin1\u (\(2218))','','','','','','']
+     pgParNs(81:89) = [character(len=99) :: &
+          'a\dspin2\u','\(2185)\dspin2\u (\(2218))','\(2147)\dspin2\u (\(2218))','','','','','','']
      !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
      
      !Short PGPlot symbols (no unit)
@@ -832,10 +849,14 @@ subroutine set_derivedParameterNames()  !Taken from and keep in sync with analys
      pgParNs(21:29) = [character(len=99) :: 'd\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','','']
      pgParNs(31:39) = [character(len=99) :: '\(0627) (h)','\(0630) (\(2218))','','','','','','','']
      pgParNs(41:49) = [character(len=99) :: '\(0647)\dc\u (\(2218))','','','','','','','','']
-     pgParNs(51:59) = [character(len=99) :: '\(0635) (\(2218))','\(0649) (\(2218))','\(0685)\dJ0\u (\(2218))','\(0647)\dJ0\u (\(2218))','','','','','']
-     pgParNs(61:69) = [character(len=99) :: '\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
-     pgParNs(71:79) = [character(len=99) :: 'a\dspin1\u','\(0685)\dspin1\u (\(2218))','\(0647)\dspin1\u (\(2218))','','','','','','']
-     pgParNs(81:89) = [character(len=99) :: 'a\dspin2\u','\(0685)\dspin2\u (\(2218))','\(0647)\dspin2\u (\(2218))','','','','','','']
+     pgParNs(51:59) = [character(len=99) :: &
+          '\(0635) (\(2218))','\(0649) (\(2218))','\(0685)\dJ0\u (\(2218))','\(0647)\dJ0\u (\(2218))','','','','','']
+     pgParNs(61:69) = [character(len=99) :: &
+          '\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
+     pgParNs(71:79) = [character(len=99) :: &
+          'a\dspin1\u','\(0685)\dspin1\u (\(2218))','\(0647)\dspin1\u (\(2218))','','','','','','']
+     pgParNs(81:89) = [character(len=99) :: &
+          'a\dspin2\u','\(0685)\dspin2\u (\(2218))','\(0647)\dspin2\u (\(2218))','','','','','','']
      !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
      
      !Short PGPlot symbols (no unit)

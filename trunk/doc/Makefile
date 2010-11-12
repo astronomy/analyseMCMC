@@ -7,10 +7,9 @@
 #No text/space after statements below! (hence #)
 COMP = ifort#              # Use Intel Fortran compiler
 COMP = gfortran#           # Use GNU Fortran compiler (reads ~3x slower from disc than ifort!)
-#COMP = gfortran-4.4.3#
 #COMP = nagfor#            # Use NAG Fortran compiler
 
-#WARN = yes#               # to compile with compile-time warnings
+WARN = yes#               # to compile with compile-time warnings
 #RUNCHECK = yes#           # to compile with runtime-check options
 #OPTIMISE = yes#           # to compile with some extra run-time optimisation (sets RUNCHECK=no)
 
@@ -23,11 +22,11 @@ LFLAGS = -lpgplot
 
 
 
-# Directories for the source, object, module, libary and executable files:
+# Directories for the source, object, module, libary and binary files:
 SRCDIR = src
 OBJDIR = obj
 MODDIR = mod
-EXEDIR = .
+BINDIR = .
 
 
 
@@ -68,15 +67,12 @@ endif
 
 
 #gfortran:
-#ifeq ($(COMP),gfortran)
-ifneq (,$(filter $(COMP),gfortran gfortran-4.4.3))
+#ifneq (,$(filter $(COMP),gfortran gfortran-4.4.3))
+ifeq ($(COMP),gfortran)
    ifeq ($(RUNCHECK),yes)
-      CFLAGS = -O0 -fbounds-check
-      #CFLAGS += -fcheck-array-temporaries  #Doesn't seem to work...
+      CFLAGS = -O0 -fcheck=all
    endif
-   ifeq ($(COMP),gfortran-4.4.3)
-      CFLAGS += -fbacktrace
-   endif
+   CFLAGS += -fbacktrace
    ifeq ($(OPTIMISE),yes)
       CFLAGS = -O3 
    endif
@@ -114,8 +110,8 @@ endif
 
 
 
-STDOBJ = $(OBJDIR)/code_version.o
-ANALYSEMCMC_OBJ = $(OBJDIR)/analyseMCMC_modules.o $(OBJDIR)/analyseMCMC_functions.o $(OBJDIR)/analyseMCMC_textroutines.o 
+STDOBJ = $(OBJDIR)/analyseMCMC_modules.o $(OBJDIR)/code_version.o
+ANALYSEMCMC_OBJ =  $(OBJDIR)/analyseMCMC_functions.o $(OBJDIR)/analyseMCMC_textroutines.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_stats.o $(OBJDIR)/analyseMCMC_tailored.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_chains.o $(OBJDIR)/analyseMCMC_1dpdfs.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_2dpdf_skymap.o $(OBJDIR)/analyseMCMC_2dpdf_routines.o $(OBJDIR)/analyseMCMC_2dpdfs.o 
@@ -139,20 +135,20 @@ all: compPDFs analyseMCMC MCMCstats #plotdata plotsignal
 
 $(OBJDIR)/$(ANALYSEMCMC_OBJ): $(SRCDIR)/analyseMCMC_modules.f90  #All analyseMCMC*.o files depend on analyseMCMC_modules.f90
 
-analyseMCMC: ${ANALYSEMCMC_OBJ} $(STDOBJ)
-	$(COMP) -o $(EXEDIR)/analyseMCMC $(LFLAGS) ${ANALYSEMCMC_OBJ} $(STDOBJ)
+analyseMCMC: $(STDOBJ) ${ANALYSEMCMC_OBJ}
+	$(COMP) -o $(BINDIR)/analyseMCMC $(LFLAGS) $(STDOBJ) ${ANALYSEMCMC_OBJ}
 
-compPDFs: $(OBJDIR)/compPDFs_functions.o $(OBJDIR)/compPDFs.o $(STDOBJ)
-	$(COMP) $(LFLAGS) -o $(EXEDIR)/compPDFs $(OBJDIR)/compPDFs_functions.o $(OBJDIR)/compPDFs.o $(STDOBJ)
+compPDFs: $(STDOBJ) $(OBJDIR)/compPDFs_functions.o $(OBJDIR)/compPDFs.o
+	$(COMP) $(LFLAGS) -o $(BINDIR)/compPDFs $(STDOBJ) $(OBJDIR)/compPDFs_functions.o $(OBJDIR)/compPDFs.o
 
-plotspectrum: $(OBJDIR)/plotspectrum.o $(STDOBJ)
-	$(COMP) $(LFLAGS) -o $(EXEDIR)/$(OBJDIR)/plotspectrum $(OBJDIR)/plotspectrum.o $(STDOBJ)
+plotspectrum: $(STDOBJ) $(OBJDIR)/plotspectrum.o
+	$(COMP) $(LFLAGS) -o $(BINDIR)/$(OBJDIR)/plotspectrum $(STDOBJ) $(OBJDIR)/plotspectrum.o
 
-plotsignal: $(OBJDIR)/plotsignal.o $(STDOBJ)
-	$(COMP) $(LFLAGS) -o $(EXEDIR)/$(OBJDIR)/plotsignal $(OBJDIR)/plotsignal.o $(STDOBJ)
+plotsignal: $(STDOBJ) $(OBJDIR)/plotsignal.o
+	$(COMP) $(LFLAGS) -o $(BINDIR)/$(OBJDIR)/plotsignal $(STDOBJ) $(OBJDIR)/plotsignal.o
 
-MCMCstats: $(OBJDIR)/MCMCstats.o $(STDOBJ)
-	$(COMP) $(LFLAGS) -o $(EXEDIR)/MCMCstats $(OBJDIR)/MCMCstats.o $(STDOBJ)
+MCMCstats: $(STDOBJ) $(OBJDIR)/MCMCstats.o
+	$(COMP) $(LFLAGS) -o $(BINDIR)/MCMCstats $(STDOBJ) $(OBJDIR)/MCMCstats.o
 
 
 #$(SRCDIR)/code_version.f90: .svn/entries   #.svn/entries changes when committing/updating
@@ -167,12 +163,13 @@ $(SRCDIR)/code_version.f90: code_version    #code_version is PHONY and always ou
 	@echo "   character :: compiler*99 = '$(COMP)'" >> $(SRCDIR)/code_version.f90
 	@echo "   write(stdOut,'(A)')'svn revision: '//trim(svn_revision)//', compiled on '//trim(compile_date)//' with '//trim(compiler)//'.'" >> $(SRCDIR)/code_version.f90
 	@echo 'end subroutine print_code_version' >> $(SRCDIR)/code_version.f90
+	@touch -d "1 Jan 2001" $(SRCDIR)/code_version.f90
 
 
 dirs:
 	@if [ ! -e $(OBJDIR) ]; then mkdir ${OBJDIR}; fi 
 	@if [ ! -e $(MODDIR) ]; then mkdir ${MODDIR}; fi
-	@if [ ! -e $(EXEDIR) ]; then mkdir ${EXEDIR}; fi
+	@if [ ! -e $(BINDIR) ]; then mkdir ${BINDIR}; fi
 
 clean:
 	rm -f $(OBJDIR)/*.o $(MODDIR)/*.mod $(SRCDIR)/code_version.f90
