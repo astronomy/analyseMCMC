@@ -1117,12 +1117,6 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
   tick_omi = nint(log10(tick_om))
   dtick = nint(dsnr/ntick0 / tick_om) * tick_om    ! Distance between ticks
   
-  imin = floor(snrmin/dtick)
-  imax = ceiling(snrmax/dtick)
-  
-  len  = 0.5  ! Tick length
-  dist = 0.3  ! Distance axis - label
-  ori  = 0.0  ! Orientation (0-360 degrees)
   
   ! Format for snr label:
   n = abs(tick_omi)
@@ -1134,7 +1128,14 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
      write(fmt,'(A)')'(ES7.1)'
   end if
   
+  
   ! Print ticks and labels:
+  len  = 0.5  ! Tick length
+  dist = 0.3  ! Distance axis - label
+  ori  = 0.0  ! Orientation (0-360 degrees)
+  
+  imin = floor(snrmin/dtick)
+  imax = ceiling(snrmax/dtick)
   do i=imin,imax
      snr = i*dtick
      logp = (snr**2)/2.
@@ -1148,6 +1149,21 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
      end if
      
      call pgtick(itermax,logpmin,itermax,logpmax, tick, len, 0.0, dist, ori, trim(label))
+  end do
+  
+  
+  ! Print sub-ticks:
+  len  = 0.25  ! Tick length
+  
+  imin = floor(snrmin/tick_om)
+  imax = ceiling(snrmax/tick_om)
+  do i=imin,imax
+     snr = i*tick_om
+     logp = (snr**2)/2.
+     tick = (logp - logpmin)/dlogp
+     if(tick.lt.0..or.tick.gt.1.) cycle
+     
+     call pgtick(itermax,logpmin,itermax,logpmax, tick, len, 0.0, dist, ori, '')
   end do
   
 end subroutine plot_posterior_snr_axes

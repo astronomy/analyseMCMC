@@ -2,8 +2,8 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
-   166: sluys, 12/11/2010
-     - Added routine plot_posterior_snr_axes() in _chains.f90 to plot both logP and SNR axes
+   167: sluys, 12/11/2010
+     - Added subticks to plot_posterior_snr_axes()
      
    165: sluys, 12/11/2010
      - Apply silly 132-character limit to MCMCstats, compPDFs
