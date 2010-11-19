@@ -897,10 +897,10 @@ subroutine mcmcruninfo(exitcode)
      
      if(revID(61)*revID(62).ne.0 .and. revID(63)+revID(64).eq.0) then  !Calculate the individual masses from Mch and eta:
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing M1, M2 from Mc, eta'
-        parID(nMCMCpar+1) = 63  !M1
-        parID(nMCMCpar+2) = 64  !M2
-        revID(63) = nMCMCpar + 1  !M1
-        revID(64) = nMCMCpar + 2  !M2
+        parID(nMCMCpar+1) = 63    ! M1
+        parID(nMCMCpar+2) = 64    ! M2
+        revID(63) = nMCMCpar + 1  ! M1
+        revID(64) = nMCMCpar + 2  ! M2
         nMCMCpar = nMCMCpar + 2
         if(nMCMCpar.gt.maxMCMCpar) then
            write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
@@ -914,10 +914,10 @@ subroutine mcmcruninfo(exitcode)
         end do
      else if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) then  !Calculate Mc, eta from the individual masses:
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mc, eta from M1, M2'
-        parID(nMCMCpar+1) = 61  !Mc
-        parID(nMCMCpar+2) = 62  !eta
-        revID(61) = nMCMCpar + 1  !Mc
-        revID(62) = nMCMCpar + 2  !eta
+        parID(nMCMCpar+1) = 61    ! Mc
+        parID(nMCMCpar+2) = 62    ! eta
+        revID(61) = nMCMCpar + 1  ! Mc
+        revID(62) = nMCMCpar + 2  ! eta
         nMCMCpar = nMCMCpar + 2
         if(nMCMCpar.gt.maxMCMCpar) then
            write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
@@ -930,6 +930,24 @@ subroutine mcmcruninfo(exitcode)
            end do
         end do
      end if !if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0)
+     
+     
+     ! Compute total mass (var.65) and mass ratio (var.66) (q=M1/M2, not the symmetric mass ratio \eta) from the individual masses:
+     parID(nMCMCpar+1) = 65    ! Mtot
+     parID(nMCMCpar+2) = 66    ! q
+     revID(65) = nMCMCpar + 1  ! Mtot
+     revID(66) = nMCMCpar + 2  ! q
+     nMCMCpar = nMCMCpar + 2
+     if(nMCMCpar.gt.maxMCMCpar) then
+        write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
+             ' to at least',nMCMCpar,' in order to continue.  Aborting...'
+        stop
+     end if
+     do ic=1,nchains0
+        allDat(ic,revID(65),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))
+        allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) / allDat(ic,revID(64),1:ntot(ic))
+     end do
+     
      
      !Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
      if(revID(11)*revID(31)*revID(32)*revID(53)*revID(54).ne.0) then  !Then all of these parameters are defined
