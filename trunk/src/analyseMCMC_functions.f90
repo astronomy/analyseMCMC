@@ -895,6 +895,23 @@ subroutine mcmcruninfo(exitcode)
   if(changeVar.ge.1) then
      if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)',advance="no")'  Changing some parameters...   '
      
+     
+     if(revID(61).eq.0 .and. revID(65).ne.0) then  ! Calculate Mc from Mc_16 (Mc^(1/6)):
+        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mc from Mc^(1/6)'
+        parID(nMCMCpar+1) = 61    ! Mc
+        revID(61) = nMCMCpar + 1  ! Mc
+        nMCMCpar = nMCMCpar + 1
+        if(nMCMCpar.gt.maxMCMCpar) then
+           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
+                ' to at least',nMCMCpar,' in order to continue.  Aborting...'
+           stop
+        end if
+        do ic=1,nchains0
+           allDat(ic,revID(61),1:ntot(ic)) = allDat(ic,revID(65),1:ntot(ic))**6   ! Mc = [Mc_16]^6
+        end do
+     end if
+     
+     
      if(revID(61)*revID(62).ne.0 .and. revID(63)+revID(64).eq.0) then  !Calculate the individual masses from Mch and eta:
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing M1, M2 from Mc, eta'
         parID(nMCMCpar+1) = 63    ! M1

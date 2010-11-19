@@ -3,6 +3,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   171: sluys, 19/11/2010
+     - Convert Mc_16 (Mc^(1/6), var 65) to Mc
+   
    170: sluys, 19/11/2010
      - Moved Mtot,q to variables 66,67 (from 65,66)
    
