@@ -3,6 +3,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   170: sluys, 19/11/2010
+     - Moved Mtot,q to variables 66,67 (from 65,66)
+   
    169: sluys, 19/11/2010
      - Added total mass (Mtot) and mass ratio (q=M1/M2) as plotting parameters 65,66
    

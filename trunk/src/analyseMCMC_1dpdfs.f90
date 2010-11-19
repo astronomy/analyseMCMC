@@ -39,7 +39,7 @@ subroutine pdfs1d(exitcode)
   !Allocate memory:
   allocate(xbin(maxChs,Nbin1D+1),ybin(maxChs,Nbin1D+1),xbin1(Nbin1D+1), &
        ybin1(Nbin1D+1),ysum(Nbin1D+1),yconv(Nbin1D+1),ycum(Nbin1D+1))
-
+  
   if(plot.eq.1) then
      if(file.eq.0) then
         io = pgopen('14/xs')
@@ -99,10 +99,12 @@ subroutine pdfs1d(exitcode)
      end if
      if(file.eq.0) call pgpap(scrSz,scrRat)
      if(file.eq.1) call pgpap(bmpsz,bmprat)
-     if(file.ge.2) call pgpap(PSsz,PSrat)
-     !if(file.ge.2.and.quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.925)
-     if(file.ge.2.and.quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.85)
-     if(file.ge.2) call pgscf(fonttype)
+     if(file.ge.2) then
+        call pgpap(PSsz,PSrat)
+        !if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.925)
+        if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.85)
+        call pgscf(fonttype)
+     end if
      !call pgscr(3,0.,0.5,0.)
      !call pginitl(colour,file,whiteBG)
      call pgslw(lw)

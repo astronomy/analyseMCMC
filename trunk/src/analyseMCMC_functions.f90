@@ -932,11 +932,12 @@ subroutine mcmcruninfo(exitcode)
      end if !if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0)
      
      
-     ! Compute total mass (var.65) and mass ratio (var.66) (q=M1/M2, not the symmetric mass ratio \eta) from the individual masses:
-     parID(nMCMCpar+1) = 65    ! Mtot
-     parID(nMCMCpar+2) = 66    ! q
-     revID(65) = nMCMCpar + 1  ! Mtot
-     revID(66) = nMCMCpar + 2  ! q
+     ! Compute total mass (var 66) and mass ratio (var 67) (q=M1/M2, not the symmetric mass ratio \eta) from the individual masses:
+     ! (var 65 is reserved for Mc^(1/6))
+     parID(nMCMCpar+1) = 66    ! Mtot
+     parID(nMCMCpar+2) = 67    ! q
+     revID(66) = nMCMCpar + 1  ! Mtot
+     revID(67) = nMCMCpar + 2  ! q
      nMCMCpar = nMCMCpar + 2
      if(nMCMCpar.gt.maxMCMCpar) then
         write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
@@ -944,8 +945,8 @@ subroutine mcmcruninfo(exitcode)
         stop
      end if
      do ic=1,nchains0
-        allDat(ic,revID(65),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))
-        allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) / allDat(ic,revID(64),1:ntot(ic))
+        allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))
+        allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) / allDat(ic,revID(64),1:ntot(ic))
      end do
      
      

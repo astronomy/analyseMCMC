@@ -19,7 +19,7 @@ subroutine set_originalParameterNames()
    parNames(31:39)   = (/'RA      ','sin_dec ','dec     ','        ','        ','        ','        ','        ','        '/)
    parNames(41:49)   = (/'phase   ','        ','        ','        ','        ','        ','        ','        ','        '/)
    parNames(51:59)   = (/'cos_i   ','psi     ','sin_thJo','ph_Jo   ','i       ','        ','        ','        ','        '/)
-   parNames(61:69)   = (/'Mc      ','eta     ','M1      ','M2      ','Mtot    ','q       ','        ','        ','        '/)
+   parNames(61:69)   = (/'Mc      ','eta     ','M1      ','M2      ','Mc_16   ','Mtot    ','q       ','        ','        '/)
    parNames(71:79)   = (/'spin1   ','cos_th1 ','phi1    ','theta1  ','        ','        ','        ','        ','        '/)
    parNames(81:89)   = (/'spin2   ','cos_th2 ','phi2    ','theta2  ','        ','        ','        ','        ','        '/)
    parNames(185:190) = (/'x1      ','x2      ','x3      ','x4      ','x5      ','x6      '/)
@@ -53,8 +53,8 @@ subroutine set_originalParameterNames()
       pgParNs(62) = '\(2133)'
       pgParNs(63) = 'M\d1\u (M\d\(2281)\u)'
       pgParNs(64) = 'M\d2\u (M\d\(2281)\u)'
-      pgParNs(65) = 'M\dtot\u (M\d\(2281)\u)'
-      pgParNs(66) = 'q'
+      pgParNs(66) = 'M\dtot\u (M\d\(2281)\u)'
+      pgParNs(67) = 'q'
       
       pgParNs(71) = 'a\dspin1\u'
       pgParNs(72) = 'cos \(2185)\dspin1\u'
@@ -108,8 +108,8 @@ subroutine set_originalParameterNames()
       pgParNss(62) = '\(2133)'
       pgParNss(63) = 'M\d1\u'
       pgParNss(64) = 'M\d2\u'
-      pgParNss(65) = 'M\dt\u'
-      pgParNss(66) = 'q'
+      pgParNss(66) = 'M\dt\u'
+      pgParNss(67) = 'q'
       
       pgParNss(71) = 'a\dspin1\u'
       pgParNss(72) = 'cos \(2185)\dspin1\u'
@@ -165,8 +165,8 @@ subroutine set_originalParameterNames()
       pgParNs(62) = '\(0633)'
       pgParNs(63) = 'M\d1\u (M\d\(2281)\u)'
       pgParNs(64) = 'M\d2\u (M\d\(2281)\u)'
-      pgParNs(65) = 'M\dtot\u (M\d\(2281)\u)'
-      pgParNs(66) = 'q'
+      pgParNs(66) = 'M\dtot\u (M\d\(2281)\u)'
+      pgParNs(67) = 'q'
       
       pgParNs(71) = 'a\dspin1\u'
       pgParNs(72) = 'cos \(0685)\dspin1\u'
@@ -220,8 +220,8 @@ subroutine set_originalParameterNames()
       pgParNss(62) = '\(0633)'
       pgParNss(63) = 'M\d1\u'
       pgParNss(64) = 'M\d2\u'
-      pgParNss(65) = 'M\dt\u'
-      pgParNss(66) = 'q'
+      pgParNss(66) = 'M\dt\u'
+      pgParNss(67) = 'q'
       
       pgParNss(71) = 'a\dspin1\u'
       pgParNss(72) = 'cos \(0685)\dspin1\u'
@@ -272,7 +272,7 @@ subroutine set_originalParameterNames()
    pgUnits(61) = 'M\d\(2281)\u'
    pgUnits(63) = 'M\d\(2281)\u'
    pgUnits(64) = 'M\d\(2281)\u'
-   pgUnits(65) = 'M\d\(2281)\u'
+   pgUnits(66) = 'M\d\(2281)\u'
    
    pgUnits(73) = 'rad'
    pgUnits(74) = 'rad'
@@ -314,7 +314,7 @@ subroutine set_derivedParameterNames()
    parNames(31:39)   = (/'RA      ','dec     ','dec     ','        ','        ','        ','        ','        ','        '/)
    parNames(41:49)   = (/'phase   ','        ','        ','        ','        ','        ','        ','        ','        '/)
    parNames(51:59)   = (/'incl    ','psi     ','th_Jo   ','ph_Jo   ','incl    ','        ','        ','        ','        '/)
-   parNames(61:69)   = (/'Mc      ','eta     ','M1      ','M2      ','Mtot    ','q       ','        ','        ','        '/)
+   parNames(61:69)   = (/'Mc      ','eta     ','M1      ','M2      ','Mc_16   ','Mtot    ','q       ','        ','        '/)
    parNames(71:79)   = (/'spin1   ','th1     ','phi1    ','theta1  ','        ','        ','        ','        ','        '/)
    parNames(81:89)   = (/'spin2   ','th2     ','phi2    ','theta2  ','        ','        ','        ','        ','        '/)
    parNames(185:190) = (/'x1      ','x2      ','x3      ','x4      ','x5      ','x6      '/)
@@ -348,8 +348,8 @@ subroutine set_derivedParameterNames()
       pgParNs(62) = '\(2133)'
       pgParNs(63) = 'M\d1\u (M\d\(2281)\u)'
       pgParNs(64) = 'M\d2\u (M\d\(2281)\u)'
-      pgParNs(65) = 'M\dtot\u (M\d\(2281)\u)'
-      pgParNs(66) = 'q'
+      pgParNs(66) = 'M\dtot\u (M\d\(2281)\u)'
+      pgParNs(67) = 'q'
       
       pgParNs(71) = 'a\dspin1\u'
       pgParNs(72) = '\(2185)\dspin1\u (\(2218))'
@@ -403,8 +403,8 @@ subroutine set_derivedParameterNames()
       pgParNss(62) = '\(2133)'
       pgParNss(63) = 'M\d1\u'
       pgParNss(64) = 'M\d2\u'
-      pgParNss(65) = 'M\dt\u'
-      pgParNss(66) = 'q'
+      pgParNss(66) = 'M\dt\u'
+      pgParNss(67) = 'q'
       
       pgParNss(71) = 'a\dspin1\u'
       pgParNss(72) = '\(2185)\dspin1\u'
@@ -461,8 +461,8 @@ subroutine set_derivedParameterNames()
       pgParNs(62) = '\(0633)'
       pgParNs(63) = 'M\d1\u (M\d\(2281)\u)'
       pgParNs(64) = 'M\d2\u (M\d\(2281)\u)'
-      pgParNs(65) = 'M\dtot\u (M\d\(2281)\u)'
-      pgParNs(66) = 'q'
+      pgParNs(66) = 'M\dtot\u (M\d\(2281)\u)'
+      pgParNs(67) = 'q'
       
       pgParNs(71) = 'a\dspin1\u'
       pgParNs(72) = '\(0685)\dspin1\u (\(2218))'
@@ -516,8 +516,8 @@ subroutine set_derivedParameterNames()
       pgParNss(62) = '\(0633)'
       pgParNss(63) = 'M\d1\u'
       pgParNss(64) = 'M\d2\u'
-      pgParNss(65) = 'M\dt\u'
-      pgParNss(66) = 'q'
+      pgParNss(66) = 'M\dt\u'
+      pgParNss(67) = 'q'
       
       pgParNss(71) = 'a\dspin1\u'
       pgParNss(72) = '\(0685)\dspin1\u'
@@ -571,7 +571,7 @@ subroutine set_derivedParameterNames()
    pgUnits(61) = 'M\d\(2281)\u'
    pgUnits(63) = 'M\d\(2281)\u'
    pgUnits(64) = 'M\d\(2281)\u'
-   pgUnits(65) = 'M\d\(2281)\u'
+   pgUnits(66) = 'M\d\(2281)\u'
    
    pgUnits(72) = '\(2218)'
    pgUnits(73) = '\(2218)'
