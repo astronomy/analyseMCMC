@@ -48,12 +48,7 @@ subroutine statistics(exitcode)
               allDat(ic,p,1:Ntot(ic)) = acos(allDat(ic,p,1:Ntot(ic)))*r2d
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = acos(selDat(ic,p,1:n(ic)))*rr2d
               if(ic.eq.1) startval(1:nChains0,p,1:3) = acos(startval(1:nChains0,p,1:3))*rr2d
-              
-           case(65) !Mc_1/6 -> Mc:
-              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**6
-              if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**6
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**6
-           
+                         
            case(31) !rad -> h:
               allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*r2h  !rad -> h
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2h
