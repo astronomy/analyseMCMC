@@ -30,10 +30,11 @@ end module basic
 module analysemcmc_settings
   implicit none
   save
-  integer, parameter :: maxNival=5    ! maxNival: Maximum number of probability intervals that can be used
-  integer, parameter :: maxChs=25     ! macChs: Maximum number of chains that can be read
-  integer, parameter :: maxMCMCpar=25 ! MaxMCMCpar: MCMCpar+secondary parameters, e.g. 12+2(M1M2) = 14 for 12 par; 17 for 15 par
+  integer, parameter :: maxNival=5     ! maxNival: Maximum number of probability intervals that can be used
+  integer, parameter :: maxChs=25      ! macChs: Maximum number of chains that can be read
+  integer, parameter :: maxMCMCpar=25  ! MaxMCMCpar: MCMCpar+secondary parameters, e.g. 12+2(M1M2) = 14 for 12 par; 17 for 15 par
   integer, parameter :: nParDB=199     ! nParDB: size of the parameter database
+  
   integer :: plPars(maxMCMCpar),nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D,PDF2Dpairs(250,2),panels(2)
   integer :: thin,Nburn(maxChs),reverseRead,update,mergeChains,wrapData,changeVar,maxChLen
   integer :: file,colour,orientation,quality,fonttype

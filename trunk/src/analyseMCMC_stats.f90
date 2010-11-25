@@ -43,12 +43,12 @@ subroutine statistics(exitcode)
               allDat(ic,p,1:Ntot(ic)) = exp(allDat(ic,p,1:Ntot(ic)))   
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = exp(selDat(ic,p,1:n(ic)))
               if(ic.eq.1) startval(1:nChains0,p,1:3) = exp(startval(1:nChains0,p,1:3))
-			  
+                          
            case(65) !Mc_1/6 -> Mc:
               allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**6
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**6
               if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**6
-			  
+                          
            case(51,72,82) !cos -> deg:
               allDat(ic,p,1:Ntot(ic)) = acos(allDat(ic,p,1:Ntot(ic)))*r2d
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = acos(selDat(ic,p,1:n(ic)))*rr2d
@@ -1157,9 +1157,11 @@ subroutine save_cbc_wiki_data(ic)
   end do
   if(c.eq.0) then
      write(stdErr,'(A)')'  Error: 2-sigma range not found, needed for Wiki output!'
-     write(stdOut,'(A)',advance="no")'  Do you want to continue?  (y/n)  '
-     read(5,*)ans
-     if(ans.eq.'y'.or.ans.eq.'Y') then
+     if(prStdOut.le.1) then
+        write(stdOut,'(A)',advance="no")'  Do you want to continue?  (y/n)  '
+        read(5,*)ans
+     end if
+     if(ans.eq.'y'.or.ans.eq.'Y' .or. prStdOut.ge.2) then
         c = 1
         write(stdOut,'(A,F6.2,A)')'  Continuing with ',ivals(c)*100,"% probability interval, don't use wiki.txt!!!"
      else
