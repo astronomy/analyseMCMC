@@ -3,6 +3,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   179: sluys, 29/11/2010
+     - Cleaning up, adding Doxygen comments, conforming to F2003 standard
+     - Updated Makefile
+     
    178: sluys, 29/11/2010
      - Make seed() a long integer in order to be able to read PTMCMC seeds
      

@@ -1,5 +1,10 @@
-!Routines to compute and plot one-dimensional PDFs
+!> \file analyseMCMC_1dpdfs.f90  Routines to compute and plot one-dimensional PDFs
 
+
+!***********************************************************************************************************************************
+!> \brief  Plot 1D marginalised PDFs
+!!
+!! \retval exitcode  Exit code: 0=ok
 
 subroutine pdfs1d(exitcode)
   use constants
@@ -8,10 +13,11 @@ subroutine pdfs1d(exitcode)
   use mcmcrun_data
   use plot_data
   implicit none
-  
-  integer :: i,j,p,ic,io,pgopen,lw,exitcode,status,system
+  integer, intent(out) :: exitcode
+  integer :: i,j,p,ic,io,pgopen,lw,status,system
   real :: rev24,rev360,rev180
   real :: x(maxChs,maxChs*maxIter),xmin,xmax,xmin1,xmax1,xpeak,dx,ymin,ymax,sch
+  
   !These depend on Nbin1D, allocate after reading input file:
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ysum(:),yconv(:),ycum(:)  
   real :: plshift,plx,ply,x0,norm,bindx
@@ -218,7 +224,8 @@ subroutine pdfs1d(exitcode)
                 'Chain number, parameter ID, wrap (1/0 = y/n) and parameter name  (ic, parID(), wrap(), parNames())'
            write(30,'(2ES15.7,T101,A)')startval(ic,p,1:2),'Injection and starting value  (startval(1:2)'
            write(30,'(6ES15.7,T101,A)')stats(ic,p,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2  (stats(1:6))'
-           write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p,1:5),'Ranges: lower,upper limit, centre, width, relative width  (ranges(1:5))'
+           write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p,1:5),'Ranges: lower,upper limit, centre, width, relative width  '// &
+                '(ranges(1:5))'
            write(30,'(2ES15.7,T101,A)')xmin1,xmax1,'Xmin and Xmax of PDF  (xmin1,xmax1)'
            
            !Bin contents:
@@ -638,16 +645,25 @@ end subroutine pdfs1d
 
 
 !***********************************************************************************************************************************
-subroutine bindata1d(n,x,norm,nbin,xmin1,xmax1,xbin,ybin)  !Count the number of points in each bin (1D)
-  ! x - input: data, n points
-  ! norm - input: normalise (1) or not (0)
-  ! nbin - input: number of bins
-  ! xmin, xmax - in/output: set xmin=xmax to auto-determine
-  ! xbin, ybin - output: binned data (x, y).  The x values are the left side of the bin!
-  
+!> \brief  Bin data 1D by counting the number of points in each bin
+!! 
+!! \param n      Number of data points
+!! \param x      Data to be binned (n points)
+!! \param norm   Normalise histogram (1) or not (0)
+!! \param nbin   Desired number of bins
+!! \param xmin1  Minimum value of the binning range.  Set xmin=xmax to auto-determine (I/O)
+!! \param xmax1  Maximum value of the binning range.  Set xmin=xmax to auto-determine (I/O)
+!! \retval xbin  Binned data, location of the bins.  The x values are the left side of the bin!
+!! \retval ybin  Binned data, height of the bins.
+
+subroutine bindata1d(n,x,norm,nbin,xmin1,xmax1,xbin,ybin)
   implicit none
-  integer :: i,k,n,nbin,norm
-  real :: x(n),xbin(nbin+1),ybin(nbin+1),xmin,xmax,dx,xmin1,xmax1
+  integer, intent(in) :: n,nbin,norm
+  real, intent(in) :: x(n)
+  real, intent(inout) :: xmin1,xmax1
+  real, intent(out) :: xbin(nbin+1),ybin(nbin+1)
+  integer :: i,k
+  real :: xmin,xmax,dx
   
   xmin = xmin1
   xmax = xmax1
@@ -686,17 +702,26 @@ end subroutine bindata1d
 
 
 !***********************************************************************************************************************************
-subroutine bindata1da(n,x,y,norm,nbin,xmin1,xmax1,xbin,ybin)  !Measure the amount of likelihood in each bin (1D)
-  ! x - input: data, n points
-  ! y - input: "weight" (likelihood), n points
-  ! norm - input: normalise (1) or not (0)
-  ! nbin - input: number of bins
-  ! xmin, xmax - in/output: set xmin=xmax to auto-determine
-  ! xbin, ybin - output: binned data (x, y).  The x values are the left side of the bin!
-  
+!> \brief  "Bin data" 1D by measuring the amount of likelihood in each bin
+!! 
+!! \param n      Number of data points
+!! \param x      Data to be binned (n points)
+!! \param y      Likelihoods of the n points
+!! \param norm   Normalise histogram (1) or not (0)
+!! \param nbin   Desired number of bins
+!! \param xmin1  Minimum value of the binning range.  Set xmin=xmax to auto-determine (I/O)
+!! \param xmax1  Maximum value of the binning range.  Set xmin=xmax to auto-determine (I/O)
+!! \retval xbin  Binned data, location of the bins.  The x values are the left side of the bin!
+!! \retval ybin  Binned data, height of the bins.
+
+subroutine bindata1da(n,x,y,norm,nbin,xmin1,xmax1,xbin,ybin)
   implicit none
-  integer :: i,k,n,nbin,norm
-  real :: x(n),y(n),xbin(nbin+1),ybin(nbin+1),xmin,xmax,dx,ybintot,xmin1,xmax1,ymin
+  integer, intent(in) :: n,nbin,norm
+  real, intent(in) :: x(n)
+  real, intent(inout) :: xmin1,xmax1
+  real, intent(out) :: xbin(nbin+1),ybin(nbin+1)
+  integer :: i,k
+  real :: xmin,xmax,dx,ymin,y(n),ybintot
   
   xmin = xmin1
   xmax = xmax1
@@ -736,19 +761,31 @@ end subroutine bindata1da
 
 
 !***********************************************************************************************************************************
-subroutine verthist(n,x,y,style)  !Plot a 1D vertical histogram.  x is the left of the bin!
+!> \brief Plot a 1D vertical histogram.  x is the left of the bin!
+!!
+!! \param n      Number of bins
+!! \param x1     Location of the bins
+!! \param y1     Height of the bins
+!! \param style  Histogram style:  0: don't drop vertical lines to 0 at each bin, 1: do this, 2: fill the histogram
+
+subroutine verthist(n,x1,y1,style)
   implicit none
-  integer :: j,n,style
-  real :: x(n+1),y(n+1),dx,c
+  integer, intent(in) :: n,style
+  real, intent(in) :: x1(n+1),y1(n+1)
+  integer :: j
+  real :: dx,c, x(n+1),y(n+1)
   
-  !Make columns overlap a little
+  ! Make columns overlap a little:
   dx = x(2)-x(1)
   c = 0.001*dx
+  
+  x = x1
+  y = y1
   
   x(n+1) = x(n) + (x(n)-x(n-1))
   y(n+1) = 0.
   
-  !Don't close line at left and right (don't drop to 0)
+  ! Don't close line at left and right (don't drop to 0):
   if(style.eq.0) then
      do j=1,n-1
         call pgline(2,x(j:j+1),(/y(j),y(j)/))
@@ -757,7 +794,7 @@ subroutine verthist(n,x,y,style)  !Plot a 1D vertical histogram.  x is the left 
      call pgline(2,x(n:n+1),(/y(n),y(n)/))
   end if
   
-  !Close line at left and right (drop to 0)
+  ! Close line at left and right (drop to 0):
   if(style.eq.1) then
      call pgline(2,(/x(1),x(1)/),(/0.,y(1)/))
      do j=1,n
@@ -766,7 +803,7 @@ subroutine verthist(n,x,y,style)  !Plot a 1D vertical histogram.  x is the left 
      end do
   end if
   
-  !Fill the histogram
+  ! Fill the histogram:
   if(style.eq.2) then
      do j=1,n
         call pgpoly(4,(/x(j)-c,x(j)-c,x(j+1)+c,x(j+1)+c/),(/0.,y(j),y(j),0./))
@@ -777,10 +814,17 @@ end subroutine verthist
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-subroutine horzhist(n,x,y)  !Plot a 1D horizontal histogram
+!> \brief  Plot a 1D horizontal histogram
+!!
+!! \param n  Number of bins
+!! \param x  Locations of the bins
+!! \param y  Heights of the bins
+
+subroutine horzhist(n,x,y)
   implicit none
-  integer :: j,n
-  real :: x(n),y(n)
+  integer, intent(in) :: n
+  real, intent(in) :: x(n),y(n)
+  integer :: j
 
   call pgline(2,(/x(1),x(1)/),(/0.,y(1)/))
   do j=1,n-2
@@ -788,20 +832,29 @@ subroutine horzhist(n,x,y)  !Plot a 1D horizontal histogram
      call pgline(2,(/x(j+1),x(j+1)/),y(j:j+1))
   end do
   call pgline(2,x(n-1:n),(/y(n-1),y(n-1)/))
+  
 end subroutine horzhist
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
+!> \brief  Smooth a 1D PDF
+!!
+!! \param ybin    Height of the bins
+!! \param nbin    Number of bins
+!! \param smooth  Smoothing factor
+
 subroutine smoothpdf1d(ybin,nbin,smooth)
   implicit none
-  integer :: nbin,smooth,i,i0,i1,i00
-  real :: ybin(nbin),ybin1(nbin),coefs(100),coefs1(100)
+  integer, intent(in) :: nbin,smooth
+  integer :: i,i0,i1,i00
+  real, intent(inout) :: ybin(nbin)
+  real :: ybin1(nbin),coefs(100),coefs1(100)
   
   ybin1 = ybin
   i0 = min(max(smooth,1),floor(real(nbin-1)/2.))
   
-  !Do all points, except the first and last i0
+  ! Do all points, except the first and last i0:
   do i=1+i0,nbin-i0
      coefs1(1:2*i0+1) = ybin(i-i0:i+i0)
      call savgol(coefs1(1:2*i0+1),2*i0+1,i0,i0,0,4)
@@ -818,9 +871,8 @@ subroutine smoothpdf1d(ybin,nbin,smooth)
   end do
   
   i00 = i0-1
-  !Do the first and last i0=i00 points
+  ! Do the first and last i0=i00 points:
   if(i00.ge.2) then
-  !if(i00.ge.2.and.1.eq.2) then
      do i0 = i00,2,-1
         i=1+i0  !Point at beginning
         coefs1(1:2*i0+1) = ybin(i-i0:i+i0)

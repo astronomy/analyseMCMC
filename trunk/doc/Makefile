@@ -5,13 +5,14 @@
 
 
 #No text/space after statements below! (hence #)
-COMP = ifort#              # Use Intel Fortran compiler
 COMP = gfortran#           # Use GNU Fortran compiler (reads ~3x slower from disc than ifort!)
+#COMP = ifort#              # Use Intel Fortran compiler
 #COMP = nagfor#            # Use NAG Fortran compiler
 
 WARN = yes#               # to compile with compile-time warnings
 #RUNCHECK = yes#           # to compile with runtime-check options
 #OPTIMISE = yes#           # to compile with some extra run-time optimisation (sets RUNCHECK=no)
+F2003 = yes#              #compile with Fortran 2003 standard
 
 
 
@@ -54,6 +55,9 @@ ifeq ($(COMP),ifort)
    endif
    ifeq ($(WARN),yes)
       CFLAGS += -warn all
+   endif
+   ifeq ($(F2003),yes)
+      CFLAGS += -stand f03 -diag-disable 6894
    endif
    CFLAGS += -vec-report0
    CFLAGS += -module $(MODDIR) -I$(MODDIR)

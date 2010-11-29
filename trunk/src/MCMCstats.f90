@@ -84,7 +84,7 @@ program mcmcstats
   !write(6,*)''
   do f=1,nf
      call get_command_argument(f,infile)
-     if(prinput.eq.0) write(6,'(A,$)')' Reading file: '//trim(infile)
+     if(prinput.eq.0) write(6,'(A)', advance='no')' Reading file: '//trim(infile)
      if(prinput.eq.1) write(6,'(A)')' Reading file: '//trim(infile)
      open(unit=o, form='formatted', status='old',file=trim(infile))
      
@@ -163,7 +163,7 @@ program mcmcstats
      read(o,*)bla,nival(f)
      if(prinput.eq.1) write(6,'(A,I3)')' Nival: ',nival(f)
      nival(f) = nival(f) + 1  !Since 100% interval is not counted in AnalyseMCMC
-     read(o,*),bla,ivals(f,1:nival(f))
+     read(o,*) bla,ivals(f,1:nival(f))
      if(prinput.eq.1) write(6,'(A22,10(F20.5,14x))')'Interval:',ivals(f,1:nival(f))
      
      read(o,*)bla !Interval headers
@@ -872,11 +872,16 @@ program mcmcstats
                     if(j.gt.0) write(output,'(A)')trim(output)//'$^'//letters(j)//'$'
                  end if
                  
-                 !if(iv.eq.iv2.and.p.lt.npar(f)) write(output,'(A)')trim(output)//'  $\!\!\!\!$  &' !Add latex codes
-                 !if(iv.eq.iv2.and.p1.lt.12) write(output,'(A)')trim(output)//'  $\!\!\!\!$  &' !Add latex codes (p1.lt.12 iso p.lt.npar, in case npar=14)
-                 !if(iv.eq.iv2.and.p1.ne.npar(f)) write(output,'(A)')trim(output)//'  $\!\!\!\!$  &' !Add latex codes (p1.lt.12 iso p.lt.npar, in case npar=14)
-                 !if(iv.eq.iv2.and.p1.ne.npar(f)) write(output,'(A)')trim(output)//'  &' !Add latex codes (p1.lt.12 iso p.lt.npar, in case npar=14)
-                 if(iv.eq.iv2.and.p1.lt.npar(f)) write(output,'(A)')trim(output)//'   $\!\!\!$ &' !Add latex codes
+                 ! Add latex codes:
+                 !if(iv.eq.iv2.and.p.lt.npar(f)) write(output,'(A)')trim(output)//'  $\!\!\!\!$  &'
+                 ! Add latex codes (p1.lt.12 iso p.lt.npar, in case npar=14):
+                 !if(iv.eq.iv2.and.p1.lt.12) write(output,'(A)')trim(output)//'  $\!\!\!\!$  &'
+                 ! Add latex codes (p1.lt.12 iso p.lt.npar, in case npar=14):
+                 !if(iv.eq.iv2.and.p1.ne.npar(f)) write(output,'(A)')trim(output)//'  $\!\!\!\!$  &'
+                 ! Add latex codes (p1.lt.12 iso p.lt.npar, in case npar=14):
+                 !if(iv.eq.iv2.and.p1.ne.npar(f)) write(output,'(A)')trim(output)//'  &'
+                 ! Add latex codes:
+                 if(iv.eq.iv2.and.p1.lt.npar(f)) write(output,'(A)')trim(output)//'   $\!\!\!$ &'
               end do !iv
            end do !p1/p
            
@@ -899,9 +904,11 @@ program mcmcstats
                  x = ivldelta2d(f,p,iv)*(4*pi)*(180./pi)**2  !Sky fraction -> square degrees
                  !x = sqrt(x/pi)*2                            !Square degrees -> equivalent diameter
                  
-                 !LaTeX codes:
-                 write(output,'(A)')trim(output)//'   $\!\!\!$ &' !Add latex codes
-                 !if(p.gt.1) write(output,'(A)')trim(output)//'   $\!\!\!$ &' !Add latex codes, if last parameter (p1=npar) not printed
+                 ! LaTeX codes:
+                 ! Add latex codes:
+                 write(output,'(A)')trim(output)//'   $\!\!\!$ &'
+                 ! Add latex codes, if last parameter (p1=npar) not printed:
+                 !if(p.gt.1) write(output,'(A)')trim(output)//'   $\!\!\!$ &'
                  
                  !Print range:
                  if(x.gt.100.) then

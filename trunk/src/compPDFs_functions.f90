@@ -1,13 +1,14 @@
-!Plot functions for comp_pdfs.f (1d, 2d PDFs and waveforms)
-!To do: put file reading in separate routines
+!> \file compPDFs_functions.f90  Plot functions for compPDFs  (1D/2D PDFs and waveforms)
+!!
+!! \todo put file reading in separate routines
 
 
 !***********************************************************************************************************************************
 module comp_pdfs_settings
   implicit none
   save
-  integer, parameter :: nfmax=9       !< nfmax:    maximum number of input files
-  integer, parameter :: nParDB=99     !< nParDB: size of the parameter database
+  integer, parameter :: nfmax=9       ! nfmax:    maximum number of input files
+  integer, parameter :: nParDB=99     ! nParDB: size of the parameter database
   integer :: nf,file,type,dim,clr,fillstyle,frames(2),plpars(20),plpars2d(2),clrs(nfmax),lss(nfmax)
   integer :: pltrue,plmedian,plrange,fonttype
   real :: fontsize
@@ -17,8 +18,8 @@ end module comp_pdfs_settings
 
 
 !***********************************************************************************************************************************
-!> Module with general data and data from the analyseMCMC output files
-!< 
+!> \brief  Module with general data and data from the analyseMCMC output files
+
 module comp_pdfs_data
   use comp_pdfs_settings
   implicit none
@@ -33,18 +34,25 @@ end module comp_pdfs_data
 
 
 !***********************************************************************************************************************************
+!> \brief  Plot a 1D marginalised PDF
+!!
+!! \param pp   Parameter ID
+!! \param lbl  Parameter/plot label
+
 subroutine plotpdf1d(pp,lbl)
   use comp_pdfs_settings
   use comp_pdfs_data
   implicit none
+  integer, intent(in) :: pp
+  character, intent(in) :: lbl*99
   integer, parameter :: np=99,nbin1=500  !np: number of parameters (currently 11-87 are defined)
-  integer :: pp,b,p1,io,f,nplvar,nchains,nbin(nf),pID,parIDs(np),pp1,ic,wrap(nf,np),lw,detnan(nf,np),identical
+  integer :: b,p1,io,f,nplvar,nchains,nbin(nf),pID,parIDs(np),pp1,ic,wrap(nf,np),lw,detnan(nf,np),identical
   real :: x,startval(nf,np,2),stats(nf,np,6),ranges(nf,np,5),xmin1(nf,np),xmax1(nf,np),plshift
   real :: xbin1(nf,np,nbin1),ybin1(nf,np,nbin1),xbin(nbin1),ybin(nbin1),xmin,xmax,ymin,ymax,dx,yrange(2),xpeak
-  character :: fname*99,lbl*99,str*99,tmpstr
+  character :: fname*99,str*99,tmpstr
   
   
-  detnan = 0 !Used to detect NaNs
+  detnan = 0  ! Used to detect NaNs
   pp1 = 0
   xpeak = -huge(xpeak)
   
@@ -75,8 +83,9 @@ subroutine plotpdf1d(pp,lbl)
               ybin1(f,p1,b) = 0.0
               detnan(f,p1) = 1
            end if
-           !if(parIDs(p1).eq.pp .and. (.not.ybin1(f,p1,b).gt.-1.e30) .and. (.not.ybin1(f,p1,b).lt.1.e30)) then  !Then it's probably a NaN
-           if(parIDs(p1).eq.pp .and. ybin1(f,p1,b).ne.ybin1(f,p1,b) .and. ybin1(f,p1,b).ne.ybin1(f,p1,b)) then  !Then it's probably a NaN
+           ! Then it's probably a NaN:
+           !if(parIDs(p1).eq.pp .and. (.not.ybin1(f,p1,b).gt.-1.e30) .and. (.not.ybin1(f,p1,b).lt.1.e30)) then
+           if(parIDs(p1).eq.pp .and. ybin1(f,p1,b).ne.ybin1(f,p1,b) .and. ybin1(f,p1,b).ne.ybin1(f,p1,b)) then
               detnan(f,p1) = 1
               ybin1(f,p1,b) = 0.
            end if
@@ -259,7 +268,8 @@ subroutine plotpdf1d(pp,lbl)
      if(identical.eq.1) then
         call pgsci(1); call pgslw(lw);call pgsls(2) !; if(clr.eq.0) call pgsci(1)
         !if(nf.eq.1) call pgsci(2)
-        if(.not.(pp1.eq.6.and.abs(startval(1,5,1)).lt.0.001)) call pgline(2,(/startval(1,pp1,1),startval(1,pp1,1)/),yrange)   !If a=0, don't plot theta_SL (pp1=6)
+        ! If a=0, don't plot theta_SL (pp1=6):
+        if(.not.(pp1.eq.6.and.abs(startval(1,5,1)).lt.0.001)) call pgline(2,(/startval(1,pp1,1),startval(1,pp1,1)/),yrange)
      else
         do f=1,nf
            if(pp1.eq.6.and.abs(startval(f,5,1)).lt.0.001) cycle  !If a=0, don't plot theta_SL (pp1=6)
@@ -316,18 +326,26 @@ end subroutine plotpdf1d
 
 
 !***********************************************************************************************************************************
+!> \brief  Plot a 2D marginalised PDF
+!!
+!! \param pID1  Parameter ID 1
+!! \param pID2  Parameter ID 2
+!! \param lbl   Plot label
+
 subroutine plotpdf2d(pID1,pID2,lbl)
   use comp_pdfs_settings
   use comp_pdfs_data
   implicit none
+  integer, intent(in) :: pID1,pID2
+  character, intent(in) :: lbl*99
   integer, parameter :: np=15,nbinx1=500,nbiny1=500
-  integer :: pID1,pID2,bx,by,pID1a,pID2a,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2
+  integer :: bx,by,pID1a,pID2a,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2
   integer :: nchains,nbinx(nf),nbiny(nf),ic,lw,c,foundit
   integer :: identical
   real :: startval(nf,np,2,2),stats(nf,np,2,6),ranges(nf,np,2,5)
   real :: xmin1(nf,np,2),xmax1(nf,np,2),ymin1(nf,np,2),ymax1(nf,np,2),x
   real :: xmin,xmax,ymin,ymax,dx,dy,z(nf,nbinx1,nbiny1),z1(nbinx1,nbiny1),tr(nf,np*np,6),cont(11)
-  character :: fname*99,lbl*99,str*99,tmpstr
+  character :: fname*99,str*99,tmpstr
   
   
   pp12 = 0
@@ -358,7 +376,8 @@ subroutine plotpdf2d(pID1,pID2,lbl)
            read(10,'(2E15.7)')startval(f,p12,2,1:2) !True and starting value p2'
            read(10,'(6E15.7)')stats(f,p12,1,1:6) !Stats: median, mean, absvar1, absvar2, stdev1, stdev2 for p1'
            read(10,'(6E15.7)')stats(f,p12,2,1:6) !Stats: median, mean, absvar1, absvar2, stdev1, stdev2 for p2'
-           read(10,'(5E15.7)')ranges(f,p12,1,1:5) !Ranges: lower,upper limit, centre, width, relative width for p1' The limits are NOT used as plot limits!!!
+           ! The limits are NOT used as plot limits!!!:
+           read(10,'(5E15.7)')ranges(f,p12,1,1:5) !Ranges: lower,upper limit, centre, width, relative width for p1'
            read(10,'(5E15.7)')ranges(f,p12,2,1:5) !Ranges: lower,upper limit, centre, width, relative width for p2'
            read(10,'(4E15.7)')xmin1(f,p12,1),xmax1(f,p12,1),ymin1(f,p12,2),ymax1(f,p12,2) !'Xmin,Xmax,Ymin,Ymax of PDF'
            read(10,'(6E15.7)')tr(f,p12,1:6) !'Tr'              
@@ -508,7 +527,8 @@ subroutine plotpdf2d(pID1,pID2,lbl)
            if(abs(startval(f,pp12,1,1)-startval(1,pp12,1,1)).gt.1.e-10) identical = 0
         end do
      end if
-     !if(abs((startval(1,pp12,1,1) - sum(startval(1:nf,pp12,1,1))/(real(nf)))/startval(1,pp12,1,1)).lt.0.001) then !Then all have the same value
+     ! Then all have the same value:
+     !if(abs((startval(1,pp12,1,1) - sum(startval(1:nf,pp12,1,1))/(real(nf)))/startval(1,pp12,1,1)).lt.0.001) then
      if(identical.eq.1) then
         call pgslw(lw);call pgsls(2); call pgsci(1)
         call pgline(2,(/startval(1,pp12,1,1),startval(1,pp12,1,1)/),(/-1.e20,1.e20/))
@@ -525,7 +545,8 @@ subroutine plotpdf2d(pID1,pID2,lbl)
      do f=2,nf
         if(abs(startval(f,pp12,2,1)-startval(1,pp12,2,1)).gt.1.e-10) identical = 0
      end do
-     !if(abs((startval(1,pp12,2,1) - sum(startval(1:nf,pp12,2,1))/(real(nf)))/startval(1,pp12,2,1)).lt.0.001) then !Then all have the same value
+     ! Then all have the same value:
+     !if(abs((startval(1,pp12,2,1) - sum(startval(1:nf,pp12,2,1))/(real(nf)))/startval(1,pp12,2,1)).lt.0.001) then
      if(identical.eq.1) then
         call pgslw(lw);call pgsls(2); call pgsci(1)
         call pgline(2,(/-1.e20,1.e20/),(/startval(1,pp12,2,1),startval(1,pp12,2,1)/))
@@ -563,6 +584,12 @@ end subroutine plotpdf2d
 
 
 !***********************************************************************************************************************************
+!> \brief  Plot a GW
+!!
+!! \param fname1  Input file name
+!! \param thingy  Thingy (something with the axes)
+!! \param lbl     Plot label
+
 subroutine plotwave(fname1,thingy,lbl)
   use basic
   implicit none
@@ -582,7 +609,7 @@ subroutine plotwave(fname1,thingy,lbl)
      open(unit=10,form='formatted',status='old',file=trim(fname),iostat=io)
      rewind(10)
      
-     !write(6,'(A,$)')'Reading input file '//trim(fname)//'...     '
+     !write(6,'(A)', advance='no')'Reading input file '//trim(fname)//'...     '
      read(10,*)bla
      read(10,*)m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
      read(10,*)bla
@@ -662,7 +689,9 @@ end subroutine plotwave
 
 
 !***********************************************************************************************************************************
-subroutine read_inputfile
+!> \brief  Read the compPDF settings file
+
+subroutine read_inputfile()
   use comp_pdfs_settings
   implicit none
   integer :: u,io
@@ -715,6 +744,8 @@ end subroutine read_inputfile
 
 
 !***********************************************************************************************************************************
+!> \brief  Write the compPDF settings file
+
 subroutine write_inputfile
   use comp_pdfs_settings
   implicit none
@@ -742,7 +773,7 @@ subroutine write_inputfile
   write(u,11)pltrue, 'pltrue',   &
        'Plot true values for 1D or 2D plots:  0-no, 1-yes, 2-use different line styles for multiple sets of true values'
   write(u,11)plmedian, 'plmedian',   'Plot medians for 1D or 2D plots, only if reading 1 file'
-  write(u,11)plrange, 'plrange',   'Plot ranges  for 1D or 2D plots, only if reading 1 file: 0-no, 1:plot lines, 2:plot numbers too'
+  write(u,11)plrange, 'plrange',  'Plot ranges  for 1D or 2D plots, only if reading 1 file: 0-no, 1:plot lines, 2:plot numbers too'
   write(u,11)clr, 'clr',   'Use colour: 0-B/W, 1-colour, 2-grey scales'
   write(u,11)fillstyle, 'fillstyle',   'Fill style for PDFs: 1-solid, 2-outline, 3-hatched, 4-cross-hatched'
   write(u,11)fonttype, 'fonttype',   'Font type: 1: arial, 2: woman... no no, rrrroman, 3: italic, 4: script'
@@ -764,21 +795,21 @@ subroutine write_inputfile
   
   write(u,'(//,A)')' Input files:'
   write(u,'(A)')'   Base of input files names (without extension) (fnames):'
-  write(u,'(A,$)')'     '
+  write(u,'(A)', advance='no')'     '
   do i=1,nf
-     write(u,'(A,$)')trim(fnames(i))//'   '
+     write(u,'(A)', advance='no')trim(fnames(i))//'   '
   end do
   write(u,*)
   
   write(u,'(/,A)')'   Directories of the input files (dirnames):'
-  write(u,'(A,$)')'     '
+  write(u,'(A)', advance='no')'     '
   do i=1,nf
-     write(u,'(A,$)')trim(dirnames(i))//'   '
+     write(u,'(A)', advance='no')trim(dirnames(i))//'   '
   end do
   write(u,*)
   
   write(u,'(/,A)')'   Base of the output file name (without extention, can start with dir) (outnamebase)'
-  write(u,'(A,$)')'     '//trim(outnamebase)
+  write(u,'(A)', advance='no')'     '//trim(outnamebase)
   
   
   write(u,*)
@@ -788,11 +819,13 @@ end subroutine write_inputfile
 
 
 
+!***********************************************************************************************************************************
 !> \brief Set the names and symbols of the derived MCMC parameters
-!! e.g. d_L rather than d_L^3 or log(d_L), i rather than cos(i), etc.
-!<
-!************************************************************************************************************************************
-subroutine set_derivedParameterNames()  !Taken from and keep in sync with analyseMCMC_functions.f90
+!!
+!! - e.g. d_L rather than d_L^3 or log(d_L), i rather than cos(i), etc.
+!! - Taken from and keep in sync with analyseMCMC_functions.f90
+
+subroutine set_derivedParameterNames()
   use comp_pdfs_settings
   use comp_pdfs_data
   implicit none
@@ -885,5 +918,5 @@ subroutine set_derivedParameterNames()  !Taken from and keep in sync with analys
   
      
 end subroutine set_derivedParameterNames
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 

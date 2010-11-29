@@ -1,5 +1,8 @@
-!Compare 1d pdfs, use pdf output produced by analyseMCMC
+!> \file compPDFs.f90  Compare 1D PDFs, use PDF output produced by analyseMCMC
 
+
+!***********************************************************************************************************************************
+!> \brief  Compare 1D PDFs, use PDF output produced by analyseMCMC
 
 program comp_pdfs
   use comp_pdfs_settings
@@ -171,7 +174,8 @@ program comp_pdfs
        trim(parNames(plpars2d(2)))//exts(file)
   if(file.eq.1) then
      !if(dim.eq.1) i = system('convert -depth 8 plot.ppm comp_pdfs1d.png')
-     !if(dim.eq.2) i = system('convert -depth 8 plot.ppm comp_pdfs2d__'//trim(parNames(plpars2d(1)))//'-'//trim(parNames(plpars2d(2)))//'.png')
+     !if(dim.eq.2) i = system('convert -depth 8 plot.ppm comp_pdfs2d__'//trim(parNames(plpars2d(1)))//'-'// &
+     !trim(parNames(plpars2d(2)))//'.png')
      i = system('convert -depth 8 plot.ppm '//trim(outname))
      i = system('rm -f plot.ppm')
   end if
