@@ -3,6 +3,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   177: sluys, 29/11/2010
+     - Making AnalyseMCMC compatible with PTMCMC output:
+       - read first header line unformatted
+       - add detector names LHO_4k,LLO_4k,VIRGO
+       - print posteriors/seeds using more digits
+   
    176: sluys, 29/11/2010
      - Reduce maxMCMCpar a bit
      

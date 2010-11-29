@@ -96,11 +96,11 @@ program mcmcstats
      !Read general run info
      read(o,*)bla
      read(o,*)bla
-     read(o,'(6x,5I12,I5,I8,F22.10,I8)')totiter(f),totlines(f),totpts(f),totburn(f),totchains(f),usedchains(f),seed(f),nullh(f), &
+     read(o,'(6x,5I12,I5,I11,F22.10,I8)')totiter(f),totlines(f),totpts(f),totburn(f),totchains(f),usedchains(f),seed(f),nullh(f), &
           ndet(f)
-     if(prinput.eq.1) write(6,'(/,A)')'           totiter    totlines      totpts     totburn   totchains used    seed       '// &
-          'null likelihood    ndet'
-     if(prinput.eq.1) write(6,'(6x,4I12,I12,I5,I8,F22.10,I8)')totiter(f),totlines(f),totpts(f),totburn(f),totchains(f), &
+     if(prinput.eq.1) write(6,'(/,A)')'           totiter    totlines      totpts     totburn   totchains used       seed     '// &
+          '  null likelihood    ndet'
+     if(prinput.eq.1) write(6,'(6x,4I12,I12, I5,I11,F22.10,I8)')totiter(f),totlines(f),totpts(f),totburn(f),totchains(f), &
           usedchains(f),seed(f),nullh(f),ndet(f)
      !if(prinput.eq.0) write(6,'(6x,2I12,2I8)')totiter(f),totburn(f),ndet(f),seed(f)
      if(prinput.eq.0) write(6,'(6x,A,2(I7,A1),A,2(I2,A1))')'Data points: ',totpts(f),'/',totlines(f),',',' chains:',usedchains(f), &

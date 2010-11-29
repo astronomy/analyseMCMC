@@ -508,10 +508,12 @@ subroutine read_mcmcfiles(exitcode)
      if(len_trim(firstLine).lt.80) read(firstLine,'(A21,F8.2)')tmpStr,outputVersion  !Use new format
      
      if(outputVersion > 0.5) read(10,*,end=199,err=199)tmpStr  !Read empty line between version number and first header
-     read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), &
-          nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform,pnOrder,nMCMCpar
+     !read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') &
+     read(10,*) &
+          niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform, &
+          pnOrder,nMCMCpar
      
-     nMCMCpar0 = nMCMCpar  !< nMCMCpar may change when secondary parameters are computed
+     nMCMCpar0 = nMCMCpar  ! nMCMCpar may change when secondary parameters are computed
      
      read(10,*,end=199,err=199)tmpStr !Read empty line above detector info
      do i=1,ndet(ic)
@@ -520,12 +522,14 @@ subroutine read_mcmcfiles(exitcode)
         read(10,*)detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i), &
              samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
         detname = detnames(ic,i)
-        !write(stdErr,'(A)')trim(detname)
         j = len_trim(detname)
-        if(detname(j-3:j).eq.'ford') detnr(ic,i) = 1
-        if(detname(j-3:j).eq.'ston') detnr(ic,i) = 2
-        if(detname(j-3:j).eq.'Pisa') detnr(ic,i) = 3
-        if(detname(j-3:j).eq.'Aigo') detnr(ic,i) = 4
+        if(trim(detname).eq.'Hanford')     detnr(ic,i) = 1
+        if(trim(detname).eq.'LHO_4k')      detnr(ic,i) = 1
+        if(trim(detname).eq.'Livingston')  detnr(ic,i) = 2
+        if(trim(detname).eq.'LLO_4k')      detnr(ic,i) = 2
+        if(trim(detname).eq.'Pisa')        detnr(ic,i) = 3
+        if(trim(detname).eq.'VIRGO')       detnr(ic,i) = 3
+        if(trim(detname).eq.'Aigo')        detnr(ic,i) = 4
      end do
      
      parID = 0
@@ -562,7 +566,7 @@ subroutine read_mcmcfiles(exitcode)
         !waveform = 3
         !pNorder = 3.5
         
-        nMCMCpar0 = nMCMCpar  !< nMCMCpar may change when secondary parameters are computed
+        nMCMCpar0 = nMCMCpar  ! nMCMCpar may change when secondary parameters are computed
      end if
      do i=1,nMCMCpar
         revID(parID(i)) = i  !Reverse ID
@@ -713,9 +717,9 @@ subroutine mcmcruninfo(exitcode)
               write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(13:99)), &
                    trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
            else
-              write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8,  2A8,2A8,  A8,  A10,  A8,  A8, 3x,A8)') 'Chain','file name','colour', &
+              write(stdOut,'(4x,A7,A12,A13,A10,A12,A11,A8,  2A8,2A8,  A8,  A10,  A8,  A8, 3x,A8)') 'Chain','file name','colour', &
                    'Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','<d|d>','pN','Npar','WaveForm'
-              write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8,  2I8,2F8.1,F8.3,F10.2,F8.1,I8, 3x,A)')ic,trim(infile(19:99)), &
+              write(stdOut,'(4x,I7,A12,  A13,I10,I12,I11,I8,  2I8,2F8.1,F8.3,F10.2,F8.1,I8, 3x,A)')ic,trim(infile(19:99)), &
                    trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic), &
                    nCorr(ic),nTemps(ic),real(Tmax(ic)),Tchain(ic),networkSNR(ic),DoverD,pnOrder,nMCMCpar,trim(waveforms(waveform))
            end if
@@ -807,7 +811,7 @@ subroutine mcmcruninfo(exitcode)
   
   !***AutoBurnin: for each chain, get the first point where log(L) > log(L_max)-autoBurnin
   if(abs(autoBurnin).gt.1.e-10) then
-     if(autoBurnin.lt.-1.e-10) autoBurnin = real(nMCMCpar0)/2.  !< The default value for autoBurnin = Npar/2
+     if(autoBurnin.lt.-1.e-10) autoBurnin = real(nMCMCpar0)/2.  ! The default value for autoBurnin = Npar/2
      loop1: do ic=1,nchains0
         isburn(ic) = is(ic,ntot(ic)) !Set burn-in to last iteration, so that chain is completely excluded if condition never met
         Nburn(ic) = ntot(ic)
@@ -996,7 +1000,7 @@ subroutine mcmcruninfo(exitcode)
      if(prInitial.eq.1) write(stdOut,'(/,A)')'  Starting values for the chains:'
      if(prInitial.eq.2) write(stdOut,'(/,A)')'  Injection and starting values for the chains:'
      if(prInitial.ge.3) write(stdOut,'(/,A)')'  Injection, starting and Lmax values for the chains:'
-     write(stdOut,'(5x,A10,A9)',advance="no")'','log Post'
+     write(stdOut,'(5x,A10,A11)',advance="no")'','log Post'
      do p=1,nMCMCpar
         write(stdOut,'(A9)',advance="no")trim(parNames(parID(p)))
      end do
@@ -1010,7 +1014,7 @@ subroutine mcmcruninfo(exitcode)
      if(prInitial.ne.0) then 
         if(ic.eq.1.and.prInitial.ge.2) then
            write(stdOut,'(4x,A11)',advance="no")'Injection:  '
-           write(stdOut,'(F9.4)',advance="no")post(ic,1)
+           write(stdOut,'(F11.3)',advance="no")post(ic,1)
            do p=1,nMCMCpar
               write(stdOut,'(F9.4)',advance="no")startval(1,p,1)
            end do
@@ -1020,14 +1024,14 @@ subroutine mcmcruninfo(exitcode)
         if(abs((sum(startval(ic,1:nMCMCpar,1))-sum(startval(ic,1:nMCMCpar,2)))/sum(startval(ic,1:nMCMCpar,1))).gt.1.e-10) then
            offsetrun = 1
            write(stdOut,'(I4,A1,A10)',advance="no")ic,':','  Start: '
-           write(stdOut,'(F9.4)',advance="no")post(ic,2)
+           write(stdOut,'(F11.3)',advance="no")post(ic,2)
            do p=1,nMCMCpar
               write(stdOut,'(F9.4)',advance="no")startval(ic,p,2)
            end do
            write(stdOut,*)
            if(prInitial.ge.4) then
               write(stdOut,'(5x,A10)',advance="no")'Diff:  '
-              write(stdOut,'(F9.4)',advance="no")abs(post(ic,1)-post(ic,2))
+              write(stdOut,'(F11.3)',advance="no")abs(post(ic,1)-post(ic,2))
               do p=1,nMCMCpar
                  write(stdOut,'(F9.4)',advance="no")abs(startval(ic,p,1)-startval(ic,p,2))
               end do
@@ -1038,14 +1042,14 @@ subroutine mcmcruninfo(exitcode)
   end do
   if(prInitial.ge.3) then
      write(stdOut,'(5x,A10)',advance="no")'Lmax:  '
-     write(stdOut,'(F9.4)',advance="no")post(icloglmax,iloglmax)
+     write(stdOut,'(F11.3)',advance="no")post(icloglmax,iloglmax)
      do p=1,nMCMCpar
         write(stdOut,'(F9.4)',advance="no")startval(1,p,3)
      end do
      write(stdOut,*)
      if(prInitial.ge.4) then
         write(stdOut,'(5x,A10)',advance="no")'Diff:  '
-        write(stdOut,'(F9.4)',advance="no")abs(post(ic,1)-post(icloglmax,iloglmax))
+        write(stdOut,'(F11.3)',advance="no")abs(post(ic,1)-post(icloglmax,iloglmax))
         do p=1,nMCMCpar
            write(stdOut,'(F9.4)',advance="no")abs(startval(1,p,1)-startval(1,p,3))
         end do
