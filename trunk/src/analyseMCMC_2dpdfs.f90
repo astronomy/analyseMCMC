@@ -1,5 +1,9 @@
-!Routines to compute and plot two-dimensional PDFs
+!> \file analyseMCMC_2dpdfs.f90  Routines to compute and plot two-dimensional PDFs
 
+!***********************************************************************************************************************************
+!> \brief  Plot 2D marginalised PDFs
+!!
+!! \retval exitcode  Exit code: 0=ok
 
 subroutine pdfs2d(exitcode)
   use constants
@@ -9,7 +13,8 @@ subroutine pdfs2d(exitcode)
   use plot_data
   use stats_data
   implicit none
-  integer :: i,j,j1,j2,p1,p2,ic,lw,io,exitcode,c,status,system,pgopen,clr,maxclr
+  integer, intent(out) :: exitcode
+  integer :: i,j,j1,j2,p1,p2,ic,lw,io,c,status,system,pgopen,clr,maxclr
   integer :: npdf,ncont,flw,plotthis,injectionrange2d,countplots,totplots
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)

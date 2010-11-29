@@ -3,6 +3,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   180: sluys, 29/11/2010
+     - Adding Doxygen comments
+     
    179: sluys, 29/11/2010
      - Cleaning up, adding Doxygen comments, conforming to F2003 standard
      - Updated Makefile

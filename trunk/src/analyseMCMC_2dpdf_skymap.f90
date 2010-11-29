@@ -1,20 +1,31 @@
-!> analyseMCMC_2dpdf_skymap.f90:  
-!! Routines to plot a 2D PDF on a sky map
-!<
+!> \file analyseMCMC_2dpdf_skymap.f90  Routines to plot a 2D PDF on a sky map
+
 
 !***********************************************************************************************************************************
+!> \brief  Plot a sky map
+!!
+!! \param bx1      RA boundary 1
+!! \param bx2      RA boundary 2
+!! \param by1      Dec boundary 1
+!! \param by2      Dec boundary 2
+!! \param raShift  Shift in RA needed to centre the PDF
+
 subroutine plotthesky(bx1,bx2,by1,by2,raShift)
   use basic
   use constants
   use plot_data
   
   implicit none
+  real, intent(in) :: by1,by2,raShift
+  real, intent(inout) :: bx1,bx2
+  
   integer, parameter :: ns=9110, nsn=80
   integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,spld,n,prslbl,rv
   real(double) :: ra(ns),dec(ns),dx1,dx2,dy,ra1,dec1,drev2pi,par
   real :: pma,pmd,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
-  real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,bx1,bx2,by1,by2,x,y,mlim,raShift
+  real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,x,y,mlim
   character :: cn(100)*3,con(100)*20,name*10,sn(ns)*10,snam(nsn)*10,sni*10,getsname*10,mult,var*9
+  
   
   mlim = 6.            !Magnitude limit for stars
   sllim = 2.5          !Limit for labels
@@ -189,10 +200,16 @@ end subroutine plotthesky
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-function getsname(name)               !Get star name from bsc info
+!> \brief  Get star name from bsc info
+!!
+!! \param name  BSC star name
+
+function getsname(name)
   use analysemcmc_settings
   implicit none
-  character :: getsname*10,name*10,num*3,grk*3,gn*1
+  character, intent(in) :: name*10
+  character :: getsname*10,num*3,grk*3,gn*1
+  
   num = name(1:3)
   grk = name(4:6)
   gn  = name(7:7)
@@ -261,15 +278,19 @@ end function getsname
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-function getmag(m,mlim)  !Determine size of stellar 'disk'
-  real :: getmag,m,m1,mlim
+!> \brief  Determine size of stellar 'disk'
+!!
+!! \param m     Magnitude of the star
+!! \param mlim  Limiting magnitude of the map
+
+function getmag(m,mlim)
+  real, intent(in) :: m,mlim
+  real :: getmag,m1
+  
   m1 = m
-  !      if(m1.lt.0.) m1 = m1*0.5  !Less excessive grow in diameter for the brightest objects
-  if(m1.lt.-1.e-3) m1 = -sqrt(-m1)  !Less excessive grow in diameter for the brightest objects
-  !getmag = max(mlim-m1+0.5,0.)
-  getmag = max(mlim-m1+0.5,0.5) !Make sure the weakest stars are still plotted
-  !getmag = max(mlim-m1+0.5,0.)+0.5
-  return
+  if(m1.lt.-1.e-3) m1 = -sqrt(-m1)  ! Less excessive grow in diameter for the brightest objects
+  getmag = max(mlim-m1+0.5,0.5)     ! Make sure the weakest stars are still plotted
+  
 end function getmag
 !***********************************************************************************************************************************
 
@@ -277,7 +298,11 @@ end function getmag
 
 
 !***********************************************************************************************************************************
-subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)  !Clone of pgimag, use projection if projection > 0
+!> \brief  Plot a projected image
+!!
+!! - Clone of pgimag, use projection if projection > 0
+
+subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)
   use constants
   use general_data
   implicit none
@@ -424,11 +449,23 @@ end subroutine pgimag_project
 
 
 !***********************************************************************************************************************************
-subroutine project_skymap(x,y,raCentre,projection)  !Project a sky map, using projection 'projection'
+!> \brief  Project a sky map, using projection 'projection'
+!!
+!! \param x           X coordinate of object (I/O)
+!! \param y           Y coordinate of object (I/O)
+!! \param raCentre    Central RA of map
+!! \param projection  Choice of projection:  1 - Mollweide
+
+subroutine project_skymap(x,y,raCentre,projection)
   use constants
   implicit none
-  integer :: projection,iter,maxIter
-  real :: x,y,theta,siny,th2,dth2,delta,raCentre
+  real, intent(inout) :: x,y
+  real, intent(in) :: raCentre
+  integer, intent(in) :: projection
+  
+  integer :: iter,maxIter
+  real :: theta,siny,th2,dth2,delta
+  
   
   if(projection.eq.1) then
      !Mollweide projection:

@@ -1,21 +1,34 @@
-
+!> \file  analyseMCMC_2dpdf_routines.f90  Routines and functions to help produce 2D marginalised PDFs
 
 
 
 
 
 !***********************************************************************************************************************************
-subroutine bindata2dold(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)  !Count the number of points in each bin
-  !x - input: data, n points
-  !norm - input: normalise (1) or not (0)
-  !nbin - input: number of bins
-  !xmin, xmax - in/output: set xmin=xmax to auto-determine
-  !xbin, ybin - output: binned data (x, y).  The x values are the left side of the bin!
-  
+!> \brief  Bin data 2D by counting the number of points in each bin - old routine
+!! 
+!! \param n      Number of data points
+!! \param x      Data to be binned (n points), parameter 1
+!! \param y      Data to be binned (n points), parameter 2
+!! \param norm   Normalise histogram (1) or not (0)
+!! \param nxbin  Desired number of bins, parameter 1
+!! \param nybin  Desired number of bins, parameter 2
+!! \param xmin1  Minimum value of the binning range, parameter 1.  Set xmin=xmax to auto-determine (I/O)
+!! \param xmax1  Maximum value of the binning range, parameter 1.  Set xmin=xmax to auto-determine (I/O)
+!! \param ymin1  Minimum value of the binning range, parameter 2.  Set ymin=ymax to auto-determine (I/O)
+!! \param ymax1  Maximum value of the binning range, parameter 2.  Set ymin=ymax to auto-determine (I/O)
+!! \retval z     Binned data, height of the bins
+!! \retval tr    Transformation elements for pgplot; determines ranges of the output matrix z
+
+subroutine bindata2dold(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)
   implicit none
-  integer :: i,n,bx,by,nxbin,nybin,norm
-  real :: x(n),y(n),xbin(nxbin+1),ybin(nybin+1),z(nxbin+1,nybin+1)
-  real :: xmin,xmax,ymin,ymax,dx,dy,xmin1,xmax1,ymin1,ymax1,tr(6)
+  integer, intent(in) :: n, nxbin,nybin, norm
+  real, intent(in) :: x(n),y(n)
+  real, intent(inout) :: xmin1,xmax1,ymin1,ymax1
+  real, intent(out) :: z(nxbin+1,nybin+1),tr(6)
+  integer :: i,bx,by
+  real :: xbin(nxbin+1),ybin(nybin+1)
+  real :: xmin,xmax,ymin,ymax,dx,dy
   
   !write(stdOut,'(A4,5I8)')'n:',norm,nxbin,nybin
   !write(stdOut,'(A4,2F8.3)')'x:',xmin1,xmax1
@@ -95,6 +108,7 @@ end subroutine bindata2dold
 
 !***********************************************************************************************************************************
 !> \brief Bin data in 2 dimensions - computing the bin number rather than searching for it is ~10x faster
+!! 
 !! \param n  Number of input data points (integer)
 !! \param x  Input data: x values (real)
 !! \param y  Input data: y values (real)
@@ -107,7 +121,7 @@ end subroutine bindata2dold
 !! \param ymax1  Upper limit for the binning range in the y direction - autodetermine if ymin1=ymax1 (real)
 !! \retval z     Binned data set z(nxbin,nybin) (real)
 !! \retval tr    Transformation elements for pgplot tr(6) (real)
-!<
+
 subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)
   
   implicit none
@@ -184,15 +198,23 @@ end subroutine bindata2d
 
 
 !***********************************************************************************************************************************
-subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)  !Measure the amount of likelihood in each bin
-  !x,y - input: data, n points
-  !z - input: amount for each point (x,y)
-  !norm - input: normalise (1) or not (0)
-  !nxbin,nybin - input: number of bins in each dimension
-  !xmin1,xmax1 - in/output: ranges in x dimension, set xmin=xmax as input to auto-determine
-  !ymin1,ymax1 - in/output: ranges in y dimension, set ymin=ymax as input to auto-determine
-  !zz - output: binned data zz(x,y).  The x,y values are the left side of the bin(?)
-  !tr - output: transformation elements for pgplot (pggray, pgcont)
+!> \brief 'Bin data' in 2 dimensions  -  Measure the amount of likelihood in each bin
+!! 
+!! \param n      Number of input data points (integer)
+!! \param x      Input data: x values (real)
+!! \param y      Input data: y values (real)
+!! \param z      Input data: likelihood values
+!! \param norm   Normalise the bins (1) or not (0) (integer)
+!! \param nxbin  Desired number of bins in the x direction
+!! \param nybin  Desired number of bins in the y direction
+!! \param xmin1  Lower limit for the binning range in the x direction - autodetermine if xmin1=xmax1 (real)
+!! \param xmax1  Upper limit for the binning range in the x direction - autodetermine if xmin1=xmax1 (real)
+!! \param ymin1  Lower limit for the binning range in the y direction - autodetermine if ymin1=ymax1 (real)
+!! \param ymax1  Upper limit for the binning range in the y direction - autodetermine if ymin1=ymax1 (real)
+!! \retval zz    'Binned' data set z(nxbin,nybin) (real)
+!! \retval tr    Transformation elements for pgplot tr(6) (real)
+
+subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)
   
   implicit none
   integer :: i,n,bx,by,nxbin,nybin,norm
@@ -277,14 +299,26 @@ end subroutine bindata2da
 
 
 !***********************************************************************************************************************************
+!> \brief  Get the 2d probability intervals; z lies between 1 (in 100% range) and ni (in lowest-% range, e.g. 90%)
+!!
+!! \param p1  Parameter ID 1
+!! \param p2  Parameter ID 2
+!! \param ni  Number of probability intervals
+!! \param nx  Number of bins in the x direction
+!! \param ny  Number of bins in the y direction
+!! \param z   Binned data (nx,ny) -> probability-interval data
+!! \param tr  Transformation elements used by PGPlot
+
 subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
-  !Get the 2d probability intervals; z lies between 1 (in 100% range) and ni (in lowest-% range, e.g. 90%)
   use constants
   use analysemcmc_settings
   use mcmcrun_data
   implicit none
-  integer :: p1,p2,ni,nx,ny,nn,indx(nx*ny),i,b,ib,full(ni),iy
-  real :: z(nx,ny),x1(nx*ny),x2(nx*ny),tot,np,tr(6),y
+  integer, intent(in) :: p1,p2,ni,nx,ny
+  real, intent(inout) :: z(nx,ny)
+  real, intent(in) :: tr(6)
+  integer :: nn,indx(nx*ny),i,b,ib,full(ni),iy
+  real :: x1(nx*ny),x2(nx*ny),tot,np,y
   
   
   !Weight number of points in each bin by bin size for position/orientation plots
@@ -347,14 +381,27 @@ end subroutine identify_2d_ranges
 
 
 !***********************************************************************************************************************************
-!Compute 2D probability areas
+!> \brief  Compute 2D probability areas
+!!
+!! \param p1  Parameter ID 1
+!! \param p2  Parameter ID 2
+!! \param ni  Number of probability intervals
+!! \param nx  Number of bins in the x direction
+!! \param ny  Number of bins in the y direction
+!! \param z   Binned data (nx,ny) -> probability-interval data
+!! \param tr  Transformation elements used by PGPlot
+!! \retval area  Probability areas
+
 subroutine calc_2d_areas(p1,p2,ni,nx,ny,z,tr,area)
   use constants
   use analysemcmc_settings
   use mcmcrun_data
   implicit none
-  integer :: p1,p2,ni,nx,ny,ix,iy,i,i1,iv
-  real :: z(nx,ny),tr(6),y,dx,dy,area(ni)
+  integer, intent(in) :: p1,p2,ni,nx,ny
+  real, intent(in) :: z(nx,ny),tr(6)
+  real, intent(out) :: area(ni)
+  integer :: ix,iy,i,i1,iv
+  real :: y,dx,dy
   
   area = 0.
   
@@ -384,16 +431,26 @@ subroutine calc_2d_areas(p1,p2,ni,nx,ny,z,tr,area)
         
      end do !iy
   end do !ix
+  
 end subroutine calc_2d_areas
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
+!> \brief  Get the smallest probability area in which the injection values lie
+!!
+!! \param z   Binned data (nx,ny) -> probability-interval data
+!! \param nx  Number of bins in the x direction
+!! \param ny  Number of bins in the y direction
+!! \param injectionx  Injection value of parameter 1
+!! \param injectiony  Injection value of parameter 2
+!! \param tr  Transformation elements used by PGPlot
+
 function injectionrange2d(z,nx,ny,injectionx,injectiony,tr)
-  !Get the smallest probability area in which the injection values lie
   implicit none
-  integer :: nx,ny,ix,iy,injectionrange2d
-  real :: injectionx,injectiony,z(nx,ny),tr(6)
+  integer, intent(in) :: nx,ny
+  real, intent(in) :: injectionx,injectiony,z(nx,ny),tr(6)
+  integer :: ix,iy,injectionrange2d
   
   !x = tr(1) + tr(2)*ix + tr(3)*iy
   !y = tr(4) + tr(5)*ix + tr(6)*iy
@@ -404,6 +461,7 @@ function injectionrange2d(z,nx,ny,injectionx,injectiony,tr)
   else
      injectionrange2d = nint(z(ix,iy))
   end if
+  
 end function injectionrange2d
 !***********************************************************************************************************************************
 
@@ -419,7 +477,7 @@ end function injectionrange2d
 !! \param nxbin  Desired number of bins in the x direction
 !! \param nybin  Desired number of bins in the y direction
 !! \param z     Binned data set z(nxbin,nybin) (real)
-!<
+
 subroutine check_binned_data(nxbin,nybin,z)
   
   implicit none
@@ -457,3 +515,4 @@ subroutine check_binned_data(nxbin,nybin,z)
   write(6,'(//,A,F10.2,2I6,3I8,F10.4,//)') 'Check_binned_data:',frac,nxbin,nybin,(nxbin-2)*(nybin-2),n,count,real(count)/real(n)
   
 end subroutine check_binned_data
+!***********************************************************************************************************************************
