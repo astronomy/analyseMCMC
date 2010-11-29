@@ -17,11 +17,13 @@ module basic
    !   selected_int/real_kind return negative integers for unsupported precision, and supposedly larger values for supported kinds
    !   with larger precision.  Int 9,18 are standard int,long; real 6,15 are standard single,double precision.  Larger precisions
    !   used are found in some compilers, except 99, which I made up.
+   
    integer, parameter :: maxint = max(selected_int_kind(9),selected_int_kind(18),selected_int_kind(38),selected_int_kind(99)) 
    integer, parameter :: maxreal = max(selected_real_kind(6),selected_real_kind(15),selected_real_kind(18), &
         selected_real_kind(31),selected_real_kind(33),selected_real_kind(99))
    
    integer :: stdOut,stdErr
+   
 end module basic
 !***********************************************************************************************************************************
 
@@ -32,7 +34,7 @@ module analysemcmc_settings
   save
   integer, parameter :: maxNival=5     ! maxNival: Maximum number of probability intervals that can be used
   integer, parameter :: maxChs=25      ! macChs: Maximum number of chains that can be read
-  integer, parameter :: maxMCMCpar=25  ! MaxMCMCpar: MCMCpar+secondary parameters, e.g. 12+2(M1M2) = 14 for 12 par; 17 for 15 par
+  integer, parameter :: maxMCMCpar=20  ! MaxMCMCpar: MCMCpar+secondary parameters, e.g. 12+2(M1M2) = 14 for 12 par; 17 for 15 par
   integer, parameter :: nParDB=199     ! nParDB: size of the parameter database
   
   integer :: plPars(maxMCMCpar),nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D,PDF2Dpairs(250,2),panels(2)
