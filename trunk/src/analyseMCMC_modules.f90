@@ -5,25 +5,25 @@
 !***********************************************************************************************************************************
 !> \brief Module with data types, etc.
 module basic
-   implicit none
-   
-   ! Determine real double-precision kind for the current compiler/OS:
-   integer, parameter :: double = selected_real_kind(15,307),  dbl = double
-   
-   ! Determine integer double-precision kind for the current compiler/OS:
-   integer, parameter :: long = selected_int_kind(18),  lng = long
-   
-   ! Determine maximum-precision kinds for the current compiler/OS:
-   !   selected_int/real_kind return negative integers for unsupported precision, and supposedly larger values for supported kinds
-   !   with larger precision.  Int 9,18 are standard int,long; real 6,15 are standard single,double precision.  Larger precisions
-   !   used are found in some compilers, except 99, which I made up.
-   
-   integer, parameter :: maxint = max(selected_int_kind(9),selected_int_kind(18),selected_int_kind(38),selected_int_kind(99)) 
-   integer, parameter :: maxreal = max(selected_real_kind(6),selected_real_kind(15),selected_real_kind(18), &
-        selected_real_kind(31),selected_real_kind(33),selected_real_kind(99))
-   
-   integer :: stdOut,stdErr
-   
+  implicit none
+  
+  ! Determine real double-precision kind for the current compiler/OS:
+  integer, parameter :: double = selected_real_kind(15,307),  dbl = double
+  
+  ! Determine integer double-precision kind for the current compiler/OS:
+  integer, parameter :: long = selected_int_kind(18),  lng = long
+  
+  ! Determine maximum-precision kinds for the current compiler/OS:
+  !   selected_int/real_kind return negative integers for unsupported precision, and supposedly larger values for supported kinds
+  !   with larger precision.  Int 9,18 are standard int,long; real 6,15 are standard single,double precision.  Larger precisions
+  !   used are found in some compilers, except 99, which I made up.
+  
+  integer, parameter :: maxint = max(selected_int_kind(9),selected_int_kind(18),selected_int_kind(38),selected_int_kind(99)) 
+  integer, parameter :: maxreal = max(selected_real_kind(6),selected_real_kind(15),selected_real_kind(18), &
+       selected_real_kind(31),selected_real_kind(33),selected_real_kind(99))
+  
+  integer :: stdOut,stdErr
+  
 end module basic
 !***********************************************************************************************************************************
 
@@ -102,11 +102,11 @@ module mcmcrun_data
   
   implicit none
   save
-  integer :: niter(maxChs),totiter,totlines,totpts,Nburn0(maxChs),seed(maxChs),ndet(maxChs),totthin(maxChs)
+  integer :: niter(maxChs),totiter,totlines,totpts,Nburn0(maxChs),ndet(maxChs),totthin(maxChs)
   integer :: nCorr(maxChs),nTemps(maxChs),waveform,nMCMCpar,nMCMCpar0,Tmax(maxChs)
   integer :: samplerate(maxChs,ndets),samplesize(maxChs,ndets),FTsize(maxChs,ndets),detnr(maxChs,ndets),offsetrun
   integer :: parID(maxMCMCpar),revID(nParDB),spinningRun
-  integer(long) :: GPStime
+  integer(long) :: GPStime,seed(maxChs)
   real :: snr(maxChs,ndets),flow(maxChs,ndets),fhigh(maxChs,ndets),t_before(maxChs,ndets),t_after(maxChs,ndets)
   real :: deltaFT(maxChs,ndets)
   real :: Tchain(maxChs),networkSNR(maxChs),pnOrder,outputVersion
