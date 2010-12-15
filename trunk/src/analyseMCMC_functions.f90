@@ -502,8 +502,9 @@ subroutine read_mcmcfiles(exitcode)
      !Determine from the length of the first line whether this is output from before of after July 2009
      !  before: first line is >80 characters long header (     Niter       Nburn    seed       <d|d>...
      !  after:  first line is <80 characters long version number (  SPINspiral version:    1.00)
+	 !CHANGE. LALInference format has long first line (  LALInference version:d4cd156ea4b0174d3fbd8b67ade5584981b34aed,2010-12-15 05:58:56 +0000,cbc_bayesian_devel,Vivien Raymond <vivien.raymond@ligo.org>,CLEAN: All modifications committed)
      
-     outputVersion = 0.0  !Use old format
+     outputVersion = 1.0  !Use new format, causes the old format never to be used.
      read(10,'(A999)',end=199,err=199)firstLine
      if(len_trim(firstLine).lt.80) read(firstLine,'(A21,F8.2)')tmpStr,outputVersion  !Use new format
      
