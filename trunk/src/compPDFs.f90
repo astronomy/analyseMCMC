@@ -9,7 +9,7 @@ program comp_pdfs
   use comp_pdfs_data
   integer :: nfrx,nfry,frx,fry,fr,fr1,f,i,system
   real :: size,rat,xwinmin,xwinmax,ywinmin,ywinmax,dxwin,dywin,xfrmin,xfrmax,yfrmin,yfrmax,dxfr,dyfr,space
-  character :: lbl*99,outname*99,exts(0:3)*4
+  character :: lbl*(99),outname*(99),exts(0:3)*(4)
   
   write(*,*)
   if(command_argument_count().eq.1) then

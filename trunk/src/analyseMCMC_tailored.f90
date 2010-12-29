@@ -1,7 +1,4 @@
-!> AnalyseMCMC_tailored.f:
-!! Produce tailored ASCII output, e.g. for (LaTeX) tables, etc.
-!! 
-!<
+!> \file analyseMCMC_tailored.f90  Produce tailored ASCII output, e.g. for (LaTeX) tables, etc.
 
 
 
@@ -16,7 +13,7 @@ subroutine tailored_output(exitcode)
    implicit none
    integer :: exitcode
    integer :: out
-   character :: outname*99
+   character :: outname*(99)
    
    exitcode = 1
    out = 40  !Output unit
@@ -76,7 +73,7 @@ subroutine tailored_output_0002(out,exitcode)
    integer :: out,exitcode
    integer :: par,par1,par2,ic
    real(double) :: x
-   character :: runID*99,col*99,row*99
+   character :: runID*(99),col*(99),row*(99)
    logical :: sky_position,binary_orientation
    
    ic = 1

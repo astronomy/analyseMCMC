@@ -6,7 +6,7 @@ program mcmcstats
   integer, parameter :: nf1=100,nifo1=3,npar1=15,nival1=5
   integer :: i,j,iv,iv1,iv2,f,nf,o,p,io,pgopen,system
   integer :: prinput,plfile
-  character :: infile*99,bla,str*99,output*1000
+  character :: infile*(99),bla,str*(99),output*(1000)
   
   integer :: totiter(nf1),totlines(nf1),totpts(nf1),totburn(nf1),totchains(nf1),usedchains(nf1),ndet(nf1),seed(nf1)
   integer :: detnr(nf1,nifo1),samplerate(nf1,nifo1),samplesize(nf1,nifo1),FTsize(nf1,nifo1)
@@ -17,8 +17,8 @@ program mcmcstats
   real :: absvar2(nf1,npar1),corrs(nf1,npar1,1:npar1)
   real :: ivals(nf1,1:nival1),ivlcntr(nf1,npar1,nival1),ivldelta(nf1,npar1,nival1),ivlinrnge(nf1,npar1,nival1)
   real :: ivldelta2d(nf1,npar1,nival1)
-  character :: detname(nf1,nifo1)*25,varnames(nf1,npar1)*25,outputnames(nf1)*99,ivlok(nf1,npar1,nival1)*3
-  character :: ivlok2d(nf1,npar1,nival1)*3,pgvarns(1:npar1)*99,pgvarnss(1:npar1)*99, letters(5)
+  character :: detname(nf1,nifo1)*(25),varnames(nf1,npar1)*(25),outputnames(nf1)*(99),ivlok(nf1,npar1,nival1)*(3)
+  character :: ivlok2d(nf1,npar1,nival1)*(3),pgvarns(1:npar1)*(99),pgvarnss(1:npar1)*(99), letters(5)
   
   integer :: npdf2d(nf1),nbin2dx(nf1),nbin2dy(nf1),pdfpar2dx(nf1,npar1),pdfpar2dy(nf1,npar1)
   

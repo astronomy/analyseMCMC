@@ -17,7 +17,7 @@ subroutine chains(exitcode)
   integer :: i,j,pgopen,imin,ci,lw,symbol,io,ic,p,status,system
   real :: rev360,rev24,rev180,compute_median_real
   real :: dx,dy,xmin,xmax,ymin,ymax,sch,plx,ply
-  character :: title*99
+  character :: title*(99)
   
   exitcode = 0
   
@@ -1107,7 +1107,7 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
   integer :: i,imin,imax, tick_omi, n
   real :: logpmin0,snrmin,snrmax,dsnr,snr, dlogp,logp, ntick0,tick_om,dtick, tick
   real :: len, dist, ori
-  character :: label*19,fmt*19
+  character :: label*(19),fmt*(19)
   
   call pgbox('BCNTS',0.0,0,'BNTS',0.0,0)  ! No right border
   call pgbox('',0.0,0,'C',0.0,0)          ! Right border without ticks, labels

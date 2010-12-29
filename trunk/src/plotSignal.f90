@@ -1,17 +1,17 @@
-!Read and plot the signal output from Christians code
+!> \file plotSignal.f90  Read and plot the signal output from SPINspiral
 
 program plotsignal
   implicit none
   integer, parameter :: n1=1000000,nf=2
   integer :: n(nf),i,j,io,pgopen,file,f,prname,prtitle,system,thin
-  real*8 :: t0,t1(nf,n1)
+  real(double) :: t0,t1(nf,n1)
   real :: t(nf,n1),h(nf,n1),dx,dy,xmin,xmax,ymin,ymax
-  character :: title*1000,fnames(nf)*99,fname*99,bla,t0s*10,detnames(nf)*99
+  character :: title*(1000),fnames(nf)*(99),fname*(99),bla,t0s*(10),detnames(nf)*(99)
   
   integer :: nfrx,nfry,frx,fry,fr,colours(nf)
   real :: xwinmin,xwinmax,ywinmin,ywinmax,dxwin,dywin,xfrmin,xfrmax,yfrmin,yfrmax,sch
-  real*8 :: m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
-  character :: m1s*20,m2s*20,dls*20,spins*20
+  real(double) :: m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
+  character :: m1s*(20),m2s*(20),dls*(20),spins*(20)
   
   file = 1 !0-screen, 1-file: eps, 2-file: pdf, 3-file: png
   thin = 1 !Thin the number of points by this factor at read

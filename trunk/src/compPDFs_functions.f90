@@ -12,7 +12,7 @@ module comp_pdfs_settings
   integer :: nf,file,type,dim,clr,fillstyle,frames(2),plpars(20),plpars2d(2),clrs(nfmax),lss(nfmax)
   integer :: pltrue,plmedian,plrange,fonttype
   real :: fontsize
-  character :: fnames(nfmax)*99,dirnames(nfmax)*99,outnamebase*99,settingsfile*99
+  character :: fnames(nfmax)*(99),dirnames(nfmax)*(99),outnamebase*(99),settingsfile*(99)
 end module comp_pdfs_settings
 !***********************************************************************************************************************************
 
@@ -25,7 +25,7 @@ module comp_pdfs_data
   implicit none
   save
   
-  character :: parNames(nParDB)*8,pgUnits(nParDB)*99,pgParNs(nParDB)*99,pgParNss(nParDB)*99,pgOrigParns(nParDB)*99
+  character :: parNames(nParDB)*(8),pgUnits(nParDB)*(99),pgParNs(nParDB)*(99),pgParNss(nParDB)*(99),pgOrigParns(nParDB)*(99)
   
 end module comp_pdfs_data
 !***********************************************************************************************************************************
@@ -44,12 +44,12 @@ subroutine plotpdf1d(pp,lbl)
   use comp_pdfs_data
   implicit none
   integer, intent(in) :: pp
-  character, intent(in) :: lbl*99
+  character, intent(in) :: lbl*(99)
   integer, parameter :: np=99,nbin1=500  !np: number of parameters (currently 11-87 are defined)
   integer :: b,p1,io,f,nplvar,nchains,nbin(nf),pID,parIDs(np),pp1,ic,wrap(nf,np),lw,detnan(nf,np),identical
   real :: x,startval(nf,np,2),stats(nf,np,6),ranges(nf,np,5),xmin1(nf,np),xmax1(nf,np),plshift
   real :: xbin1(nf,np,nbin1),ybin1(nf,np,nbin1),xbin(nbin1),ybin(nbin1),xmin,xmax,ymin,ymax,dx,yrange(2),xpeak
-  character :: fname*99,str*99,tmpstr
+  character :: fname*(99),str*(99),tmpstr
   
   
   detnan = 0  ! Used to detect NaNs
@@ -337,7 +337,7 @@ subroutine plotpdf2d(pID1,pID2,lbl)
   use comp_pdfs_data
   implicit none
   integer, intent(in) :: pID1,pID2
-  character, intent(in) :: lbl*99
+  character, intent(in) :: lbl*(99)
   integer, parameter :: np=15,nbinx1=500,nbiny1=500
   integer :: bx,by,pID1a,pID2a,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2
   integer :: nchains,nbinx(nf),nbiny(nf),ic,lw,c,foundit
@@ -345,7 +345,7 @@ subroutine plotpdf2d(pID1,pID2,lbl)
   real :: startval(nf,np,2,2),stats(nf,np,2,6),ranges(nf,np,2,5)
   real :: xmin1(nf,np,2),xmax1(nf,np,2),ymin1(nf,np,2),ymax1(nf,np,2),x
   real :: xmin,xmax,ymin,ymax,dx,dy,z(nf,nbinx1,nbiny1),z1(nbinx1,nbiny1),tr(nf,np*np,6),cont(11)
-  character :: fname*99,str*99,tmpstr
+  character :: fname*(99),str*(99),tmpstr
   
   
   pp12 = 0
@@ -599,7 +599,7 @@ subroutine plotwave(fname1,thingy,lbl)
   real :: xwinmin,xwinmax,ywinmin,ywinmax
   real :: t(nf,n1),h(nf,n1),dx,dy,xmin,xmax,ymin,ymax
   real(double) :: t1,t0,m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
-  character :: fname*99,fname1*99,fname2*99,bla,lbl*99
+  character :: fname*(99),fname1*(99),fname2*(99),bla,lbl*(99)
   
   t0 = 0.0_dbl
   

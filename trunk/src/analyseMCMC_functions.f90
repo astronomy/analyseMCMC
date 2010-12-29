@@ -72,7 +72,7 @@ subroutine read_settingsfile
   
   implicit none
   integer :: i,u,io,io1
-  character :: bla,filename*99
+  character :: bla,filename*(99)
   real(double) :: dblvar
   filename = 'analysemcmc.dat'
   
@@ -476,7 +476,7 @@ subroutine read_mcmcfiles(exitcode)
   implicit none
   integer, intent(out) :: exitcode
   integer :: i,tmpInt,io,ic,j,readerror,p
-  character :: tmpStr*99,detname*14,firstLine*999,infile*99
+  character :: tmpStr*(99),detname*(14),firstLine*(999),infile*(99)
   real(double) :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar),lon2ra,ra2lon
   
   exitcode = 0
@@ -502,7 +502,8 @@ subroutine read_mcmcfiles(exitcode)
      !Determine from the length of the first line whether this is output from before of after July 2009
      !  before: first line is >80 characters long header (     Niter       Nburn    seed       <d|d>...
      !  after:  first line is <80 characters long version number (  SPINspiral version:    1.00)
-	 !CHANGE. LALInference format has long first line (  LALInference version:d4cd156ea4b0174d3fbd8b67ade5584981b34aed,2010-12-15 05:58:56 +0000,cbc_bayesian_devel,Vivien Raymond <vivien.raymond@ligo.org>,CLEAN: All modifications committed)
+     !CHANGE. LALInference format has long first line (  LALInference version:d4cd156ea4b0174d3fbd8b67ade5584981b34aed,2010-12-15 
+     !05:58:56 +0000,cbc_bayesian_devel,Vivien Raymond <vivien.raymond@ligo.org>,CLEAN: All modifications committed)
      
      outputVersion = 1.0  !Use new format, causes the old format never to be used.
      read(10,'(A999)',end=199,err=199)firstLine
@@ -694,7 +695,7 @@ subroutine mcmcruninfo(exitcode)
   integer :: i,ic,j,p,maxLine
   real :: avgtotthin,compute_median_real
   real(double) :: lon2ra,gmst
-  character :: infile*99
+  character :: infile*(99)
   
   exitcode = 0
   totiter = 0
@@ -1842,7 +1843,7 @@ function tms(a1)
   implicit none
   real(double) :: a1,a,s
   integer :: m
-  character :: tms*8,mm*2,ss*4
+  character :: tms*(8),mm*(2),ss*(4)
   
   a = a1
   m = int((a)*60.d0)
@@ -1864,7 +1865,7 @@ function getos()
   
   implicit none
   integer :: status,system,getos,io
-  character :: ostype*25,filename*99
+  character :: ostype*(25),filename*(99)
   
   filename = trim(homedir)//'/.analysemcmc.uname.temp'
   status = system('uname &> '//trim(filename)) !This should return "Linux" or "Darwin"
@@ -2346,7 +2347,7 @@ function get_ran_seed(degree)
   implicit none
   integer, intent(in) :: degree
   integer :: get_ran_seed,seed,dt(8)
-  character :: tmpstr*10
+  character :: tmpstr*(10)
   
   call date_and_time(tmpstr,tmpstr,tmpstr,dt)  !dt: 1-year, 2-month, 3-day, 5-hour, 6-minute, 7-second, 8-millisecond
   
@@ -2425,11 +2426,13 @@ end function ran_unif
 !! \param all      All files?  0-select manually from list, 1-always return all files in list
 !! \retval fnames  Array that contains the files found; make sure it has the same length as the array in the calling programme
 !! \retval nf      The actual number of files returned in fnames ( = min(number found, nff))
+
 subroutine findFiles(match,nff,all,fnames,nf)  
   use constants
   implicit none
   integer :: i,j,k,fnum,nf,nff,status,system,all,io
-  character :: match*(*),names(nff)*99,fnames(nff)*99,tempfile*99
+  character, intent(in) :: match*(*)
+  character :: names(nff)*(99),fnames(nff)*(99),tempfile*(99)
   
   if(len_trim(homedir).eq.99) then
      write(stdErr,'(/,A,/)')'  FindFiles:  ERROR:  variable homedir not defined (forgot to call setconstants?), quitting.'
@@ -2513,7 +2516,7 @@ subroutine set_currentdate_constants()
   implicit none
   integer :: dt(8)
   real(double) :: tz
-  character :: tzstr*9,signstr
+  character :: tzstr*(9),signstr
   
   call date_and_time(currentdatestr,currenttimestr,currenttimezonestr,dt)
   

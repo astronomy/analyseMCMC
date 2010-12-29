@@ -1,5 +1,6 @@
 !> \file analyseMCMC_2dpdfs.f90  Routines to compute and plot two-dimensional PDFs
 
+
 !***********************************************************************************************************************************
 !> \brief  Plot 2D marginalised PDFs
 !!
@@ -19,7 +20,7 @@ subroutine pdfs2d(exitcode)
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
-  character :: string*99,str*99,tempfile*99,ivalstr*99,delta*19,outputbasefile*199
+  character :: string*(99),str*(99),tempfile*(99),ivalstr*(99),delta*(19),outputbasefile*(199)
   logical :: project_map,sky_position,binary_orientation
   !real :: xmin1,xmax1,ymin1,ymax1
   

@@ -3,6 +3,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   181: sluys, 29/12/2010
+     - Convert character declatations to F2003 standard
+     - Updated Makefile with more warnings
+     
    180: sluys, 29/11/2010
      - Adding Doxygen comments
      

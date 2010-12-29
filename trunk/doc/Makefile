@@ -10,7 +10,7 @@ COMP = gfortran#           # Use GNU Fortran compiler (reads ~3x slower from dis
 #COMP = nagfor#            # Use NAG Fortran compiler
 
 WARN = yes#               # to compile with compile-time warnings
-#RUNCHECK = yes#           # to compile with runtime-check options
+RUNCHECK = yes#           # to compile with runtime-check options
 #OPTIMISE = yes#           # to compile with some extra run-time optimisation (sets RUNCHECK=no)
 F2003 = yes#              #compile with Fortran 2003 standard
 
@@ -76,14 +76,27 @@ ifeq ($(COMP),gfortran)
    ifeq ($(RUNCHECK),yes)
       CFLAGS = -O0 -fcheck=all
    endif
-   CFLAGS += -fbacktrace
+
+
    ifeq ($(OPTIMISE),yes)
       CFLAGS = -O3 
    endif
+
    ifeq ($(WARN),yes)
-      CFLAGS += -Wall
+      CFLAGS += -Wall -Wextra
+      CFLAGS += -Werror
+      CFLAGS += -Wcharacter-truncation -Wunderflow
    endif
+
+   ifeq ($(F2003),yes)
+      CFLAGS += -std=f2008 -fall-intrinsics -pedantic
+   else
+      CFLAGS += -ffree-line-length-none
+   endif
+
    CFLAGS += -I$(MODDIR) -J$(MODDIR)
+   CFLAGS += -fwhole-file
+   CFLAGS += -fbacktrace
    CFLAGS += -fmax-errors=10
 endif
 
@@ -162,9 +175,9 @@ $(SRCDIR)/code_version.f90: code_version    #code_version is PHONY and always ou
 	@echo 'subroutine print_code_version' >> $(SRCDIR)/code_version.f90
 	@echo '   use basic' >> $(SRCDIR)/code_version.f90
 	@echo '   implicit none' >> $(SRCDIR)/code_version.f90
-	@echo "   character :: svn_revision*99 = '"`svnversion`"'" >> $(SRCDIR)/code_version.f90
-	@echo "   character :: compile_date*99 = '"`date`"'" >> $(SRCDIR)/code_version.f90
-	@echo "   character :: compiler*99 = '$(COMP)'" >> $(SRCDIR)/code_version.f90
+	@echo "   character :: svn_revision*(99) = '"`svnversion`"'" >> $(SRCDIR)/code_version.f90
+	@echo "   character :: compile_date*(99) = '"`date`"'" >> $(SRCDIR)/code_version.f90
+	@echo "   character :: compiler*(99) = '$(COMP)'" >> $(SRCDIR)/code_version.f90
 	@echo "   write(stdOut,'(A)')'svn revision: '//trim(svn_revision)//', compiled on '//trim(compile_date)//' with '//trim(compiler)//'.'" >> $(SRCDIR)/code_version.f90
 	@echo 'end subroutine print_code_version' >> $(SRCDIR)/code_version.f90
 	@touch -d "1 Jan 2001" $(SRCDIR)/code_version.f90

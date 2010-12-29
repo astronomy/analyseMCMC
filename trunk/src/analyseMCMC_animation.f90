@@ -1,4 +1,4 @@
-! Create animations for analysemcmc
+!> \file analyseMCMC_animation.f90  Create animations for analyseMCMC
 
 
 !***********************************************************************************************************************************
@@ -18,7 +18,7 @@ subroutine animation(exitcode)
   real :: x(maxChs,maxChs*maxIter),x1,x2,xmin,xmax,xmin1,xmax1,dx,y1,y2,ymin,ymax,dy,sch
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:)    !These depend on Nbin1D, allocate after reading input file
   real(double) :: ts1,ts2,timestamp
-  character :: framename*99,tms*8,str*99
+  character :: framename*(99),tms*(8),str*(99)
   
   exitcode = 0
   

@@ -866,7 +866,7 @@ subroutine save_cbc_wiki_data(ic)
   integer, intent(in) :: ic
   integer :: c,i,io,o,p,p1,parr(maxMCMCpar)
   real :: x,rev2pi,rrevpi,x1,x2
-  character :: url*99,gps*19,xs11*11,xs20*20,ans,wikifilename*99,pnstr*3
+  character :: url*(99),gps*(19),xs11*(11),xs20*(20),ans,wikifilename*(99),pnstr*(3)
   
   write(pnstr,'(F3.1)')pnOrder
   

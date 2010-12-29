@@ -24,7 +24,7 @@ subroutine plotthesky(bx1,bx2,by1,by2,raShift)
   real(double) :: ra(ns),dec(ns),dx1,dx2,dy,ra1,dec1,drev2pi,par
   real :: pma,pmd,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
   real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,x,y,mlim
-  character :: cn(100)*3,con(100)*20,name*10,sn(ns)*10,snam(nsn)*10,sni*10,getsname*10,mult,var*9
+  character :: cn(100)*(3),con(100)*(20),name*(10),sn(ns)*(10),snam(nsn)*(10),sni*(10),getsname*(10),mult,var*(9)
   
   
   mlim = 6.            !Magnitude limit for stars
@@ -207,8 +207,8 @@ end subroutine plotthesky
 function getsname(name)
   use analysemcmc_settings
   implicit none
-  character, intent(in) :: name*10
-  character :: getsname*10,num*3,grk*3,gn*1
+  character, intent(in) :: name*(*)
+  character :: getsname*(10),num*(3),grk*(3),gn*(1)
   
   num = name(1:3)
   grk = name(4:6)
@@ -311,7 +311,7 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)
   real :: z(nbx,nby),tr(6),z1,z2,dz,dcdz
   real :: x,y,dx,dy,xs(5),ys(5),xell(nell),yell(nell),sch
   integer :: i,ix,iy,clr1,clr2,dc,ci,projection,lw
-  character :: str*99
+  character :: str*(99)
   
   call pgqch(sch) !Save current character height
   call pgsch(0.5*sch)

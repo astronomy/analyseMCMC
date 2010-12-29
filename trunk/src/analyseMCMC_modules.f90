@@ -61,7 +61,7 @@ module constants
   integer :: os
   real(double) :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
   real :: rpi,rtpi,rpi2,rr2d,rd2r,rr2h,rh2r,rc3rd
-  character :: upline*4,detabbrs(4)*2,waveforms(0:9)*99,currentdatestr*19,currenttimestr*19,currenttimezonestr*19
+  character :: upline*(4),detabbrs(4)*(2),waveforms(0:9)*(99),currentdatestr*(19),currenttimestr*(19),currenttimezonestr*(19)
   character(len=99) :: homedir,workdir,hostname,username,stdOutFile
 end module constants
 !***********************************************************************************************************************************
@@ -85,8 +85,8 @@ module general_data
   real :: logebayesfactortotalarith,logebayesfactortotal,logebayestempfactor(maxChs)
   real(double) :: rhat(maxMCMCpar)
   
-  character :: parNames(nParDB)*8,infiles(maxChs)*99,outputname*99,outputdir*99
-  character :: pgunits(nParDB)*99,pgParNs(nParDB)*99,pgParNss(nParDB)*99,pgOrigParns(nParDB)*99
+  character :: parNames(nParDB)*(8),infiles(maxChs)*(99),outputname*(99),outputdir*(99)
+  character :: pgunits(nParDB)*(99),pgParNs(nParDB)*(99),pgParNss(nParDB)*(99),pgOrigParns(nParDB)*(99)
   
   integer :: wrap(maxChs,maxMCMCpar)
   real :: raShift,raCentre,shifts(maxChs,maxMCMCpar),shIvals(maxChs,maxMCMCpar)
@@ -111,7 +111,7 @@ module mcmcrun_data
   real :: deltaFT(maxChs,ndets)
   real :: Tchain(maxChs),networkSNR(maxChs),pnOrder,outputVersion
   real(double) :: FTstart(maxChs,ndets),t0,loglmax,loglmaxs(maxChs)
-  character :: detnames(maxChs,ndets)*14
+  character :: detnames(maxChs,ndets)*(14)
 end module mcmcrun_data
 !***********************************************************************************************************************************
 
@@ -137,8 +137,8 @@ module plot_data
   save
   integer :: ncolours,colours(10),defcolour,nsymbols,symbols(10),maxdots
   real :: pltsz,pltrat,bmpsz,bmprat
-  character :: bmpxpix*99,unSharplogl*99,unSharpchain*99,unSharppdf1d*99,unSharppdf2d*99
-  character :: psclr*9,colournames(15)*20
+  character :: bmpxpix*(99),unSharplogl*(99),unSharpchain*(99),unSharppdf1d*(99),unSharppdf2d*(99)
+  character :: psclr*(9),colournames(15)*(20)
 end module plot_data
 !***********************************************************************************************************************************
 

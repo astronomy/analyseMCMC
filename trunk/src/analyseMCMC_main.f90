@@ -52,7 +52,7 @@ program analyseMCMC
   implicit none
   integer :: i,ic,io,exitcode,tempintarray(99),getos,get_ran_seed,status,system
   real(double) :: timestamp,timestamps(9)  ! Time the progress of the code.
-  character :: infile*99
+  character :: infile*(99)
   logical :: ex,timing
   
   

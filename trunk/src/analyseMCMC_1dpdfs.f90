@@ -21,7 +21,7 @@ subroutine pdfs1d(exitcode)
   !These depend on Nbin1D, allocate after reading input file:
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ysum(:),yconv(:),ycum(:)  
   real :: plshift,plx,ply,x0,norm,bindx
-  character :: string*99,str*99,str1*99,str2*99,delta*19
+  character :: string*(99),str*(99),str1*(99),str2*(99),delta*(19)
   
   exitcode=0
   if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1) write(stdOut,'(A)',advance="no")'  Saving 1D pdfs'
