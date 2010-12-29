@@ -4,25 +4,25 @@
 !***********************************************************************************************************************************
 !> \brief  Plot a sky map
 !!
-!! \param bx1      RA boundary 1
-!! \param bx2      RA boundary 2
+!! \param bx10     RA boundary 1
+!! \param bx20     RA boundary 2
 !! \param by1      Dec boundary 1
 !! \param by2      Dec boundary 2
 !! \param raShift  Shift in RA needed to centre the PDF
 
-subroutine plotthesky(bx1,bx2,by1,by2,raShift)
+subroutine plotthesky(bx10,bx20,by1,by2,raShift)
   use basic
   use constants
   use plot_data
   
   implicit none
   real, intent(in) :: by1,by2,raShift
-  real, intent(inout) :: bx1,bx2
+  real, intent(in) :: bx10,bx20
   
   integer, parameter :: ns=9110, nsn=80
   integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,spld,n,prslbl,rv
   real(double) :: ra(ns),dec(ns),dx1,dx2,dy,ra1,dec1,drev2pi,par
-  real :: pma,pmd,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
+  real :: bx1,bx2,pma,pmd,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
   real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,x,y,mlim
   character :: cn(100)*(3),con(100)*(20),name*(10),sn(ns)*(10),snam(nsn)*(10),sni*(10),getsname*(10),mult,var*(9)
   
@@ -47,6 +47,8 @@ subroutine plotthesky(bx1,bx2,by1,by2,raShift)
   call pgscr(1,1.,1.,1.) !'White' (for stars)
   call pgscr(4,x,x,1.) !Blue (for constellations)
   
+  bx1 = bx10
+  bx2 = bx20
   if(bx1.gt.bx2) then
      x = bx1
      bx1 = bx2
