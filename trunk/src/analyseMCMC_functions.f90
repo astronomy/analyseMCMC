@@ -509,9 +509,14 @@ subroutine read_mcmcfiles(exitcode)
      read(10,'(A999)',end=199,err=199)firstLine
      if(len_trim(firstLine).lt.80) read(firstLine,'(A21,F8.2)')tmpStr,outputVersion  !Use new format
      
-     if(outputVersion > 0.5) read(10,'(A999)',end=199,err=199)commandline  !Read command line between version number and first header. Read nothing if no command line...
-
-	 if(outputVersion > 0.5) read(10,*,end=199,err=199)tmpStr !Read empty line between version number and first header
+     if(outputVersion > 0.5) then
+        ! Read command line between version number and first header. Read nothing if no command line:
+        read(10,'(A999)',end=199,err=199)commandline
+        
+        ! Read empty line between version number and first header:
+        read(10,*,end=199,err=199)tmpStr
+     end if
+     
      !read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') &
      read(10,*) &
           niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform, &

@@ -1,6 +1,8 @@
 
   Plot routines for SPINspiral output
   
+  http://www.astro.ru.nl/~sluys/index.php?title=SPINspiral
+  
   
   To compile the plot code, you'll need	pgplot, available in the better Linux
   distributions, or from http://www.astro.caltech.edu/~tjp/pgplot/
@@ -21,7 +23,7 @@
       $ mkdir build; cd build
       $ cmake ..
       $ make
-    CMake is supposed to more cross-platform compatible
+    CMake is supposed to be more cross-platform compatible.
     
   In both cases you should get a binary executable called "analyseMCMC" in the main
   directory.

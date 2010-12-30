@@ -43,10 +43,11 @@ if( Fortran_COMPILER_NAME STREQUAL "gfortran" )
   #set(MOD_FLAGS "-I${MODDIR} -J${MODDIR}" )
   set(MOD_FLAGS "${INCLUDE_FLAGS}" )
   
+  
 elseif( Fortran_COMPILER_NAME STREQUAL "ifort" )
   
   
-  set( CMAKE_Fortran_FLAGS_ALL "-stand f03 -diag-disable 6894 -nogen-interfaces" )
+  set( CMAKE_Fortran_FLAGS_ALL "-stand f03 -diag-disable 6894 -nogen-interfaces -mcmodel=medium" )
   set( CMAKE_Fortran_FLAGS "-vec-guard-write -fpconstant -funroll-loops -align all -ip" )
   set( CMAKE_Fortran_FLAGS_RELEASE "-vec-guard-write -fpconstant -funroll-loops -align all -ip" )
   set( CMAKE_Fortran_FLAGS_DEBUG "-g -traceback" )

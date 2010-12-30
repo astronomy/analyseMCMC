@@ -3,10 +3,13 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
-   182: sluys, 29/12/2010
+   185: sluys, 30/12/2010
+     - Updated CMake files, added script code_version.sh
+     
+   183: sluys, 29/12/2010
      - Added CMake files.  See 000_readme.txt for instructions.
      
-   181: sluys, 29/12/2010
+   182: sluys, 29/12/2010
      - Convert character declatations to F2003 standard
      - Updated Makefile with more warnings
      
