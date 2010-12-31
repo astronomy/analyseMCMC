@@ -3,6 +3,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   189: sluys, 31/12/2010
+     - Not all systems find code_version.sh.  Try ${CMAKE_SOURCE_DIR}/code_version.sh
+     
    188: sluys, 31/12/2010
      - Fixed CMake files, so that compiler name isn't necessarily identical to, 
        but matches the given string (STREQUAL -> MATCHES)
