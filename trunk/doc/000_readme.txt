@@ -24,6 +24,10 @@
       $ cmake ..
       $ make
     CMake is supposed to be more cross-platform compatible.
+
+    To compile the code with your favourite compiler, prepend the cmake line with e.g. FC=gfortran:
+      $ FC=gfortran cmake ..
+
     
   In both cases you should get a binary executable called "analyseMCMC" in the main
   directory.

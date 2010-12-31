@@ -3,6 +3,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   186: sluys, 31/12/2010
+     - Some fixes and improvements in the CMake files	
+     
    185: sluys, 30/12/2010
      - Updated CMake files, added script code_version.sh
      

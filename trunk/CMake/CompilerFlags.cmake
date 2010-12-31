@@ -1,12 +1,19 @@
 # Compiler flags for Fortran compilers
 
 
+# Default for all compilers:
+set(MOD_FLAGS "${INCLUDE_FLAGS}" )
+
+
+# Get compiler name:
 get_filename_component( Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME )
 
 
+# Specific options per compiler:
 if( Fortran_COMPILER_NAME STREQUAL "gfortran" )
   
-  set( CMAKE_Fortran_FLAGS_ALL "-fwhole-file -std=f2008 -fall-intrinsics -pedantic" )
+  #set( CMAKE_Fortran_FLAGS_ALL "-std=f2008 -fall-intrinsics -pedantic" )               # v.4.4
+  set( CMAKE_Fortran_FLAGS_ALL "-fwhole-file -std=f2008 -fall-intrinsics -pedantic" )  # v.4.5
   set( CMAKE_Fortran_FLAGS "-pipe -funroll-all-loops" )
   set( CMAKE_Fortran_FLAGS_RELEASE "-pipe -funroll-all-loops" )
   set( CMAKE_Fortran_FLAGS_DEBUG "-g -ffpe-trap=zero,invalid -fsignaling-nans -fbacktrace" )
@@ -23,25 +30,26 @@ if( Fortran_COMPILER_NAME STREQUAL "gfortran" )
   
   if( WANT_STATIC )
     set( STATIC_FLAGS "-static" )
+    message( STATUS "Linking statically" )
   endif( WANT_STATIC )
   
   if( WANT_CHECKS )
     #set( CHECK_FLAGS "-O0 -fbounds-check -ffpe-trap=zero,invalid -fsignaling-nans -fbacktrace" ) # v.4.4
     set( CHECK_FLAGS "-O0 -fcheck=all -ffpe-trap=zero,invalid -fsignaling-nans -fbacktrace" )  # From v.4.5
+    message( STATUS "Compiling with run-time checks" )
   else( WANT_CHECKS )
     set( CHECK_FLAGS "-O2" )
   endif( WANT_CHECKS )
   
   if( WANT_WARNINGS )
     set( WARN_FLAGS "-Wall -Wextra" )
+    message( STATUS "Compiling with warnings" )
   endif( WANT_WARNINGS )
   
   if( WANT_LIBRARY )
-    set( LIB_FLAGS "-fPIC" )
+    set( LIB_FLAGS "-fPIC -g" )
+    message( STATUS "Compiling with library options" )
   endif( WANT_LIBRARY )
-  
-  #set(MOD_FLAGS "-I${MODDIR} -J${MODDIR}" )
-  set(MOD_FLAGS "${INCLUDE_FLAGS}" )
   
   
 elseif( Fortran_COMPILER_NAME STREQUAL "ifort" )
@@ -67,28 +75,30 @@ elseif( Fortran_COMPILER_NAME STREQUAL "ifort" )
   
   if( WANT_OPENMP )
     set( OPENMP_FLAGS "-openmp -openmp-report0" )
+    message( STATUS "Linking with OpenMP support" )
   endif( WANT_OPENMP )
   
   if( WANT_STATIC )
     set( STATIC_FLAGS "-static" )
+    message( STATUS "Linking statically" )
   endif( WANT_STATIC )
   
   if( WANT_CHECKS )
     set( CHECK_FLAGS "-O0 -ftrapuv -check all -check noarg_temp_created -traceback" )
+    message( STATUS "Compiling with run-time checks" )
   else( WANT_CHECKS )
     set( CHECK_FLAGS "-O2" )
   endif( WANT_CHECKS )
   
   if( WANT_WARNINGS )
     set( WARN_FLAGS "-warn all" )
+    message( STATUS "Compiling with warnings" )
   endif( WANT_WARNINGS )
   
   if( WANT_LIBRARY )
-    set( LIB_FLAGS "-fPIC" )
+    set( LIB_FLAGS "-fPIC -g" )
+    message( STATUS "Compiling with library options" )
   endif( WANT_LIBRARY )
-  
-  #set(MOD_FLAGS "-I${MODDIR} -module ${MODDIR}" )
-  set(MOD_FLAGS "${INCLUDE_FLAGS}" )
   
   
 else( Fortran_COMPILER_NAME STREQUAL "gfortran" )
@@ -100,7 +110,7 @@ else( Fortran_COMPILER_NAME STREQUAL "gfortran" )
   set( CMAKE_Fortran_FLAGS "-O2" )
   set( CMAKE_Fortran_FLAGS_RELEASE "-O2" )
   set( CMAKE_Fortran_FLAGS_DEBUG "-O0 -g" )
-  
+
   
 endif( Fortran_COMPILER_NAME STREQUAL "gfortran" )
 
@@ -116,4 +126,3 @@ set( CMAKE_Fortran_FLAGS_RELWITHDEBINFO "${CMAKE_Fortran_FLAGS_RELEASE} -g" )
 
 message( STATUS "Using Fortran compiler: " ${Fortran_COMPILER_NAME} " (" ${CMAKE_Fortran_COMPILER}")" )
 message( STATUS "Compiler flags used:  ${CMAKE_Fortran_FLAGS}" )
-#message( "" )
