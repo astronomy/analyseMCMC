@@ -10,7 +10,7 @@ get_filename_component( Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME )
 
 
 # Specific options per compiler:
-if( Fortran_COMPILER_NAME STREQUAL "gfortran" )
+if( Fortran_COMPILER_NAME MATCHES "gfortran" )
   
   #set( CMAKE_Fortran_FLAGS_ALL "-std=f2008 -fall-intrinsics -pedantic" )               # v.4.4
   set( CMAKE_Fortran_FLAGS_ALL "-fwhole-file -std=f2008 -fall-intrinsics -pedantic" )  # v.4.5
@@ -52,7 +52,7 @@ if( Fortran_COMPILER_NAME STREQUAL "gfortran" )
   endif( WANT_LIBRARY )
   
   
-elseif( Fortran_COMPILER_NAME STREQUAL "ifort" )
+elseif( Fortran_COMPILER_NAME MATCHES "ifort" )
   
   
   set( CMAKE_Fortran_FLAGS_ALL "-stand f03 -diag-disable 6894 -nogen-interfaces -mcmodel=medium" )
@@ -101,7 +101,7 @@ elseif( Fortran_COMPILER_NAME STREQUAL "ifort" )
   endif( WANT_LIBRARY )
   
   
-elseif( Fortran_COMPILER_NAME STREQUAL "g95" )
+elseif( Fortran_COMPILER_NAME MATCHES "g95" )
   
   
   set( CMAKE_Fortran_FLAGS "" )
@@ -117,7 +117,7 @@ elseif( Fortran_COMPILER_NAME STREQUAL "g95" )
   
   if( WANT_WARNINGS )
     #set( WARN_FLAGS "-std=f2003 -Wall -Wobsolescent -Wunused-parameter -Wunused-internal-procs -Wunused-types -Wmissing-intent" )
-    #set( WARN_FLAGS "-std=f2003 -Wall -Wobsolescent -Wunused-parameter -Wunused-internal-procs -Wunused-types" )
+    set( WARN_FLAGS "-std=f2003 -Wall -Wextra -Werror -Wno=102,112,136,165,140,163" )
     message( STATUS "Compiling with warnings" )
   endif( WANT_WARNINGS )
   
@@ -127,7 +127,7 @@ elseif( Fortran_COMPILER_NAME STREQUAL "g95" )
   endif( WANT_LIBRARY )
   
   
-else( Fortran_COMPILER_NAME STREQUAL "gfortran" )
+else( Fortran_COMPILER_NAME MATCHES "gfortran" )
   
   
   message( "CMAKE_Fortran_COMPILER full path: " ${CMAKE_Fortran_COMPILER} )
@@ -138,7 +138,7 @@ else( Fortran_COMPILER_NAME STREQUAL "gfortran" )
   set( CMAKE_Fortran_FLAGS_DEBUG "-O0 -g" )
   
   
-endif( Fortran_COMPILER_NAME STREQUAL "gfortran" )
+endif( Fortran_COMPILER_NAME MATCHES "gfortran" )
 
 
 

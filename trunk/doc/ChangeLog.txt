@@ -3,6 +3,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   188: sluys, 31/12/2010
+     - Fixed CMake files, so that compiler name isn't necessarily identical to, 
+       but matches the given string (STREQUAL -> MATCHES)
+       
    187: sluys, 31/12/2010
      - Added g95 to CMake
      - g95 can't do exp,log in precision higher than double yet(!)
