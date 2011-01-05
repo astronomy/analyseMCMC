@@ -3,6 +3,7 @@
 
 !***********************************************************************************************************************************
 !> \brief Define the names and symbols of the original MCMC parameters
+
 subroutine set_originalParameterNames()
    use analysemcmc_settings
    use general_data
@@ -13,7 +14,7 @@ subroutine set_originalParameterNames()
    pgParNss = ''
    pgUnits = ''
    
-   !Short ASCII names for text output:
+   ! Short ASCII names for text output:
    parNames(11:19)   = (/'tc      ','t40     ','        ','        ','        ','        ','        ','        ','        '/)
    parNames(21:29)   = (/'dl^3    ','log_dl  ','dl      ','        ','        ','        ','        ','        ','        '/)
    parNames(31:39)   = (/'RA      ','sin_dec ','dec     ','        ','        ','        ','        ','        ','        '/)
@@ -29,7 +30,7 @@ subroutine set_originalParameterNames()
    
    if(fonttype.eq.2) then  ! Use 'roman-like' Greek font in PGPlot
       
-      !Long PGPlot names (symbol + unit):
+      ! Long PGPlot names (symbol + unit):
       pgParNs(11) = 't\dc\u (s)'
       pgParNs(12) = 't\d40\u (s)'
       
@@ -85,7 +86,7 @@ subroutine set_originalParameterNames()
       
       
       
-      !Short PGPlot symbols (no unit):
+      ! Short PGPlot symbols (no unit):
       pgParNss(11) = 't\dc\u'
       pgParNss(12) = 't\d40\u'
       
@@ -140,10 +141,10 @@ subroutine set_originalParameterNames()
       pgParNss(199) = 'x\d15\u'
       
       
-   else  !Same, but replace '\(21' with \(06' for arial-like Greek font
+   else  ! Same, but replace '\(21' with \(06' for arial-like Greek font
       
       
-      !Long PGPlot names (symbol + unit):
+      ! Long PGPlot names (symbol + unit):
       pgParNs(11) = 't\dc\u (s)'
       pgParNs(12) = 't\d40\u (s)'
       
@@ -199,7 +200,7 @@ subroutine set_originalParameterNames()
       
       
       
-      !Short PGPlot symbols (no unit):
+      ! Short PGPlot symbols (no unit):
       pgParNss(11) = 't\dc\u'
       pgParNss(12) = 't\d40\u'
       
@@ -256,7 +257,7 @@ subroutine set_originalParameterNames()
    end if
    
    
-   !PGPlot units (no names)
+   ! PGPlot units (no names)
    pgUnits(11) = 's'
    pgUnits(12) = 's'
    
@@ -285,7 +286,7 @@ subroutine set_originalParameterNames()
    pgUnits(83) = 'rad'
    pgUnits(84) = 'rad'
    
-   !Save the original parameter names for use after they get changed
+   ! Save the original parameter names for use after they get changed
    pgOrigParns = pgParNs
    
    
@@ -303,6 +304,7 @@ end subroutine set_originalParameterNames
 !> \brief Define the names and symbols of the derived MCMC parameters
 !!
 !! - e.g. d_L rather than d_L^3 or log(d_L), i rather than cos(i), etc.
+
 subroutine set_derivedParameterNames()
    use analysemcmc_settings
    use general_data
@@ -313,7 +315,7 @@ subroutine set_derivedParameterNames()
    pgParNss = ''
    pgUnits = ''
    
-   !Short ASCII names for text output:
+   ! Short ASCII names for text output:
    parNames(11:19)   = (/'tc      ','t40     ','        ','        ','        ','        ','        ','        ','        '/)
    parNames(21:29)   = (/'dl      ','dl      ','dl      ','        ','        ','        ','        ','        ','        '/)
    parNames(31:39)   = (/'RA      ','dec     ','dec     ','        ','        ','        ','        ','        ','        '/)
@@ -327,9 +329,9 @@ subroutine set_derivedParameterNames()
    !parNames(1:9) = (/'','','','','','','','',''/)
    
    
-   if(fonttype.eq.2) then  !Use 'roman-like' Greek font in PGPlot
+   if(fonttype.eq.2) then  ! Use 'roman-like' Greek font in PGPlot
       
-      !Long PGPlot names (symbol + unit):
+      ! Long PGPlot names (symbol + unit):
       pgParNs(11) = 't\dc\u (s)'
       pgParNs(12) = 't\d40\u (s)'
       
@@ -385,7 +387,7 @@ subroutine set_derivedParameterNames()
       
       
       
-      !Short PGPlot symbols (no unit):
+      ! Short PGPlot symbols (no unit):
       pgParNss(11) = 't\dc\u'
       pgParNss(12) = 't\d40\u'
       
@@ -441,10 +443,10 @@ subroutine set_derivedParameterNames()
       
       
       
-   else  !Same, but replace '\(21' with \(06' for arial-like Greek font
+   else  ! Same, but replace '\(21' with \(06' for arial-like Greek font
       
       
-      !Long PGPlot names (symbol + unit):
+      ! Long PGPlot names (symbol + unit):
       pgParNs(11) = 't\dc\u (s)'
       pgParNs(12) = 't\d40\u (s)'
       
@@ -500,7 +502,7 @@ subroutine set_derivedParameterNames()
       
       
       
-      !Short PGPlot symbols (no unit):
+      ! Short PGPlot symbols (no unit):
       pgParNss(11) = 't\dc\u'
       pgParNss(12) = 't\d40\u'
       
@@ -557,7 +559,7 @@ subroutine set_derivedParameterNames()
       
    end if
    
-   !PGPlot units (no names)
+   ! PGPlot units (no names)
    pgUnits(11:19) = 's'
    pgUnits(12) = 's'
    

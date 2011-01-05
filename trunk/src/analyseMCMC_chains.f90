@@ -5,6 +5,7 @@
 !> \brief  Plot chains (posterior, parameters, jumps, etc.) for analyseMCMC
 !!
 !! \retval exitcode  Exit status code (0=ok)
+
 subroutine chains(exitcode)
   use constants
   use analysemcmc_settings
@@ -24,7 +25,7 @@ subroutine chains(exitcode)
   
   
   !*********************************************************************************************************************************
-  !Plot posterior chain
+  ! Plot posterior chain:
   if(plLogL.eq.1) then
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' posterior chain, '
      if(file.eq.0) then
@@ -174,7 +175,7 @@ subroutine chains(exitcode)
   
   
   !*********************************************************************************************************************************
-  !Plot chains for each parameter
+  ! Plot chains for each parameter:
   if(plChain.eq.1) then
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter chains, '
      if(file.eq.0) then
@@ -535,7 +536,7 @@ subroutine chains(exitcode)
   
   
   !*********************************************************************************************************************************
-  !Plot L vs parameter value
+  ! Plot L vs parameter value:
   if(plParL.eq.1) then
      !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting parameter-L plot...'
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter-L, '
@@ -824,7 +825,7 @@ subroutine chains(exitcode)
   
   
   !*********************************************************************************************************************************
-  !Plot jump sizes
+  ! Plot jump sizes:
   if(plJump.ge.1) then
      !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting jump sizes...'
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' jump sizes, '
@@ -960,7 +961,7 @@ subroutine chains(exitcode)
   
   
   !*********************************************************************************************************************************
-  !Plot autocorrelations for each parameter
+  ! Plot autocorrelations for each parameter:
   if(plAcorr.gt.0) then
      !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting autocorrelations...'
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' autocorrelations, '
@@ -1101,6 +1102,7 @@ end subroutine chains
 !! \param itermax  Maximum iteration number in plot (horizontal axis)
 !! \param logpmin  Minimum log Posterior in plot (vertical axis)
 !! \param logpmax  Maximum log Posterior in plot (vertical axis)
+
 subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
   implicit none
   real, intent(in) :: itermin,itermax,logpmin,logpmax

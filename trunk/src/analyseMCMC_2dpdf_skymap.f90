@@ -27,25 +27,25 @@ subroutine plotthesky(bx10,bx20,by1,by2,raShift)
   character :: cn(100)*(3),con(100)*(20),name*(10),sn(ns)*(10),snam(nsn)*(10),sni*(10),getsname*(10),mult,var*(9)
   
   
-  mlim = 6.            !Magnitude limit for stars
-  sllim = 2.5          !Limit for labels
-  snlim = 1.4          !Limit for names
+  mlim = 6.            ! Magnitude limit for stars
+  sllim = 2.5          ! Limit for labels
+  snlim = 1.4          ! Limit for names
   fonttype = 2
   schmag = 0.07
   schlbl = fontsize1d
   schfac = 1.
   schcon = 1.
-  plstar = 1  !0-no, 1-yes no label, 2-symbol, 3-name, 4-name or symbol, 5-name and symbol
-  plcst = 2   !0-no, 1-figures, 2-figures+abbreviations, 3-figures+names
-  sz1 = 1.    !CHECK Get rid of this variable?
+  plstar = 1  ! 0-no, 1-yes no label, 2-symbol, 3-name, 4-name or symbol, 5-name and symbol
+  plcst = 2   ! 0-no, 1-figures, 2-figures+abbreviations, 3-figures+names
+  sz1 = 1.    ! CHECK Get rid of this variable?
   
   prinf = 150.**2
   
   x = 0.
-  call pgqcr(1,r1,g1,b1) !Store colours
+  call pgqcr(1,r1,g1,b1)  ! Store colours
   call pgqcr(4,r4,g4,b4)
-  call pgscr(1,1.,1.,1.) !'White' (for stars)
-  call pgscr(4,x,x,1.) !Blue (for constellations)
+  call pgscr(1,1.,1.,1.)  ! 'White' (for stars)
+  call pgscr(4,x,x,1.)    ! Blue (for constellations)
   
   bx1 = bx10
   bx2 = bx20
@@ -55,7 +55,7 @@ subroutine plotthesky(bx10,bx20,by1,by2,raShift)
      bx2 = x
   end if
   
-  !Read bright-star catalogue (BSC)
+  ! Read bright-star catalogue (BSC):
   open(unit=21,form='formatted',status='old',file=trim(homedir)//'/bsc.dat')
   rewind(21)
   do i=1,ns
@@ -67,7 +67,7 @@ subroutine plotthesky(bx10,bx20,by1,by2,raShift)
   close(21)
   
   
-  !Read Constellation figure data for BSC
+  ! Read constellation-figure data for BSC:
   open(unit=22,form='formatted',status='old',file=trim(homedir)//'/bsc_const.dat')
   do i=1,ns
      read(22,'(I4)',end=340,advance='no')c(i,1)
@@ -98,7 +98,8 @@ subroutine plotthesky(bx10,bx20,by1,by2,raShift)
 340 close(22)
   nc = i-1
   
-  !Read star names
+  
+  ! Read star names:
   open(unit=23,form='formatted',status='old',file=trim(homedir)//'/bsc_names.dat')
   do i=1,nsn
      read(23,'(I4,2x,A10)',end=350)snr(i),snam(i)
@@ -106,7 +107,7 @@ subroutine plotthesky(bx10,bx20,by1,by2,raShift)
 350 close(23)
   
   
-  !!Read Milky Way data
+  !! Read Milky Way data:
   !do f=1,5
   !   write(mwfname,'(A10,I1,A4)')'milkyway_s',f,'.dat'
   !   open(unit=24,form='formatted',status='old',file=trim(homedir)//'data/'//mwfname)
@@ -119,7 +120,7 @@ subroutine plotthesky(bx10,bx20,by1,by2,raShift)
   !close(24)
   
   
-  !Plot constellation figures
+  ! Plot constellation figures:
   if(plcst.gt.0) then
      !schcon = min(max(40./sz1,0.7),3.)
      call pgsch(schfac*schcon*schlbl)
@@ -145,7 +146,7 @@ subroutine plotthesky(bx10,bx20,by1,by2,raShift)
   end if !if(plcst.gt.0) then
   
   
-  !Plot stars: BSC
+  ! Plot stars: BSC:
   spld = 0
   if(plstar.gt.0) then
      n = 0
@@ -194,12 +195,14 @@ subroutine plotthesky(bx10,bx20,by1,by2,raShift)
      end if !if(plstar.eq.3) then
   end if !if(plstar.gt.0) then
   
-  !Restore colours
+  
+  ! Restore colours:
   call pgscr(1,r1,g1,b1)
   call pgscr(4,r4,g4,b4)
   
 end subroutine plotthesky
 !***********************************************************************************************************************************
+
 
 !***********************************************************************************************************************************
 !> \brief  Get star name from bsc info
@@ -215,7 +218,6 @@ function getsname(name)
   num = name(1:3)
   grk = name(4:6)
   gn  = name(7:7)
-  !      gn = ' '
   
   getsname = '          '
   if(grk.ne.'   ') then  !Greek letter
@@ -275,12 +277,13 @@ function getsname(name)
      if(num(1:1).eq.' ') num = num(2:3)//' '
      getsname = num//'       '
   end if
-  return
+  
 end function getsname
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
-!> \brief  Determine size of stellar 'disk'
+!> \brief  Determine size of stellar 'disc'
 !!
 !! \param m     Magnitude of the star
 !! \param mlim  Limiting magnitude of the map
@@ -315,7 +318,7 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)
   integer :: i,ix,iy,clr1,clr2,dc,ci,projection,lw
   character :: str*(99)
   
-  call pgqch(sch) !Save current character height
+  call pgqch(sch)  ! Save current character height
   call pgsch(0.5*sch)
   
   call pgqcir(clr1,clr2)
@@ -323,12 +326,12 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)
   dc = clr2-clr1
   dcdz = real(dc)/dz
   
-  call pgbbuf  !Buffer output to speed up screen plotting
-  dx = tr(2)/2.*1.05  !Distance between pixel centres / 2 = half width of pixels
-  dy = tr(6)/2.*1.05  !Spaces between pixels seem to go away when multiplying with a factor between 1.02 and 1.04
+  call pgbbuf         ! Buffer output to speed up screen plotting
+  dx = tr(2)/2.*1.05  ! Distance between pixel centres / 2 = half width of pixels
+  dy = tr(6)/2.*1.05  ! Spaces between pixels seem to go away when multiplying with a factor between 1.02 and 1.04
   
   
-  !Loop over pixels (each dimension has one array row/column too many)
+  ! Loop over pixels (each dimension has one array row/column too many):
   do ix = xb1,xb2-1
      do iy = yb1,yb2-1
         
@@ -339,11 +342,11 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)
         
         call pgsci(ci)
         
-        !Get central coordinates for this pixel:
+        ! Get central coordinates for this pixel:
         x = tr(1) + tr(2)*ix + tr(3)*iy
         y = tr(4) + tr(5)*ix + tr(6)*iy
         
-        !Get the coordinates of the four corners (projected rectangular pixel is not necessarily rectangular!)
+        ! Get the coordinates of the four corners (projected rectangular pixel is not necessarily rectangular!):
         xs(1) = x-dx
         ys(1) = y-dy
         xs(2) = xs(1)
@@ -353,7 +356,7 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)
         xs(4) = xs(3)
         ys(4) = ys(1)
         
-        !Do the projection:
+        ! Do the projection:
         if(projection.ge.1) then
            do i=1,4
               call project_skymap(xs(i),ys(i),raCentre,projection)
@@ -367,10 +370,10 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)
      end do
   end do
   
-  !Draw lines on map:
+  ! Draw lines on map:
   if(projection.eq.1) then
      
-     !Get data to plot ellipses:
+     ! Get data to plot ellipses:
      do i=1,nell
         x = real(i-1)/real(nell-1)*rtpi
         xell(i) = sin(x)
@@ -378,7 +381,7 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)
      end do
      call pgsci(1)
      
-     !Plot meridians:
+     ! Plot meridians:
      do i=-24,24,3  !In hours
         call pgsci(14)
         if(i.eq.0.or.abs(i).eq.24) call pgsci(1) !Null-meridian in black
@@ -394,13 +397,13 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)
         end if
      end do
      
-     !Plot lines of constant declination:
+     ! Plot lines of constant declination:
      do i=-90,90,15  !In degrees
         if(abs(i).eq.90) cycle
         call pgsci(14)
         if(i.eq.0) call pgsci(1) !Equator in black
         
-        !Get start and end point on line and project them:
+        ! Get start and end point on line and project them:
         xs(1) = raCentre-12.
         xs(2) = raCentre+12.
         ys(1) = real(i)
@@ -408,10 +411,10 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)
         call project_skymap(xs(1),ys(1),raCentre,projection)
         call project_skymap(xs(2),ys(2),raCentre,projection)
         
-        !Plot line:
+        ! Plot line:
         call pgline(2,xs(1:2),ys(1:2))
         
-        !Print labels:
+        ! Print labels:
         if(i.gt.0) then
            write(str,'(A1,I2,A)')'+',i,'\(2218)'
            call pgptext(xs(2)+0.2,ys(1),0.,1.,trim(str))
@@ -421,28 +424,28 @@ subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)
         end if
      end do
      
-     !Overplot main lines:
+     ! Overplot main lines:
      call pgsci(1)
-     call pgptext(raCentre,92.,0.,0.5,'+90\(2218)')           !NP
-     call pgptext(raCentre,-95.,0.,0.5,'-90\(2218)')          !SP
-     call pgline(2,(/raCentre-12.,raCentre+12./),(/0.,0./))   !Equator
+     call pgptext(raCentre,92.,0.,0.5,'+90\(2218)')           ! NP
+     call pgptext(raCentre,-95.,0.,0.5,'-90\(2218)')          ! SP
+     call pgline(2,(/raCentre-12.,raCentre+12./),(/0.,0./))   ! Equator
      
-     !Plot null-meridian:
+     ! Plot null-meridian:
      do i=-24,24,24
         if(real(i).gt.-raCentre-12.and.real(i).lt.-raCentre+12) call pgline(nell/2+1,-(raCentre+real(i))*xell+raCentre,yell*90.)
      end do
      
      call pgqlw(lw)     !Save current line width
      call pgslw(lw*2)
-     call pgline(nell,xell*12.+raCentre,yell*90.)             !Outline
+     call pgline(nell,xell*12.+raCentre,yell*90.)             ! Outline
      call pgslw(lw)     !Restore line width
      
      
      
   end if  !if(projection.eq.1)
   
-  call pgsch(sch)  !Restore character height
-  call pgebuf      !Release buffer
+  call pgsch(sch)  ! Restore character height
+  call pgebuf      ! Release buffer
   
 end subroutine pgimag_project
 !***********************************************************************************************************************************
@@ -457,6 +460,13 @@ end subroutine pgimag_project
 !! \param y           Y coordinate of object (I/O)
 !! \param raCentre    Central RA of map
 !! \param projection  Choice of projection:  1 - Mollweide
+!!
+!! \par
+!! Projections:
+!! - 1: Mollweide projection:
+!!   - http://en.wikipedia.org/wiki/Mollweide_projection
+!!   - Newton-Rapson scheme to solve equation:  2*theta + sin(2*theta) = pi*sin(y*rd2r)
+!!   - Convergence is relatively fast, somewhat slower near poles
 
 subroutine project_skymap(x,y,raCentre,projection)
   use constants
@@ -469,14 +479,10 @@ subroutine project_skymap(x,y,raCentre,projection)
   real :: theta,siny,th2,dth2,delta
   
   
-  if(projection.eq.1) then
-     !Mollweide projection:
-     !http://en.wikipedia.org/wiki/Mollweide_projection
-     !Newton-Rapson scheme to solve equation:  2*theta + sin(2*theta) = pi*sin(y*rd2r)
-     !Convergence is relatively fast, somewhat slower near poles
+  if(projection.eq.1) then  ! Mollweide projection
      
-     delta = 1.e-6        !Radians
-     maxIter = 100        !3 iterations typically suffice, need safety hatch anyway (e.g. when very close to/just beyond the pole)
+     delta = 1.e-6        ! Radians
+     maxIter = 100        ! 3 iterations typically suffice, need safety hatch anyway (e.g. when very close to/just beyond the pole)
      siny  = sin(y*rd2r)
      th2 = y*rd2r
      dth2 = 1.e30
@@ -490,11 +496,11 @@ subroutine project_skymap(x,y,raCentre,projection)
      
      theta = th2/2.
      
-     !Original projection:
+     ! Original projection:
      !x = 2*sqrt2/rpi * x * cos(theta)
      !y = sqrt(2) * sin(theta) * r2d
      
-     !Map it back to a 24hx180d plot:
+     ! Map it back to a 24hx180d plot:
      x = (x-raCentre) * cos(theta) + raCentre
      y = sin(theta)*90.
   else
@@ -504,3 +510,5 @@ subroutine project_skymap(x,y,raCentre,projection)
   
 end subroutine project_skymap
 !***********************************************************************************************************************************
+
+

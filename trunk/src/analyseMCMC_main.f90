@@ -1,7 +1,7 @@
 !> \file analyseMCMC_main.f90  AnalyseMCMC main routine
 !! 
 !! \mainpage Documentation AnalyseMCMC
-!! AnalyseMCMC is a Fortran code that can be used to analyse the output of 
+!! AnalyseMCMC is a Fortran code that can be used to analyse and present the output of 
 !! <a href="http://www.astro.ru.nl/~sluys/index.php?title=SPINspiral">SPINspiral</a>.
 !!
 !! 
@@ -9,27 +9,27 @@
 !!
 !! \par I/O units used:
 !! 
-!!  0: StdErr
-!!  6: StdOut
-!!
-!! 10: input (MCMC) file
-!! 14: write settings file (analysemcmc.dat)
-!! 15: read settings file (analysemcmc.dat)
-!! 16: temp file in getos
-!! 17: temp file in timestamp
-!! 19: StdOut redirection (__output.txt)
-!!
-!! 20: Output: __statistics.dat, __wiki.dat, __bayes.dat 
-!!
-!! 21: bsc.dat (bright star catalogue)
-!! 22: bsc_const.dat (BSC constellation data)
-!! 23: bsc_names.dat (BSC names)
-!! 24: milkyway*.dat (Milky Way data)
+!! -  0: StdErr
+!! -  6: StdOut
+!! -
+!! - 10: input (MCMC) file
+!! - 14: write settings file (analysemcmc.dat)
+!! - 15: read settings file (analysemcmc.dat)
+!! - 16: temp file in getos
+!! - 17: temp file in timestamp
+!! - 19: StdOut redirection (__output.txt)
 !! 
-!! 30: Output: __pdf1/2d.dat
-!! 40: Output: tailored output
+!! - 20: Output: __statistics.dat, __wiki.dat, __bayes.dat 
 !! 
-!! 51: Output: HTML main file
+!! - 21: bsc.dat (bright star catalogue)
+!! - 22: bsc_const.dat (BSC constellation data)
+!! - 23: bsc_names.dat (BSC names)
+!! - 24: milkyway*.dat (Milky Way data)
+!!  
+!! - 30: Output: __pdf1/2d.dat
+!! - 40: Output: tailored output
+!!  
+!! - 51: Output: HTML main file
 !! 
 !! \par 
 !! This program replaces plotspins.
@@ -39,6 +39,7 @@
 
 !***********************************************************************************************************************************
 !> \brief Main routine
+
 program analyseMCMC
   use basic
   use constants

@@ -3,7 +3,8 @@
 
 !***********************************************************************************************************************************
 !> \brief  Define the constants
-subroutine setconstants
+
+subroutine setconstants()
   use constants
   
   implicit none
@@ -65,7 +66,8 @@ end subroutine setconstants
 
 !***********************************************************************************************************************************
 !> \brief  Read the settings file (called analysemcmc.dat by default)
-subroutine read_settingsfile
+
+subroutine read_settingsfile()
   use basic
   use constants
   use analysemcmc_settings
@@ -205,7 +207,8 @@ end subroutine read_settingsfile
 
 !***********************************************************************************************************************************
 !> \brief  Write a copy of the settings file (called analysemcmc.used by default)
-subroutine write_settingsfile
+
+subroutine write_settingsfile()
   use analysemcmc_settings
   implicit none
   integer :: u,i
@@ -362,6 +365,7 @@ subroutine write_settingsfile
      write(u,12)PDF2Dpairs(i,1:2), 'PDF2Dpairs', 'Pairs of parameters to plot a 2D PDF for'
   end do
   close(u)
+  
 end subroutine write_settingsfile
 !***********************************************************************************************************************************
 
@@ -370,92 +374,94 @@ end subroutine write_settingsfile
 
 !***********************************************************************************************************************************
 !> \brief  Set plot settings to 'default' values
-subroutine set_plotsettings
+
+subroutine set_plotsettings()
   use analysemcmc_settings
   implicit none
   
-  thin = 10         !If >1, 'thin' the output; read every thin-th line 
-  Nburn = 1e5       !If >=0: override length of the burn-in phase, for all chains
-  NburnFrac = 0.5   !If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
-  autoBurnin = -1.  !Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
-  maxChLen = 1e8    !Maximum chain length
-  file = 1          !Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.
-  colour = 1        !Use colours: 0-no (grey scales), 1-yes
-  quality = 0       !'Quality' of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
-  reverseRead = 0   !Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible
-  update = 0        !Update screen plot every 10 seconds: 0-no, 1-yes
-  mergeChains = 1   !Merge the data from different files into one chain: 0-no (treat separately), 1-yes (default)
-  wrapData = 1      !Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
-  changeVar = 1     !Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)
+  thin = 10         ! If >1, 'thin' the output; read every thin-th line 
+  Nburn = 1e5       ! If >=0: override length of the burn-in phase, for all chains
+  NburnFrac = 0.5   ! If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
+  autoBurnin = -1.  ! Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
+  maxChLen = 1e8    ! Maximum chain length
+  file = 1          ! Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.
+  colour = 1        ! Use colours: 0-no (grey scales), 1-yes
+  quality = 0       ! 'Quality' of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
+  reverseRead = 0   ! Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible
+  update = 0        ! Update screen plot every 10 seconds: 0-no, 1-yes
+  mergeChains = 1   ! Merge the data from different files into one chain: 0-no (treat separately), 1-yes (default)
+  wrapData = 1      ! Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
+  changeVar = 1     ! Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)
   
-  prStdOut = 1      !Print standard output to 1: screen, 2: text file
-  prProgress = 2    !Print general messages about the progress of the program: 0-no, 1-some, 2-more
-  prRunInfo = 0     !Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file
-  prInitial = 0     !Print injection values, starting values and their difference
-  prStat = 1        !Print statistics: 0-no, 1-yes
-  prCorr = 0        !Print correlations: 0-no, 1-yes
-  prAcorr = 0       !Plot autocorrelations: 0-no, 1-some, 2: more
-  nAcorr = 100      !Compute prAcorr steps of autocorrelations if prAcorr>0 or plAcor>0 (default: 100)
-  prIval = 0        !Print interval info: 0-no, 1-yes
-  prConv = 1        !Print convergence information for multiple chains to screen and chains plot
-  saveStats = 0     !Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
-  savePDF = 0       !Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).
-  tailoredOutput=0  !Save output for a specific purpose, e.g. table in a paper
+  prStdOut = 1      ! Print standard output to 1: screen, 2: text file
+  prProgress = 2    ! Print general messages about the progress of the program: 0-no, 1-some, 2-more
+  prRunInfo = 0     ! Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file
+  prInitial = 0     ! Print injection values, starting values and their difference
+  prStat = 1        ! Print statistics: 0-no, 1-yes
+  prCorr = 0        ! Print correlations: 0-no, 1-yes
+  prAcorr = 0       ! Plot autocorrelations: 0-no, 1-some, 2: more
+  nAcorr = 100      ! Compute prAcorr steps of autocorrelations if prAcorr>0 or plAcor>0 (default: 100)
+  prIval = 0        ! Print interval info: 0-no, 1-yes
+  prConv = 1        ! Print convergence information for multiple chains to screen and chains plot
+  saveStats = 0     ! Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
+  savePDF = 0       ! Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).
+  tailoredOutput=0  ! Save output for a specific purpose, e.g. table in a paper
   
-  plot = 1          !0: plot nothing at all, 1: plot the items selected below
-  scLogLpl = 1      !Scale logL plot ranges: 0
-  scChainsPl = 1    !Scale chains plot ranges
-  plLogL = 1        !Plot log L chains: 0-no, 1-yes
-  plChain = 1       !Plot parameter chains: 0-no, 1-yes
-  plParL = 1        !Plot L vs. parameter value: 0-no, 1-yes
-  plJump = 1        !Plot actual jump sizes
-  plPDF1D = 1       !Plot 1d posterior distributions
-  plPDF2D = 2       !Plot 2d posterior distributions
-  plAcorr = 0       !Plot autocorrelations: 0-no, 1-yes
-  plotSky = 0       !Plot 2d pdf with stars, implies plPDF2D>0
-  plAnim = 0        !Plot movie frames
+  plot = 1          ! 0: plot nothing at all, 1: plot the items selected below
+  scLogLpl = 1      ! Scale logL plot ranges: 0
+  scChainsPl = 1    ! Scale chains plot ranges
+  plLogL = 1        ! Plot log L chains: 0-no, 1-yes
+  plChain = 1       ! Plot parameter chains: 0-no, 1-yes
+  plParL = 1        ! Plot L vs. parameter value: 0-no, 1-yes
+  plJump = 1        ! Plot actual jump sizes
+  plPDF1D = 1       ! Plot 1d posterior distributions
+  plPDF2D = 2       ! Plot 2d posterior distributions
+  plAcorr = 0       ! Plot autocorrelations: 0-no, 1-yes
+  plotSky = 0       ! Plot 2d pdf with stars, implies plPDF2D>0
+  plAnim = 0        ! Plot movie frames
   
-  chainPlI = 0      !Plot every chainPlI-th point in chains, logL, jump plots
-  plInject = 1      !Plot injection values in the chains and pdfs
-  plStart = 1       !Plot starting values in the chains and pdfs
-  plMedian = 1      !Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
-  plRange = 1       !Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
-  plBurn = 1        !Plot the burn-in in logL, the chains, etc.
-  plLmax = 0        !Plot the position of the max of logL in chains and pdfs
-  prValues = 1      !Print values (injection, median, range) in pdfs
-  smooth = 3        !Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?)
-  fillPDF = 1       !Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
-  normPDF1D = 1     !Normalise 1D pdfs
-  normPDF2D = 0     !'Normalise' 2D pdfs; greyscale value depends on bin height
-  nAnimFrames = 1    !Number of frames for the movie
-  animScheme = 3   !Movie scheme: determines what panels to show in a movie frame 
-  Nival = 3         !Number of probability intervals
-  ival0 = 1         !Standard probability interval, e.g. 1 or 2, < Nival
-  ivals(1:3) = (/0.6827,0.9545,0.9973/)  !Probability intervals
+  chainPlI = 0      ! Plot every chainPlI-th point in chains, logL, jump plots
+  plInject = 1      ! Plot injection values in the chains and pdfs
+  plStart = 1       ! Plot starting values in the chains and pdfs
+  plMedian = 1      ! Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
+  plRange = 1       ! Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
+  plBurn = 1        ! Plot the burn-in in logL, the chains, etc.
+  plLmax = 0        ! Plot the position of the max of logL in chains and pdfs
+  prValues = 1      ! Print values (injection, median, range) in pdfs
+  smooth = 3        ! Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?)
+  fillPDF = 1       ! Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
+  normPDF1D = 1     ! Normalise 1D pdfs
+  normPDF2D = 0     ! 'Normalise' 2D pdfs; greyscale value depends on bin height
+  nAnimFrames = 1   ! Number of frames for the movie
+  animScheme = 3    ! Movie scheme: determines what panels to show in a movie frame 
+  Nival = 3         ! Number of probability intervals
+  ival0 = 1         ! Standard probability interval, e.g. 1 or 2, < Nival
+  ivals(1:3) = (/0.6827,0.9545,0.9973/)  ! Probability intervals
   
-  scrSz  = 10.8     !Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8
-  scrRat = 0.57     !Screen ratio for X11 windows (PGPlot units), MacBook: 0.57
-  bmpXSz = 1000     !X-size for bitmap (pixels):  1000
-  bmpYSz = 700      !Y-size for bitmap (pixels):  700
-  PSsz   = 10.5     !Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap
-  PSrat  = 0.742    !Ratio for PS/PDF (PGPlot units). Default: 0.742  /
-  scFac = 1.2       !Scale .png plots up by this factor, then down to the x,y size indicated above
-  unSharp = 10      !Apply unsharp mask when creating .png plots. Default: 10
+  scrSz  = 10.8     ! Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8
+  scrRat = 0.57     ! Screen ratio for X11 windows (PGPlot units), MacBook: 0.57
+  bmpXSz = 1000     ! X-size for bitmap (pixels):  1000
+  bmpYSz = 700      ! Y-size for bitmap (pixels):  700
+  PSsz   = 10.5     ! Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap
+  PSrat  = 0.742    ! Ratio for PS/PDF (PGPlot units). Default: 0.742  /
+  scFac = 1.2       ! Scale .png plots up by this factor, then down to the x,y size indicated above
+  unSharp = 10      ! Apply unsharp mask when creating .png plots. Default: 10
   
-  orientation = 1   !Use portrait (1) or landscape (2) for eps/pdf; mainly useful when sending a plot to a printer
-  fonttype = 1      !Font type used for eps/pdf: 1-simple, 2-roman, 3-italic, 4-script
-  fontsize1d = 1.   !Set plot scale for 1D plots, needs to be implemented fully
-  fontsize2d = 1.   !Set plot scale for 2D plots, needs to be implemented fully. Typically, take ~1.2*fontsize1d
-  chainSymbol = 1   !Plot symbol for the chains
+  orientation = 1   ! Use portrait (1) or landscape (2) for eps/pdf; mainly useful when sending a plot to a printer
+  fonttype = 1      ! Font type used for eps/pdf: 1-simple, 2-roman, 3-italic, 4-script
+  fontsize1d = 1.   ! Set plot scale for 1D plots, needs to be implemented fully
+  fontsize2d = 1.   ! Set plot scale for 2D plots, needs to be implemented fully. Typically, take ~1.2*fontsize1d
+  chainSymbol = 1   ! Plot symbol for the chains
   
-  nPlPar = 15       !Number of plot parameters for 1D plots
-  plPars(1:nPlPar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !The nPlPar plot parameters
-  panels(1:2) = (/0,0/) !Number of panels for 1D plots in x,y direction
-  Nbin1D = 100      !Number of bins for 1D PDFs
-  Nbin2Dx = 60      !Number of bins in horizontal direction for 2D PDFs
-  Nbin2Dy = 40      !Number of bins in vertical direction for 2D PDFs
-  Npdf2D  = 1       !Number of 2D PDFs to make
-  PDF2Dpairs(1,1:2) = (/8,9/)  !2D PDFs to plot: RA,Dec
+  nPlPar = 15       ! Number of plot parameters for 1D plots
+  plPars(1:nPlPar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) ! The nPlPar plot parameters
+  panels(1:2) = (/0,0/) ! Number of panels for 1D plots in x,y direction
+  Nbin1D = 100      ! Number of bins for 1D PDFs
+  Nbin2Dx = 60      ! Number of bins in horizontal direction for 2D PDFs
+  Nbin2Dy = 40      ! Number of bins in vertical direction for 2D PDFs
+  Npdf2D  = 1       ! Number of 2D PDFs to make
+  PDF2Dpairs(1,1:2) = (/8,9/)  ! 2D PDFs to plot: RA,Dec
+  
 end subroutine set_plotsettings
 !***********************************************************************************************************************************
 
@@ -465,6 +471,7 @@ end subroutine set_plotsettings
 !> \brief  Read the SPINspiral output files (SPINspiral.output.*)
 !!
 !! \retval exitcode  Exit status code (0=ok)
+
 subroutine read_mcmcfiles(exitcode)
   use basic
   use constants
@@ -663,8 +670,6 @@ subroutine read_mcmcfiles(exitcode)
      !nint(is(ic,ntot(ic))),', burn-in:',Nburn(ic),'.'
   end do !do ic = 1,nchains0
   
-  
-  
 end subroutine read_mcmcfiles
 !***********************************************************************************************************************************
 
@@ -688,6 +693,7 @@ end subroutine read_mcmcfiles
 !!  - compute jumps,  
 !!  - construct output file name,  
 !!  - store data in selDat (from dat)
+
 subroutine mcmcruninfo(exitcode)  
   use basic
   use constants
@@ -1141,6 +1147,7 @@ end subroutine mcmcruninfo
 !> \brief  Save post-burnin data to file (__data.txt)
 !!
 !! \retval exitcode  Exit status code (0=ok)
+
 subroutine save_data(exitcode)
   use constants
   use analysemcmc_settings
@@ -1185,10 +1192,7 @@ subroutine save_data(exitcode)
   end do
   !  end do
   
-  
-  
-  close(o) !data output file
-  
+  close(o)  ! data output file
   
 end subroutine save_data
 !***********************************************************************************************************************************
@@ -1201,7 +1205,8 @@ end subroutine save_data
 !! \param lon     Longitude
 !! \param GPSsec  GPS time in seconds
 !!
-!! - Declination == latitude for equatorial coordinates.
+!! - Declination == latitude for equatorial coordinates
+
 function lon2ra(lon, GPSsec)
   use basic
   use constants
@@ -1223,6 +1228,7 @@ end function lon2ra
 !! \param GPSsec  GPS time in seconds
 !!
 !! - Declination == latitude for equatorial coordinates.
+
 function ra2lon(ra, GPSsec)
   use basic
   use constants
@@ -1243,6 +1249,7 @@ end function ra2lon
 !! \param GPSsec  GPS time in seconds
 !!
 !! \see K.R. Lang (1999), p.80sqq.
+
 function gmst(GPSsec)
   use basic
   use constants
@@ -1257,6 +1264,7 @@ function gmst(GPSsec)
   if(GPSsec.gt.820108813.d0) leapseconds = leapseconds + 1.d0 !One more leapsecond after 1/1/2006
   if(GPSsec.gt.914803214.d0) leapseconds = leapseconds + 1.d0 !One more leapsecond after 1/1/2009
   if(GPSsec.lt.630720013.d0) write(stdErr,'(A)')'   WARNING: GMSTs before 01/01/2000 are inaccurate!'
+  
   !Time since 1/1/2000 midnight
   seconds       = (GPSsec - gps0) + (leapseconds - 32.d0)
   days          = floor(seconds/86400.d0) - 0.5d0
@@ -1266,6 +1274,7 @@ function gmst(GPSsec)
   gmst = gmst + secCurrentDay * 1.002737909350795d0   !UTC day is 1.002 * MST day
   gmst = mod(gmst/86400.d0,1.d0)
   gmst = gmst * tpi
+  
 end function gmst
 !***********************************************************************************************************************************
 
@@ -1353,6 +1362,7 @@ subroutine dindexx(n,arr,indx)
      end if
   end if
   goto 1
+  
 end subroutine dindexx
 !***********************************************************************************************************************************
 
@@ -1436,6 +1446,7 @@ subroutine rindexx(n,arr,indx)
      end if
   end if
   goto 1
+  
 end subroutine rindexx
 !***********************************************************************************************************************************
 
@@ -1595,6 +1606,9 @@ end subroutine ludcmp
 
 !***********************************************************************************************************************************
 !> \brief  Returns angle in radians between 0 and 2pi (double precision)
+!!
+!! \param x  Angle (rad)
+
 function drev2pi(x)
   use basic
   use constants
@@ -1602,79 +1616,110 @@ function drev2pi(x)
   implicit none
   real(double) :: x,drev2pi
   drev2pi = x - floor(x/(2*pi))*2*pi
+  
 end function drev2pi
-!***********************************************************************************************************************************
-
-!***********************************************************************************************************************************
-!> \brief  Returns angle in radians between 0 and 2pi
-!function rev(x)
-!  use constants
-!  real :: x,rev
-!  rev = x - floor(x/rpi2)*rpi2
-!end function rev
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
 !> \brief  Returns periodic value x between 0 and per
+!!
+!! \param x    Input value
+!! \param per  Period of cycle
+
 function revper(x,per)
    implicit none
    real :: x,per,revper
+   
    revper = x - floor(x/per)*per
+   
 end function revper
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
 !> \brief  Returns angle in radians between -pi and pi
+!!
+!! \param x  Angle (rad)
+
 function revpipi(x)
   use constants
   implicit none
   real :: x,revpipi
+  
   revpipi = x - floor(x/rpi2)*rpi2
   if(revpipi.gt.rpi) revpipi = revpipi - rpi2
+  
 end function revpipi
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Returns angle in degrees between 0 and 360
+!!
+!! \param x  Angle (deg)
+
 function rev360(x)
   implicit none
   real :: x,rev360
+  
   rev360 = x - floor(x/360.)*360.
+  
 end function rev360
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Returns angle in degrees between 0 and 180
+!!
+!! \param x  Angle (deg)
+
 function rev180(x)
   implicit none
   real :: x,rev180
+  
   rev180 = x - floor(x/180.)*180.
+  
 end function rev180
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Returns angle in hours between 0 and 24
+!!
+!! \param x  Angle (hours)
+
 function rev24(x)
   implicit none
   real :: x,rev24
+  
   rev24 = x - floor(x/24.)*24.
+  
 end function rev24
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Returns angle in radians between 0 and 2pi
+!!
+!! \param x  Angle (rad)
+
 function rev2pi(x)
   implicit none
   real :: x,rev2pi,pi
+  
   pi = 4*atan(1.)
   rev2pi = x - floor(x/(2.0*pi))*2.0*pi
+  
 end function rev2pi
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Returns angle in radians between 0 and pi - double
+!!
+!! \param x  Angle (rad)
+
 function drevpi(x)
   use basic
   use constants
@@ -1682,28 +1727,40 @@ function drevpi(x)
   implicit none
   real(double) :: x,drevpi
   drevpi = x - floor(x/pi)*pi
+  
 end function drevpi
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Returns angle in radians between 0 and pi - real
+!!
+!! \param x  Angle (rad)
+
 function rrevpi(x)
   use constants
   implicit none
   real :: x,rrevpi
+  
   rrevpi = x - floor(x/rpi)*rpi
+  
 end function rrevpi
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
-subroutine kstwo(data1,n1,data2,n2,d,prob)  !Needs probks(), sort()
+!> \brief  2D KS test
+!!
+!! - Needs probks(), sort()
+
+subroutine kstwo(data1,n1,data2,n2,d,prob)
   use basic
   
   implicit none
   integer :: n1,n2,j1,j2
   real(double) :: d,prob,data1(n1),data2(n2)
   real(double) :: d1,d2,dt,en1,en2,en,fn1,fn2,probks
+  
   call sort(n1,data1)
   call sort(n2,data2)
   en1=n1
@@ -1728,8 +1785,8 @@ subroutine kstwo(data1,n1,data2,n2,d,prob)  !Needs probks(), sort()
      if(dt.gt.d)d=dt
      goto 1
   end if
-  en=dsqrt(en1*en2/(en1+en2))
-  prob=probks((en+0.12d0+0.11d0/en)*d)
+  en =  sqrt(en1*en2/(en1+en2))
+  prob = probks((en+0.12d0+0.11d0/en)*d)
   
 end subroutine kstwo
 !***********************************************************************************************************************************
@@ -1750,7 +1807,7 @@ function probks(alam)
   probks=0.d0
   termbf=0.d0
   do j=1,100
-     term=fac*dexp(a2*j**2)
+     term=fac*exp(a2*j**2)
      probks=probks+term
      if(abs(term).le.eps1*termbf.or.abs(term).le.eps2*probks) return
      fac=-fac
@@ -1760,6 +1817,7 @@ function probks(alam)
   
 end function probks
 !***********************************************************************************************************************************
+
 
 !***********************************************************************************************************************************
 subroutine sort(n,arr)
@@ -1842,8 +1900,12 @@ subroutine sort(n,arr)
 end subroutine sort
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Print angle as mm:ss.s string, input in hours
+!!
+!! a1  Angle (hours)
+
 function tms(a1)
   use basic
   
@@ -1867,6 +1929,7 @@ end function tms
 
 !***********************************************************************************************************************************
 !> \brief  Determine the operating system type: 1-Linux, 2-MacOSX
+
 function getos()
   use constants
   
@@ -1895,6 +1958,7 @@ end function getos
 
 !***********************************************************************************************************************************
 !> \brief  Get time stamp in seconds since 1970-01-01 00:00:00 UTC, mod countmax
+
 function timestamp()
   use basic
   use constants
@@ -1905,6 +1969,7 @@ function timestamp()
   
   call system_clock(count,countrate,countmax)
   timestamp = dble(mod(count+countmax,countmax))/dble(countrate)
+  
 end function timestamp
 !***********************************************************************************************************************************
 
@@ -1912,17 +1977,27 @@ end function timestamp
 
 !***********************************************************************************************************************************
 !> \brief Set the colour to ci, but use a darker shade if the background is black or a lighter shade if it is white
+!! 
+!! \param ci0      Colour index
+!! \param file     Output file type
+!! \param whiteBG  Have a white background (1) or nor (0)
+
 subroutine pgscidark(ci0,file,whiteBG)  
   implicit none
   integer :: ci0,ci,file,whiteBG
   real :: r,g,b,weight
+  
   ci = ci0
   call pgqcr(ci,r,g,b)
-  call pgscr(99,r*0.5,g*0.5,b*0.5) !Use half the RGB value to create a darker shade
+  
+  ! Use half the RGB value to create a darker shade:
+  call pgscr(99,r*0.5,g*0.5,b*0.5)
+  
+  ! Use the weighted mean of the RGB value and 1. to create a lighter shade:
   weight = 3.
-  !Use the weighted mean of the RGB value and 1. to create a lighter shade:
   if(file.ge.2.or.whiteBG.ge.1) call pgscr(99,(r+weight)/(weight+1.),(g+weight)/(weight+1.),(b+weight)/(weight+1.)) 
   call pgsci(99)
+  
 end subroutine pgscidark
 !***********************************************************************************************************************************
 
@@ -1930,17 +2005,24 @@ end subroutine pgscidark
 
 !***********************************************************************************************************************************
 !> \brief  Transforms longitude l, latitude b and radius r into a vector with length r.  Use r=1 for a unit vector
+!!
+!! \param l     Longitude (rad)
+!! \param b     Latitude (rad)
+!! \param r     Radius
+!! \retval vec  3D vector with the same units as r
+
 subroutine lbr2vec(l,b,r,vec)
   use basic
-  
   implicit none
   real(double) :: l,b,r,sinb,cosb,vec(3)
+  
   sinb = sin(b)
-  cosb = dsqrt(1.d0-sinb*sinb)
-  vec(1) = cos(l) * cosb;  !`Greenwich'
-  vec(2) = sin(l) * cosb;  !`Ganges'
-  vec(3) = sinb;            !`North Pole'
+  cosb = sqrt(1.d0-sinb*sinb)
+  vec(1) = cos(l) * cosb         ! 'Greenwich'
+  vec(2) = sin(l) * cosb         ! 'Ganges'
+  vec(3) = sinb;                 ! 'North Pole'
   vec = vec*r
+  
 end subroutine lbr2vec
 !***********************************************************************************************************************************
 
@@ -1948,23 +2030,32 @@ end subroutine lbr2vec
 
 !***********************************************************************************************************************************
 !> \brief  Compute the length of a 3D cartesian vector
+!!
+!! \param vec  3D vector
+
 function veclen(vec)
   use basic
-  
   implicit none
   real(double) :: veclen,vec(3)
-  veclen = dsqrt(vec(1)*vec(1) + vec(2)*vec(2) + vec(3)*vec(3))
+  
+  veclen = sqrt(vec(1)*vec(1) + vec(2)*vec(2) + vec(3)*vec(3))
+  
 end function veclen
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Normalise a 3D cartesian vector
+!!
+!! \param vec  3D vector
+
 subroutine normvec(vec)
   use basic
-  
   implicit none
   real(double) :: veclen,vec(3)
+  
   vec = vec/veclen(vec)
+  
 end subroutine normvec
 !***********************************************************************************************************************************
 
@@ -1972,32 +2063,46 @@ end subroutine normvec
 
 !***********************************************************************************************************************************
 !> \brief  Convert chirp mass and eta to m1 and m2 - double precision
+!!
+!! \param  mc   Chirp mass (Mo)
+!! \param  eta  Eta
+!! \retval m1   M1 (Mo)
+!! \retval m2   M2 (Mo)
+
 subroutine mc_eta_2_m1_m2(mc,eta,m1,m2)
   use basic
-  
   implicit none
   real(double) :: mc,eta,m1,m2, dvar,mtot
+  
   mtot = mc*eta**(-0.6d0)
   if(eta.le.0.25d0) then
-     dvar = dsqrt(1.d0-4*eta)
+     dvar = sqrt(1.d0-4*eta)
      m1 = mtot/2.d0 * (1.0 + dvar);
      m2 = mtot/2.d0 * (1.0 - dvar);
-  else                                 !Allow 0.25<eta<0.50
-     dvar = dsqrt(4*eta-1.d0)
+  else                                 ! Allow 0.25<eta<0.50
+     dvar = sqrt(4*eta-1.d0)
      m1 = mtot/2.d0 * (1.0 - dvar);
      m2 = mtot/2.d0 * (1.0 + dvar);
   end if
+  
 end subroutine mc_eta_2_m1_m2
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Convert chirp mass and eta to m1 and m2 - single precision
+!!
+!! \param  mcr   Chirp mass (Mo)
+!! \param  etar  Eta
+!! \retval m1r   M1 (Mo)
+!! \retval m2r   M2 (Mo)
+
 subroutine mc_eta_2_m1_m2r(mcr,etar,m1r,m2r)
   use basic
-  
   implicit none
   real(double) :: mc,eta,m1,m2
   real :: mcr,etar,m1r,m2r
+  
   mc = dble(mcr)
   eta = dble(etar)
   call mc_eta_2_m1_m2(mc,eta,m1,m2)
@@ -2009,31 +2114,45 @@ end subroutine mc_eta_2_m1_m2r
 
 !***********************************************************************************************************************************
 !> \brief  Convert M1,M2 to Mchirp, eta  (double precision)
+!!
+!! \param  m1   M1 (Mo)
+!! \param  m2   M2 (Mo)
+!! \retval mc   Chirp mass (Mo)
+!! \retval eta  Eta
+
 subroutine m1_m2_2_mc_eta(m1,m2,mc,eta)
   use basic
-  
   implicit none
   real(double) :: m1,m2,mc,eta,mtot
+  
   mtot = m1+m2
   eta = m1*m2/(mtot*mtot)
   mc = mtot*eta**0.6d0
+  
 end subroutine m1_m2_2_mc_eta
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
 !> \brief  Convert M1,M2 to Mchirp, eta  (single precision)
+!!
+!! \param  m1r   M1 (Mo)
+!! \param  m2r   M2 (Mo)
+!! \retval mcr   Chirp mass (Mo)
+!! \retval etar  Eta
+
 subroutine m1_m2_2_mc_etar(m1r,m2r,mcr,etar)
   use basic
-  
   implicit none
   real(double) :: m1,m2,mc,eta
   real :: m1r,m2r,mcr,etar
+  
   m1 = dble(m1r)
   m2 = dble(m2r)
   call m1_m2_2_mc_eta(m1,m2,mc,eta)
   mcr = real(mc)
   etar = real(eta)
+  
 end subroutine m1_m2_2_mc_etar
 !***********************************************************************************************************************************
 
@@ -2041,8 +2160,10 @@ end subroutine m1_m2_2_mc_etar
 !***********************************************************************************************************************************
 !> \brief  Convert longitude, latitude (rad) to a 3D normal vector
 !!
-!! - l in [0,2pi[
-!! - b in [-pi,pi]
+!! \param l     Longitude, in [0,2pi[
+!! \param b     Latitude, in [-pi,pi]
+!! \retval vec  3D normal vector
+
 subroutine ang2vec(l,b,vec)
   use basic
   
@@ -2052,54 +2173,77 @@ subroutine ang2vec(l,b,vec)
   vec(1) = cos(l)*cosb
   vec(2) = sin(l)*cosb
   vec(3) = sin(b)
+  
 end subroutine  ang2vec
 !***********************************************************************************************************************************
+
 
 !***********************************************************************************************************************************
 !> \brief  Convert a 3D normal vector to longitude, latitude (rad)
 !!
-!! - l in [0,2pi[
-!! - b in [-pi,pi]
+!! \param  vec  3D normal vector
+!! \retval l    Longitude, in [0,2pi[
+!! \retval b    Latitude, in [-pi,pi]
+
 subroutine vec2ang(vec,l,b)
   use basic
-  
   implicit none
   real(double) :: l,b,vec(3),vec1(3)
+  
   vec1 = vec
   call normvec(vec1) !Make sure vec1 is normalised
   l = atan2(vec1(2),vec1(1))
   b = asin(vec1(3))
+  
 end subroutine  vec2ang
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Compute the dot product of two 3D cartesian vectors
+!!
+!! \param vec1  3D vector 1
+!! \param vec2  3D vector 2
+
 function dotproduct(vec1,vec2)
   use basic
-  
   implicit none
   real(double) :: dotproduct,vec1(3),vec2(3)
+  
   dotproduct = vec1(1)*vec2(1) + vec1(2)*vec2(2) + vec1(3)*vec2(3)
+  
 end function dotproduct
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Compute the cross (outer) product of two cartesian vectors
+!!
+!! \param vec1  3D vector 1
+!! \param vec2  3D vector 2
+!! \retval crpr  Cross/outer product (vec1 x vec2)
+
 subroutine crossproduct(vec1,vec2,crpr)
   use basic
-  
   implicit none
-  real(double) :: vec1(3),vec2(3),crpr(3)!,veclen
+  real(double) :: vec1(3),vec2(3),crpr(3)
+  
   crpr(1) = vec1(2)*vec2(3) - vec1(3)*vec2(2)
   crpr(2) = vec1(3)*vec2(1) - vec1(1)*vec2(3)
   crpr(3) = vec1(1)*vec2(2) - vec1(2)*vec2(1)
+  
 end subroutine crossproduct
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
 !> \brief Compute the polarisation angle of a source with position normal vector p and orientation normal vector o
+!!
+!! \param p  3D position normal vector
+!! \param o  3D orientation normal vector
+!!
 !! \see Apostolatos et al. 1994, Eq.5
+
 function polangle(p,o)  
   use basic
   
@@ -2107,17 +2251,23 @@ function polangle(p,o)
   real(double) :: polangle,p(3),o(3)
   real(double) :: z(3),denom,ocz(3),numer,dotproduct!,datan2
   
-  z = (/0.d0,0.d0,1.d0/) !Vertical normal vector
-  denom = dotproduct(o,z) - dotproduct(o,p)*dotproduct(z,p) !Denominator
+  z = (/0.d0,0.d0,1.d0/)                                     ! Vertical normal vector
+  denom = dotproduct(o,z) - dotproduct(o,p)*dotproduct(z,p)  ! Denominator
   call crossproduct(o,z,ocz)
-  numer = dotproduct(p,ocz) !Numerator
+  numer = dotproduct(p,ocz)                                  ! Numerator
   
-  polangle = atan(denom/(numer+1.d-30))  !Take into account the degeneracy in psi, hence no atan2
+  polangle = atan(denom/(numer+1.d-30))                      ! Take into account the degeneracy in psi, hence no atan2
+  
 end function polangle
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Compute the position angle of a source with position normal vector p and orientation normal vector o
+!!
+!! \param p  3D position normal vector
+!! \param o  3D orientation normal vector
+
 function posangle(p,o)
   use basic
   
@@ -2136,6 +2286,7 @@ function posangle(p,o)
   call normvec(z1)
   
   posangle = acos(dotproduct(o1,z1))
+  
 end function posangle
 !***********************************************************************************************************************************
 
@@ -2144,34 +2295,59 @@ end function posangle
 !***********************************************************************************************************************************
 !> \brief  Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
 !! 
+!! \param  pl   Position: longtitude, in [0,2pi[  (rad)
+!! \param  pb   Position: latitude, in [0,pi]  (rad)
+!! \param  ol   Orientation: longtitude, in [0,2pi[  (rad)
+!! \param  ob   Orientation: latitude, in [0,pi]  (rad)  
+!! \retval i    Inclination angle (rad)
+!! \retval psi  Polarisation angle (rad)
+!! 
+!! \note 
 !! - all variables are angles (no cos, sin)
+!! - pb,ob used to be in ([-pi/2,pi/2]) now [0,pi], conf John V. & Christian R.
+
 subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) 
   use basic
   use constants
   
   implicit none
-  !pl,ol in [0,2pi[;  pb,ob in ([-pi/2,pi/2]) now [0,pi], conf John V. & Christian R.
+  
   real(double) :: pl,pb,ol,ob
   real(double) :: p(3),o(3),i,dotproduct,psi,polangle,drevpi
   
-  call ang2vec(pl,pb,p)       !Position normal vector
-  call ang2vec(ol,ob,o)       !Orientation normal vector
+  call ang2vec(pl,pb,p)       ! Position normal vector
+  call ang2vec(ol,ob,o)       ! Orientation normal vector
   
-  !i = pi2 - acos(dotproduct(p,o))  !Compute inclination angle: <0: points towards us, >0 points away from us
-  !psi = polangle(p,o)         !Compute polarisation angle [-pi/2,pi/2]
+  ! Definition 1:
+  ! Compute inclination angle: <0: points towards us, >0 points away from us:
+  !i = pi2 - acos(dotproduct(p,o))
+  ! Compute polarisation angle [-pi/2,pi/2]:
+  !psi = polangle(p,o)
   
-  !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky:
-  i = acos(dotproduct(p,o))   
-  psi = drevpi(polangle(p,o))  !Compute polarisation angle [0,pi]
+  ! Definition 2:
+  ! Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky:
+  i = acos(dotproduct(p,o))  
+  ! Compute polarisation angle [0,pi]:
+  psi = drevpi(polangle(p,o))
   
 end subroutine compute_incli_polang
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
-!> \brief  Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob)
+!> \brief  Compute the inclination and polarisation angle for a source with position (pl,pb) and orientation (ol,ob) - single prec.
 !! 
+!! \param  plr   Position: longtitude, in [0,2pi[  (rad)
+!! \param  pbr   Position: latitude, in [0,pi]  (rad)
+!! \param  olr   Orientation: longtitude, in [0,2pi[  (rad)
+!! \param  obr   Orientation: latitude, in [0,pi]  (rad)  
+!! \retval ir    Inclination angle (rad)
+!! \retval psir  Polarisation angle (rad)
+!! 
+!! \note
 !! - all variables are angles (no cos, sin)
 !! - single-precision wrapper for compute_incli_polang()
+
 subroutine compute_incli_polangr(plr,pbr,olr,obr, ir,psir)
   use basic
   
@@ -2186,6 +2362,7 @@ subroutine compute_incli_polangr(plr,pbr,olr,obr, ir,psir)
   call compute_incli_polang(pl,pb,ol,ob, i,psi)
   ir = real(i)
   psir = real(psi)
+  
 end subroutine compute_incli_polangr
 !***********************************************************************************************************************************
 
@@ -2193,25 +2370,38 @@ end subroutine compute_incli_polangr
 !***********************************************************************************************************************************
 !> \brief  Compute the inclination and position angle for a source with position (pl,pb) and orientation (ol,ob)
 !!
-!! - pl,ol in [0,2pi[
-!! - pb,ob in [-pi,pi]
-subroutine compute_incli_posang(pl,pb,ol,ob, i,psi) 
+!! \param  pl   Position: longtitude, in [0,2pi[  (rad)
+!! \param  pb   Position: latitude, in  (rad)
+!! \param  ol   Orientation: longtitude, in [0,2pi[  (rad)
+!! \param  ob   Orientation: latitude, in  (rad)  
+!! \retval i    Inclination angle (rad)
+!! \retval pa   Polarisation angle (rad)
+!!
+!! \note
+!! - Position angle, not polarisation angle!
+
+subroutine compute_incli_posang(pl,pb,ol,ob, i,pa) 
   use basic
   use constants
   
   implicit none
   real(double) :: pl,pb,ol,ob
-  real(double) :: p(3),o(3),i,dotproduct,psi,posangle!,drevpi
+  real(double) :: p(3),o(3),i,dotproduct,pa,posangle !,drevpi
   
-  call ang2vec(pl,pb,p)       !Position normal vector
-  call ang2vec(ol,ob,o)       !Orientation normal vector
+  call ang2vec(pl,pb,p)       ! Position normal vector
+  call ang2vec(ol,ob,o)       ! Orientation normal vector
   
-  !i = pi2 - acos(dotproduct(p,o))  !Compute inclination angle: <0: points towards us, >0 points away from us
-  !psi = drevpi(posangle(p,o))       !Compute position angle
+  ! Definition 1:
+  ! Compute inclination angle: <0: points towards us, >0 points away from us
+  !i = pi2 - acos(dotproduct(p,o))
+  ! Compute position angle:
+  !pa = drevpi(posangle(p,o))
   
-  !Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky:
+  ! Definition 2:
+  ! Compute inclination angle: 0: points exactly away from us, 180 points exactly towards us, 90: in the plane of the sky:
   i = acos(dotproduct(p,o))  
-  psi = posangle(p,o)         !Compute position angle
+  ! Compute position angle:
+  pa = posangle(p,o)
   
 end subroutine compute_incli_posang
 !***********************************************************************************************************************************
@@ -2219,13 +2409,20 @@ end subroutine compute_incli_posang
 
 
 !***********************************************************************************************************************************
-!> \brief  Determine the sky position at which the vector that connects two detectors points
+!> \brief  Determine the sky position pointed at by the vector that connects two detectors
+!!
+!! \param d1  ID Detector 1
+!! \param d2  ID Detector 2
+!! \param jd  Julian day
+!!
+!! \todo  Finish and use
+
 subroutine detectorvector(d1,d2,jd)
   use basic
-  
   implicit none
   integer :: d1,d2
   real(double) :: jd,detcoords(3,2),vec1(3),vec2(3),dvec(3),l,b
+  
   jd = 0 !get rid of warnings
   detcoords(1,:) = (/-119.41,46.45/)  !H1; l,b
   detcoords(2,:) = (/-90.77,30.56/)   !L1
@@ -2244,57 +2441,77 @@ end subroutine detectorvector
 
 !***********************************************************************************************************************************
 !> \brief  Swap two integers
+!!
+!! \param i1  Integer 1
+!! \param i2  Integer 2
+
 subroutine swapint(i1,i2)
   implicit none
   integer :: i,i1,i2
+  
   i = i1
   i1 = i2
   i2 = i
+  
 end subroutine swapint
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
-!> \brief  Determine the number of 1D bins to use from the number of points
+!> \brief  Estimate the number of 1D bins needed, from the number of data points
+!!
+!! \param  npoints  Number of data points
+!! \retval nbin     Number of bins
+
 subroutine determine_nbin_1d(npoints,nbin)
   implicit none
   integer :: npoints,nbin
+  
   if(npoints.le.100) then
      nbin = floor(2*sqrt(real(npoints)))
   else
      nbin = floor(10*log10(real(npoints)))
   end if
   nbin = max(nbin,5)
+  
 end subroutine determine_nbin_1d
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Compute the median of a data array (double precision)
+!! 
+!! \param data  Data set
+!! \param ni    Number of data points in data set
+
 function compute_median(data,ni)
   use basic
-  
   implicit none
   integer :: ni,indexx(ni)
   real(double) :: compute_median,data(ni)
   
-  !Sort the array:
+  ! Sort the array:
   call dindexx(ni,data,indexx)
   
-  !Determine the median:
+  ! Determine the median:
   if(mod(ni,2).eq.0) then
-     compute_median = 0.5*(data(indexx(ni/2)) + data(indexx(ni/2+1)))  !ni is even
+     compute_median = 0.5*(data(indexx(ni/2)) + data(indexx(ni/2+1)))  ! ni is even
   else
-     compute_median = data(indexx((ni+1)/2))                           !ni is odd
+     compute_median = data(indexx((ni+1)/2))                           ! ni is odd
   end if
   
 end function compute_median
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
-!> \brief  Compute the median of a data array (single precision)
+!> \brief  Compute the median of a data array (single-precision wrapper)
+!! 
+!! \param datar  Data set
+!! \param ni     Number of data points in data set
+
 function compute_median_real(datar,ni)
   use basic
-  
   implicit none
   integer :: ni
   real :: compute_median_real,datar(ni)
@@ -2303,11 +2520,18 @@ function compute_median_real(datar,ni)
   datad = dble(datar)
   mediand = compute_median(datad,ni)
   compute_median_real = real(mediand)
+  
 end function compute_median_real
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Compute the standard deviation of a data set data(1:ni) with mean 'mean'  (double precision)
+!!
+!! \param  data  Data set
+!! \param  ni    Number of data points in data set
+!! \param  mean  Mean of data
+
 function compute_stdev(data,ni,mean)
   use basic
   
@@ -2325,11 +2549,16 @@ function compute_stdev(data,ni,mean)
 end function compute_stdev
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
-!> \brief  Compute the standard deviation of a data set datar(1:ni) with mean 'meanr'  (single precision)
+!> \brief  Compute the standard deviation of a data set datar(1:ni) with mean 'meanr'  (single-precision wrapper)
+!!
+!! \param  datar  Data set
+!! \param  ni     Number of data points in data set
+!! \param  meanr  Mean of data
+
 function compute_stdev_real(datar,ni,meanr)
   use basic
-  
   implicit none
   integer :: ni
   real :: compute_stdev_real,datar(ni),meanr
@@ -2339,6 +2568,7 @@ function compute_stdev_real(datar,ni,meanr)
   meand = dble(meanr)
   stdevd = compute_stdev(datad,ni,meand)
   compute_stdev_real = real(stdevd)
+  
 end function compute_stdev_real
 !***********************************************************************************************************************************
 
@@ -2348,21 +2578,22 @@ end function compute_stdev_real
 !! 
 !! \param degree  Degree of randomness: 0-completely (same for a ms), 1-same during an hour, 2-same during a day
 !! 
-!! Use for e.g. ran_unif().  -1e6 < seed < 0
+!! - Use for e.g. ran_unif().  -1e6 < seed < 0
+
 function get_ran_seed(degree)  
-  
   implicit none
   integer, intent(in) :: degree
   integer :: get_ran_seed,seed,dt(8)
   character :: tmpstr*(10)
   
-  call date_and_time(tmpstr,tmpstr,tmpstr,dt)  !dt: 1-year, 2-month, 3-day, 5-hour, 6-minute, 7-second, 8-millisecond
+  call date_and_time(tmpstr,tmpstr,tmpstr,dt)  ! dt: 1-year, 2-month, 3-day, 5-hour, 6-minute, 7-second, 8-millisecond
   
-  seed = dt(6)*1010+dt(7)*10101+dt(8)*1001                           !Different every millisecond
-  if(degree.eq.1) seed = dt(1)*1000+dt(2)*10000+dt(3)*10101+dt(5)    !Constant during a clock hour
-  if(degree.eq.2) seed = dt(1)*1000+dt(2)*10000+dt(3)*10101          !Constant during a calendar day
+  seed = dt(6)*1010+dt(7)*10101+dt(8)*1001                           ! Different every millisecond
+  if(degree.eq.1) seed = dt(1)*1000+dt(2)*10000+dt(3)*10101+dt(5)    ! Constant during a clock hour
+  if(degree.eq.2) seed = dt(1)*1000+dt(2)*10000+dt(3)*10101          ! Constant during a calendar day
   
-  get_ran_seed = -abs(mod(seed+1,999999))  !Want to return a negative number, -1e6 < seed < 0
+  get_ran_seed = -abs(mod(seed+1,999999))  ! Want to return a negative number, -1e6 < seed < 0
+  
 end function get_ran_seed
 !***********************************************************************************************************************************
 
@@ -2375,6 +2606,7 @@ end function get_ran_seed
 !! 
 !! - use two L'Ecuyer generators, period is ~10^18
 !! - tab is a Bays-Durham shuffle table of length Ntab
+
 function ran_unif(seed1)
   use basic
   
@@ -2390,10 +2622,10 @@ function ran_unif(seed1)
   integer, save :: seed2=123456789, tab(Ntab)=0, iy=0
   real(double) :: ran_unif
   
-  if(seed1.le.0) then                                 !'Initialise' generator
-     seed1 = max(-seed1,1)                            !Don't allow seed1=0
+  if(seed1.le.0) then                                 ! 'Initialise' generator
+     seed1 = max(-seed1,1)                            ! Don't allow seed1=0
      seed2 = seed1
-     do j = Ntab+8,1,-1                               !Shuffle the table, don't save the first 8 iterations
+     do j = Ntab+8,1,-1                               ! Shuffle the table, don't save the first 8 iterations
         k = seed1/iq1
         seed1 = ia1*(seed1-k*iq1)-k*ir1
         if(seed1.lt.0) seed1 = seed1+im1
@@ -2402,22 +2634,22 @@ function ran_unif(seed1)
      iy = tab(1)
   end if
   
-  !Produce the random number 1:
+  ! Produce the random number 1:
   k = seed1/iq1
-  seed1 = ia1*(seed1-k*iq1) - k*ir1                   !Use Schrage's method to compute mod(). Update seed for next draw
+  seed1 = ia1*(seed1-k*iq1) - k*ir1                   ! Use Schrage's method to compute mod(). Update seed for next draw
   if(seed1.lt.0) seed1 = seed1 + im1
   
-  !Produce the random number 2:
+  ! Produce the random number 2:
   k = seed2/iq2
-  seed2 = ia2*(seed2-k*iq2) - k*ir2                   !Use Schrage's method to compute mod(). Update seed for next draw
+  seed2 = ia2*(seed2-k*iq2) - k*ir2                   ! Use Schrage's method to compute mod(). Update seed for next draw
   if(seed2.lt.0) seed2 = seed2 + im2
   
-  j = 1 + iy/ndtab                                    !Result: 1 <= j <= Ntab
-  iy = tab(j) - seed2                                 !tab contains information about seed1
+  j = 1 + iy/ndtab                                    ! Result: 1 <= j <= Ntab
+  iy = tab(j) - seed2                                 ! tab contains information about seed1
   tab(j) = seed1
   if(iy.lt.1) iy = iy + im1m1
   
-  ran_unif = min(am1*iy,rnmx)                         !Make sure r<1
+  ran_unif = min(am1*iy,rnmx)                         ! Make sure r<1
   
 end function ran_unif
 !***********************************************************************************************************************************
@@ -2514,8 +2746,10 @@ subroutine findFiles(match,nff,all,fnames,nf)
 end subroutine findFiles
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Define constants that contain the current date or time
+
 subroutine set_currentdate_constants()
   use basic
   use constants
@@ -2540,8 +2774,12 @@ subroutine set_currentdate_constants()
 end subroutine set_currentdate_constants
 !***********************************************************************************************************************************
 
+
 !***********************************************************************************************************************************
 !> \brief  Print a message and stop the execution of the current program
+!!
+!! \param message  Exit message
+
 subroutine quit_program(message)
   use basic
   use constants
@@ -2551,6 +2789,7 @@ subroutine quit_program(message)
   write(stdErr,'(/,A)')'  '//trim(message)
   write(stdErr,'(A,/)')'  Aborting...'
   stop
+  
 end subroutine quit_program
 !***********************************************************************************************************************************
 

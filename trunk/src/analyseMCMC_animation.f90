@@ -2,6 +2,10 @@
 
 
 !***********************************************************************************************************************************
+!> \brief  Create an animation from MCMC output
+!!
+!! \retval exitcode  Exit status code (0=ok)
+
 subroutine animation(exitcode)
   use basic
   use constants
@@ -668,3 +672,4 @@ subroutine animation(exitcode)
   
   
 end subroutine animation
+!***********************************************************************************************************************************

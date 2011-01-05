@@ -5,7 +5,9 @@
 !> \brief Compute basic statistics for analyseMCMC
 !! 
 !! \retval exitcode  Exit status code
-!! - other Results are returned using a number of modules
+!!
+!! - Other results are returned using a number of modules
+
 subroutine statistics(exitcode)
   use basic
   use constants
@@ -620,14 +622,14 @@ subroutine statistics(exitcode)
   !write(6,'(A,F10.3)')'ln Bayes Total',logebayesfactortotal
   
   
-  !!Compute autocorrelations:
+  ! Compute autocorrelations:
   if(prAcorr.gt.0.or.plAcorr.gt.0) call compute_autocorrelations()
   
-  !Compute and print convergence:
+  ! Compute and print convergence:
   if(nChains0.gt.1 .and. (prConv.ge.1.or.saveStats.ge.1)) call compute_convergence()  !Need unwrapped data for this (?)
   
   
-  !Change the original chain data:
+  ! Change the original chain data:
   !moved to top of the routine
   
 end subroutine statistics
@@ -643,6 +645,7 @@ end subroutine statistics
 !> \brief  Save statistics to file  
 !! 
 !! \retval exitcode  Exit status code
+
 subroutine save_stats(exitcode)
   use constants
   use analysemcmc_settings
@@ -804,6 +807,7 @@ end subroutine save_stats
 !> \brief  Save Bayes-factor statistics to file  
 !! 
 !! \retval exitcode  Exit status code
+
 subroutine save_bayes(exitcode)
   use constants
   use analysemcmc_settings
@@ -854,6 +858,7 @@ end subroutine save_bayes
 !> \brief  Save data in CBC wiki format
 !!
 !! \param ic  Chain number
+
 subroutine save_cbc_wiki_data(ic)
   use constants
   use analysemcmc_settings
@@ -1281,7 +1286,7 @@ end subroutine save_cbc_wiki_data
 !!   - See Eq.1.1,  where:  B/n := meanVar  and  W := chVar
 !! 
 !! \todo  do we need unwrapped data for this? - probably not, since the different chains are wrapped in the same way
-!***********************************************************************************************************************************
+
 subroutine compute_convergence()
   use basic
   use constants
@@ -1502,6 +1507,7 @@ end subroutine compute_convergence
 !!
 !! - use the original nChains0 chains and allDat()
 !! - results are printed to stdout if prAcorr>0
+
 subroutine compute_autocorrelations()
   use constants
   use mcmcrun_data

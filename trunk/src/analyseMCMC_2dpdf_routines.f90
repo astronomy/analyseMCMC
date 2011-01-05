@@ -39,23 +39,23 @@ subroutine bindata2dold(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)
   ymin = ymin1
   ymax = ymax1
   
-  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then !Autodetermine
+  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then  ! Autodetermine
      xmin = minval(x(1:n))
      xmax = maxval(x(1:n))
   end if
   dx = abs(xmax - xmin)/real(nxbin)
-  if(abs((ymin-ymax)/(ymax+1.e-30)).lt.1.e-20) then !Autodetermine
+  if(abs((ymin-ymax)/(ymax+1.e-30)).lt.1.e-20) then  ! Autodetermine
      ymin = minval(y(1:n))
      ymax = maxval(y(1:n))
   end if
   dy = abs(ymax - ymin)/real(nybin)
   do bx=1,nxbin+1
-     !xbin(bx) = xmin + (real(bx)-0.5)*dx  !x is the centre of the bin
-     xbin(bx) = xmin + (bx-1)*dx          !x is the left of the bin
+     !xbin(bx) = xmin + (real(bx)-0.5)*dx  ! x is the centre of the bin
+     xbin(bx) = xmin + (bx-1)*dx           ! x is the left of the bin
   end do
   do by=1,nybin+1
-     !ybin(by) = ymin + (real(by)-0.5)*dy  !y is the centre of the bin
-     ybin(by) = ymin + (by-1)*dy          !y is the left of the bin
+     !ybin(by) = ymin + (real(by)-0.5)*dy  ! y is the centre of the bin
+     ybin(by) = ymin + (by-1)*dy           ! y is the left of the bin
   end do
   
   !write(stdOut,'(50F5.2)'),x(1:50)
@@ -73,7 +73,7 @@ subroutine bindata2dold(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)
                  if(y(i).ge.ybin(by)) then
                     if(y(i).lt.ybin(by+1)) then
                        z(bx,by) = z(bx,by) + 1.
-                       exit bxl !exit bx loop; if point i fits this bin, don't try other bins. Speeds things up ~2x
+                       exit bxl    ! Exit bx loop; if point i fits this bin, don't try other bins. Speeds things up ~2x
                     end if
                  end if
               end if
@@ -85,16 +85,16 @@ subroutine bindata2dold(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)
   !if(norm.eq.1) z = z/(ztot+1.e-30)
   if(norm.eq.1) z = z/maxval(z+1.e-30)
   
-  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  !Autodetermine
+  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  ! Autodetermine
      xmin1 = xmin
      xmax1 = xmax
   end if
-  if(abs((ymin1-ymax1)/(ymax1+1.e-30)).lt.1.e-20) then  !Autodetermine
+  if(abs((ymin1-ymax1)/(ymax1+1.e-30)).lt.1.e-20) then  ! Autodetermine
      ymin1 = ymin
      ymax1 = ymax
   end if
   
-  !Determine transformation elements for pgplot (pggray, pgcont, pgimag)
+  ! Determine transformation elements for pgplot (pggray, pgcont, pgimag):
   tr(1) = xmin - dx/2.
   tr(2) = dx
   tr(3) = 0.
@@ -150,7 +150,7 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)
   
   
   
-  !Determine transformation elements for pgplot (pggray, pgcont, pgimag)
+  ! Determine transformation elements for pgplot (pggray, pgcont, pgimag):
   tr(1) = xmin - dx/2.
   tr(2) = dx
   tr(3) = 0.
@@ -178,17 +178,17 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)
      !else
      !   z(bx,by) = z(bx,by) + 1.
      !end if
-     if(bx.ge.1.and.bx.le.nxbin.and.by.ge.1.and.by.le.nybin) z(bx,by) = z(bx,by) + 1.  !Don't treat 1-bin errors as round-off
+     if(bx.ge.1.and.bx.le.nxbin.and.by.ge.1.and.by.le.nybin) z(bx,by) = z(bx,by) + 1.  ! Don't treat 1-bin errors as round-off
   end do
   
   !if(norm.eq.1) z = z/(ztot+1.e-30)
   if(norm.eq.1) z = z/maxval(z+1.e-30)
   
-  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  !Autodetermine
+  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  ! Autodetermine
      xmin1 = xmin
      xmax1 = xmax
   end if
-  if(abs((ymin1-ymax1)/(ymax1+1.e-30)).lt.1.e-20) then  !Autodetermine
+  if(abs((ymin1-ymax1)/(ymax1+1.e-30)).lt.1.e-20) then  ! Autodetermine
      ymin1 = ymin
      ymax1 = ymax
   end if
@@ -231,23 +231,23 @@ subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)
   ymax = ymax1
   zmin = minval(z)
   
-  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then !Autodetermine
+  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then  ! Autodetermine
      xmin = minval(x(1:n))
      xmax = maxval(x(1:n))
   end if
   dx = abs(xmax - xmin)/real(nxbin)
-  if(abs((ymin-ymax)/(ymax+1.e-30)).lt.1.e-20) then !Autodetermine
+  if(abs((ymin-ymax)/(ymax+1.e-30)).lt.1.e-20) then  ! Autodetermine
      ymin = minval(y(1:n))
      ymax = maxval(y(1:n))
   end if
   dy = abs(ymax - ymin)/real(nybin)
   do bx=1,nxbin+1
-     !xbin(bx) = xmin + (real(bx)-0.5)*dx  !x is the centre of the bin
-     xbin(bx) = xmin + (bx-1)*dx          !x is the left of the bin
+     !xbin(bx) = xmin + (real(bx)-0.5)*dx  ! x is the centre of the bin
+     xbin(bx) = xmin + (bx-1)*dx           ! x is the left of the bin
   end do
   do by=1,nybin+1
-     !ybin(by) = ymin + (real(by)-0.5)*dy  !y is the centre of the bin
-     ybin(by) = ymin + (by-1)*dy          !y is the left of the bin
+     !ybin(by) = ymin + (real(by)-0.5)*dy  ! y is the centre of the bin
+     ybin(by) = ymin + (by-1)*dy           ! y is the left of the bin
   end do
   
   !write(stdOut,'(50F5.2)'),x(1:50)
@@ -284,7 +284,7 @@ subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)
      ymax1 = ymax
   end if
   
-  !Determine transformation elements for pgplot (pggray, pgcont)
+  ! Determine transformation elements for pgplot (pggray, pgcont):
   tr(1) = xmin - dx/2.
   tr(2) = dx
   tr(3) = 0.
@@ -321,7 +321,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   real :: x1(nx*ny),x2(nx*ny),tot,np,y
   
   
-  !Weight number of points in each bin by bin size for position/orientation plots
+  ! Weigh number of points in each bin by bin size for position/orientation plots:
   do iy = 1,ny
      if(changeVar.ge.1) then
         if((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) then  
@@ -348,8 +348,8 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   
   
   nn = nx*ny
-  x1 = reshape(z,(/nn/))  !x1 is an 1D array with the same data as the 2D array z
-  call rindexx(nn,-x1(1:nn),indx(1:nn)) ! -x1: sort the 1D array to descending value
+  x1 = reshape(z,(/nn/))                 ! x1 is an 1D array with the same data as the 2D array z
+  call rindexx(nn,-x1(1:nn),indx(1:nn))  ! -x1: sort the 1D array to descending value
   
   np = sum(z)
   tot = 0.
@@ -375,6 +375,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   end do
   
   z = reshape(x2, (/nx,ny/))  ! z lies between 1 and ni
+  
 end subroutine identify_2d_ranges
 !***********************************************************************************************************************************
 
@@ -494,15 +495,15 @@ subroutine check_binned_data(nxbin,nybin,z)
   do bx = 2,nxbin-1
      do by = 2,nybin-1
         
-        if(z(bx,by).lt.1.e-30) cycle  !Don't do empty bins
+        if(z(bx,by).lt.1.e-30) cycle  ! Don't do empty bins
         
         nsb = 0
         !print*,bx,by,z(bx,by)
         do bbx = -1,1
            do bby = -1,1
               if(bbx.eq.0.and.bby.eq.0) cycle
-              if(z(bx+bbx,by+bby).lt.z(bx,by)) nsb = nsb + 1  !If the neigbouring bin is smaller, count it
-              !if(z(bx+bbx,by+bby).lt.1.e-30) nsb = nsb + 1  !If the neigbouring bin is empty, count it
+              if(z(bx+bbx,by+bby).lt.z(bx,by)) nsb = nsb + 1  ! If the neigbouring bin is smaller, count it
+              !if(z(bx+bbx,by+bby).lt.1.e-30) nsb = nsb + 1   ! If the neigbouring bin is empty, count it
            end do
         end do
         
@@ -516,3 +517,4 @@ subroutine check_binned_data(nxbin,nybin,z)
   
 end subroutine check_binned_data
 !***********************************************************************************************************************************
+

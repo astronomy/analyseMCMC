@@ -2,7 +2,7 @@
 
 
 !***********************************************************************************************************************************
-!> \brief Initialise pgplot
+!> \brief Initialise PGPlot for use with AnalyseMCMC
 !!
 !! \param colour   Use colour:  0:no, 1-yes
 !! \param file     File type: 0-screen, 1-png, 2-eps, 3-pdf
@@ -11,6 +11,7 @@
 subroutine pginitl(colour,file,whiteBG)
   implicit none
   integer :: colour,file,i,whiteBG
+  
   if(whiteBG.ge.1) then
      call pgscr(0,1.,1.,1.)                ! Background colour always white (also on screen, bitmap)
      call pgscr(1,0.,0.,0.)                ! Default foreground colour always black
@@ -38,10 +39,8 @@ subroutine pginitl(colour,file,whiteBG)
      call pgscr(10,0.5,0.3,0.)   ! 10: brown
      call pgscr(11,0.6,0.,0.)    ! 11: dark red
   end if
+
 end subroutine pginitl
-
 !***********************************************************************************************************************************
-
-
 
 

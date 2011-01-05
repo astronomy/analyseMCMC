@@ -5,6 +5,13 @@
 
 
 !***********************************************************************************************************************************
+!> \brief  Create output tailored for some specific purpose/project/paper
+!!
+!! \par
+!! Purpose is selected by setting tailoredOutput:
+!! - 1: ApJL 2008
+!! - 2: Methods paper 2010
+
 subroutine tailored_output(exitcode)
    use constants
    !use analysemcmc_settings
@@ -22,7 +29,7 @@ subroutine tailored_output(exitcode)
    
    
    
-   !Output format for ApJL 2008
+   ! Output format for ApJL 2008:
    if(tailoredOutput.eq.1) then
       
       !call tailored_output_0002(out)
@@ -32,7 +39,7 @@ subroutine tailored_output(exitcode)
    
    
    
-   !Output format for methods paper 2010:
+   ! Output format for methods paper 2010:
    if(tailoredOutput.eq.2) then
       exitcode = 0
       call tailored_output_0002(out,exitcode)
@@ -59,8 +66,12 @@ end subroutine tailored_output
 
 
 !***********************************************************************************************************************************
+!> \brief Tailored output format for methods paper 2010
+!!
+!! \param out        Output unit
+!! \retval exitcode  Exit status code
+
 subroutine tailored_output_0002(out,exitcode)
-   !> Output format for methods paper 2010
    use basic
    use constants
    use analysemcmc_settings
@@ -81,7 +92,7 @@ subroutine tailored_output_0002(out,exitcode)
    row = '  \\'
    
    
-   !Do we have all the necessary settings?
+   ! Do we have all the necessary settings?
    if(waveform.ne.3 .or. nMCMCpar0.ne.15) then
       write(stdOut,'(A,/)')'  I need output from the 15-parameter SpinTaylor waveform template for tailoredOutput=2'
       exitcode = 1
@@ -110,32 +121,32 @@ subroutine tailored_output_0002(out,exitcode)
    
    
    
-   !Assemble runID:
-   !injection:
+   ! Assemble runID:
+   ! injection:
    runID = ''
-   if(startval(ic,revID(71),1).lt.0.01d0) then  !Non-spinning
+   if(startval(ic,revID(71),1).lt.0.01d0) then  ! Non-spinning
       write(runID,'(A)')'N-'
    else 
       if(startval(ic,revID(71),1).lt.0.5d0) then
-         write(runID,'(A)')'L'           !Low spins
+         write(runID,'(A)')'L'           ! Low spins
       else
-         write(runID,'(A)')'H'           !High spins
+         write(runID,'(A)')'H'           ! High spins
       end if
       if(startval(ic,revID(72),1).lt.45.d0) then
-         write(runID,'(A)')trim(runID)//'S-'  !Small angles
+         write(runID,'(A)')trim(runID)//'S-'  ! Small angles
       else
-         write(runID,'(A)')trim(runID)//'L-'  !Large angles
+         write(runID,'(A)')trim(runID)//'L-'  ! Large angles
       end if
    end if
    
    
-   !recovery template:
-   write(runID,'(A,I1)')trim(runID),spinningRun  !spinningRun = 0,1,2 for the number of spins allowed for in the recovery template
+   ! Recovery template:
+   write(runID,'(A,I1)')trim(runID),spinningRun  ! spinningRun = 0,1,2 for the number of spins allowed for in the recovery template
    write(out,'(A6)',advance="no")trim(runID)
    write(out,'(A)',advance="no")trim(col)
    
    
-   !Injection parameters:
+   ! Injection parameters:
    par = revID(22)  !Distance
    x = startval(ic,par,1)
    write(out,'(F6.1)',advance="no") x
@@ -145,10 +156,10 @@ subroutine tailored_output_0002(out,exitcode)
    
    
    
-   !Accuracies:
+   ! Accuracies:
    write(out,'(A)',advance="no")'     '
    
-   !Chirp mass:
+   ! Chirp mass:
    par = revID(61)
    x = ranges(ic,ival0,par,4)/ranges(ic,ival0,par,3)*100 
    if(x.lt.9.95) then
@@ -158,13 +169,13 @@ subroutine tailored_output_0002(out,exitcode)
    end if
    write(out,'(A)',advance="no")trim(col)
    
-   !Eta:
+   ! Eta:
    par = revID(62)
    x = ranges(ic,ival0,par,4)
    write(out,'(F7.3)',advance="no") x
    write(out,'(A)',advance="no")trim(col)
    
-   !M1:
+   ! M1:
    par = revID(63)
    x = ranges(ic,ival0,par,4)/ranges(ic,ival0,par,3)*100 
    if(x.lt.9.95) then
@@ -174,7 +185,7 @@ subroutine tailored_output_0002(out,exitcode)
    end if
    write(out,'(A)',advance="no")trim(col)
    
-   !M2:
+   ! M2:
    par = revID(64)
    x = ranges(ic,ival0,par,4)/ranges(ic,ival0,par,3)*100 
    if(x.lt.9.95) then
@@ -187,13 +198,13 @@ subroutine tailored_output_0002(out,exitcode)
    
    
    
-   !Distance:
+   ! Distance:
    par = revID(22)
    x = ranges(ic,ival0,par,4)/ranges(ic,ival0,par,3)*100
    write(out,'(I5)',advance="no")nint(x)
    write(out,'(A)',advance="no")trim(col)
    
-   !t_c:
+   ! t_c:
    par = revID(11)
    x = ranges(ic,ival0,par,4)*1000 !s->ms
    if(x.lt.9.95) then
@@ -205,10 +216,10 @@ subroutine tailored_output_0002(out,exitcode)
    
    
    
-   !Spins:
+   ! Spins:
    if(spinningRun.ge.1) then
       
-      !a_spin1
+      ! a_spin1:
       par = revID(71)
       x = ranges(ic,ival0,par,4)
       if(x.lt.0.0995) then
@@ -218,7 +229,7 @@ subroutine tailored_output_0002(out,exitcode)
       end if
       write(out,'(A)',advance="no")trim(col)
       
-      !theta_spin1
+      ! theta_spin1:
       par = revID(72)
       x = ranges(ic,ival0,par,4)
       if(x.lt.9.95) then
@@ -228,7 +239,7 @@ subroutine tailored_output_0002(out,exitcode)
       end if
       write(out,'(A)',advance="no")trim(col)
       
-      !phi_spin1
+      ! phi_spin1:
       par = revID(73)
       x = ranges(ic,ival0,par,4)
       if(x.lt.9.95) then
@@ -242,7 +253,7 @@ subroutine tailored_output_0002(out,exitcode)
       
       if(spinningRun.ge.2) then
          
-         !a_spin2
+         ! a_spin2:
          par = revID(81)
          x = ranges(ic,ival0,par,4)
          if(x.lt.0.0995) then
@@ -252,7 +263,7 @@ subroutine tailored_output_0002(out,exitcode)
          end if
          write(out,'(A)',advance="no")trim(col)
          
-         !theta_spin2
+         ! theta_spin2:
          par = revID(82)
          x = ranges(ic,ival0,par,4)
          if(x.lt.9.95) then
@@ -262,7 +273,7 @@ subroutine tailored_output_0002(out,exitcode)
          end if
          write(out,'(A)',advance="no")trim(col)
          
-         !phi_spin2
+         ! phi_spin2:
          par = revID(83)
          x = ranges(ic,ival0,par,4)
          if(x.lt.9.95) then
@@ -276,7 +287,7 @@ subroutine tailored_output_0002(out,exitcode)
          
          write(out,'(A7,A,2(A6,A))',advance="no")' -- ',trim(col),' -- ',trim(col),' -- ',trim(col)
          
-      end if ! 2 spins
+      end if  ! 2 spins
       
    else
       write(out,'(A7,A,2(A6,A))',advance="no")' -- ',trim(col),' -- ',trim(col),' -- ',trim(col)
@@ -285,7 +296,7 @@ subroutine tailored_output_0002(out,exitcode)
    
    
    
-   !RA:
+   ! RA:
    if(1.eq.2) then
       par = revID(31)
       x = ranges(ic,ival0,par,4)
@@ -297,7 +308,7 @@ subroutine tailored_output_0002(out,exitcode)
       write(out,'(A)',advance="no")trim(col)
    end if
    
-   !Dec:
+   ! Dec:
    if(1.eq.2) then
       par = revID(32)
       x = ranges(ic,ival0,par,4)
@@ -309,10 +320,10 @@ subroutine tailored_output_0002(out,exitcode)
       write(out,'(A)',advance="no")trim(col)
    end if
    
-   !Sky position:
-   par1 = revID(31)  !RA
-   par2 = revID(32)  !Dec
-   x = probAreas(par1,par2,ival0,3)  !3: area in sqare degrees
+   ! Sky position:
+   par1 = revID(31)  ! RA
+   par2 = revID(32)  ! Dec
+   x = probAreas(par1,par2,ival0,3)  ! 3: area in sqare degrees
    if(x.lt.99.95d0) then
       write(out,'(F6.1)',advance="no") x
    else
@@ -321,7 +332,7 @@ subroutine tailored_output_0002(out,exitcode)
    write(out,'(A)',advance="no")trim(col)
    
    
-   !psi:
+   ! psi:
    par = revID(52)
    x = ranges(ic,ival0,par,4)
    if(x.lt.9.95) then
@@ -331,7 +342,7 @@ subroutine tailored_output_0002(out,exitcode)
    end if
    write(out,'(A)',advance="no")trim(col)
    
-   !i:
+   ! i:
    par = revID(51)
    x = ranges(ic,ival0,par,4)
    if(x.lt.9.95) then
@@ -342,7 +353,7 @@ subroutine tailored_output_0002(out,exitcode)
    write(out,'(A)',advance="no")trim(col)
    
    
-   !Binary orientation:
+   ! Binary orientation:
    if(1.eq.2) then
       par1 = revID(52)  !Polarisation angle
       par2 = revID(51)  !Inclination
@@ -356,7 +367,7 @@ subroutine tailored_output_0002(out,exitcode)
    end if
    
    
-   !Orbital phase:
+   ! Orbital phase:
    par = revID(41)
    x = ranges(ic,ival0,par,4)
    if(x.lt.9.95) then
@@ -372,5 +383,5 @@ subroutine tailored_output_0002(out,exitcode)
    
 end subroutine tailored_output_0002
 !***********************************************************************************************************************************
-      
-      
+
+
