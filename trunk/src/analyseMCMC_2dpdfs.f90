@@ -75,18 +75,27 @@ subroutine pdfs2d(exitcode)
         Nbin2Dx = max(Nbin2Dx,5)
         Nbin2Dy = floor(10*log10(real(totpts)))         ! Same as for 1D case (~50)
      end if
-     if(prProgress.ge.2.and.plot.eq.1.and.update.eq.0) then
-        if(Nbin2Dx.lt.100) write(stdOut,'(A1,I2,A1)',advance="no")'(',Nbin2Dx,'x'
-        if(Nbin2Dx.ge.100) write(stdOut,'(A1,I3,A1)',advance="no")'(',Nbin2Dx,'x'
-        if(Nbin2Dy.lt.100) write(stdOut,'(I2,A7)',advance="no")Nbin2Dy,' bins) '
-        if(Nbin2Dy.ge.100) write(stdOut,'(I3,A7)',advance="no")Nbin2Dy,' bins) '
-     end if
   end if
   if(Nbin2Dy.eq.0) Nbin2Dy = Nbin2Dx
   if(Nbin2Dy.le.-1) Nbin2Dy = Nbin2Dx*pltrat
   
+  ! Report number of bins used:
+  if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0.and.Npdf2D.ge.0) then
+     if(Nbin2Dx.lt.100) then
+        write(stdOut,'(A1,I2,A1)',advance="no")'(',Nbin2Dx,'x'
+     else
+        write(stdOut,'(A1,I3,A1)',advance="no")'(',Nbin2Dx,'x'
+     end if
+     if(Nbin2Dy.lt.100) then
+        write(stdOut,'(I2,A7)',advance="no")Nbin2Dy,' bins) '
+     else
+        write(stdOut,'(I3,A7)',advance="no")Nbin2Dy,' bins) '
+     end if
+  end if
+  
   ! Allocate memory:
   allocate(z(Nbin2Dx+1,Nbin2Dy+1),zs(maxChs,Nbin2Dx+1,Nbin2Dy+1))
+  
   
   if(plot.eq.1) then
      if(file.eq.0) then

@@ -33,15 +33,18 @@ subroutine pdfs1d(exitcode)
   ! Autodetermine number of bins:
   if(Nbin1D.le.0) then
      call determine_nbin_1d(totpts,Nbin1D)
-     if(prProgress.ge.2.and.plot.eq.1.and.update.eq.0) then
-        if(Nbin1D.lt.100) write(stdOut,'(A2,I2,A8)',advance="no")' (',Nbin1D,' bins), '
-        if(Nbin1D.ge.100) write(stdOut,'(A2,I3,A8)',advance="no")' (',Nbin1D,' bins), '
-     end if
   else
      Nbin1D = max(Nbin1D,5)
+  end if
+  
+  ! Report number of bins used:
+  if(prProgress.ge.2.and.plot.eq.1.and.update.eq.0) then
+     if(Nbin1D.lt.100) write(stdOut,'(A2,I2,A8)',advance="no")' (',Nbin1D,' bins), '
+     if(Nbin1D.ge.100) write(stdOut,'(A2,I3,A8)',advance="no")' (',Nbin1D,' bins), '
+  else
      if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(stdOut,'(A2)',advance="no")', '
   end if
-
+  
   ! Allocate memory:
   allocate(xbin(maxChs,Nbin1D+1),ybin(maxChs,Nbin1D+1),xbin1(Nbin1D+1), &
        ybin1(Nbin1D+1),ysum(Nbin1D+1),yconv(Nbin1D+1),ycum(Nbin1D+1))
@@ -422,7 +425,7 @@ subroutine pdfs1d(exitcode)
                    .or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or. &
                    parID(p).eq.71.or.parID(p).eq.81)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))  
               
-              !if(plStart.ge.1) call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))                ! Starting value
+              !if(plStart.ge.1) call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))              ! Starting value
               
               ! Median:
               if(plMedian.eq.1.or.plMedian.eq.3.or.plMedian.eq.4.or.plMedian.eq.6)  &

@@ -112,7 +112,8 @@ subroutine tailored_output_0002(out,exitcode)
       if(PDF2Dpairs(par,1).eq.52.and.PDF2Dpairs(par,2).eq.51) binary_orientation = .true.
    end do
    if(.not.(sky_position.and.binary_orientation)) then
-      write(stdOut,'(A,/)')'  You need to enable 2D PDFs for both sky position and binary orientation for tailoredOutput=2'
+      write(stdErr,'(A,/)')'  * Warning:  You need to enable 2D PDFs for both sky position and binary orientation for '// &
+           'tailoredOutput=2 *'
       exitcode = 1
       return
    end if
