@@ -275,6 +275,7 @@ program analyseMCMC
   if(savePDF.eq.1) then
      !if(nPlPar.ne.15) write(stdErr,'(/,A)')'*** WARNING:  I changed nPlPar to 15, since savePDF is selected ***'
      !nPlPar = 15; plPars(1:nPlPar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) !All 12 + m1,m2
+     if(wrapData.ne.0) write(stdErr,'(A)')'  * Warning:  I found that savePDF = 1, so I set wrapData to 0.'
      wrapData = 0
   end if
   if(file.ge.1) update = 0

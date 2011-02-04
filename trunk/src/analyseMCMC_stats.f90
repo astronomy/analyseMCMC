@@ -116,7 +116,7 @@ subroutine statistics(exitcode)
         end if
         
         
-        !Determine shift interval from wraptype:
+        ! Determine shift interval from wraptype:
         select case(wraptype)
         case(1)
            shIval = rtpi        ! "Phase": 0-2pi
@@ -134,7 +134,7 @@ subroutine statistics(exitcode)
         
         
         
-        !Make sure data are between 0 and 2pi or between 0 and pi to start with:
+        ! Make sure data are between 0 and 2pi or between 0 and pi to start with:
         do i=1,n(ic)
            selDat(ic,p,i) = revper(selDat(ic,p,i),shIval)          !Bring selDat(i) between 0 and shIval
         end do
@@ -174,6 +174,8 @@ subroutine statistics(exitcode)
         if(wrap(ic,p).gt.0) shift = shIval - mod(centre + shIval2, shIval)
         shifts(ic,p) = shift
         if(parID(p).eq.31.and.ic.eq.1) raShift = shift                                     !Save RA shift to plot sky map
+        
+        !write(0,'(2I6,9ES10.2)')p,wraptype,shIval,centre,shift
         
         !Do the actual wrapping:
         allDat(ic,p,1:Ntot(ic))  = mod(allDat(ic,p,1:Ntot(ic))  + shift, shIval) - shift   !Original data

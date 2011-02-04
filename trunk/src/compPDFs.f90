@@ -7,7 +7,7 @@
 program comp_pdfs
   use comp_pdfs_settings
   use comp_pdfs_data
-  integer :: nfrx,nfry,frx,fry,fr,fr1,f,i,system
+  integer :: nfrx,nfry,frx,fry,fr,fr1,f, system,status
   real :: size,rat,xwinmin,xwinmax,ywinmin,ywinmax,dxwin,dywin,xfrmin,xfrmax,yfrmin,yfrmax,dxfr,dyfr,space
   character :: lbl*(99),outname*(99),exts(0:3)*(4)
   
@@ -173,20 +173,18 @@ program comp_pdfs
   if(dim.eq.2) write(outname,'(A,I1,A)')trim(outnamebase)//'__',dim,'d__'//trim(parNames(plpars2d(1)))//'-'// &
        trim(parNames(plpars2d(2)))//exts(file)
   if(file.eq.1) then
-     !if(dim.eq.1) i = system('convert -depth 8 plot.ppm comp_pdfs1d.png')
-     !if(dim.eq.2) i = system('convert -depth 8 plot.ppm comp_pdfs2d__'//trim(parNames(plpars2d(1)))//'-'// &
-     !trim(parNames(plpars2d(2)))//'.png')
-     i = system('convert -depth 8 plot.ppm '//trim(outname))
-     i = system('rm -f plot.ppm')
+     status = system('convert -depth 8 plot.ppm '//trim(outname))
+     status = system('rm -f plot.ppm')
   end if
   if(file.eq.2) then
-     !i = system('mv -f plot.eps comp_pdfs.eps')
-     i = system('mv -f plot.eps '//trim(outname))
+     call set_PGPS_title('plot.eps',trim(outname))
+     status = system('mv -f plot.eps '//trim(outname))
   end if
   if(file.eq.3) then
-     i = system('eps2pdf plot.eps >& /dev/null')
-     i = system('mv -f plot.pdf '//trim(outname))
-     i = system('rm -f plot.eps')
+     call set_PGPS_title('plot.eps',trim(outname))
+     status = system('eps2pdf plot.eps >& /dev/null')
+     status = system('mv -f plot.pdf '//trim(outname))
+     status = system('rm -f plot.eps')
   end if
   if(file.ge.1) write(*,'(/,A,/)')'  Plot saved as '//trim(outname)
   
