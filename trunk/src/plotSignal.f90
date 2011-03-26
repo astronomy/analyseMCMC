@@ -1,8 +1,9 @@
 !> \file plotSignal.f90  Read and plot the signal output from SPINspiral
 
 program plotsignal
+  use basic
   implicit none
-  integer, parameter :: n1=1000000,nf=2
+  integer, parameter :: n1=1000000,nf=1
   integer :: n(nf),i,j,io,pgopen,file,f,prname,prtitle,system,thin
   real(double) :: t0,t1(nf,n1)
   real :: t(nf,n1),h(nf,n1),dx,dy,xmin,xmax,ymin,ymax
@@ -18,9 +19,9 @@ program plotsignal
   prname = 0 !Print detector name in frame: 0-no, 1-yes
   prtitle = 0 !Print plot title: 0-no, 1-yes
   
-  colours = 3
+  colours = 2
   !colours = (/1,1/)
-  colours = (/4,2/)
+  !colours = (/4,2/)
   !colours = (/4,3,2/)
   !colours = (/2,4,6/)
   !colours = (/4,2,4,2/)
@@ -55,15 +56,22 @@ program plotsignal
   !fnames = (/'signals/Hanford_a0.0_th55.dat','signals/Hanford_a0.1_th55.dat','signals/Hanford_a0.5_th55.dat'/)
   !fnames = (/'signals/Hanford_a0.5_th20.dat','signals/Hanford_a0.5_th55.dat'/)
   !detnames = (/'\(0634)=20\(2218)','\(0634)=55\(2218)'/)
-  !fnames = (/'~/work/GW/programs/MCMC/mcmc_code/trunk/Hanford-data.dat','~/work/GW/programs/MCMC/backup/spinning.backup/Hanford-data.dat'/)
+  !fnames = (/'~/work/GW/programs/MCMC/mcmc_code/trunk/Hanford-data.dat', &
+  !'~/work/GW/programs/MCMC/backup/spinning.backup/Hanford-data.dat'/)
   !detnames = (/'new','old'/)
   
   !For GWDAW poster:
-  !fnames = (/'/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/0.00_020-signal.dat','/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/0.10_020-signal.dat','/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/0.50_020-signal.dat'/)
+  !fnames = (/'/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/0.00_020-signal.dat', &
+  !'/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/0.10_020-signal.dat', &
+  !'/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/0.50_020-signal.dat'/)
   !detnames = (/'','',''/)
   
-  fnames = (/'/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/Hanford-signal-NS.dat','/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/Hanford-signal-Sp.dat'/)
-  detnames = (/'GeneratePPN','SpinTaylor'/)
+  !fnames = (/'/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/Hanford-signal-NS.dat', &
+  !     '/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/Hanford-signal-Sp.dat'/)
+  !detnames = (/'GeneratePPN','SpinTaylor '/)
+  
+  fnames = (/'/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/Hanford-signal-NS.dat'/)
+  detnames = (/''/)
   
   !detnames = (/'Ref','Dec','RA'/)
   !detnames = (/'a\dspin\u = 0.0','a\dspin\u = 0.1','a\dspin\u = 0.5'/)
@@ -81,7 +89,7 @@ program plotsignal
      end if
      rewind(10)
      
-     write(6,'(A,$)')'Reading input file '//trim(fname)//'...     '
+     write(6,'(A)', advance='no') 'Reading input file '//trim(fname)//'...     '
      read(10,*)bla
      read(10,*)m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
      read(10,*)bla
@@ -93,8 +101,7 @@ program plotsignal
            end do
         end if
      end do
-191  format(I10,F6.3)
-192  format(F13.1,E17.10,F15.1,F20.9,F14.10,4F13.10,E17.10,2E28.20,E27.20)
+     
 195  write(6,'(A,I5)')'error reading file '//trim(fname)//' line ',i+1
 199  close(10)
      n(f) = i-1
@@ -133,7 +140,7 @@ program plotsignal
   end do
   
   t0 = (nint(t0*1.d-3)-1)*1.d3
-  write(t0s,'(I10)'),nint(t0)
+  write(t0s,'(I10)') nint(t0)
   write(6,*)''
   write(6,'(A)')'  t0: '//t0s
   do f=1,nf
@@ -165,12 +172,13 @@ program plotsignal
      if(file.eq.3) io = pgopen('detectorsignal.ppm/ppm')
      if(io.le.0) then
         write(0,'(A,I6,/)')'Cannot open PGPlot device.  Quitting the programme ',io
-	stop
+        stop
      end if
-     call pgscf(2)
+     call pgscf(1)
      !call pgpap(10.,min(max(0.25*real(nf),0.3),0.8))
      !call pgpap(10.,0.75)
-     call pgpap(10.,0.30)  !Poster plot with 3 waveforms
+     !call pgpap(10.,0.30)  !Poster plot with 3 waveforms
+     call pgpap(20.,0.20)  !
      sch = max(3./real(nf),1.5)
      sch = 3./real(nf)
      sch = 3.  !Poster plot with 3 waveforms
@@ -195,14 +203,16 @@ program plotsignal
         ymax = maxval(abs(h))
         ymin = -ymax
         
-        xmin  = 999.
+        !xmin  = 999.
+        xmin  = 994.6
         !xmax = 997.
+        xmax = 1000.1
      end do
      
      dx = abs(xmax-xmin)*0.01
      !dx = abs(xmax-xmin)*0.05
-     !dy = abs(ymax-ymin)*0.05
-     dy = abs(ymax-ymin)*0.01
+     dy = abs(ymax-ymin)*0.05
+     !dy = abs(ymax-ymin)*0.01
      
      
      !do f=1,nf
@@ -265,6 +275,7 @@ program plotsignal
            if(fry.eq.nfry) then
               !call pgmtxt('B',2.2,0.5,0.5,'GPStime - '//t0s//' (s)')
               !call pgmtxt('B',2.5,0.5,0.5,'time (s)')
+              call pgmtxt('B',2.5,0.5,0.5,'tijd (s)')
               call pgbox('BCNTS',0.0,0,'',0.0,0)
            else
               call pgbox('BCTS',0.0,0,'',0.0,0)
@@ -315,7 +326,7 @@ program plotsignal
   
   
   
-9999 write(6,*)''
+  write(6,*)''
 end program plotsignal
 !************************************************************************************************************************************
 

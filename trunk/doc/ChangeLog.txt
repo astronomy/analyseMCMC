@@ -3,6 +3,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   193: sluys, 26/03/2011
+     - plotsignal: minor update for specific plot
+     
    192: sluys, 04/02/2011
      - Set PS title in compPDFs with set_PGPS_title(), clean up
      
