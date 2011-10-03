@@ -380,10 +380,10 @@ subroutine set_plotsettings()
   implicit none
   
   thin = 10         ! If >1, 'thin' the output; read every thin-th line 
-  Nburn = 1e5       ! If >=0: override length of the burn-in phase, for all chains
+  Nburn = nint(1.e5) ! If >=0: override length of the burn-in phase, for all chains
   NburnFrac = 0.5   ! If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
   autoBurnin = -1.  ! Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
-  maxChLen = 1e8    ! Maximum chain length
+  maxChLen = nint(1.e8) ! Maximum chain length
   file = 1          ! Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.
   colour = 1        ! Use colours: 0-no (grey scales), 1-yes
   quality = 0       ! 'Quality' of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
@@ -761,7 +761,7 @@ subroutine mcmcruninfo(exitcode)
   do ic=1,nchains0
      if(Nburn(ic).le.0) Nburn(ic) = Nburn0(ic)
      if(abs(NburnFrac).gt.1.e-4.and.abs(NburnFrac).lt.1.) then
-        Nburn(ic) = is(ic,n(ic)) * abs(NburnFrac)
+        Nburn(ic) = nint(is(ic,n(ic)) * abs(NburnFrac))
      else
         if(Nburn(ic).ge.nint(is(ic,n(ic)))) then
            !print*,Nburn(ic),nint(is(ic,n(ic)))
@@ -1285,9 +1285,12 @@ subroutine dindexx(n,arr,indx)
   use basic
   
   implicit none
+  integer, intent(in) :: n
+  real(double), intent(in) :: arr(n)
+  integer, intent(out) :: indx(n)
+  
   integer, parameter :: m=7,nstack=50
-  integer :: n,indx(n)
-  real(double) :: arr(n),a
+  real(double) :: a
   integer :: i,indxt,ir,itemp,j,jstack,k,l,istack(nstack)
   
   do j=1,n
@@ -1370,8 +1373,12 @@ end subroutine dindexx
 !***********************************************************************************************************************************
 subroutine rindexx(n,arr,indx)
   implicit none
-  integer :: n,indx(n),m,nstack
-  real :: arr(n),a
+  integer, intent(in) :: n
+  real, intent(in) :: arr(n)
+  integer, intent(out) :: indx(n)
+  
+  integer :: m,nstack
+  real :: a
   parameter (m=7,nstack=50)
   integer :: i,indxt,ir,itemp,j,jstack,k,l,istack(nstack)
   do j=1,n

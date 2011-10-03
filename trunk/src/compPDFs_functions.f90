@@ -565,7 +565,7 @@ subroutine plotpdf2d(pID1,pID2,lbl)
   if(plmedian.eq.1.and.nf.eq.1) then
      if(clr.eq.1) call pgsci(2); call pgslw(lw);call pgsls(2)  !; if(clr.eq.0) call pgsci(1)
      call pgline(2,(/stats(1,pp12,1,1),stats(1,pp12,1,1)/),(/-1.e20,1.e20/))
-     call pgline(2,(/(/-1.e20,1.e20/),stats(1,pp12,2,1),stats(1,pp12,2,1)/))
+     call pgline(2,(/-1.e20,1.e20/), (/stats(1,pp12,2,1),stats(1,pp12,2,1)/) )
   end if !if(plmedian.eq.1.and.nf.eq.1)
   
   
@@ -593,19 +593,22 @@ end subroutine plotpdf2d
 subroutine plotwave(fname1,thingy,lbl)
   use basic
   implicit none
-  integer, parameter :: nf=1,n1=1e6
-  integer :: i,f,n(nf),io,thingy,lw
+  character, intent(in) :: fname1*(99), lbl*(99)
+  integer, intent(in) :: thingy
+  
+  integer, parameter :: nf=1, n1=1000000
+  integer :: i,f,n(nf),io,lw
   integer :: nfrx,nfry
   real :: xwinmin,xwinmax,ywinmin,ywinmax
   real :: t(nf,n1),h(nf,n1),dx,dy,xmin,xmax,ymin,ymax
   real(double) :: t1,t0,m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
-  character :: fname*(99),fname1*(99),fname2*(99),bla,lbl*(99)
+  character :: fname*(99),bla
   
   t0 = 0.0_dbl
   
   do f=1,nf
      fname = fname1
-     if(f.eq.2) fname = fname2
+     !if(f.eq.2) fname = fname2
      open(unit=10,form='formatted',status='old',file=trim(fname),iostat=io)
      rewind(10)
      
@@ -674,7 +677,7 @@ subroutine plotwave(fname1,thingy,lbl)
   do f=1,nf
      call pgslw(1)
      !call pgline(n(f),t(f,1:n(f)),h(f,1:n(f))-(f-1.5)*dy)
-     call pgline(n(f),t(f,1:n(f)),h(f,1:n(f)))
+     call pgline(n(f), t(f,1:n(f)), h(f,1:n(f)) )
      !call pgsch(fontsize)
      call pgsci(1)
      call pgslw(lw)

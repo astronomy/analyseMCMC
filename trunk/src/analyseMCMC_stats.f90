@@ -37,9 +37,9 @@ subroutine statistics(exitcode)
            select case(parID(p))
               
            case(21) !Take cube root: d^3 -> Distance:
-              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**c3rd
-              if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**c3rd
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**c3rd
+              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**rc3rd
+              if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**rc3rd
+              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**rc3rd
               
            case(22) !Take exp: logD -> Distance:
               allDat(ic,p,1:Ntot(ic)) = exp(allDat(ic,p,1:Ntot(ic)))   
@@ -52,22 +52,22 @@ subroutine statistics(exitcode)
               if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**6
                           
            case(51,72,82) !cos -> deg:
-              allDat(ic,p,1:Ntot(ic)) = acos(allDat(ic,p,1:Ntot(ic)))*r2d
+              allDat(ic,p,1:Ntot(ic)) = acos(allDat(ic,p,1:Ntot(ic)))*rr2d
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = acos(selDat(ic,p,1:n(ic)))*rr2d
               if(ic.eq.1) startval(1:nChains0,p,1:3) = acos(startval(1:nChains0,p,1:3))*rr2d
                          
            case(31) !rad -> h:
-              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*r2h  !rad -> h
+              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*rr2h  !rad -> h
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2h
               if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2h
               
            case(32,53) !sin -> deg:
-              allDat(ic,p,1:Ntot(ic)) = asin(allDat(ic,p,1:Ntot(ic)))*r2d
+              allDat(ic,p,1:Ntot(ic)) = asin(allDat(ic,p,1:Ntot(ic)))*rr2d
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = asin(selDat(ic,p,1:n(ic)))*rr2d
               if(ic.eq.1) startval(1:nChains0,p,1:3) = asin(startval(1:nChains0,p,1:3))*rr2d
               
            case(33,41,52,54,55,73,74,83,84) !rad -> deg:
-              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*r2d
+              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*rr2d
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2d
               if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2d
            end select
@@ -607,15 +607,15 @@ subroutine statistics(exitcode)
   do ic = 1,nchains0
      var = logebayesfactor(ic)
      !write(6,'(A,F10.3)')'ln Bayes',logebayesfactor(ic)
-     logebayesfactortotalgeom = logebayesfactortotalgeom+var
+     logebayesfactortotalgeom = logebayesfactortotalgeom + real(var)
      !write(6,'(A,F10.3)')'logebayesfactortotalgeom',logebayesfactortotalgeom
-     total = total+exp(var)
+     total = total + exp(var)
      !write(6,'(A,F10.3)')'logebayesfactortotalarith',logebayesfactortotalarith
-     total2 = total2+(exp(-var))
+     total2 = total2 + (exp(-var))
      !write(6,'(A,F10.3)')'logebayesfactortotalharmo',logebayesfactortotalharmo
-     logebayesfactortotal = logebayesfactortotal+logebayestempfactor(ic)
+     logebayesfactortotal = logebayesfactortotal + logebayestempfactor(ic)
   end do
-  logebayesfactortotalgeom = logebayesfactortotalgeom/dble(nchains)
+  logebayesfactortotalgeom = logebayesfactortotalgeom/real(nchains)
   total = total/dble(nchains)
   logebayesfactortotalarith = real(log(total))
   total2 = dble(nchains)/total2
@@ -1301,8 +1301,7 @@ subroutine compute_convergence()
   implicit none
   integer :: i,ic,p,nn,nn1
   integer :: lowVar(maxMCMCpar),nLowVar,highVar(maxMCMCpar),nHighVar,nmeanRelVar,nRhat,IDs(maxMCMCpar),nUsedPar
-  real :: dx
-  real(double) :: chMean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar)
+  real(double) :: chMean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar), dx
   real(double) :: totRhat,meanRelVar,compute_median
   character :: ch
   
@@ -1349,7 +1348,7 @@ subroutine compute_convergence()
      do ic=1,nChains0
         if(contrChain(ic).eq.0) cycle  !Contributing chains only
         do i=Ntot(ic)-nn+1,Ntot(ic)
-           dx = (allDat(ic,p,i) - chMean(ic,p))**2
+           dx = (dble(allDat(ic,p,i)) - chMean(ic,p))**2
            chVar(p) = chVar(p) + dx
            chVar1(ic,p) = chVar1(ic,p) + dx !Keep track of the variance per chain
         end do

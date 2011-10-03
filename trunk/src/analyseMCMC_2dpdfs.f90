@@ -77,7 +77,7 @@ subroutine pdfs2d(exitcode)
      end if
   end if
   if(Nbin2Dy.eq.0) Nbin2Dy = Nbin2Dx
-  if(Nbin2Dy.le.-1) Nbin2Dy = Nbin2Dx*pltrat
+  if(Nbin2Dy.le.-1) Nbin2Dy = nint(Nbin2Dx*pltrat)
   
   ! Report number of bins used:
   if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0.and.Npdf2D.ge.0) then
@@ -324,9 +324,9 @@ subroutine pdfs2d(exitcode)
                     write(stdOut,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probArea(i),sqrt(probArea(i)/pi)*2, &
                          probArea(i)*(pi/180.)**2/(4*pi)  ! 4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
                  end if
-                 probAreas(p1,p2,i,1) = probArea(i)*(pi/180.)**2/(4*pi)  ! Fraction of the sky
-                 probAreas(p1,p2,i,2) = sqrt(probArea(i)/pi)*2           ! Equivalent diameter
-                 probAreas(p1,p2,i,3) = probArea(i)                      ! Square degrees
+                 probAreas(p1,p2,i,1) = probArea(i)*(rpi/180.)**2/(4*rpi)  ! Fraction of the sky
+                 probAreas(p1,p2,i,2) = sqrt(probArea(i)/rpi)*2            ! Equivalent diameter
+                 probAreas(p1,p2,i,3) = probArea(i)                        ! Square degrees
               end do
            end if
         end if

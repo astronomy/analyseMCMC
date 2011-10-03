@@ -6,19 +6,23 @@
 
 #No text/space after statements below! (hence #)
 COMP = gfortran#           # Use GNU Fortran compiler (reads ~3x slower from disc than ifort!)
-#COMP = ifort#              # Use Intel Fortran compiler
+#COMP = gfortran-4.6#       # Use GNU Fortran compiler.  Need >= 4.5
+#COMP = g95#               # USE g95 compiler
+#COMP = ifort#             # Use Intel Fortran compiler
 #COMP = nagfor#            # Use NAG Fortran compiler
 
 WARN = yes#               # to compile with compile-time warnings
 RUNCHECK = yes#           # to compile with runtime-check options
+#DEBUG = yes#             # compile with debug options
 #OPTIMISE = yes#           # to compile with some extra run-time optimisation (sets RUNCHECK=no)
-F2003 = yes#              #compile with Fortran 2003 standard
+F2003 = yes#              # compile with Fortran 2003 standard
+#STATIC = yes#              # link statically
 
 
 
 #General:
-CFLAGS = -O0
-CFLAGS = -O2
+OPT = -O0
+OPT = -O2
 LFLAGS = -lpgplot 
 
 
@@ -36,55 +40,79 @@ BINDIR = .
 ifeq ($(COMP),ifort)
    #To develop code  (don't mix -check bounds with -O>0!):
    ifeq ($(RUNCHECK),yes)
-      CFLAGS = -O0 -check all -check noarg_temp_created
+      OPT = -O0
+      CFLAGS = -check all -check noarg_temp_created
    endif
-   CFLAGS += -traceback 
+
    ifeq ($(OPTIMISE),yes)
-      CFLAGS = -O3
+      OPT = -O2
 
-      #CFLAGS += -arch SSE2  #SSE2 needs -lsvml  (?)
+      #OPT += -arch SSE2  #SSE2 needs -lsvml  (?)
 
-      #CFLAGS += -xsse4.1
-      #CFLAGS += -xhost
-      #CFLAGS += -static
-      #CFLAGS += -prof-gen -prof-dir./  #Don't use -ipo. Run the code thus compiled (a few times) and use -prof-use below for the final version
-      #CFLAGS += -prof-use -prof-dir./
+      #OPT += -xsse4.1
+      #OPT += -xhost
+      #OPT += -static
+      #OPT += -prof-gen -prof-dir./  #Don't use -ipo. Run the code thus compiled (a few times) and use -prof-use below for the final version
+      #OPT += -prof-use -prof-dir./
 
-      #CFLAGS += -ipo
+      #OPT += -ipo
       #LFLAGS += -ipo -vec-report0
    endif
    ifeq ($(WARN),yes)
-      CFLAGS += -warn all
+      CFLAGS += -warn all -warn errors -WB
    endif
    ifeq ($(F2003),yes)
-      CFLAGS += -stand f03 -diag-disable 6894
+      CFLAGS += -stand f03 -diag-disable 6894,8290,8291
    endif
-   CFLAGS += -vec-report0
+   CFLAGS += -vec-report0 -traceback -error-limit 10
    CFLAGS += -module $(MODDIR) -I$(MODDIR)
 
-   #To debug code:
-   #CFLAGS += -O0  -vec-report0 -g
+   # Link statically
+   ifeq ($(STATIC),yes)
+      CFLAGS += -static
+   endif
 
-   CFLAGS += -nogen-interfaces #For ifort v.11
+   # To debug code:
+   ifeq ($(DEBUG),yes)
+      OPT = -O0
+      CFLAGS += -vec-report0 -g
+   endif
+
+   CFLAGS += -nogen-interfaces  # For ifort v.11
 
 endif
 
 
 #gfortran:
-ifeq ($(COMP),gfortran)
+#ifeq ($(COMP),gfortran)
+ifneq (,$(filter $(COMP),gfortran gfortran-4.6))
+
+   CFLAGS += -fwhole-file #-fwhole-program
+   ifeq ($(COMP),gfortran-4.6)
+      LFLAGS += -Wl,-rpath=/usr/lib/gcc/x86_64-pc-linux-gnu/4.6.2-pre9999/ #for 4.6
+   endif
+
    ifeq ($(RUNCHECK),yes)
-      CFLAGS = -O0 -fcheck=all
+      OPT = -O0
+      CFLAGS += -fcheck=all
+      CFLAGS += -fbacktrace
    endif
 
 
    ifeq ($(OPTIMISE),yes)
-      CFLAGS = -O3 
+      OPT = -O2
    endif
 
    ifeq ($(WARN),yes)
       CFLAGS += -Wall -Wextra
-      CFLAGS += -Werror
+      CFLAGS += -Werror -fmax-errors=10
       CFLAGS += -Wcharacter-truncation -Wunderflow
+   endif
+
+   #To debug code:
+   ifeq ($(DEBUG),yes)
+      OPT = -O0
+      CFLAGS += -g
    endif
 
    ifeq ($(F2003),yes)
@@ -93,21 +121,68 @@ ifeq ($(COMP),gfortran)
       CFLAGS += -ffree-line-length-none
    endif
 
+   # Link statically
+   ifeq ($(STATIC),yes)
+      CFLAGS += -static
+   endif
+
    CFLAGS += -I$(MODDIR) -J$(MODDIR)
-   CFLAGS += -fwhole-file
-   CFLAGS += -fbacktrace
-   CFLAGS += -fmax-errors=10
 endif
 
 
 
-#NAGfort:
+#g95:
+ifeq ($(COMP),g95)
+
+   ifeq ($(RUNCHECK),yes)
+      OPT = -O0
+      CFLAGS += -fbounds-check
+      CFLAGS += -ftrace=full
+   endif
+
+   ifeq ($(WARN),yes)
+      CFLAGS += -Wall -Wextra
+      #CFLAGS += -Wno=112,140,165
+      #CFLAGS += -Wno=112,140,165,136
+      CFLAGS += -Wno=112,140,165,136,163
+# Turn warnings into errors:
+      CFLAGS += -Werror
+   endif
+
+   #To debug code:
+   ifeq ($(DEBUG),yes)
+      OPT = -O0
+      CFLAGS += -g
+   endif
+
+   ifeq ($(F2003),yes)
+      CFLAGS += -std=f2003
+#   else
+#      CFLAGS += 
+   endif
+
+   ifeq ($(OPENMP),yes)
+      #CFLAGS += -fopenmp
+      #LFLAGS += -lgomp
+   endif
+
+   # Link statically
+   ifeq ($(STATIC),yes)
+      CFLAGS += -static
+   endif
+
+   CFLAGS += -I$(MODDIR) -fmod=$(MODDIR)
+endif
+
+
+# NAGfort:
 ifeq ($(COMP),nagfor)
    ifeq ($(RUNCHECK),yes)
-      CFLAGS = -O0  -C=all -gline
+      OPT = -O0
+      CFLAGS = -C=all -gline
    endif
    ifeq ($(OPTIMISE),yes)
-      CFLAGS = -O4
+      OPT = -O4
    endif
    ifeq ($(WARN),yes)
       #CFLAGS += 
@@ -133,20 +208,26 @@ ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_chains.o $(OBJDIR)/analyseMCMC_1dpdfs.o
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_2dpdf_skymap.o $(OBJDIR)/analyseMCMC_2dpdf_routines.o $(OBJDIR)/analyseMCMC_2dpdfs.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_animation.o $(OBJDIR)/analyseMCMC_plot.o $(OBJDIR)/analyseMCMC_main.o
 
+ifeq ($(COMP),g95)
+  STDOBJ += $(OBJDIR)/nagfor.o
+endif
 ifeq ($(COMP),nagfor)
-  ANALYSEMCMC_OBJ += $(OBJDIR)/nagfor.o
+  STDOBJ += $(OBJDIR)/nagfor.o
 endif
 
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.f90 Makefile #$(SRCDIR)/code_version.f90
-	$(COMP) $(CFLAGS) -c $< -o $@
+	$(COMP) $(OPT) $(CFLAGS) -c $< -o $@
+
+analyseMCMC_modules: $(SRCDIR)/analyseMCMC_modules.f90
+	$(COMP) $(OPT) $(CFLAGS) -c $(SRCDIR)/analyseMCMC_modules.f90  -o $(OBJDIR)/analyseMCMC_modules.o
 
 
 analyseMCMC:
 
 exit:
 
-all: compPDFs analyseMCMC MCMCstats #plotdata plotsignal 
+all: compPDFs analyseMCMC MCMCstats #plotdata plotSignal 
 
 
 $(OBJDIR)/$(ANALYSEMCMC_OBJ): $(SRCDIR)/analyseMCMC_modules.f90  #All analyseMCMC*.o files depend on analyseMCMC_modules.f90
@@ -158,10 +239,10 @@ compPDFs: $(STDOBJ) $(OBJDIR)/compPDFs_functions.o $(OBJDIR)/compPDFs.o
 	$(COMP) $(LFLAGS) -o $(BINDIR)/compPDFs $(STDOBJ) $(OBJDIR)/compPDFs_functions.o $(OBJDIR)/compPDFs.o
 
 plotspectrum: $(STDOBJ) $(OBJDIR)/plotspectrum.o
-	$(COMP) $(LFLAGS) -o $(BINDIR)/$(OBJDIR)/plotspectrum $(STDOBJ) $(OBJDIR)/plotspectrum.o
+	$(COMP) $(LFLAGS) -o $(BINDIR)/plotspectrum $(STDOBJ) $(OBJDIR)/plotspectrum.o
 
-plotsignal: $(STDOBJ) $(OBJDIR)/plotsignal.o
-	$(COMP) $(LFLAGS) -o $(BINDIR)/$(OBJDIR)/plotsignal $(STDOBJ) $(OBJDIR)/plotsignal.o
+plotSignal: $(STDOBJ) $(OBJDIR)/plotSignal.o
+	$(COMP) $(LFLAGS) -o $(BINDIR)/plotSignal $(STDOBJ) $(OBJDIR)/plotSignal.o
 
 MCMCstats: $(STDOBJ) $(OBJDIR)/MCMCstats.o
 	$(COMP) $(LFLAGS) -o $(BINDIR)/MCMCstats $(STDOBJ) $(OBJDIR)/MCMCstats.o
