@@ -7,13 +7,17 @@
 !! \retval exitcode  Exit status code (0=ok)
 
 subroutine animation(exitcode)
-  use basic
-  use constants
-  use analysemcmc_settings
-  use general_data
-  use mcmcrun_data
-  use chain_data
-  use plot_data
+  use basic, only: double,stdOut,stdErr
+  use constants, only: upline, pi
+  use analysemcmc_settings, only: plAnim,Nbin1D,update,plot,prProgress,maxChs,nAnimFrames,file,ivals,Nburn,maxMCMCpar,scrSz,scrRat
+  use analysemcmc_settings, only: colour,whiteBG,animScheme,plInject,plStart,chainSymbol,plBurn,chainPlI,fillPDF,mergeChains
+  use analysemcmc_settings, only: normPDF1D,smooth,changeVar
+  use general_data, only: allDat,nChains0,startval,nChains,pgParNs
+  use general_data, only: c0,maxIter,wrap
+  use general_data, only: ntot,post
+  use mcmcrun_data, only: totpts,parID,offsetrun
+  use chain_data, only: is,isburn
+  use plot_data, only: ncolours,colours,defcolour,unSharppdf1d
   
   implicit none
   integer, intent(out) :: exitcode

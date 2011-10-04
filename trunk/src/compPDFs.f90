@@ -5,8 +5,11 @@
 !> \brief  Compare 1D PDFs, use PDF output produced by analyseMCMC
 
 program comp_pdfs
-  use comp_pdfs_settings
-  use comp_pdfs_data
+  use comp_pdfs_settings, only: clrs,lss,settingsfile,file,type,dim,clr,fillstyle,fonttype,fontsize,frames,fnames,nf,dirnames
+  use comp_pdfs_settings, only: plpars,plpars2d,outnamebase
+  use comp_pdfs_data, only: parNames
+  
+  implicit none
   integer :: nfrx,nfry,frx,fry,fr,fr1,f, system,status
   real :: size,rat,xwinmin,xwinmax,ywinmin,ywinmax,dxwin,dywin,xfrmin,xfrmax,yfrmin,yfrmax,dxfr,dyfr,space
   character :: lbl*(99),outname*(99),exts(0:3)*(4)

@@ -9,13 +9,17 @@
 !! - Other results are returned using a number of modules
 
 subroutine statistics(exitcode)
-  use basic
-  use constants
-  use analysemcmc_settings
-  use general_data
-  use stats_data
-  use chain_data
-  use mcmcrun_data
+  use basic, only: maxreal, stdOut
+  use constants, only: rc3rd,rr2d,rr2h,rpi,rtpi
+  use analysemcmc_settings, only: changeVar,prProgress,mergeChains,wrapData,saveStats,prCorr,ivals,ival0,prStat,prIval,Nival,Nburn
+  use analysemcmc_settings, only: prConv,wikioutput,plAcorr,prAcorr
+  use general_data, only: allDat,selDat,startval,shIvals,wrap,shifts,stats,ranges,nChains0,Ntot,nChains,n,raShift,contrChain
+  use general_data, only: raCentre,fixedpar,c0,post,parNames
+  use general_data, only: logebayesfactor,log10bayesfactor,logebayestempfactor,logebayesfactortotalgeom,logebayesfactortotalarith
+  use general_data, only: logebayesfactortotalharmo,logebayesfactortotal
+  use stats_data, only: absVar1,absVar2,stdev1,stdev2
+  use chain_data, only: corrs,maxIter
+  use mcmcrun_data, only: nMCMCpar,parID,maxMCMCpar,maxChs,Tchain,loglmax
   
   implicit none
   integer, intent(out) :: exitcode
@@ -651,12 +655,13 @@ end subroutine statistics
 !! \retval exitcode  Exit status code
 
 subroutine save_stats(exitcode)
-  use constants
-  use analysemcmc_settings
-  use general_data
-  use mcmcrun_data
-  use stats_data
-  use chain_data
+  use basic, only: stdErr,stdOut
+  use analysemcmc_settings, only: Nival,ivals,Npdf2D,Nbin2Dx,Nbin2Dy,PDF2Dpairs,saveStats,prProgress
+  use general_data, only: outputname,outputdir,nChains0,contrChains,post,fixedpar,parNames,startval,stats,ranges
+  use mcmcrun_data, only: totiter,totlines,totpts,seed,ndet,networkSNR,detnames,detnr,snr,flow,fhigh,t_before,t_after,FTstart
+  use mcmcrun_data, only: deltaFT,samplerate,samplesize,FTsize,t0,nMCMCpar,parID,revID
+  use stats_data, only: stdev1,stdev2,absVar1,absVar2,probareas,injectionranges2d
+  use chain_data, only: DoverD,corrs
   
   implicit none
   integer, intent(out) :: exitcode
@@ -815,11 +820,13 @@ end subroutine save_stats
 !! \retval exitcode  Exit status code
 
 subroutine save_bayes(exitcode)
-  use constants
-  use analysemcmc_settings
-  use general_data
-  use mcmcrun_data
-  use chain_data
+  use basic, only: stdOut
+  use analysemcmc_settings, only: saveStats,prProgress
+  use general_data, only: outputname,outputdir,nchains0,contrChains
+  use general_data, only: logebayesfactortotalarith,logebayesfactortotalharmo,logebayesfactortotal,logebayesfactortotalgeom
+  use general_data, only: logebayesfactor
+  use mcmcrun_data, only: totiter,totlines,totpts,seed,Tchain
+  use chain_data, only: DoverD
   
   implicit none
   integer, intent(out) :: exitcode
@@ -867,15 +874,16 @@ end subroutine save_bayes
 !! \param ic  Chain number
 
 subroutine save_cbc_wiki_data(ic)
-  use constants
-  use analysemcmc_settings
-  use general_data
-  use stats_data
-  use chain_data
-  use mcmcrun_data
-  implicit none
+  use basic, only: stdErr,stdOut
+  use constants, only: waveforms,detabbrs, rh2r,rd2r
+  use analysemcmc_settings, only: Nival,ivals,prStdOut
+  use general_data, only: outputname,outputdir, allDat, logebayesfactor,log10bayesfactor, stats,startval,ranges
+  use stats_data, only: stdev2
+  use mcmcrun_data, only: pnOrder,GPStime,ndet,detnr,maxMCMCpar,revID,t0,spinningRun,waveform,logLmax
   
+  implicit none
   integer, intent(in) :: ic
+  
   integer :: c,i,io,o,p,p1,parr(maxMCMCpar)
   real :: x,rev2pi,rrevpi,x1,x2
   character :: url*(99),gps*(19),xs11*(11),xs20*(20),ans,wikifilename*(99),pnstr*(3)
@@ -1295,13 +1303,10 @@ end subroutine save_cbc_wiki_data
 !! \todo  do we need unwrapped data for this? - probably not, since the different chains are wrapped in the same way
 
 subroutine compute_convergence()
-  use basic
-  use constants
-  use analysemcmc_settings
-  use general_data
-  use stats_data
-  use chain_data
-  use mcmcrun_data
+  use basic, only: double, stdOut
+  use analysemcmc_settings, only: prConv,Nburn
+  use general_data, only: Rhat,contrChains,contrChain,nChains0,Ntot,allDat,fixedpar,parNames
+  use mcmcrun_data, only: maxChs,maxMCMCpar,parID,revID,nMCMCpar
   
   implicit none
   integer :: i,ic,p,nn,nn1
@@ -1515,12 +1520,16 @@ end subroutine compute_convergence
 !! - results are printed to stdout if prAcorr>0
 
 subroutine compute_autocorrelations()
-  use constants
-  use mcmcrun_data
-  use chain_data
+  use basic, only: stdOut,stdErr
+  use analysemcmc_settings, only: prAcorr,nAcorr
+  use general_data, only: allDat,fixedpar,parNames,nChains0,Ntot
+  use mcmcrun_data, only: nMCMCpar,parID,totthin
+  use chain_data, only: acorrs,lAcorrs
+  
   implicit none
   integer :: ic,j1,p,j,i,np
   real :: median,medians(nMCMCpar),compute_median_real,stdev,compute_stdev_real
+  
   
   if(prAcorr.eq.0) then
      write(stdOut,'(A)',advance="no")' autocorrs, '

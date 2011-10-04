@@ -9,10 +9,12 @@ module comp_pdfs_settings
   save
   integer, parameter :: nfmax=9       ! nfmax:    maximum number of input files
   integer, parameter :: nParDB=99     ! nParDB: size of the parameter database
+  
   integer :: nf,file,type,dim,clr,fillstyle,frames(2),plpars(20),plpars2d(2),clrs(nfmax),lss(nfmax)
   integer :: pltrue,plmedian,plrange,fonttype
   real :: fontsize
   character :: fnames(nfmax)*(99),dirnames(nfmax)*(99),outnamebase*(99),settingsfile*(99)
+  
 end module comp_pdfs_settings
 !***********************************************************************************************************************************
 
@@ -21,7 +23,7 @@ end module comp_pdfs_settings
 !> \brief  Module with general data and data from the analyseMCMC output files
 
 module comp_pdfs_data
-  use comp_pdfs_settings
+  use comp_pdfs_settings, only: nParDB
   implicit none
   save
   
@@ -40,11 +42,13 @@ end module comp_pdfs_data
 !! \param lbl  Parameter/plot label
 
 subroutine plotpdf1d(pp,lbl)
-  use comp_pdfs_settings
-  use comp_pdfs_data
+  use comp_pdfs_settings, only: nf,fnames,fontsize,clrs,clr,fillstyle,plrange,pltrue,lss,plmedian
+  use comp_pdfs_data, only: parNames,pgunits,pgParNs
+  
   implicit none
   integer, intent(in) :: pp
   character, intent(in) :: lbl*(99)
+  
   integer, parameter :: np=99,nbin1=500  !np: number of parameters (currently 11-87 are defined)
   integer :: b,p1,io,f,nplvar,nchains,nbin(nf),pID,parIDs(np),pp1,ic,wrap(nf,np),lw,detnan(nf,np),identical
   real :: x,startval(nf,np,2),stats(nf,np,6),ranges(nf,np,5),xmin1(nf,np),xmax1(nf,np),plshift
@@ -333,11 +337,13 @@ end subroutine plotpdf1d
 !! \param lbl   Plot label
 
 subroutine plotpdf2d(pID1,pID2,lbl)
-  use comp_pdfs_settings
-  use comp_pdfs_data
+  use comp_pdfs_settings, only: nf,fnames,fontsize,clrs,clr,fillstyle,plrange,pltrue,plmedian
+  use comp_pdfs_data, only: parNames,pgunits,pgParNss
+  
   implicit none
   integer, intent(in) :: pID1,pID2
   character, intent(in) :: lbl*(99)
+  
   integer, parameter :: np=15,nbinx1=500,nbiny1=500
   integer :: bx,by,pID1a,pID2a,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2
   integer :: nchains,nbinx(nf),nbiny(nf),ic,lw,c,foundit
@@ -591,7 +597,8 @@ end subroutine plotpdf2d
 !! \param lbl     Plot label
 
 subroutine plotwave(fname1,thingy,lbl)
-  use basic
+  use basic, only: double, dbl
+  
   implicit none
   character, intent(in) :: fname1*(99), lbl*(99)
   integer, intent(in) :: thingy
@@ -695,7 +702,9 @@ end subroutine plotwave
 !> \brief  Read the compPDF settings file
 
 subroutine read_inputfile()
-  use comp_pdfs_settings
+  use comp_pdfs_settings, only: nf,fnames,fontsize,clr,fillstyle,plrange,pltrue,plmedian, plpars,frames,dirnames
+  use comp_pdfs_settings, only: settingsfile,file,type,dim,fonttype,plpars2d,outnamebase
+  
   implicit none
   integer :: u,io
   character :: bla
@@ -749,8 +758,10 @@ end subroutine read_inputfile
 !***********************************************************************************************************************************
 !> \brief  Write the compPDF settings file
 
-subroutine write_inputfile
-  use comp_pdfs_settings
+subroutine write_inputfile()
+  use comp_pdfs_settings, only: nf,fnames,fontsize,clr,fillstyle,plrange,pltrue,plmedian, plpars,frames,dirnames
+  use comp_pdfs_settings, only: file,type,dim,fonttype,plpars2d,outnamebase
+  
   implicit none
   integer :: u,i,io
   
@@ -829,8 +840,8 @@ end subroutine write_inputfile
 !! - Taken from and keep in sync with analyseMCMC_functions.f90
 
 subroutine set_derivedParameterNames()
-  use comp_pdfs_settings
-  use comp_pdfs_data
+  use comp_pdfs_settings, only: fonttype
+  use comp_pdfs_data, only: parNames,pgParNs,pgParNss,pgUnits
   implicit none
   
   parNames = ''

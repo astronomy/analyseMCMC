@@ -11,9 +11,9 @@
 !! \param raShift  Shift in RA needed to centre the PDF
 
 subroutine plotthesky(bx10,bx20, by1,by2, raShift)
-  use basic
-  use constants
-  use plot_data
+  use basic, only: double
+  use constants, only: homedir, tpi,r2d
+  use analysemcmc_settings, only: fonttype,fontsize1d
   
   implicit none
   real, intent(in) :: bx10,bx20, by1,by2, raShift
@@ -209,7 +209,8 @@ end subroutine plotthesky
 !! \param name  BSC star name
 
 function getsname(name)
-  use analysemcmc_settings
+  use analysemcmc_settings, only: fonttype
+  
   implicit none
   character, intent(in) :: name*(*)
   character :: getsname*(10),num*(3),grk*(3),gn*(1)
@@ -307,8 +308,9 @@ end function getmag
 !! - Clone of pgimag, use projection if projection > 0
 
 subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, tr, projection)
-  use constants
-  use general_data
+  use constants, only: rtpi
+  use general_data, only: raCentre
+  
   implicit none
   integer, parameter :: nell=100
   integer, intent(in) :: nbx,nby, xb1,xb2, yb1,yb2, projection
@@ -471,7 +473,9 @@ end subroutine pgimag_project
 !!   - Convergence is relatively fast, somewhat slower near poles
 
 subroutine project_skymap(x,y,raCentre,projection)
-  use constants
+  use basic, only: stdErr
+  use constants, only: rd2r,rpi
+  
   implicit none
   real, intent(inout) :: x,y
   real, intent(in) :: raCentre

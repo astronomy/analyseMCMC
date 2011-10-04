@@ -61,7 +61,7 @@ end module analysemcmc_settings
 !> \brief Module with (currently) mathematical and string constants
 
 module constants
-  use basic
+  use basic, only: double
   
   implicit none
   save
@@ -79,8 +79,8 @@ end module constants
 !> \brief Module with Markov-chain data from the SPINspiral output files
 
 module general_data
-  use basic
-  use analysemcmc_settings
+  use basic, only: double
+  use analysemcmc_settings, only: maxChs,maxMCMCpar,nParDB,maxNival
   
   implicit none
   save
@@ -109,9 +109,9 @@ end module general_data
 !> \brief Module with MCMC run data from the SPINspiral output files
 
 module mcmcrun_data
-  use basic
-  use analysemcmc_settings
-  use general_data
+  use basic, only: long, double
+  use analysemcmc_settings, only: maxChs,nParDB,maxMCMCpar
+  use general_data, only: ndets
   
   implicit none
   save
@@ -134,7 +134,7 @@ end module mcmcrun_data
 !> \brief Module with generated statistics
 
 module stats_data
-  use analysemcmc_settings
+  use analysemcmc_settings, only: maxMCMCpar,maxNival
   implicit none
   save
   real :: stdev1(maxMCMCpar),stdev2(maxMCMCpar),absVar1(maxMCMCpar),absVar2(maxMCMCpar)
@@ -149,7 +149,6 @@ end module stats_data
 !> \brief Module with plot settings
 
 module plot_data
-  use analysemcmc_settings
   implicit none
   save
   
@@ -166,7 +165,9 @@ end module plot_data
 !> \brief Module with secondary Markov-chain data
 
 module chain_data
-  use general_data
+  use basic, only: double
+  use analysemcmc_settings, only: maxMCMCpar,maxChs
+  use general_data, only: maxIter
   implicit none
   save
   

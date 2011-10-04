@@ -12,7 +12,7 @@ COMP = gfortran#           # Use GNU Fortran compiler (reads ~3x slower from dis
 #COMP = nagfor#            # Use NAG Fortran compiler
 
 WARN = yes#               # to compile with compile-time warnings
-RUNCHECK = yes#           # to compile with runtime-check options
+#RUNCHECK = yes#           # to compile with runtime-check options
 #DEBUG = yes#             # compile with debug options
 #OPTIMISE = yes#           # to compile with some extra run-time optimisation (sets RUNCHECK=no)
 F2003 = yes#              # compile with Fortran 2003 standard
@@ -142,9 +142,9 @@ ifeq ($(COMP),g95)
 
    ifeq ($(WARN),yes)
       CFLAGS += -Wall -Wextra
-      #CFLAGS += -Wno=112,140,165
+      CFLAGS += -Wno=112,140,165
       #CFLAGS += -Wno=112,140,165,136
-      CFLAGS += -Wno=112,140,165,136,163
+      #CFLAGS += -Wno=112,140,165,136,163
 # Turn warnings into errors:
       CFLAGS += -Werror
    endif
@@ -216,18 +216,23 @@ ifeq ($(COMP),nagfor)
 endif
 
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.f90 Makefile #$(SRCDIR)/code_version.f90
+
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.f90  #Makefile #$(SRCDIR)/code_version.f90
 	$(COMP) $(OPT) $(CFLAGS) -c $< -o $@
+
+
+
+all: compPDFs analyseMCMC MCMCstats #plotdata plotSignal 
+
+exit:
+
+
 
 analyseMCMC_modules: $(SRCDIR)/analyseMCMC_modules.f90
 	$(COMP) $(OPT) $(CFLAGS) -c $(SRCDIR)/analyseMCMC_modules.f90  -o $(OBJDIR)/analyseMCMC_modules.o
 
 
-analyseMCMC:
-
-exit:
-
-all: compPDFs analyseMCMC MCMCstats #plotdata plotSignal 
 
 
 $(OBJDIR)/$(ANALYSEMCMC_OBJ): $(SRCDIR)/analyseMCMC_modules.f90  #All analyseMCMC*.o files depend on analyseMCMC_modules.f90

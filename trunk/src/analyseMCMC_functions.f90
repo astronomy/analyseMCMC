@@ -5,7 +5,9 @@
 !> \brief  Define the constants
 
 subroutine setconstants()
-  use constants
+  use basic, only: stdErr,stdOut
+  use constants, only: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd, rpi,rtpi,rpi2,rr2d,rd2r,rr2h,rh2r,rc3rd
+  use constants, only: upline,detabbrs,waveforms, homedir,workdir,hostname,username
   
   implicit none
   integer :: i1,i2
@@ -68,9 +70,14 @@ end subroutine setconstants
 !> \brief  Read the settings file (called analysemcmc.dat by default)
 
 subroutine read_settingsfile()
-  use basic
-  use constants
-  use analysemcmc_settings
+  use basic, only: double, stdErr
+  use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
+  use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
+  use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
+  use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plotSky,plAnim,chainPlI,scLogLpl
+  use analysemcmc_settings, only: scChainsPl,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D
+  use analysemcmc_settings, only: normPDF2D,nAnimFrames,animScheme,Nival,ival0,scrSz,scrRat,bmpXSz,bmpYSz,PSsz,PSrat,scFac,unSharp
+  use analysemcmc_settings, only: orientation,fontType,fontSize1D,fontSize2D,chainSymbol,nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D
   
   implicit none
   integer :: i,u,io,io1
@@ -209,7 +216,14 @@ end subroutine read_settingsfile
 !> \brief  Write a copy of the settings file (called analysemcmc.used by default)
 
 subroutine write_settingsfile()
-  use analysemcmc_settings
+  use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
+  use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
+  use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
+  use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plotSky,plAnim,chainPlI,scLogLpl
+  use analysemcmc_settings, only: scChainsPl,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D
+  use analysemcmc_settings, only: normPDF2D,nAnimFrames,animScheme,Nival,ival0,scrSz,scrRat,bmpXSz,bmpYSz,PSsz,PSrat,scFac,unSharp
+  use analysemcmc_settings, only: orientation,fontType,fontSize1D,fontSize2D,chainSymbol,nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D
+  
   implicit none
   integer :: u,i
   
@@ -376,7 +390,14 @@ end subroutine write_settingsfile
 !> \brief  Set plot settings to 'default' values
 
 subroutine set_plotsettings()
-  use analysemcmc_settings
+  use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
+  use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
+  use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
+  use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plotSky,plAnim,chainPlI,scLogLpl
+  use analysemcmc_settings, only: scChainsPl,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D
+  use analysemcmc_settings, only: normPDF2D,nAnimFrames,animScheme,Nival,ival0,scrSz,scrRat,bmpXSz,bmpYSz,PSsz,PSrat,scFac,unSharp
+  use analysemcmc_settings, only: orientation,fontType,fontSize1D,fontSize2D,chainSymbol,nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D
+  
   implicit none
   
   thin = 10         ! If >1, 'thin' the output; read every thin-th line 
@@ -396,6 +417,7 @@ subroutine set_plotsettings()
   prStdOut = 1      ! Print standard output to 1: screen, 2: text file
   prProgress = 2    ! Print general messages about the progress of the program: 0-no, 1-some, 2-more
   prRunInfo = 0     ! Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file
+  prChainInfo = 1   ! Print chain info: 1-summary (#datpts, #contr.chns),  2-detls/chain (f.name, clr, #itr, b.in, Lmax, #datpts)
   prInitial = 0     ! Print injection values, starting values and their difference
   prStat = 1        ! Print statistics: 0-no, 1-yes
   prCorr = 0        ! Print correlations: 0-no, 1-yes
@@ -473,12 +495,13 @@ end subroutine set_plotsettings
 !! \retval exitcode  Exit status code (0=ok)
 
 subroutine read_mcmcfiles(exitcode)
-  use basic
-  use constants
-  use analysemcmc_settings
-  use general_data
-  use mcmcrun_data
-  use chain_data
+  use basic, only: double, stdErr,stdOut
+  use analysemcmc_settings, only: thin,maxChLen
+  use general_data, only: allDat,post,prior,ntot,n,nchains,nchains0,infiles
+  use mcmcrun_data, only: niter,Nburn0,detnames,detnr,parID,seed,snr,revID,ndet,flow,fhigh,t_before,nCorr,nTemps,Tmax,Tchain
+  use mcmcrun_data, only: networkSNR,waveform,pnOrder,nMCMCpar,t_after,FTstart,deltaFT,samplerate,samplesize,FTsize,outputVersion
+  use mcmcrun_data, only: nMCMCpar0,t0,GPStime
+  use chain_data, only: is,maxMCMCpar,maxIter,DoverD
   
   implicit none
   integer, intent(out) :: exitcode
@@ -665,7 +688,7 @@ subroutine read_mcmcfiles(exitcode)
      goto 199
 199  close(10)
      ntot(ic) = i-1
-     n(ic) = ntot(ic) !n can be changed in rearranging chains, ntot won't be changed
+     n(ic) = ntot(ic)  ! n can be changed in rearranging chains, ntot wont be changed
      !if(prProgress.ge.2.and.update.ne.1) write(stdOut,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:', &
      !nint(is(ic,ntot(ic))),', burn-in:',Nburn(ic),'.'
   end do !do ic = 1,nchains0
@@ -695,13 +718,20 @@ end subroutine read_mcmcfiles
 !!  - store data in selDat (from dat)
 
 subroutine mcmcruninfo(exitcode)  
-  use basic
-  use constants
-  use analysemcmc_settings
-  use general_data
-  use mcmcrun_data
-  use chain_data
-  use plot_data
+  use basic, only: double, stdOut,stdErr
+  use constants, only: waveforms,detabbrs
+  
+  use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
+  use analysemcmc_settings, only: prInitial,mergeChains
+  
+  use general_data, only: allDat,post,ntot,n,nchains,nchains0,infiles,contrChain,startval,fixedpar,selDat,iloglmax,icloglmax
+  use general_data, only: contrChains,parNames,nfixedpar,outputname
+  
+  use mcmcrun_data, only: niter,Nburn0,detnames,detnr,parID,seed,snr,revID,ndet,flow,fhigh,t_before,nCorr,nTemps,Tmax,Tchain
+  use mcmcrun_data, only: networkSNR,waveform,pnOrder,nMCMCpar,t_after,FTstart,deltaFT,samplerate,samplesize,FTsize,outputVersion
+  use mcmcrun_data, only: nMCMCpar0,t0,GPStime,totthin,loglmaxs,totiter,loglmax,totpts,totlines,offsetrun,spinningRun
+  use chain_data, only: is,isburn,maxMCMCpar,maxIter,DoverD,jumps
+  use plot_data, only: ncolours,colours,colournames,maxdots
   
   implicit none
   integer, intent(out) :: exitcode
@@ -1149,12 +1179,8 @@ end subroutine mcmcruninfo
 !! \retval exitcode  Exit status code (0=ok)
 
 subroutine save_data(exitcode)
-  use constants
-  use analysemcmc_settings
-  use general_data
-  use mcmcrun_data
-  use chain_data
-  use plot_data
+  use general_data, only: outputname,outputdir,n, selDat
+  use mcmcrun_data, only: nMCMCpar,parID
   
   implicit none
   integer, intent(out) :: exitcode
@@ -1208,8 +1234,8 @@ end subroutine save_data
 !! - Declination == latitude for equatorial coordinates
 
 function lon2ra(lon, GPSsec)
-  use basic
-  use constants
+  use basic, only: double
+  use constants, only: tpi
   
   implicit none
   real(double), intent(in) :: lon,GPSsec
@@ -1230,8 +1256,8 @@ end function lon2ra
 !! - Declination == latitude for equatorial coordinates.
 
 function ra2lon(ra, GPSsec)
-  use basic
-  use constants
+  use basic, only: double
+  use constants, only: tpi
   
   implicit none
   real(double), intent(in) :: ra,GPSsec
@@ -1251,8 +1277,8 @@ end function ra2lon
 !! \see K.R. Lang (1999), p.80sqq.
 
 function gmst(GPSsec)
-  use basic
-  use constants
+  use basic, only: double, stdErr
+  use constants, only: tpi
   
   implicit none
   real(double), intent(in) :: GPSsec
@@ -1282,7 +1308,7 @@ end function gmst
 
 !***********************************************************************************************************************************
 subroutine dindexx(n,arr,indx)
-  use basic
+  use basic, only: double
   
   implicit none
   integer, intent(in) :: n
@@ -1294,74 +1320,74 @@ subroutine dindexx(n,arr,indx)
   integer :: i,indxt,ir,itemp,j,jstack,k,l,istack(nstack)
   
   do j=1,n
-     indx(j)=j
+     indx(j) = j
   end do
-  jstack=0
-  l=1
-  ir=n
+  jstack = 0
+  l = 1
+  ir = n
 1 if(ir-l.lt.m) then
      do j=l+1,ir
-        indxt=indx(j)
-        a=arr(indxt)
+        indxt = indx(j)
+        a = arr(indxt)
         do i=j-1,l,-1
            if(arr(indx(i)).le.a) goto 2
-           indx(i+1)=indx(i)
+           indx(i+1) = indx(i)
         end do
-        i=l-1
-2       indx(i+1)=indxt
+        i = l-1
+2       indx(i+1) = indxt
      end do
      if(jstack.eq.0) return
-     ir=istack(jstack)
-     l=istack(jstack-1)
-     jstack=jstack-2
+     ir = istack(jstack)
+     l = istack(jstack-1)
+     jstack = jstack-2
   else
-     k=(l+ir)/2
-     itemp=indx(k)
-     indx(k)=indx(l+1)
-     indx(l+1)=itemp
+     k = (l+ir)/2
+     itemp = indx(k)
+     indx(k) = indx(l+1)
+     indx(l+1) = itemp
      if(arr(indx(l)).gt.arr(indx(ir))) then
-        itemp=indx(l)
-        indx(l)=indx(ir)
-        indx(ir)=itemp
+        itemp = indx(l)
+        indx(l) = indx(ir)
+        indx(ir) = itemp
      end if
      if(arr(indx(l+1)).gt.arr(indx(ir))) then
-        itemp=indx(l+1)
-        indx(l+1)=indx(ir)
-        indx(ir)=itemp
+        itemp = indx(l+1)
+        indx(l+1) = indx(ir)
+        indx(ir) = itemp
      end if
      if(arr(indx(l)).gt.arr(indx(l+1))) then
-        itemp=indx(l)
-        indx(l)=indx(l+1)
-        indx(l+1)=itemp
+        itemp = indx(l)
+        indx(l) = indx(l+1)
+        indx(l+1) = itemp
      end if
-     i=l+1
-     j=ir
-     indxt=indx(l+1)
-     a=arr(indxt)
+     i = l+1
+     j = ir
+     indxt = indx(l+1)
+     a = arr(indxt)
 3    continue
-     i=i+1
+     i = i+1
      if(arr(indx(i)).lt.a) goto 3
 4    continue
-     j=j-1
+     j = j-1
      if(arr(indx(j)).gt.a) goto 4
      if(j.lt.i) goto 5
-     itemp=indx(i)
-     indx(i)=indx(j)
-     indx(j)=itemp
+     itemp = indx(i)
+     indx(i) = indx(j)
+     indx(j) = itemp
      goto 3
-5    indx(l+1)=indx(j)
-     indx(j)=indxt
-     jstack=jstack+2
+5    indx(l+1) = indx(j)
+     indx(j) = indxt
+     jstack = jstack+2
      !if(jstack.gt.nstack)pause 'nstack too small in indexx'
      if(jstack.gt.nstack) write(0,'(A)')' nstack too small in dindexx'
      if(ir-i+1.ge.j-l) then
-        istack(jstack)=ir
-        istack(jstack-1)=i
-        ir=j-1
+        istack(jstack) = ir
+        istack(jstack-1) = i
+        ir = j-1
      else
-        istack(jstack)=j-1
-        istack(jstack-1)=l
-        l=i
+        istack(jstack) = j-1
+        istack(jstack-1) = l
+        l = i
      end if
   end if
   goto 1
@@ -1377,79 +1403,79 @@ subroutine rindexx(n,arr,indx)
   real, intent(in) :: arr(n)
   integer, intent(out) :: indx(n)
   
-  integer :: m,nstack
+  integer, parameter :: m=7, nstack=50
   real :: a
-  parameter (m=7,nstack=50)
+  
   integer :: i,indxt,ir,itemp,j,jstack,k,l,istack(nstack)
   do j=1,n
-     indx(j)=j
+     indx(j) = j
   end do
-  jstack=0
-  l=1
-  ir=n
+  jstack = 0
+  l = 1
+  ir = n
 1 if(ir-l.lt.m) then
      do j=l+1,ir
-        indxt=indx(j)
-        a=arr(indxt)
+        indxt = indx(j)
+        a = arr(indxt)
         do i=j-1,l,-1
            if(arr(indx(i)).le.a) goto 2
-           indx(i+1)=indx(i)
+           indx(i+1) = indx(i)
         end do
-        i=l-1
-2       indx(i+1)=indxt
+        i = l-1
+2       indx(i+1) = indxt
      end do
      if(jstack.eq.0) return
-     ir=istack(jstack)
-     l=istack(jstack-1)
-     jstack=jstack-2
+     ir = istack(jstack)
+     l = istack(jstack-1)
+     jstack = jstack-2
   else
-     k=(l+ir)/2
-     itemp=indx(k)
-     indx(k)=indx(l+1)
-     indx(l+1)=itemp
+     k = (l+ir)/2
+     itemp = indx(k)
+     indx(k) = indx(l+1)
+     indx(l+1) = itemp
      if(arr(indx(l)).gt.arr(indx(ir))) then
-        itemp=indx(l)
-        indx(l)=indx(ir)
-        indx(ir)=itemp
+        itemp = indx(l)
+        indx(l) = indx(ir)
+        indx(ir) = itemp
      end if
      if(arr(indx(l+1)).gt.arr(indx(ir))) then
-        itemp=indx(l+1)
-        indx(l+1)=indx(ir)
-        indx(ir)=itemp
+        itemp = indx(l+1)
+        indx(l+1) = indx(ir)
+        indx(ir) = itemp
      end if
      if(arr(indx(l)).gt.arr(indx(l+1))) then
-        itemp=indx(l)
-        indx(l)=indx(l+1)
-        indx(l+1)=itemp
+        itemp = indx(l)
+        indx(l) = indx(l+1)
+        indx(l+1) = itemp
      end if
-     i=l+1
-     j=ir
-     indxt=indx(l+1)
-     a=arr(indxt)
+     i = l+1
+     j = ir
+     indxt = indx(l+1)
+     a = arr(indxt)
 3    continue
-     i=i+1
+     i = i+1
      if(arr(indx(i)).lt.a) goto 3
 4    continue
-     j=j-1
+     j = j-1
      if(arr(indx(j)).gt.a) goto 4
      if(j.lt.i) goto 5
-     itemp=indx(i)
-     indx(i)=indx(j)
-     indx(j)=itemp
+     itemp = indx(i)
+     indx(i) = indx(j)
+     indx(j) = itemp
      goto 3
-5    indx(l+1)=indx(j)
-     indx(j)=indxt
-     jstack=jstack+2
+5    indx(l+1) = indx(j)
+     indx(j) = indxt
+     jstack = jstack+2
      !if(jstack.gt.nstack)pause 'nstack too small in indexx'
      if(jstack.gt.nstack) write(0,'(A)')' nstack too small in rindexx'
      if(ir-i+1.ge.j-l) then
-        istack(jstack)=ir
-        istack(jstack-1)=i
-        ir=j-1
+        istack(jstack) = ir
+        istack(jstack-1) = i
+        ir = j-1
      else
-        istack(jstack)=j-1
-        istack(jstack-1)=l
-        l=i
+        istack(jstack) = j-1
+        istack(jstack-1) = l
+        l = i
      end if
   end if
   goto 1
@@ -1461,8 +1487,8 @@ end subroutine rindexx
 !***********************************************************************************************************************************
 subroutine savgol(c, np,nl,nr,ld,m)
   implicit none
-  real, intent(out) :: c(np)
   integer, intent(in) :: np,nl,nr,ld,m
+  real, intent(out) :: c(np)
   
   integer, parameter :: mmax=6
   !Uses lubksb,ludcmp
@@ -1472,37 +1498,37 @@ subroutine savgol(c, np,nl,nr,ld,m)
   !if(np.lt.nl+nr+1.or.nl.lt.0.or.nr.lt.0.or.ld.gt.m.or.m.gt.mmax.or.nl+nr.lt.m) pause 'bad args in savgol'
   if(np.lt.nl+nr+1.or.nl.lt.0.or.nr.lt.0.or.ld.gt.m.or.m.gt.mmax.or.nl+nr.lt.m) write(0,'(A)')' Bad args in savgol'
   do ipj=0,2*m
-     sum=0.
-     if(ipj.eq.0)sum=1.
+     sum = 0.
+     if(ipj.eq.0)sum = 1.
      do k=1,nr
-        sum=sum+float(k)**ipj
+        sum = sum+float(k)**ipj
      end do
      do k=1,nl
-        sum=sum+float(-k)**ipj
+        sum = sum+float(-k)**ipj
      end do
-     mm=min(ipj,2*m-ipj)
+     mm = min(ipj,2*m-ipj)
      do imj=-mm,mm,2
-        a(1+(ipj+imj)/2,1+(ipj-imj)/2)=sum
+        a(1+(ipj+imj)/2,1+(ipj-imj)/2) = sum
      end do
   end do
   call ludcmp(a,m+1,mmax+1,indx,d)
   do j=1,m+1
-     b(j)=0.
+     b(j) = 0.
   end do
-  b(ld+1)=1.
+  b(ld+1) = 1.
   call lubksb(a,m+1,mmax+1,indx,b)
   do kk=1,np
-     c(kk)=0.
+     c(kk) = 0.
   end do
   do k=-nl,nr
-     sum=b(1)
-     fac=1.
+     sum = b(1)
+     fac = 1.
      do mm=1,m
-        fac=fac*k
-        sum=sum+b(mm+1)*fac
+        fac = fac*k
+        sum = sum+b(mm+1)*fac
      end do
-     kk=mod(np-k,np)+1
-     c(kk)=sum
+     kk = mod(np-k,np)+1
+     c(kk) = sum
   end do
   
 end subroutine savgol
@@ -1625,8 +1651,8 @@ end subroutine ludcmp
 !! \param x  Angle (rad)
 
 function drev2pi(x)
-  use basic
-  use constants
+  use basic, only: double
+  use constants, only: pi
   
   implicit none
   real(double), intent(in) :: x
@@ -1661,7 +1687,8 @@ end function revper
 !! \param x  Angle (rad)
 
 function revpipi(x)
-  use constants
+  use constants, only: rpi,rpi2
+  
   implicit none
   real, intent(in) :: x
   real :: revpipi
@@ -1744,8 +1771,8 @@ end function rev2pi
 !! \param x  Angle (rad)
 
 function drevpi(x)
-  use basic
-  use constants
+  use basic, only: double
+  use constants, only: pi
   
   implicit none
   real(double), intent(in) :: x
@@ -1763,7 +1790,7 @@ end function drevpi
 !! \param x  Angle (rad)
 
 function rrevpi(x)
-  use constants
+  use constants, only: rpi
   implicit none
   real, intent(in) :: x
   real :: rrevpi
@@ -1777,14 +1804,23 @@ end function rrevpi
 !***********************************************************************************************************************************
 !> \brief  2D KS test
 !!
+!! \param  data1  Dataset 1 (I/O)
+!! \param  n1     Size of dataset 1
+!! \param  data2  Dataset 2 (I/O)
+!! \param  n2     Size of dataset 2
+!! \retval d      
+!! \retval prob   Probability
+!!
+!! \todo  Should data be changed?
 !! \note Needs probks(), sort()
 
+
 subroutine kstwo(data1,n1, data2,n2, d,prob)
-  use basic
+  use basic, only: double
   
   implicit none
   integer, intent(in) :: n1,n2
-  real(double), intent(in) :: data1(n1),data2(n2)
+  real(double), intent(inout) :: data1(n1),data2(n2)
   real(double), intent(out) :: d,prob
   
   integer :: j1,j2
@@ -1792,6 +1828,7 @@ subroutine kstwo(data1,n1, data2,n2, d,prob)
   
   call sort(n1,data1)
   call sort(n2,data2)
+  
   en1 = n1
   en2 = n2
   j1 = 1
@@ -1799,6 +1836,7 @@ subroutine kstwo(data1,n1, data2,n2, d,prob)
   fn1 = 0.d0
   fn2 = 0.d0
   d = 0.d0
+  
 1 if(j1.le.n1.and.j2.le.n2) then
      d1 = data1(j1)
      d2 = data2(j2)
@@ -1814,6 +1852,7 @@ subroutine kstwo(data1,n1, data2,n2, d,prob)
      if(dt.gt.d) d = dt
      goto 1
   end if
+  
   en =  sqrt(en1*en2/(en1+en2))
   prob = probks((en+0.12d0+0.11d0/en)*d)
   
@@ -1823,7 +1862,7 @@ end subroutine kstwo
 
 !***********************************************************************************************************************************
 function probks(alam)
-  use basic
+  use basic, only: double
   
   implicit none
   real(double), parameter :: eps1=1.d-3, eps2=1.d-8
@@ -1852,7 +1891,7 @@ end function probks
 
 !***********************************************************************************************************************************
 subroutine sort(n,arr)
-  use basic
+  use basic, only: double
   
   implicit none
   integer, intent(in) :: n
@@ -1940,7 +1979,7 @@ end subroutine sort
 !! a1  Angle (hours)
 
 function tms(a1)
-  use basic
+  use basic, only: double
   
   implicit none
   real(double), intent(in) :: a1
@@ -1966,7 +2005,8 @@ end function tms
 !> \brief  Determine the operating system type: 1-Linux, 2-MacOSX
 
 function getos()
-  use constants
+  use basic, only: stdErr
+  use constants, only: homedir
   
   implicit none
   integer :: status,system,getos,io
@@ -1995,8 +2035,7 @@ end function getos
 !> \brief  Get time stamp in seconds since 1970-01-01 00:00:00 UTC, mod countmax
 
 function timestamp()
-  use basic
-  use constants
+  use basic, only: double
   
   implicit none
   real(double) :: timestamp
@@ -2048,7 +2087,7 @@ end subroutine pgscidark
 !! \retval vec  3D vector with the same units as r
 
 subroutine lbr2vec(l,b,r,vec)
-  use basic
+  use basic, only: double
   implicit none
   real(double), intent(in) :: l,b,r
   real(double), intent(out) :: vec(3)
@@ -2073,7 +2112,7 @@ end subroutine lbr2vec
 !! \param vec  3D vector
 
 function veclen(vec)
-  use basic
+  use basic, only: double
   implicit none
   real(double), intent(in) :: vec(3)
   real(double) :: veclen
@@ -2090,7 +2129,7 @@ end function veclen
 !! \param vec  3D vector (I/O)
 
 subroutine normvec(vec)
-  use basic
+  use basic, only: double
   implicit none
   real(double), intent(inout) :: vec(3)
   real(double) :: veclen
@@ -2112,7 +2151,7 @@ end subroutine normvec
 !! \retval m2   M2 (Mo)
 
 subroutine mc_eta_2_m1_m2(mc,eta, m1,m2)
-  use basic
+  use basic, only: double
   implicit none
   real(double), intent(in) :: mc,eta
   real(double), intent(out) :: m1,m2
@@ -2143,7 +2182,7 @@ end subroutine mc_eta_2_m1_m2
 !! \retval m2r   M2 (Mo)
 
 subroutine mc_eta_2_m1_m2r(mcr,etar,m1r,m2r)
-  use basic
+  use basic, only: double
   implicit none
   real, intent(in) :: mcr,etar
   real, intent(out) :: m1r,m2r
@@ -2170,7 +2209,7 @@ end subroutine mc_eta_2_m1_m2r
 !! \retval eta  Eta
 
 subroutine m1_m2_2_mc_eta(m1,m2, mc,eta)
-  use basic
+  use basic, only: double
   implicit none
   real(double), intent(in) :: m1,m2
   real(double), intent(out) :: mc,eta
@@ -2194,7 +2233,7 @@ end subroutine m1_m2_2_mc_eta
 !! \retval etar  Eta
 
 subroutine m1_m2_2_mc_etar(m1r,m2r, mcr,etar)
-  use basic
+  use basic, only: double
   implicit none
   real, intent(in) :: m1r,m2r
   real, intent(out) :: mcr,etar
@@ -2219,7 +2258,7 @@ end subroutine m1_m2_2_mc_etar
 !! \retval vec  3D unit vector
 
 subroutine ang2vec(l,b, vec)
-  use basic
+  use basic, only: double
   
   implicit none
   real(double), intent(in) :: l,b
@@ -2244,7 +2283,7 @@ end subroutine  ang2vec
 !! \retval b    Latitude, in [-pi,pi]
 
 subroutine vec2ang(vec, l,b)
-  use basic
+  use basic, only: double
   implicit none
   real(double), intent(in) :: vec(3)
   real(double), intent(out) :: l,b
@@ -2266,7 +2305,7 @@ end subroutine  vec2ang
 !! \param vec2  3D vector 2
 
 function dotproduct(vec1,vec2)
-  use basic
+  use basic, only: double
   implicit none
   real(double), intent(in) :: vec1(3),vec2(3)
   real(double) :: dotproduct
@@ -2286,7 +2325,7 @@ end function dotproduct
 !! \retval crpr  Cross/outer product (vec1 x vec2)
 
 subroutine crossproduct(vec1,vec2, crpr)
-  use basic
+  use basic, only: double
   implicit none
   real(double), intent(in) :: vec1(3),vec2(3)
   real(double), intent(out) :: crpr(3)
@@ -2308,7 +2347,7 @@ end subroutine crossproduct
 !! \see Apostolatos et al. 1994, Eq.5
 
 function polangle(p,o)  
-  use basic
+  use basic, only: double
   
   implicit none
   real(double), intent(in) :: p(3),o(3)
@@ -2333,7 +2372,7 @@ end function polangle
 !! \param o  3D orientation unit vector
 
 function posangle(p,o)
-  use basic
+  use basic, only: double
   
   implicit none
   real(double), intent(in) :: p(3),o(3)
@@ -2373,8 +2412,7 @@ end function posangle
 !! - pb,ob used to be in ([-pi/2,pi/2]) now [0,pi], conf John V. & Christian R.
 
 subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) 
-  use basic
-  use constants
+  use basic, only: double
   
   implicit none
   
@@ -2416,7 +2454,7 @@ end subroutine compute_incli_polang
 !! - single-precision wrapper for compute_incli_polang()
 
 subroutine compute_incli_polangr(plr,pbr,olr,obr, ir,psir)
-  use basic
+  use basic, only: double
   
   implicit none
   real, intent(in) :: plr,pbr,olr,obr
@@ -2448,8 +2486,7 @@ end subroutine compute_incli_polangr
 !! \note  Position angle, not polarisation angle!
 
 subroutine compute_incli_posang(pl,pb,ol,ob, i,pa) 
-  use basic
-  use constants
+  use basic, only: double
   
   implicit none
   real(double), intent(in) :: pl,pb,ol,ob
@@ -2486,7 +2523,7 @@ end subroutine compute_incli_posang
 !! \todo  Finish and use
 
 subroutine detectorvector(d1,d2,jd)
-  use basic
+  use basic, only: double
   implicit none
   integer, intent(in) :: d1,d2
   real(double), intent(inout) :: jd  ! should become (in) once used
@@ -2556,10 +2593,10 @@ end subroutine determine_nbin_1d
 !! \param ni    Number of data points in data set
 
 function compute_median(data,ni)
-  use basic
+  use basic, only: double
   implicit none
-  real(double), intent(in) :: data(ni)
   integer, intent(in) :: ni
+  real(double), intent(in) :: data(ni)
   
   integer :: indexx(ni)
   real(double) :: compute_median
@@ -2585,10 +2622,11 @@ end function compute_median
 !! \param ni     Number of data points in data set
 
 function compute_median_real(datar,ni)
-  use basic
+  use basic, only: double
   implicit none
-  real, intent(in) :: datar(ni)
   integer, intent(in) :: ni
+  real, intent(in) :: datar(ni)
+  
   real :: compute_median_real
   real(double) :: datad(ni),mediand,compute_median
   
@@ -2608,11 +2646,11 @@ end function compute_median_real
 !! \param  mean  Mean of data
 
 function compute_stdev(data,ni,mean)
-  use basic
+  use basic, only: double
   
   implicit none
-  real(double), intent(in) :: data(ni), mean
   integer, intent(in) :: ni
+  real(double), intent(in) :: data(ni), mean
   
   integer :: i
   real(double) :: compute_stdev,stdev
@@ -2636,10 +2674,10 @@ end function compute_stdev
 !! \param  meanr  Mean of data
 
 function compute_stdev_real(datar,ni,meanr)
-  use basic
+  use basic, only: double
   implicit none
-  real(double), intent(in) :: datar(ni), meanr
   integer, intent(in) :: ni
+  real(double), intent(in) :: datar(ni), meanr
   
   real :: compute_stdev_real
   real(double) :: datad(ni),meand,compute_stdev,stdevd
@@ -2688,7 +2726,7 @@ end function get_ran_seed
 !! - tab is a Bays-Durham shuffle table of length Ntab
 
 function ran_unif(seed1)
-  use basic
+  use basic, only: double
   
   implicit none
   integer, intent(inout) :: seed1
@@ -2748,7 +2786,9 @@ end function ran_unif
 !! \retval nf      The actual number of files returned in fnames ( = min(number found, nff))
 
 subroutine findFiles(match,nff,all, fnames,nf)  
-  use constants
+  use basic, only: stdErr
+  use constants, only: homedir
+  
   implicit none
   character, intent(in) :: match*(*)
   integer, intent(in) :: nff,all
@@ -2836,8 +2876,8 @@ end subroutine findFiles
 !> \brief  Define constants that contain the current date or time
 
 subroutine set_currentdate_constants()
-  use basic
-  use constants
+  use basic, only: double
+  use constants, only: currentdatestr,currenttimestr,currenttimezonestr
   
   implicit none
   integer :: dt(8)
@@ -2866,8 +2906,8 @@ end subroutine set_currentdate_constants
 !! \param message  Exit message
 
 subroutine quit_program(message)
-  use basic
-  use constants
+  use basic, only: stdErr
+  
   implicit none
   character, intent(in) :: message*(*)
   

@@ -7,14 +7,19 @@
 !! \retval exitcode  Exit status code (0=ok)
 
 subroutine chains(exitcode)
-  use constants
-  use analysemcmc_settings
-  use general_data
-  use mcmcrun_data
-  use plot_data
-  use chain_data
+  use basic, only: stdOut,stdErr
+  use analysemcmc_settings, only: plLogL,update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality,scLogLpl
+  use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,plChain,fontsize1d,nPlPar,panels,plPars,scChainsPl,changeVar
+  use analysemcmc_settings, only: chainSymbol,plInject,mergeChains,plStart,prConv,plParL,plJump,plAcorr,nAcorr
+  use general_data, only: post,allDat,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax,nChains,parNames,pgParNs,rhat
+  use general_data, only: pgOrigParns,pgParNss
+  use mcmcrun_data, only: revID,parID
+  use plot_data, only: psclr,defcolour,bmpsz,bmprat,ncolours,colours,unSharplogl,bmpxpix,nsymbols,symbols,unSharpchain
+  use chain_data, only: is,jumps,acorrs,lAcorrs,isburn
+  
   implicit none
   integer, intent(out) :: exitcode
+  
   integer :: i,j,pgopen,imin,ci,lw,symbol,io,ic,p,status,system
   real :: rev360,rev24,rev180,compute_median_real
   real :: dx,dy,xmin,xmax,ymin,ymax,sch,plx,ply

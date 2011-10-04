@@ -13,19 +13,23 @@
 !! \param norm   Normalise histogram (1) or not (0)
 !! \param nxbin  Desired number of bins, parameter 1
 !! \param nybin  Desired number of bins, parameter 2
+!!
 !! \param xmin1  Minimum value of the binning range, parameter 1.  Set xmin=xmax to auto-determine (I/O)
 !! \param xmax1  Maximum value of the binning range, parameter 1.  Set xmin=xmax to auto-determine (I/O)
 !! \param ymin1  Minimum value of the binning range, parameter 2.  Set ymin=ymax to auto-determine (I/O)
 !! \param ymax1  Maximum value of the binning range, parameter 2.  Set ymin=ymax to auto-determine (I/O)
+!!
 !! \retval z     Binned data, height of the bins
 !! \retval tr    Transformation elements for pgplot; determines ranges of the output matrix z
 
-subroutine bindata2dold(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)
+subroutine bindata2dold(n,x,y,norm,nxbin,nybin, xmin1,xmax1,ymin1,ymax1, z,tr)
+  
   implicit none
   integer, intent(in) :: n, nxbin,nybin, norm
   real, intent(in) :: x(n),y(n)
   real, intent(inout) :: xmin1,xmax1,ymin1,ymax1
   real, intent(out) :: z(nxbin+1,nybin+1),tr(6)
+  
   integer :: i,bx,by
   real :: xbin(nxbin+1),ybin(nybin+1)
   real :: xmin,xmax,ymin,ymax,dx,dy
@@ -319,13 +323,16 @@ end subroutine bindata2da
 !! \param tr  Transformation elements used by PGPlot
 
 subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
-  use constants
-  use analysemcmc_settings
-  use mcmcrun_data
+  use basic, only: stdOut
+  use constants, only: rd2r
+  use analysemcmc_settings, only: changeVar,ivals,prProgress
+  use mcmcrun_data, only: parID
+  
   implicit none
   integer, intent(in) :: p1,p2,ni,nx,ny
   real, intent(inout) :: z(nx,ny)
   real, intent(in) :: tr(6)
+  
   integer :: nn,indx(nx*ny),i,b,ib,full(ni),iy
   real :: x1(nx*ny),x2(nx*ny),tot,np,y
   
@@ -403,15 +410,18 @@ end subroutine identify_2d_ranges
 !! \retval area  Probability areas
 
 subroutine calc_2d_areas(p1,p2,ni,nx,ny,z,tr,area)
-  use constants
-  use analysemcmc_settings
-  use mcmcrun_data
+  use constants, only: rd2r
+  use analysemcmc_settings, only: changeVar
+  use mcmcrun_data, only: parID
+  
   implicit none
   integer, intent(in) :: p1,p2,ni,nx,ny
   real, intent(in) :: z(nx,ny),tr(6)
   real, intent(out) :: area(ni)
+  
   integer :: ix,iy,i,i1,iv
   real :: y,dx,dy
+  
   
   area = 0.
   

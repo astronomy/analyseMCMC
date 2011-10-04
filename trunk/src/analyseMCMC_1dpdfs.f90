@@ -7,11 +7,16 @@
 !! \retval exitcode  Exit code: 0=ok
 
 subroutine pdfs1d(exitcode)
-  use constants
-  use analysemcmc_settings
-  use general_data
-  use mcmcrun_data
-  use plot_data
+  use basic, only: stdOut,stdErr
+  use constants, only: rtpi
+  use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
+  use analysemcmc_settings, only: plLmax,fontsize1d,nPlPar,panels,plPars,changeVar
+  use analysemcmc_settings, only: plInject,mergeChains
+  use analysemcmc_settings, only: savePDF,plot,ivals,Nbin1D,Nival,fillPDF,normPDF1D,smooth,plPDF1D,plMedian,plRange,prIval,prValues
+  use general_data, only: allDat,outputname,outputdir,nChains0,startval,icloglmax,iloglmax,nChains,parNames,pgParNs
+  use general_data, only: pgParNss,selDat,stats,ranges,c0,contrchain,n,maxIter,wrap,fixedpar,shifts,shIvals,pgunits
+  use mcmcrun_data, only: totpts,maxChs,revID,parID,Tchain
+  use plot_data, only: psclr,bmpsz,bmprat,ncolours,colours,bmpxpix,unSharppdf1d
   
   implicit none
   integer, intent(out) :: exitcode

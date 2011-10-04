@@ -3,8 +3,11 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   196: sluys, 04/10/2011
+     - Added "only" attributes for all "use" statements
+     
    195: sluys, 04/10/2011
-     - Added intent() for all dummy variables
+     - Added "intent" attributes for all dummy variables
      
    194: sluys, 03/10/2011
      - Updated Makefile: 

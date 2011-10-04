@@ -5,8 +5,8 @@
 !> \brief Define the names and symbols of the original MCMC parameters
 
 subroutine set_originalParameterNames()
-   use analysemcmc_settings
-   use general_data
+   use analysemcmc_settings, only: fonttype
+   use general_data, only: parNames,pgParNs,pgParNss,pgUnits, pgOrigParns
    implicit none
    
    parNames = ''
@@ -306,9 +306,11 @@ end subroutine set_originalParameterNames
 !! - e.g. d_L rather than d_L^3 or log(d_L), i rather than cos(i), etc.
 
 subroutine set_derivedParameterNames()
-   use analysemcmc_settings
-   use general_data
+   use analysemcmc_settings, only: fonttype
+   use general_data, only: parNames,pgParNs,pgParNss,pgUnits
+   
    implicit none
+   
    
    parNames = ''
    pgParNs = ''
