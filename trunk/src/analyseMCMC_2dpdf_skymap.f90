@@ -10,14 +10,13 @@
 !! \param by2      Dec boundary 2
 !! \param raShift  Shift in RA needed to centre the PDF
 
-subroutine plotthesky(bx10,bx20,by1,by2,raShift)
+subroutine plotthesky(bx10,bx20, by1,by2, raShift)
   use basic
   use constants
   use plot_data
   
   implicit none
-  real, intent(in) :: by1,by2,raShift
-  real, intent(in) :: bx10,bx20
+  real, intent(in) :: bx10,bx20, by1,by2, raShift
   
   integer, parameter :: ns=9110, nsn=80
   integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,spld,n,prslbl,rv
@@ -307,16 +306,19 @@ end function getmag
 !!
 !! - Clone of pgimag, use projection if projection > 0
 
-subroutine pgimag_project(z,nbx,nby,xb1,xb2,yb1,yb2,z1,z2,tr,projection)
+subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, tr, projection)
   use constants
   use general_data
   implicit none
   integer, parameter :: nell=100
-  integer :: nbx,nby,xb1,xb2,yb1,yb2
-  real :: z(nbx,nby),tr(6),z1,z2,dz,dcdz
+  integer, intent(in) :: nbx,nby, xb1,xb2, yb1,yb2, projection
+  real, intent(in) :: z(nbx,nby), z1,z2, tr(6)
+  
+  real :: dz,dcdz
   real :: x,y,dx,dy,xs(5),ys(5),xell(nell),yell(nell),sch
-  integer :: i,ix,iy,clr1,clr2,dc,ci,projection,lw
+  integer :: i,ix,iy,clr1,clr2,dc,ci,lw
   character :: str*(99)
+  
   
   call pgqch(sch)  ! Save current character height
   call pgsch(0.5*sch)

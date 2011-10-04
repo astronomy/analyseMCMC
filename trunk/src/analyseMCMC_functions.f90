@@ -1459,11 +1459,12 @@ end subroutine rindexx
 
 
 !***********************************************************************************************************************************
-subroutine savgol(c,np,nl,nr,ld,m)
+subroutine savgol(c, np,nl,nr,ld,m)
   implicit none
-  integer :: ld,m,nl,np,nr,mmax
-  real :: c(np)
-  parameter (mmax=6)
+  real, intent(out) :: c(np)
+  integer, intent(in) :: np,nl,nr,ld,m
+  
+  integer, parameter :: mmax=6
   !Uses lubksb,ludcmp
   integer :: imj,ipj,j,k,kk,mm,indx(mmax+1)
   real :: d,fac,sum,a(mmax+1,mmax+1),b(mmax+1)
@@ -1511,30 +1512,33 @@ end subroutine savgol
 !***********************************************************************************************************************************
 subroutine lubksb(a,n,np,indx,b)
   implicit none
-  integer :: n,np,indx(n)
-  real :: a(np,np),b(n)
+  integer, intent(in) :: n,np,indx(n)
+  real, intent(in) :: a(np,np)
+  real, intent(out) :: b(n)
+  
   integer :: i,ii,j,ll
   real :: sum
-  ii=0
+  
+  ii = 0
   do i=1,n
-     ll=indx(i)
-     sum=b(ll)
-     b(ll)=b(i)
+     ll = indx(i)
+     sum = b(ll)
+     b(ll) = b(i)
      if (ii.ne.0) then
         do j=ii,i-1
-           sum=sum-a(i,j)*b(j)
+           sum = sum-a(i,j)*b(j)
         end do
      else if (sum.ne.0.) then
-        ii=i
+        ii = i
      end if
-     b(i)=sum
+     b(i) = sum
   end do
   do i=n,1,-1
-     sum=b(i)
+     sum = b(i)
      do j=i+1,n
-        sum=sum-a(i,j)*b(j)
+        sum = sum - a(i,j)*b(j)
      end do
-     b(i)=sum/a(i,i)
+     b(i) = sum/a(i,i)
   end do
   
 end subroutine lubksb
@@ -1544,65 +1548,69 @@ end subroutine lubksb
 
 !***********************************************************************************************************************************
 subroutine ludcmp(a,n,np,indx,d)
-   implicit none
-   integer :: n,np,indx(n),nmax
-   real :: d,a(np,np),tiny
-   parameter (nmax=500,tiny=1.0e-20)
-   integer :: i,imax,j,k
-   real :: aamax,dum,sum,vv(nmax)
-   
-   imax = 0
-   
-   d=1.
-   do i=1,n
-      aamax=0.
-      do j=1,n
-         if (abs(a(i,j)).gt.aamax) aamax=abs(a(i,j))
-      end do
-      !if (aamax.eq.0.) pause 'singular matrix in ludcmp'
-      if(aamax.eq.0.) write(0,'(A)')' Singular matrix in ludcmp'
-      vv(i)=1./aamax
-   end do
-   do j=1,n
-      do i=1,j-1
-         sum=a(i,j)
-         do k=1,i-1
-            sum=sum-a(i,k)*a(k,j)
-         end do
-         a(i,j)=sum
-      end do
-      aamax=0.
-      do i=j,n
-         sum=a(i,j)
-         do k=1,j-1
-            sum=sum-a(i,k)*a(k,j)
-         end do
-         a(i,j)=sum
-         dum=vv(i)*abs(sum)
-         if (dum.ge.aamax) then
-            imax=i
-            aamax=dum
-         end if
-      end do
-      if (j.ne.imax) then
-         do k=1,n
-            dum=a(imax,k)
-            a(imax,k)=a(j,k)
-            a(j,k)=dum
-         end do
-         d=-d
-         vv(imax)=vv(j)
-      end if
-      indx(j)=imax
-      if(a(j,j).eq.0.)a(j,j)=tiny
-      if(j.ne.n) then
-         dum=1./a(j,j)
-         do i=j+1,n
-            a(i,j)=a(i,j)*dum
-         end do
-      end if
-   end do
-   
+  implicit none
+  integer, intent(in) :: n,np
+  integer, intent(out) :: indx(n)
+  real, intent(inout) :: a(np,np)
+  real, intent(out) :: d
+  
+  integer, parameter :: nmax=500
+  real, parameter :: tiny=1.0e-20
+  integer :: i,imax,j,k
+  real :: aamax,dum,sum,vv(nmax)
+  
+  imax = 0
+  
+  d = 1.
+  do i=1,n
+     aamax = 0.
+     do j=1,n
+        if (abs(a(i,j)).gt.aamax) aamax = abs(a(i,j))
+     end do
+     !if (aamax.eq.0.) pause 'singular matrix in ludcmp'
+     if(aamax.eq.0.) write(0,'(A)')' Singular matrix in ludcmp'
+     vv(i) = 1./aamax
+  end do
+  do j=1,n
+     do i=1,j-1
+        sum = a(i,j)
+        do k=1,i-1
+           sum = sum-a(i,k)*a(k,j)
+        end do
+        a(i,j) = sum
+     end do
+     aamax = 0.
+     do i=j,n
+        sum = a(i,j)
+        do k=1,j-1
+           sum = sum-a(i,k)*a(k,j)
+        end do
+        a(i,j) = sum
+        dum = vv(i)*abs(sum)
+        if (dum.ge.aamax) then
+           imax = i
+           aamax = dum
+        end if
+     end do
+     if (j.ne.imax) then
+        do k=1,n
+           dum = a(imax,k)
+           a(imax,k) = a(j,k)
+           a(j,k) = dum
+        end do
+        d = -d
+        vv(imax) = vv(j)
+     end if
+     indx(j) = imax
+     if(a(j,j).eq.0.) a(j,j) = tiny
+     if(j.ne.n) then
+        dum = 1./a(j,j)
+        do i=j+1,n
+           a(i,j) = a(i,j)*dum
+        end do
+     end if
+  end do
+  
 end subroutine ludcmp
 !***********************************************************************************************************************************
 
@@ -1612,7 +1620,7 @@ end subroutine ludcmp
 
 
 !***********************************************************************************************************************************
-!> \brief  Returns angle in radians between 0 and 2pi (double precision)
+!> \Brief  Returns angle in radians between 0 and 2pi (double precision)
 !!
 !! \param x  Angle (rad)
 
@@ -1621,7 +1629,9 @@ function drev2pi(x)
   use constants
   
   implicit none
-  real(double) :: x,drev2pi
+  real(double), intent(in) :: x
+  real(double) :: drev2pi
+  
   drev2pi = x - floor(x/(2*pi))*2*pi
   
 end function drev2pi
@@ -1635,11 +1645,12 @@ end function drev2pi
 !! \param per  Period of cycle
 
 function revper(x,per)
-   implicit none
-   real :: x,per,revper
-   
-   revper = x - floor(x/per)*per
-   
+  implicit none
+  real, intent(in) :: x,per
+  real :: revper
+  
+  revper = x - floor(x/per)*per
+  
 end function revper
 !***********************************************************************************************************************************
 
@@ -1652,7 +1663,8 @@ end function revper
 function revpipi(x)
   use constants
   implicit none
-  real :: x,revpipi
+  real, intent(in) :: x
+  real :: revpipi
   
   revpipi = x - floor(x/rpi2)*rpi2
   if(revpipi.gt.rpi) revpipi = revpipi - rpi2
@@ -1668,7 +1680,8 @@ end function revpipi
 
 function rev360(x)
   implicit none
-  real :: x,rev360
+  real, intent(in) :: x
+  real :: rev360
   
   rev360 = x - floor(x/360.)*360.
   
@@ -1683,7 +1696,8 @@ end function rev360
 
 function rev180(x)
   implicit none
-  real :: x,rev180
+  real, intent(in) :: x
+  real :: rev180
   
   rev180 = x - floor(x/180.)*180.
   
@@ -1698,7 +1712,8 @@ end function rev180
 
 function rev24(x)
   implicit none
-  real :: x,rev24
+  real, intent(in) :: x
+  real :: rev24
   
   rev24 = x - floor(x/24.)*24.
   
@@ -1713,7 +1728,8 @@ end function rev24
 
 function rev2pi(x)
   implicit none
-  real :: x,rev2pi,pi
+  real, intent(in) :: x
+  real :: rev2pi,pi
   
   pi = 4*atan(1.)
   rev2pi = x - floor(x/(2.0*pi))*2.0*pi
@@ -1732,7 +1748,9 @@ function drevpi(x)
   use constants
   
   implicit none
-  real(double) :: x,drevpi
+  real(double), intent(in) :: x
+  real(double) :: drevpi
+  
   drevpi = x - floor(x/pi)*pi
   
 end function drevpi
@@ -1747,7 +1765,8 @@ end function drevpi
 function rrevpi(x)
   use constants
   implicit none
-  real :: x,rrevpi
+  real, intent(in) :: x
+  real :: rrevpi
   
   rrevpi = x - floor(x/rpi)*rpi
   
@@ -1758,38 +1777,41 @@ end function rrevpi
 !***********************************************************************************************************************************
 !> \brief  2D KS test
 !!
-!! - Needs probks(), sort()
+!! \note Needs probks(), sort()
 
-subroutine kstwo(data1,n1,data2,n2,d,prob)
+subroutine kstwo(data1,n1, data2,n2, d,prob)
   use basic
   
   implicit none
-  integer :: n1,n2,j1,j2
-  real(double) :: d,prob,data1(n1),data2(n2)
+  integer, intent(in) :: n1,n2
+  real(double), intent(in) :: data1(n1),data2(n2)
+  real(double), intent(out) :: d,prob
+  
+  integer :: j1,j2
   real(double) :: d1,d2,dt,en1,en2,en,fn1,fn2,probks
   
   call sort(n1,data1)
   call sort(n2,data2)
-  en1=n1
-  en2=n2
-  j1=1
-  j2=1
-  fn1=0.d0
-  fn2=0.d0
-  d=0.d0
+  en1 = n1
+  en2 = n2
+  j1 = 1
+  j2 = 1
+  fn1 = 0.d0
+  fn2 = 0.d0
+  d = 0.d0
 1 if(j1.le.n1.and.j2.le.n2) then
-     d1=data1(j1)
-     d2=data2(j2)
+     d1 = data1(j1)
+     d2 = data2(j2)
      if(d1.le.d2) then
-        fn1=j1/en1
-        j1=j1+1
+        fn1 = j1/en1
+        j1 = j1+1
      end if
      if(d2.le.d1) then
-        fn2=j2/en2
-        j2=j2+1
+        fn2 = j2/en2
+        j2 = j2+1
      end if
-     dt=abs(fn2-fn1)
-     if(dt.gt.d)d=dt
+     dt = abs(fn2-fn1)
+     if(dt.gt.d) d = dt
      goto 1
   end if
   en =  sqrt(en1*en2/(en1+en2))
@@ -1804,23 +1826,25 @@ function probks(alam)
   use basic
   
   implicit none
-  real(double) :: probks,alam,eps1,eps2
-  parameter (eps1=1.d-3, eps2=1.d-8)
+  real(double), parameter :: eps1=1.d-3, eps2=1.d-8
+  real(double), intent(in) :: alam
+  
+  real(double) :: probks
   integer :: j
   real(double) :: a2,fac,term,termbf
   
-  a2=-2.d0*alam**2
-  fac=2.d0
-  probks=0.d0
-  termbf=0.d0
+  a2 = -2.d0*alam**2
+  fac = 2.d0
+  probks = 0.d0
+  termbf = 0.d0
   do j=1,100
-     term=fac*exp(a2*j**2)
-     probks=probks+term
+     term = fac*exp(a2*j**2)
+     probks = probks+term
      if(abs(term).le.eps1*termbf.or.abs(term).le.eps2*probks) return
-     fac=-fac
-     termbf=abs(term)
+     fac = -fac
+     termbf = abs(term)
   end do
-  probks=1.d0
+  probks = 1.d0
   
 end function probks
 !***********************************************************************************************************************************
@@ -1831,75 +1855,77 @@ subroutine sort(n,arr)
   use basic
   
   implicit none
-  integer :: n,m,nstack
-  real(double) :: arr(n)
-  parameter (m=7,nstack=50)
+  integer, intent(in) :: n
+  real(double), intent(inout) :: arr(n)
+  integer, parameter :: m=7, nstack=50
+  
   integer :: i,ir,j,jstack,k,l,istack(nstack)
   real(double) :: a,temp
-  jstack=0
-  l=1
-  ir=n
+  
+  jstack = 0
+  l = 1
+  ir = n
 1 if(ir-l.lt.m) then
      do j=l+1,ir
-        a=arr(j)
+        a = arr(j)
         do i=j-1,l,-1
            if(arr(i).le.a) goto 2
-           arr(i+1)=arr(i)
+           arr(i+1) = arr(i)
         end do
-        i=l-1
-2       arr(i+1)=a
+        i = l-1
+2       arr(i+1) = a
      end do
      if(jstack.eq.0) return
-     ir=istack(jstack)
-     l=istack(jstack-1)
-     jstack=jstack-2
+     ir = istack(jstack)
+     l = istack(jstack-1)
+     jstack = jstack-2
   else
-     k=(l+ir)/2
-     temp=arr(k)
-     arr(k)=arr(l+1)
-     arr(l+1)=temp
+     k = (l+ir)/2
+     temp = arr(k)
+     arr(k) = arr(l+1)
+     arr(l+1) = temp
      if(arr(l).gt.arr(ir)) then
-        temp=arr(l)
-        arr(l)=arr(ir)
-        arr(ir)=temp
+        temp = arr(l)
+        arr(l) = arr(ir)
+        arr(ir) = temp
      end if
      if(arr(l+1).gt.arr(ir)) then
-        temp=arr(l+1)
-        arr(l+1)=arr(ir)
-        arr(ir)=temp
+        temp = arr(l+1)
+        arr(l+1) = arr(ir)
+        arr(ir) = temp
      end if
      if(arr(l).gt.arr(l+1)) then
-        temp=arr(l)
-        arr(l)=arr(l+1)
-        arr(l+1)=temp
+        temp = arr(l)
+        arr(l) = arr(l+1)
+        arr(l+1) = temp
      end if
-     i=l+1
-     j=ir
-     a=arr(l+1)
+     i = l+1
+     j = ir
+     a = arr(l+1)
 3    continue
-     i=i+1
+     i = i+1
      if(arr(i).lt.a) goto 3
 4    continue
-     j=j-1
+     j = j-1
      if(arr(j).gt.a) goto 4
      if(j.lt.i) goto 5
-     temp=arr(i)
-     arr(i)=arr(j)
-     arr(j)=temp
+     temp = arr(i)
+     arr(i) = arr(j)
+     arr(j) = temp
      goto 3
-5    arr(l+1)=arr(j)
-     arr(j)=a
-     jstack=jstack+2
+5    arr(l+1) = arr(j)
+     arr(j) = a
+     jstack = jstack+2
      !if(jstack.gt.nstack)pause 'nstack too small in sort'
      if(jstack.gt.nstack) write(0,'(A)')' nstack too small in dindexx'
      if(ir-i+1.ge.j-l) then
-        istack(jstack)=ir
-        istack(jstack-1)=i
-        ir=j-1
+        istack(jstack) = ir
+        istack(jstack-1) = i
+        ir = j-1
      else
-        istack(jstack)=j-1
-        istack(jstack-1)=l
-        l=i
+        istack(jstack) = j-1
+        istack(jstack-1) = l
+        l = i
      end if
   end if
   goto 1
@@ -1917,7 +1943,9 @@ function tms(a1)
   use basic
   
   implicit none
-  real(double) :: a1,a,s
+  real(double), intent(in) :: a1
+  
+  real(double) :: a,s
   integer :: m
   character :: tms*(8),mm*(2),ss*(4)
   
@@ -1991,7 +2019,8 @@ end function timestamp
 
 subroutine pgscidark(ci0,file,whiteBG)  
   implicit none
-  integer :: ci0,ci,file,whiteBG
+  integer, intent(in) :: ci0,file,whiteBG
+  integer :: ci
   real :: r,g,b,weight
   
   ci = ci0
@@ -2021,7 +2050,10 @@ end subroutine pgscidark
 subroutine lbr2vec(l,b,r,vec)
   use basic
   implicit none
-  real(double) :: l,b,r,sinb,cosb,vec(3)
+  real(double), intent(in) :: l,b,r
+  real(double), intent(out) :: vec(3)
+  
+  real(double) :: sinb,cosb
   
   sinb = sin(b)
   cosb = sqrt(1.d0-sinb*sinb)
@@ -2043,7 +2075,8 @@ end subroutine lbr2vec
 function veclen(vec)
   use basic
   implicit none
-  real(double) :: veclen,vec(3)
+  real(double), intent(in) :: vec(3)
+  real(double) :: veclen
   
   veclen = sqrt(vec(1)*vec(1) + vec(2)*vec(2) + vec(3)*vec(3))
   
@@ -2052,14 +2085,15 @@ end function veclen
 
 
 !***********************************************************************************************************************************
-!> \brief  Normalise a 3D cartesian vector
+!> \brief  Create a unit vector from a 3D cartesian vector
 !!
-!! \param vec  3D vector
+!! \param vec  3D vector (I/O)
 
 subroutine normvec(vec)
   use basic
   implicit none
-  real(double) :: veclen,vec(3)
+  real(double), intent(inout) :: vec(3)
+  real(double) :: veclen
   
   vec = vec/veclen(vec)
   
@@ -2073,13 +2107,16 @@ end subroutine normvec
 !!
 !! \param  mc   Chirp mass (Mo)
 !! \param  eta  Eta
+!!
 !! \retval m1   M1 (Mo)
 !! \retval m2   M2 (Mo)
 
-subroutine mc_eta_2_m1_m2(mc,eta,m1,m2)
+subroutine mc_eta_2_m1_m2(mc,eta, m1,m2)
   use basic
   implicit none
-  real(double) :: mc,eta,m1,m2, dvar,mtot
+  real(double), intent(in) :: mc,eta
+  real(double), intent(out) :: m1,m2
+  real(double) :: dvar,mtot
   
   mtot = mc*eta**(-0.6d0)
   if(eta.le.0.25d0) then
@@ -2101,20 +2138,24 @@ end subroutine mc_eta_2_m1_m2
 !!
 !! \param  mcr   Chirp mass (Mo)
 !! \param  etar  Eta
+!!
 !! \retval m1r   M1 (Mo)
 !! \retval m2r   M2 (Mo)
 
 subroutine mc_eta_2_m1_m2r(mcr,etar,m1r,m2r)
   use basic
   implicit none
+  real, intent(in) :: mcr,etar
+  real, intent(out) :: m1r,m2r
+  
   real(double) :: mc,eta,m1,m2
-  real :: mcr,etar,m1r,m2r
   
   mc = dble(mcr)
   eta = dble(etar)
   call mc_eta_2_m1_m2(mc,eta,m1,m2)
   m1r = real(m1)
   m2r = real(m2)
+  
 end subroutine mc_eta_2_m1_m2r
 !***********************************************************************************************************************************
 
@@ -2124,13 +2165,16 @@ end subroutine mc_eta_2_m1_m2r
 !!
 !! \param  m1   M1 (Mo)
 !! \param  m2   M2 (Mo)
+!!
 !! \retval mc   Chirp mass (Mo)
 !! \retval eta  Eta
 
-subroutine m1_m2_2_mc_eta(m1,m2,mc,eta)
+subroutine m1_m2_2_mc_eta(m1,m2, mc,eta)
   use basic
   implicit none
-  real(double) :: m1,m2,mc,eta,mtot
+  real(double), intent(in) :: m1,m2
+  real(double), intent(out) :: mc,eta
+  real(double) :: mtot
   
   mtot = m1+m2
   eta = m1*m2/(mtot*mtot)
@@ -2145,14 +2189,16 @@ end subroutine m1_m2_2_mc_eta
 !!
 !! \param  m1r   M1 (Mo)
 !! \param  m2r   M2 (Mo)
+!!
 !! \retval mcr   Chirp mass (Mo)
 !! \retval etar  Eta
 
-subroutine m1_m2_2_mc_etar(m1r,m2r,mcr,etar)
+subroutine m1_m2_2_mc_etar(m1r,m2r, mcr,etar)
   use basic
   implicit none
+  real, intent(in) :: m1r,m2r
+  real, intent(out) :: mcr,etar
   real(double) :: m1,m2,mc,eta
-  real :: m1r,m2r,mcr,etar
   
   m1 = dble(m1r)
   m2 = dble(m2r)
@@ -2165,20 +2211,24 @@ end subroutine m1_m2_2_mc_etar
 
 
 !***********************************************************************************************************************************
-!> \brief  Convert longitude, latitude (rad) to a 3D normal vector
+!> \brief  Convert longitude, latitude (rad) to a 3D unit vector
 !!
 !! \param l     Longitude, in [0,2pi[
 !! \param b     Latitude, in [-pi,pi]
-!! \retval vec  3D normal vector
+!!
+!! \retval vec  3D unit vector
 
-subroutine ang2vec(l,b,vec)
+subroutine ang2vec(l,b, vec)
   use basic
   
   implicit none
-  real(double) :: l,b,vec(3),cosb
+  real(double), intent(in) :: l,b
+  real(double), intent(out) :: vec(3)
+  real(double) :: cosb
+  
   cosb = cos(b)
-  vec(1) = cos(l)*cosb
-  vec(2) = sin(l)*cosb
+  vec(1) = cos(l) * cosb
+  vec(2) = sin(l) * cosb
   vec(3) = sin(b)
   
 end subroutine  ang2vec
@@ -2186,16 +2236,19 @@ end subroutine  ang2vec
 
 
 !***********************************************************************************************************************************
-!> \brief  Convert a 3D normal vector to longitude, latitude (rad)
+!> \brief  Convert a 3D vector to longitude, latitude (rad)
 !!
-!! \param  vec  3D normal vector
+!! \param  vec  3D vector
+!!
 !! \retval l    Longitude, in [0,2pi[
 !! \retval b    Latitude, in [-pi,pi]
 
-subroutine vec2ang(vec,l,b)
+subroutine vec2ang(vec, l,b)
   use basic
   implicit none
-  real(double) :: l,b,vec(3),vec1(3)
+  real(double), intent(in) :: vec(3)
+  real(double), intent(out) :: l,b
+  real(double) :: vec1(3)
   
   vec1 = vec
   call normvec(vec1) !Make sure vec1 is normalised
@@ -2215,7 +2268,8 @@ end subroutine  vec2ang
 function dotproduct(vec1,vec2)
   use basic
   implicit none
-  real(double) :: dotproduct,vec1(3),vec2(3)
+  real(double), intent(in) :: vec1(3),vec2(3)
+  real(double) :: dotproduct
   
   dotproduct = vec1(1)*vec2(1) + vec1(2)*vec2(2) + vec1(3)*vec2(3)
   
@@ -2228,12 +2282,14 @@ end function dotproduct
 !!
 !! \param vec1  3D vector 1
 !! \param vec2  3D vector 2
+!!
 !! \retval crpr  Cross/outer product (vec1 x vec2)
 
-subroutine crossproduct(vec1,vec2,crpr)
+subroutine crossproduct(vec1,vec2, crpr)
   use basic
   implicit none
-  real(double) :: vec1(3),vec2(3),crpr(3)
+  real(double), intent(in) :: vec1(3),vec2(3)
+  real(double), intent(out) :: crpr(3)
   
   crpr(1) = vec1(2)*vec2(3) - vec1(3)*vec2(2)
   crpr(2) = vec1(3)*vec2(1) - vec1(1)*vec2(3)
@@ -2244,10 +2300,10 @@ end subroutine crossproduct
 
 
 !***********************************************************************************************************************************
-!> \brief Compute the polarisation angle of a source with position normal vector p and orientation normal vector o
+!> \brief Compute the polarisation angle of a source with position unit vector p and orientation normal vector o
 !!
-!! \param p  3D position normal vector
-!! \param o  3D orientation normal vector
+!! \param p  3D position unit vector
+!! \param o  3D orientation unit vector
 !!
 !! \see Apostolatos et al. 1994, Eq.5
 
@@ -2255,10 +2311,11 @@ function polangle(p,o)
   use basic
   
   implicit none
-  real(double) :: polangle,p(3),o(3)
+  real(double), intent(in) :: p(3),o(3)
+  real(double) :: polangle
   real(double) :: z(3),denom,ocz(3),numer,dotproduct!,datan2
   
-  z = (/0.d0,0.d0,1.d0/)                                     ! Vertical normal vector
+  z = (/0.d0,0.d0,1.d0/)                                     ! Vertical unit vector
   denom = dotproduct(o,z) - dotproduct(o,p)*dotproduct(z,p)  ! Denominator
   call crossproduct(o,z,ocz)
   numer = dotproduct(p,ocz)                                  ! Numerator
@@ -2270,22 +2327,23 @@ end function polangle
 
 
 !***********************************************************************************************************************************
-!> \brief  Compute the position angle of a source with position normal vector p and orientation normal vector o
+!> \brief  Compute the position angle of a source with position unit vector p and orientation unit vector o
 !!
-!! \param p  3D position normal vector
-!! \param o  3D orientation normal vector
+!! \param p  3D position unit vector
+!! \param o  3D orientation unit vector
 
 function posangle(p,o)
   use basic
   
   implicit none
-  real(double) :: posangle,p(3),o(3)
+  real(double), intent(in) :: p(3),o(3)
+  real(double) :: posangle
   real(double) :: x1(3),o1(3),z(3),z1(3),dotproduct
   
   call crossproduct(p,o,x1)
   call crossproduct(x1,p,o1) !o1: projection of o in the plane of the sky
   
-  z = (/0.d0,0.d0,1.d0/) !Vertical normal vector
+  z = (/0.d0,0.d0,1.d0/) !Vertical unit vector
   call crossproduct(p,z,x1)
   call crossproduct(x1,p,z1) !z1: projection of z in the plane of the sky
   
@@ -2306,6 +2364,7 @@ end function posangle
 !! \param  pb   Position: latitude, in [0,pi]  (rad)
 !! \param  ol   Orientation: longtitude, in [0,2pi[  (rad)
 !! \param  ob   Orientation: latitude, in [0,pi]  (rad)  
+!!
 !! \retval i    Inclination angle (rad)
 !! \retval psi  Polarisation angle (rad)
 !! 
@@ -2319,11 +2378,12 @@ subroutine compute_incli_polang(pl,pb,ol,ob, i,psi)
   
   implicit none
   
-  real(double) :: pl,pb,ol,ob
-  real(double) :: p(3),o(3),i,dotproduct,psi,polangle,drevpi
+  real(double), intent(in) :: pl,pb,ol,ob
+  real(double), intent(out) :: i,psi
+  real(double) :: p(3),o(3),dotproduct,polangle,drevpi
   
-  call ang2vec(pl,pb,p)       ! Position normal vector
-  call ang2vec(ol,ob,o)       ! Orientation normal vector
+  call ang2vec(pl,pb,p)       ! Position unit vector
+  call ang2vec(ol,ob,o)       ! Orientation unit vector
   
   ! Definition 1:
   ! Compute inclination angle: <0: points towards us, >0 points away from us:
@@ -2359,8 +2419,9 @@ subroutine compute_incli_polangr(plr,pbr,olr,obr, ir,psir)
   use basic
   
   implicit none
+  real, intent(in) :: plr,pbr,olr,obr
+  real, intent(out) :: ir,psir
   real(double) :: pl,pb,ol,ob,i,psi
-  real :: plr,pbr,olr,obr,ir,psir
   
   pl = dble(plr)
   pb = dble(pbr)
@@ -2384,19 +2445,19 @@ end subroutine compute_incli_polangr
 !! \retval i    Inclination angle (rad)
 !! \retval pa   Polarisation angle (rad)
 !!
-!! \note
-!! - Position angle, not polarisation angle!
+!! \note  Position angle, not polarisation angle!
 
 subroutine compute_incli_posang(pl,pb,ol,ob, i,pa) 
   use basic
   use constants
   
   implicit none
-  real(double) :: pl,pb,ol,ob
-  real(double) :: p(3),o(3),i,dotproduct,pa,posangle !,drevpi
+  real(double), intent(in) :: pl,pb,ol,ob
+  real(double), intent(out) :: i,pa
+  real(double) :: p(3),o(3),dotproduct,posangle
   
-  call ang2vec(pl,pb,p)       ! Position normal vector
-  call ang2vec(ol,ob,o)       ! Orientation normal vector
+  call ang2vec(pl,pb,p)       ! Position unit vector
+  call ang2vec(ol,ob,o)       ! Orientation unit vector
   
   ! Definition 1:
   ! Compute inclination angle: <0: points towards us, >0 points away from us
@@ -2427,8 +2488,9 @@ end subroutine compute_incli_posang
 subroutine detectorvector(d1,d2,jd)
   use basic
   implicit none
-  integer :: d1,d2
-  real(double) :: jd,detcoords(3,2),vec1(3),vec2(3),dvec(3),l,b
+  integer, intent(in) :: d1,d2
+  real(double), intent(inout) :: jd  ! should become (in) once used
+  real(double) :: detcoords(3,2),vec1(3),vec2(3),dvec(3),l,b
   
   jd = 0 !get rid of warnings
   detcoords(1,:) = (/-119.41,46.45/)  !H1; l,b
@@ -2454,7 +2516,8 @@ end subroutine detectorvector
 
 subroutine swapint(i1,i2)
   implicit none
-  integer :: i,i1,i2
+  integer, intent(inout) :: i1,i2
+  integer :: i
   
   i = i1
   i1 = i2
@@ -2472,7 +2535,8 @@ end subroutine swapint
 
 subroutine determine_nbin_1d(npoints,nbin)
   implicit none
-  integer :: npoints,nbin
+  integer, intent(in) :: npoints
+  integer, intent(out) :: nbin
   
   if(npoints.le.100) then
      nbin = floor(2*sqrt(real(npoints)))
@@ -2494,8 +2558,11 @@ end subroutine determine_nbin_1d
 function compute_median(data,ni)
   use basic
   implicit none
-  integer :: ni,indexx(ni)
-  real(double) :: compute_median,data(ni)
+  real(double), intent(in) :: data(ni)
+  integer, intent(in) :: ni
+  
+  integer :: indexx(ni)
+  real(double) :: compute_median
   
   ! Sort the array:
   call dindexx(ni,data,indexx)
@@ -2520,8 +2587,9 @@ end function compute_median
 function compute_median_real(datar,ni)
   use basic
   implicit none
-  integer :: ni
-  real :: compute_median_real,datar(ni)
+  real, intent(in) :: datar(ni)
+  integer, intent(in) :: ni
+  real :: compute_median_real
   real(double) :: datad(ni),mediand,compute_median
   
   datad = dble(datar)
@@ -2543,8 +2611,11 @@ function compute_stdev(data,ni,mean)
   use basic
   
   implicit none
-  integer :: ni,i
-  real(double) :: compute_stdev,data(ni),mean,stdev
+  real(double), intent(in) :: data(ni), mean
+  integer, intent(in) :: ni
+  
+  integer :: i
+  real(double) :: compute_stdev,stdev
   
   stdev = 0.d0
   do i=1,ni
@@ -2567,8 +2638,10 @@ end function compute_stdev
 function compute_stdev_real(datar,ni,meanr)
   use basic
   implicit none
-  integer :: ni
-  real :: compute_stdev_real,datar(ni),meanr
+  real(double), intent(in) :: datar(ni), meanr
+  integer, intent(in) :: ni
+  
+  real :: compute_stdev_real
   real(double) :: datad(ni),meand,compute_stdev,stdevd
   
   datad = dble(datar)
@@ -2670,15 +2743,20 @@ end function ran_unif
 !! \param match    Search string to match
 !! \param nff      Maximum number of files to return
 !! \param all      All files?  0-select manually from list, 1-always return all files in list
+!!
 !! \retval fnames  Array that contains the files found; make sure it has the same length as the array in the calling programme
 !! \retval nf      The actual number of files returned in fnames ( = min(number found, nff))
 
-subroutine findFiles(match,nff,all,fnames,nf)  
+subroutine findFiles(match,nff,all, fnames,nf)  
   use constants
   implicit none
-  integer :: i,j,k,fnum,nf,nff,status,system,all,io
   character, intent(in) :: match*(*)
-  character :: names(nff)*(99),fnames(nff)*(99),tempfile*(99)
+  integer, intent(in) :: nff,all
+  character, intent(out) :: fnames(nff)*(99)
+  integer, intent(out) :: nf
+  
+  integer :: i,j,k,fnum,status,system,io
+  character :: names(nff)*(99),tempfile*(99)
   
   if(len_trim(homedir).eq.99) then
      write(stdErr,'(/,A,/)')'  FindFiles:  ERROR:  variable homedir not defined (forgot to call setconstants?), quitting.'

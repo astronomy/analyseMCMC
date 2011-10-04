@@ -12,8 +12,10 @@ subroutine pdfs1d(exitcode)
   use general_data
   use mcmcrun_data
   use plot_data
+  
   implicit none
   integer, intent(out) :: exitcode
+  
   integer :: i,j,p,ic,io,pgopen,lw,status,system
   real :: rev24,rev360,rev180
   real :: x(maxChs,maxChs*maxIter),xmin,xmax,xmin1,xmax1,xpeak,dx,ymin,ymax,sch
@@ -22,6 +24,7 @@ subroutine pdfs1d(exitcode)
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ysum(:),yconv(:),ycum(:)  
   real :: plshift,plx,ply,x0,norm,bindx
   character :: string*(99),str*(99),str1*(99),str2*(99),delta*(19)
+  
   
   exitcode=0
   if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1) write(stdOut,'(A)',advance="no")'  Saving 1D pdfs'
@@ -720,17 +723,18 @@ end subroutine bindata1d
 !! \param nbin   Desired number of bins
 !! \param xmin1  Minimum value of the binning range.  Set xmin=xmax to auto-determine (I/O)
 !! \param xmax1  Maximum value of the binning range.  Set xmin=xmax to auto-determine (I/O)
+!!
 !! \retval xbin  Binned data, location of the bins.  The x values are the left side of the bin!
 !! \retval ybin  Binned data, height of the bins.
 
-subroutine bindata1da(n,x,y,norm,nbin,xmin1,xmax1,xbin,ybin)
+subroutine bindata1da(n,x,y, norm,nbin,xmin1,xmax1, xbin,ybin)
   implicit none
   integer, intent(in) :: n,nbin,norm
-  real, intent(in) :: x(n)
+  real, intent(in) :: x(n),y(n)
   real, intent(inout) :: xmin1,xmax1
   real, intent(out) :: xbin(nbin+1),ybin(nbin+1)
   integer :: i,k
-  real :: xmin,xmax,dx,ymin,y(n),ybintot
+  real :: xmin,xmax,dx,ymin,ybintot
   
   xmin = xmin1
   xmax = xmax1

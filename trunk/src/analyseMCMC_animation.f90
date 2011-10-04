@@ -16,7 +16,9 @@ subroutine animation(exitcode)
   use plot_data
   
   implicit none
-  integer :: c,i,ic,io,p,iframe,nplt,pgopen,lw,n1,n2,exitcode,status,system
+  integer, intent(out) :: exitcode
+  
+  integer :: c,i,ic,io,p,iframe,nplt,pgopen,lw,n1,n2, status,system
   integer :: index(maxMCMCpar,maxChs*maxIter),small_anim
   real :: range,range1,range2,drange,minrange,centre,median,plshift,ival,norm
   real :: x(maxChs,maxChs*maxIter),x1,x2,xmin,xmax,xmin1,xmax1,dx,y1,y2,ymin,ymax,dy,sch

@@ -204,22 +204,31 @@ end subroutine bindata2d
 !! \param x      Input data: x values (real)
 !! \param y      Input data: y values (real)
 !! \param z      Input data: likelihood values
+!!
 !! \param norm   Normalise the bins (1) or not (0) (integer)
 !! \param nxbin  Desired number of bins in the x direction
 !! \param nybin  Desired number of bins in the y direction
+!!
 !! \param xmin1  Lower limit for the binning range in the x direction - autodetermine if xmin1=xmax1 (real)
 !! \param xmax1  Upper limit for the binning range in the x direction - autodetermine if xmin1=xmax1 (real)
 !! \param ymin1  Lower limit for the binning range in the y direction - autodetermine if ymin1=ymax1 (real)
 !! \param ymax1  Upper limit for the binning range in the y direction - autodetermine if ymin1=ymax1 (real)
+!!
 !! \retval zz    'Binned' data set z(nxbin,nybin) (real)
 !! \retval tr    Transformation elements for pgplot tr(6) (real)
+!!
+!! \todo  Should z be replaced?
 
-subroutine bindata2da(n,x,y,z,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,zz,tr)
+subroutine bindata2da(n, x,y,z, norm, nxbin,nybin, xmin1,xmax1,ymin1,ymax1, zz, tr)
   
   implicit none
-  integer :: i,n,bx,by,nxbin,nybin,norm
-  real :: x(n),y(n),z(n),xbin(nxbin+1),ybin(nybin+1),zz(nxbin+1,nybin+1),zztot,xmin,xmax,ymin,ymax,dx,dy,xmin1,xmax1,ymin1,ymax1
-  real :: tr(6),zmin
+  integer, intent(in) :: n, norm, nxbin,nybin
+  integer :: i,bx,by
+  real, intent(in) :: x(n),y(n)
+  real, intent(inout) :: z(n), xmin1,xmax1,ymin1,ymax1
+  real, intent(out) :: zz(nxbin+1,nybin+1), tr(6)
+  
+  real :: xbin(nxbin+1),ybin(nybin+1), zztot, xmin,xmax,ymin,ymax, dx,dy ,zmin
   
   !write(stdOut,'(A4,5I8)')'n:',norm,nxbin,nybin
   !write(stdOut,'(A4,2F8.3)')'x:',xmin1,xmax1

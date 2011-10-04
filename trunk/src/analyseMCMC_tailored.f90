@@ -13,12 +13,12 @@
 !! - 2: Methods paper 2010
 
 subroutine tailored_output(exitcode)
-   use constants
-   !use analysemcmc_settings
-   use mcmcrun_data
+  use constants
+  !use analysemcmc_settings
+  use mcmcrun_data
    
    implicit none
-   integer :: exitcode
+   integer, intent(out) :: exitcode
    integer :: out
    character :: outname*(99)
    
@@ -81,7 +81,8 @@ subroutine tailored_output_0002(out,exitcode)
    use chain_data
    
    implicit none
-   integer :: out,exitcode
+   integer, intent(in) :: out
+   integer, intent(out) :: exitcode
    integer :: par,par1,par2,ic
    real(double) :: x
    character :: runID*(99),col*(99),row*(99)

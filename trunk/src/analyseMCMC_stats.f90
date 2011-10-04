@@ -18,7 +18,9 @@ subroutine statistics(exitcode)
   use mcmcrun_data
   
   implicit none
-  integer :: c,i,ic,p,p1,p2,nr,nstat,exitcode,wraptype
+  integer, intent(out) :: exitcode
+  
+  integer :: c,i,ic,p,p1,p2,nr,nstat,wraptype
   integer :: indexx(maxMCMCpar,maxChs*maxIter),index1(maxChs*maxIter)
   real :: revper
   real :: x1,x2,y1,y2
@@ -655,8 +657,10 @@ subroutine save_stats(exitcode)
   use mcmcrun_data
   use stats_data
   use chain_data
+  
   implicit none
-  integer :: c,i,ic,o,p,p1,p2,exitcode,status,system
+  integer, intent(out) :: exitcode
+  integer :: c,i,ic,o,p,p1,p2,status,system
   
   exitcode = 0
   ic = 1 !Use chain 1
@@ -818,7 +822,8 @@ subroutine save_bayes(exitcode)
   use chain_data
   
   implicit none
-  integer :: ic,o,exitcode,status,system
+  integer, intent(out) :: exitcode
+  integer :: ic,o,status,system
   
   exitcode = 0
   !ic = 1 !Use chain 1

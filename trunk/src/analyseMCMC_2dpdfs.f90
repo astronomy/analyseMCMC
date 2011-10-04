@@ -13,8 +13,10 @@ subroutine pdfs2d(exitcode)
   use mcmcrun_data
   use plot_data
   use stats_data
+  
   implicit none
   integer, intent(out) :: exitcode
+  
   integer :: i,j,j1,j2,p1,p2,ic,lw,io,c,status,system,pgopen,clr,maxclr
   integer :: npdf,ncont,flw,plotthis,injectionrange2d,countplots,totplots
   real :: a,rat,cont(11),tr(6),sch,plx,ply
@@ -23,6 +25,7 @@ subroutine pdfs2d(exitcode)
   character :: string*(99),str*(99),tempfile*(99),ivalstr*(99),delta*(19),outputbasefile*(199)
   logical :: project_map,sky_position,binary_orientation
   !real :: xmin1,xmax1,ymin1,ymax1
+  
   
   exitcode = 0
   countplots = 0

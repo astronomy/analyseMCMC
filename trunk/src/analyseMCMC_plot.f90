@@ -10,7 +10,8 @@
 
 subroutine pginitl(colour,file,whiteBG)
   implicit none
-  integer :: colour,file,i,whiteBG
+  integer, intent(in) :: colour,file,whiteBG
+  integer :: i
   
   if(whiteBG.ge.1) then
      call pgscr(0,1.,1.,1.)                ! Background colour always white (also on screen, bitmap)
