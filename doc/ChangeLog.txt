@@ -3,6 +3,13 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   200: sluys, 05/10/2011
+     - functions: 
+       - fixed small bug (real(double) -> real), presumably introduced in rev.195
+       - add output on read error
+     - stats: cap printed values for chain means and variances
+     - updated Makefile
+     
    199: sluys, 05/10/2011
      - Removed trunk/, tags/
      

@@ -1386,18 +1386,26 @@ subroutine compute_convergence()
      if(prConv.ge.3) then
         write(stdOut,'(A)')'  Means:'
         do ic=1,nChains0
-           if(contrChain(ic).eq.0) cycle  !Contributing chains only
+           if(contrChain(ic).eq.0) cycle  ! Contributing chains only
            write(stdOut,'(I12,A2)',advance="no")ic,': '
            do p=1,nMCMCpar
-              if(fixedpar(p).eq.1) cycle  !Varying parameters only
-              write(stdOut,'(F9.5)',advance="no")chMean(ic,p)
+              if(fixedpar(p).eq.1) cycle  ! Varying parameters only
+              if(abs(chMean(ic,p)).lt.10.d0) then
+                 write(stdOut,'(F9.5)',advance="no")min(max(chMean(ic,p),-999.9999d0),999.9999d0)
+              else
+                 write(stdOut,'(F9.4)',advance="no")min(max(chMean(ic,p),-999.9999d0),999.9999d0)
+              end if
            end do
            write(stdOut,*)
         end do
         write(stdOut,'(A14)',advance="no")'        Mean: '
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle  !Varying parameters only
-           write(stdOut,'(F9.5)',advance="no")avgMean(p)
+           if(abs(avgMean(p)).lt.10.d0) then
+              write(stdOut,'(F9.5)',advance="no")min(max(avgMean(p),-999.9999d0),999.9999d0)
+           else
+              write(stdOut,'(F9.4)',advance="no")min(max(avgMean(p),-999.9999d0),999.9999d0)
+           end if
         end do
         write(stdOut,*)
         
@@ -1405,7 +1413,7 @@ subroutine compute_convergence()
   end if !if(prConv.ge.1)
   
   
-  !Flag and print variances:
+  ! Flag and print variances:
   if(prConv.ge.3) write(stdOut,'(/,A)')'  Variances:'
   do ic=1,nChains0
      if(contrChain(ic).eq.0) cycle  !Contributing chains only
@@ -1423,7 +1431,7 @@ subroutine compute_convergence()
         end if
      end do
      
-     !Find and flag extraordinarily low and high variances:
+     ! Find and flag extraordinarily low and high variances:
      IDs(1:4) = (/61,62,71,81/)  !Mass and spin parameters
      nLowVar = 0
      nHighVar = 0
@@ -1435,10 +1443,10 @@ subroutine compute_convergence()
            nUsedPar = nUsedPar + 1
         end if
      end do
-     !Take geometric mean of (the variance of each chain, relative to the total variance):
+     ! Take geometric mean of (the variance of each chain, relative to the total variance):
      meanRelVar = meanRelVar**(1.d0/dble(nmeanRelVar)) 
      
-     !Print and flag mean variance and variances for each chain:
+     ! Print and flag mean variance and variances for each chain:
      if(prConv.ge.3) then
         ch = ' '
         if(nLowVar.eq.nUsedPar) ch = '*'
@@ -1449,7 +1457,7 @@ subroutine compute_convergence()
            ch = ' '
            if(lowVar(p).eq.1) ch = '*'
            if(highVar(p).eq.1) ch = '#'
-           write(stdOut,'(F8.4,A1)',advance="no")chVar1(ic,p),ch
+           write(stdOut,'(F8.4,A1)',advance="no")min(max(chVar1(ic,p),-999.9999d0),999.9999d0),ch
         end do
         ch = ' '
         if(meanRelVar.lt.0.5) ch = '*'
@@ -1460,18 +1468,18 @@ subroutine compute_convergence()
   end do
   
   
-  !Print mean variance for all parameters :
+  ! Print mean variance for all parameters :
   if(prConv.ge.3) then
      write(stdOut,'(A13)',advance="no")'   Mean:'
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  !Varying parameters only
-        write(stdOut,'(F9.4)',advance="no")chVar(p)
+        write(stdOut,'(F9.4)',advance="no")min(max(chVar(p),-999.9999d0),999.9999d0)
      end do
      write(stdOut,*)
      write(stdOut,*)
   end if !if(prConv.ge.3)
   
-  !Print the variances within chains and between chains:
+  ! Print the variances within chains and between chains:
   if(prConv.ge.2) then
      write(stdOut,'(A)')'  Variances:'
      write(stdOut,'(A14)',advance="no")'      In chs: '

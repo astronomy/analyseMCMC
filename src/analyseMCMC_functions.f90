@@ -631,8 +631,9 @@ subroutine read_mcmcfiles(exitcode)
                  stop
               else
                  write(stdOut,'(A,I7)',advance="no")'  Read error in file '//trim(infile)//', line',i
-                 write(stdOut,*)
                  i = i-1
+                 write(stdOut,'(2(A,I8))',advance='no')'  iteration:',tmpInt,', last iteration read successfully:',nint(is(ic,i))
+                 write(stdOut,*)
                  exit
               end if
            end if
@@ -2677,7 +2678,7 @@ function compute_stdev_real(datar,ni,meanr)
   use basic, only: double
   implicit none
   integer, intent(in) :: ni
-  real(double), intent(in) :: datar(ni), meanr
+  real, intent(in) :: datar(ni), meanr
   
   real :: compute_stdev_real
   real(double) :: datad(ni),meand,compute_stdev,stdevd

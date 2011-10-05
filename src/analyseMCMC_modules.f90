@@ -22,6 +22,7 @@ module basic
   integer, parameter :: maxint = max(selected_int_kind(9),selected_int_kind(18),selected_int_kind(38),selected_int_kind(99)) 
   integer, parameter :: maxreal = max(selected_real_kind(6),selected_real_kind(15),selected_real_kind(18), &
        selected_real_kind(31),selected_real_kind(33),selected_real_kind(99))
+  !integer, parameter :: maxreal = double  ! If the above doesn't work
   
   integer :: stdOut,stdErr
   

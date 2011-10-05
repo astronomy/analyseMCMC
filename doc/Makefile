@@ -255,7 +255,7 @@ MCMCstats: $(STDOBJ) $(OBJDIR)/MCMCstats.o
 
 #$(SRCDIR)/code_version.f90: .svn/entries   #.svn/entries changes when committing/updating
 $(SRCDIR)/code_version.f90: code_version    #code_version is PHONY and always out-of-date
-	@. code_version.sh . $(COMP)
+	@. ./code_version.sh . "$(COMP) $(OPT)"
 
 
 dirs:
