@@ -3,6 +3,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   199: sluys, 05/10/2011
+     - Removed trunk/, tags/
+     
+   198: sluys, 05/10/2011
+     - Move everything one directory up from trunk/ 
+     
    197: sluys, 05/10/2011
      - Consistent indentation
      
