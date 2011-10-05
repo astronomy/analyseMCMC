@@ -327,10 +327,10 @@ program analyseMCMC
   call mcmcruninfo(exitcode)
   
   if(savePDF.ge.2) then
-       write(stdOut,'(A)')'  Writing after-burnin data points to file'
-       call save_data(exitcode) !save after-burnin combined data to file
+     write(stdOut,'(A)')'  Writing after-burnin data points to file'
+     call save_data(exitcode) !save after-burnin combined data to file
   end if
-
+  
   
   !More implicit options:
   if(panels(1)*panels(2).lt.min(nPlPar,nMCMCpar)) panels = 0
@@ -498,7 +498,7 @@ program analyseMCMC
   
   if(timing) then
      timestamps(9) = timestamp()
-  
+     
      if(prProgress.ge.1) then
         write(stdOut,'(A)',advance="no")'  Run time: '
         write(stdOut,'(A,F5.1,A)',advance="no")'   input:',min(abs(timestamps(2)-timestamps(1)),999.9_dbl),'s,'

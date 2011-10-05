@@ -96,7 +96,7 @@ subroutine read_settingsfile()
   
   read(u,*,iostat=io)bla
   
-
+  
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)thin
   read(u,*,iostat=io)dblvar
@@ -167,7 +167,7 @@ subroutine read_settingsfile()
   read(u,*,iostat=io)animScheme
   read(u,*,iostat=io)Nival,ival0
   read(u,*,iostat=io1)(ivals(i),i=1,Nival)
-
+  
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)scrSz
   read(u,*,iostat=io)scrRat
@@ -177,7 +177,7 @@ subroutine read_settingsfile()
   read(u,*,iostat=io)PSrat
   read(u,*,iostat=io)scFac
   read(u,*,iostat=io)unSharp
-
+  
   read(u,*,iostat=io)bla
   read(u,*,iostat=io)orientation
   read(u,*,iostat=io)fontType
@@ -346,7 +346,7 @@ subroutine write_settingsfile()
   write(u,21)scFac, 'scFac',   '!!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y'// &
        ' size indicated above to interpolate and smoothen the plot'
   write(u,11)unSharp, 'unSharp',   'Apply unsharp mask when creating .png plots. Default: 10.'
-
+  
   write(u,'(/,A)')' Fonts, symbols, etc.:'
   write(u,11)orientation, 'orientation',   'Use portrait (1) or landscape (2) for eps/pdf; mainly useful'// &
        ' when sending a plot to a printer'

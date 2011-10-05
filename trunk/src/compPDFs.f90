@@ -154,7 +154,7 @@ program comp_pdfs
         !fr1 = fr1+2  !Skip the masses
         !if(fr1.gt.5) fr1 = fr1+2 !Skip the spin parameters
         !print*,fr,fr1
-
+        
         
         if(dim.eq.1) then
            !call plotpdf1d(nf,fnames,fr1,lbl,clr,fontsize)

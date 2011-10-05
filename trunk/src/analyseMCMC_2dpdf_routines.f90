@@ -284,7 +284,7 @@ subroutine bindata2da(n, x,y,z, norm, nxbin,nybin, xmin1,xmax1,ymin1,ymax1, zz, 
         !write(stdOut,'(2I4,5x,4F6.3,5x,10I8)')bx,by,xbin(bx),xbin(bx+1),ybin(by),ybin(by+1),nint(zz(bx,by))
      end do
      !write(stdOut,'(I4,5x,2F6.3,5x,10I8)')bx,xbin(bx),xbin(bx+1),nint(zz(bx,1:nybin))
-     end do
+  end do
   !if(norm.eq.1) z = z/(zztot+1.e-30)
   if(norm.eq.1) z = z/maxval(z+1.e-30)
   

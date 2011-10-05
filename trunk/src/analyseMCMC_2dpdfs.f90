@@ -70,7 +70,7 @@ subroutine pdfs2d(exitcode)
      pltsz = bmpsz
      pltrat = bmprat
   end if
-     
+  
   
   ! Autodetermine number of bins for 2D PDFs:
   if(Nbin2Dx.le.0) then
@@ -824,7 +824,7 @@ subroutine pdfs2d(exitcode)
      !      status = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.eps')
      !   end if
      !end if
-  
+     
      ! Remove all the .ppm files:
      if(file.eq.1) then
         countplots = 0

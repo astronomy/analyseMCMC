@@ -34,7 +34,7 @@ subroutine pdfs1d(exitcode)
   exitcode=0
   if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1) write(stdOut,'(A)',advance="no")'  Saving 1D pdfs'
   if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' 1D pdfs'
-
+  
   write(delta,'(A,I3.3,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
   if(nint(ivals(c0)*100).lt.100) write(delta,'(A,I2.2,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
   
@@ -127,13 +127,13 @@ subroutine pdfs1d(exitcode)
      call pgslw(lw)
      call pgsch(sch)
      call pgsfs(fillPDF)
-
-
+     
+     
      !if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87)  ! To make room for title
-
+     
      call pgsubp(panels(1),panels(2))
   end if !if(plot.eq.1)
-
+  
   !Save 1D PDF data
   if(savePDF.eq.1) then
      open(unit=30,action='write',form='formatted',status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__pdf1d.dat')
@@ -283,7 +283,7 @@ subroutine pdfs1d(exitcode)
         if(file.ge.2.and.PSrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87)  ! To make room for title
         if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
-
+        
         call pgsch(sch)
         call pgswin(xmin,xmax,ymin,ymax)
         if(abs(dx).lt.1.e-30) then  ! So that the program doesn't hang if a parameter is kept constant
@@ -446,7 +446,7 @@ subroutine pdfs1d(exitcode)
                  if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/-1.e20,1.e20/)) ! Centre of interval
               end if
            end if
-
+           
            call pgslw(lw+1)
            
            ! Draw coloured lines over the white ones:
@@ -455,7 +455,7 @@ subroutine pdfs1d(exitcode)
               call pgsls(2); call pgsci(2); if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))
            end if
-
+           
            ! Plot ranges in 1D PDF:
            if((plRange.eq.1.or.plRange.eq.3.or.plRange.eq.4.or.plRange.eq.6)) then
               call pgsls(4); call pgsci(2); if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
@@ -486,7 +486,7 @@ subroutine pdfs1d(exitcode)
            !   call pgsls(4); call pgsci(1); if(nchains.gt.1) call pgsci(1)
            !   call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))
            !end if
-
+           
            call pgsls(1)
            call pgsci(1)
         end do !ic
@@ -767,12 +767,12 @@ subroutine bindata1da(n,x,y, norm,nbin,xmin1,xmax1, xbin,ybin)
      ybintot = ybintot + ybin(k)
   end do
   if(norm.eq.1) ybin = ybin/(ybintot+1.e-30)
-
+  
   if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then   ! Autodetermine
      xmin1 = xmin
      xmax1 = xmax
   end if
-
+  
 end subroutine bindata1da
 !***********************************************************************************************************************************
 
@@ -844,7 +844,7 @@ subroutine horzhist(n,x,y)
   integer, intent(in) :: n
   real, intent(in) :: x(n),y(n)
   integer :: j
-
+  
   call pgline(2,(/x(1),x(1)/),(/0.,y(1)/))
   do j=1,n-2
      call pgline(2,x(j:j+1),(/y(j),y(j)/))

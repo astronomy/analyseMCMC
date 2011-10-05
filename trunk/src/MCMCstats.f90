@@ -493,7 +493,7 @@ program mcmcstats
         end if
         call pgsch(1.5)
         call pgpap(papsize,paprat)
-
+        
         call pgsubp(4,3)
         call pgscr(3,0.,0.5,0.)
         
@@ -801,7 +801,7 @@ program mcmcstats
            
            !Print probability ranges:
            do p1=2,npar(f)  !Leave out logL
-           !do p1=4,npar(f)  !Leave out logL, M1, M2
+              !do p1=4,npar(f)  !Leave out logL, M1, M2
               !print*,p,npar(f)
               
               !Display M1,M2 iso Mc,eta

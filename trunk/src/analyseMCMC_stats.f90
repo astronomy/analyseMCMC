@@ -51,17 +51,17 @@ subroutine statistics(exitcode)
               allDat(ic,p,1:Ntot(ic)) = exp(allDat(ic,p,1:Ntot(ic)))   
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = exp(selDat(ic,p,1:n(ic)))
               if(ic.eq.1) startval(1:nChains0,p,1:3) = exp(startval(1:nChains0,p,1:3))
-                          
+              
            case(65) !Mc_1/6 -> Mc:
               allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**6
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**6
               if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**6
-                          
+              
            case(51,72,82) !cos -> deg:
               allDat(ic,p,1:Ntot(ic)) = acos(allDat(ic,p,1:Ntot(ic)))*rr2d
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = acos(selDat(ic,p,1:n(ic)))*rr2d
               if(ic.eq.1) startval(1:nChains0,p,1:3) = acos(startval(1:nChains0,p,1:3))*rr2d
-                         
+              
            case(31) !rad -> h:
               allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*rr2h  !rad -> h
               if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2h
@@ -843,7 +843,7 @@ subroutine save_bayes(exitcode)
        'ln(Bayes_total_harmo)','ln(Bayes_total_geom)','ln(Bayes_total_temp)'
   write(o,'(6x,7I12,F22.5,4F22.5)')nchains0,contrChains,totiter,totlines,totpts,totlines-totpts,seed(1),DoverD, &
        logebayesfactortotalarith,logebayesfactortotalharmo,logebayesfactortotalgeom,logebayesfactortotal
-
+  
   
   write(o,'(//,A,/)')'EVIDENCES:'
   write(o,'(6x,5A12,2A22)')'chain','totiter','totlines','totpts','totburn','temperature','ln(Bayes)'

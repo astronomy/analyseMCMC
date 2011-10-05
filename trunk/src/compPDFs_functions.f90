@@ -295,7 +295,7 @@ subroutine plotpdf1d(pp,lbl)
      call pgline(2,(/stats(1,pp1,1),stats(1,pp1,1)/),yrange)
   end if !if(plmedian.eq.1.and.nf.eq.1)
   
-
+  
   
   
   call pgsls(1)
@@ -714,42 +714,42 @@ subroutine read_inputfile()
   if(io.ne.0) write(*,'(A)')'  Error opening input file.'
   
   
-    read(u,*)bla
-    
-    read(u,*)bla
-    read(u,*)nf
-    read(u,*)file
-    read(u,*)type
-    read(u,*)dim
-    read(u,*)pltrue
-    read(u,*)plmedian
-    read(u,*)plrange
-    read(u,*)clr
-    read(u,*)fillstyle
-    read(u,*)fonttype
-    read(u,*)fontsize
-    
-    read(u,*)bla
-    read(u,*)bla
-    read(u,*)frames
-    read(u,*)bla
-    plpars = 0
-    !read(u,*)plpars
-    read(u,*)plpars(1:frames(1)*frames(2))  !Don't always read 20 parameters
-       
-    read(u,*)bla
-    read(u,*)bla
-    read(u,*)plpars2d
-    
-    read(u,*)bla
-    read(u,*)bla
-    read(u,*)fnames(1:nf)
-    read(u,*)bla
-    read(u,*)dirnames(1:nf)
-    read(u,*)bla
-    read(u,*)outnamebase
-    
-    close(u)
+  read(u,*)bla
+  
+  read(u,*)bla
+  read(u,*)nf
+  read(u,*)file
+  read(u,*)type
+  read(u,*)dim
+  read(u,*)pltrue
+  read(u,*)plmedian
+  read(u,*)plrange
+  read(u,*)clr
+  read(u,*)fillstyle
+  read(u,*)fonttype
+  read(u,*)fontsize
+  
+  read(u,*)bla
+  read(u,*)bla
+  read(u,*)frames
+  read(u,*)bla
+  plpars = 0
+  !read(u,*)plpars
+  read(u,*)plpars(1:frames(1)*frames(2))  !Don't always read 20 parameters
+  
+  read(u,*)bla
+  read(u,*)bla
+  read(u,*)plpars2d
+  
+  read(u,*)bla
+  read(u,*)bla
+  read(u,*)fnames(1:nf)
+  read(u,*)bla
+  read(u,*)dirnames(1:nf)
+  read(u,*)bla
+  read(u,*)outnamebase
+  
+  close(u)
 end subroutine read_inputfile
 !***********************************************************************************************************************************
 
@@ -772,9 +772,9 @@ subroutine write_inputfile()
 11 format(I10,1x,A9,5x,A)
 12 format(1x,2I5)
 13 format(3x,20I3)
-
+  
 21 format(F10.5,1x,A9,5x,A)
-
+  
   
   write(u,'(A,/)')' Input file for comp_pdfs.f'
   
@@ -930,7 +930,7 @@ subroutine set_derivedParameterNames()
   pgUnits(81:89) = [character(len=99) :: '','\(2218)','\(2218)','','','','','','']
   !pgUnits(1:9) = [character(len=99) :: '','','','','','','','','']
   
-     
+  
 end subroutine set_derivedParameterNames
 !***********************************************************************************************************************************
 

@@ -89,7 +89,7 @@ subroutine animation(exitcode)
      
      range1 = 0.
      range2 = 0.
-        
+     
      !Determine median and ranges for this selection of the chain (Nburn:nplt)
      if(nplt.gt.Nburn(ic)) then
         

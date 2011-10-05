@@ -40,7 +40,7 @@ subroutine pginitl(colour,file,whiteBG)
      call pgscr(10,0.5,0.3,0.)   ! 10: brown
      call pgscr(11,0.6,0.,0.)    ! 11: dark red
   end if
-
+  
 end subroutine pginitl
 !***********************************************************************************************************************************
 
