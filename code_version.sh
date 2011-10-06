@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ##  code_version.sh:
-##  Write the SVN version of the code and the compiler name to a Fortran source file
+##  Write the revision number of the code and the compiler name to a Fortran source file
 ##  MvdS, 24/07/2010
 
 
@@ -22,10 +22,14 @@ else
     echo "subroutine print_code_version" >> ${F90FILE}
     echo "  use basic, only: stdOut" >> ${F90FILE}
     echo "  implicit none" >> ${F90FILE}
-    echo "  character :: svn_revision*(99) = '"`svnversion`"'" >> ${F90FILE}
+    if [ -e .bzr/ ]; then
+	echo "  character :: code_revision*(99) = '"`bzr revno`"'" >> ${F90FILE}
+    else
+	echo "  character :: code_revision*(99) = '"`svnversion`"'" >> ${F90FILE}
+    fi
     echo "  character :: compile_date*(99) = '"`date`"'" >> ${F90FILE}
     echo "  character :: compiler*(99) = '"${COMPILER}"'" >> ${F90FILE}
-    echo "  write(stdOut,'(A)')'svn revision: '//trim(svn_revision)//', compiled on '//trim(compile_date)//' with '//trim(compiler)//'.'" >> ${F90FILE}
+    echo "  write(stdOut,'(A)')'code revision: '//trim(code_revision)//', compiled on '//trim(compile_date)//' with '//trim(compiler)//'.'" >> ${F90FILE}
     echo 'end subroutine print_code_version' >> ${F90FILE}
     
     touch -d "1 Jan 2001" ${F90FILE}            # Make the file look old
