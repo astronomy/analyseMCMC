@@ -70,7 +70,8 @@ end subroutine setconstants
 !> \brief  Read the settings file (called analysemcmc.dat by default)
 
 subroutine read_settingsfile()
-  use basic, only: double, stdErr
+  use SUFR_kinds, only: double
+  use basic, only: stdErr
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
@@ -495,13 +496,14 @@ end subroutine set_plotsettings
 !! \retval exitcode  Exit status code (0=ok)
 
 subroutine read_mcmcfiles(exitcode)
-  use basic, only: double, stdErr,stdOut
-  use analysemcmc_settings, only: thin,maxChLen
-  use general_data, only: allDat,post,prior,ntot,n,nchains,nchains0,infiles
+  use SUFR_kinds, only: double
+  use basic, only: stdErr,stdOut
+  use analysemcmc_settings, only: thin,maxChLen,maxMCMCpar
+  use general_data, only: allDat,post,prior,ntot,n,nchains,nchains0,infiles,maxIter
   use mcmcrun_data, only: niter,Nburn0,detnames,detnr,parID,seed,snr,revID,ndet,flow,fhigh,t_before,nCorr,nTemps,Tmax,Tchain
   use mcmcrun_data, only: networkSNR,waveform,pnOrder,nMCMCpar,t_after,FTstart,deltaFT,samplerate,samplesize,FTsize,outputVersion
   use mcmcrun_data, only: nMCMCpar0,t0,GPStime
-  use chain_data, only: is,maxMCMCpar,maxIter,DoverD
+  use chain_data, only: is,DoverD
   
   implicit none
   integer, intent(out) :: exitcode
@@ -719,19 +721,20 @@ end subroutine read_mcmcfiles
 !!  - store data in selDat (from dat)
 
 subroutine mcmcruninfo(exitcode)  
-  use basic, only: double, stdOut,stdErr
+  use SUFR_kinds, only: double
+  use basic, only: stdOut,stdErr
   use constants, only: waveforms,detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
-  use analysemcmc_settings, only: prInitial,mergeChains
+  use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar
   
   use general_data, only: allDat,post,ntot,n,nchains,nchains0,infiles,contrChain,startval,fixedpar,selDat,iloglmax,icloglmax
-  use general_data, only: contrChains,parNames,nfixedpar,outputname
+  use general_data, only: contrChains,parNames,nfixedpar,outputname,maxIter
   
   use mcmcrun_data, only: niter,Nburn0,detnames,detnr,parID,seed,snr,revID,ndet,flow,fhigh,t_before,nCorr,nTemps,Tmax,Tchain
   use mcmcrun_data, only: networkSNR,waveform,pnOrder,nMCMCpar,t_after,FTstart,deltaFT,samplerate,samplesize,FTsize,outputVersion
   use mcmcrun_data, only: nMCMCpar0,t0,GPStime,totthin,loglmaxs,totiter,loglmax,totpts,totlines,offsetrun,spinningRun
-  use chain_data, only: is,isburn,maxMCMCpar,maxIter,DoverD,jumps
+  use chain_data, only: is,isburn,DoverD,jumps
   use plot_data, only: ncolours,colours,colournames,maxdots
   
   implicit none
@@ -1235,7 +1238,7 @@ end subroutine save_data
 !! - Declination == latitude for equatorial coordinates
 
 function lon2ra(lon, GPSsec)
-  use basic, only: double
+  use SUFR_kinds, only: double
   use constants, only: tpi
   
   implicit none
@@ -1257,7 +1260,7 @@ end function lon2ra
 !! - Declination == latitude for equatorial coordinates.
 
 function ra2lon(ra, GPSsec)
-  use basic, only: double
+  use SUFR_kinds, only: double
   use constants, only: tpi
   
   implicit none
@@ -1278,7 +1281,8 @@ end function ra2lon
 !! \see K.R. Lang (1999), p.80sqq.
 
 function gmst(GPSsec)
-  use basic, only: double, stdErr
+  use SUFR_kinds, only: double
+  use basic, only: stdErr
   use constants, only: tpi
   
   implicit none
@@ -1309,7 +1313,7 @@ end function gmst
 
 !***********************************************************************************************************************************
 subroutine dindexx(n,arr,indx)
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   integer, intent(in) :: n
@@ -1647,12 +1651,12 @@ end subroutine ludcmp
 
 
 !***********************************************************************************************************************************
-!> \Brief  Returns angle in radians between 0 and 2pi (double precision)
+!> \brief  Returns angle in radians between 0 and 2pi (double precision)
 !!
 !! \param x  Angle (rad)
 
 function drev2pi(x)
-  use basic, only: double
+  use SUFR_kinds, only: double
   use constants, only: pi
   
   implicit none
@@ -1772,7 +1776,7 @@ end function rev2pi
 !! \param x  Angle (rad)
 
 function drevpi(x)
-  use basic, only: double
+  use SUFR_kinds, only: double
   use constants, only: pi
   
   implicit none
@@ -1817,7 +1821,7 @@ end function rrevpi
 
 
 subroutine kstwo(data1,n1, data2,n2, d,prob)
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   integer, intent(in) :: n1,n2
@@ -1863,7 +1867,7 @@ end subroutine kstwo
 
 !***********************************************************************************************************************************
 function probks(alam)
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   real(double), parameter :: eps1=1.d-3, eps2=1.d-8
@@ -1892,7 +1896,7 @@ end function probks
 
 !***********************************************************************************************************************************
 subroutine sort(n,arr)
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   integer, intent(in) :: n
@@ -1980,7 +1984,7 @@ end subroutine sort
 !! a1  Angle (hours)
 
 function tms(a1)
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   real(double), intent(in) :: a1
@@ -2036,7 +2040,7 @@ end function getos
 !> \brief  Get time stamp in seconds since 1970-01-01 00:00:00 UTC, mod countmax
 
 function timestamp()
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   real(double) :: timestamp
@@ -2088,7 +2092,7 @@ end subroutine pgscidark
 !! \retval vec  3D vector with the same units as r
 
 subroutine lbr2vec(l,b,r,vec)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   real(double), intent(in) :: l,b,r
   real(double), intent(out) :: vec(3)
@@ -2113,7 +2117,7 @@ end subroutine lbr2vec
 !! \param vec  3D vector
 
 function veclen(vec)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   real(double), intent(in) :: vec(3)
   real(double) :: veclen
@@ -2130,7 +2134,7 @@ end function veclen
 !! \param vec  3D vector (I/O)
 
 subroutine normvec(vec)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   real(double), intent(inout) :: vec(3)
   real(double) :: veclen
@@ -2152,7 +2156,7 @@ end subroutine normvec
 !! \retval m2   M2 (Mo)
 
 subroutine mc_eta_2_m1_m2(mc,eta, m1,m2)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   real(double), intent(in) :: mc,eta
   real(double), intent(out) :: m1,m2
@@ -2183,7 +2187,7 @@ end subroutine mc_eta_2_m1_m2
 !! \retval m2r   M2 (Mo)
 
 subroutine mc_eta_2_m1_m2r(mcr,etar,m1r,m2r)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   real, intent(in) :: mcr,etar
   real, intent(out) :: m1r,m2r
@@ -2210,7 +2214,7 @@ end subroutine mc_eta_2_m1_m2r
 !! \retval eta  Eta
 
 subroutine m1_m2_2_mc_eta(m1,m2, mc,eta)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   real(double), intent(in) :: m1,m2
   real(double), intent(out) :: mc,eta
@@ -2234,7 +2238,7 @@ end subroutine m1_m2_2_mc_eta
 !! \retval etar  Eta
 
 subroutine m1_m2_2_mc_etar(m1r,m2r, mcr,etar)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   real, intent(in) :: m1r,m2r
   real, intent(out) :: mcr,etar
@@ -2259,7 +2263,7 @@ end subroutine m1_m2_2_mc_etar
 !! \retval vec  3D unit vector
 
 subroutine ang2vec(l,b, vec)
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   real(double), intent(in) :: l,b
@@ -2284,7 +2288,7 @@ end subroutine  ang2vec
 !! \retval b    Latitude, in [-pi,pi]
 
 subroutine vec2ang(vec, l,b)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   real(double), intent(in) :: vec(3)
   real(double), intent(out) :: l,b
@@ -2306,7 +2310,7 @@ end subroutine  vec2ang
 !! \param vec2  3D vector 2
 
 function dotproduct(vec1,vec2)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   real(double), intent(in) :: vec1(3),vec2(3)
   real(double) :: dotproduct
@@ -2326,7 +2330,7 @@ end function dotproduct
 !! \retval crpr  Cross/outer product (vec1 x vec2)
 
 subroutine crossproduct(vec1,vec2, crpr)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   real(double), intent(in) :: vec1(3),vec2(3)
   real(double), intent(out) :: crpr(3)
@@ -2348,7 +2352,7 @@ end subroutine crossproduct
 !! \see Apostolatos et al. 1994, Eq.5
 
 function polangle(p,o)  
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   real(double), intent(in) :: p(3),o(3)
@@ -2373,7 +2377,7 @@ end function polangle
 !! \param o  3D orientation unit vector
 
 function posangle(p,o)
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   real(double), intent(in) :: p(3),o(3)
@@ -2413,7 +2417,7 @@ end function posangle
 !! - pb,ob used to be in ([-pi/2,pi/2]) now [0,pi], conf John V. & Christian R.
 
 subroutine compute_incli_polang(pl,pb,ol,ob, i,psi) 
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   
@@ -2455,7 +2459,7 @@ end subroutine compute_incli_polang
 !! - single-precision wrapper for compute_incli_polang()
 
 subroutine compute_incli_polangr(plr,pbr,olr,obr, ir,psir)
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   real, intent(in) :: plr,pbr,olr,obr
@@ -2487,7 +2491,7 @@ end subroutine compute_incli_polangr
 !! \note  Position angle, not polarisation angle!
 
 subroutine compute_incli_posang(pl,pb,ol,ob, i,pa) 
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   real(double), intent(in) :: pl,pb,ol,ob
@@ -2524,7 +2528,7 @@ end subroutine compute_incli_posang
 !! \todo  Finish and use
 
 subroutine detectorvector(d1,d2,jd)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   integer, intent(in) :: d1,d2
   real(double), intent(inout) :: jd  ! should become (in) once used
@@ -2594,7 +2598,7 @@ end subroutine determine_nbin_1d
 !! \param ni    Number of data points in data set
 
 function compute_median(data,ni)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   integer, intent(in) :: ni
   real(double), intent(in) :: data(ni)
@@ -2623,7 +2627,7 @@ end function compute_median
 !! \param ni     Number of data points in data set
 
 function compute_median_real(datar,ni)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   integer, intent(in) :: ni
   real, intent(in) :: datar(ni)
@@ -2647,7 +2651,7 @@ end function compute_median_real
 !! \param  mean  Mean of data
 
 function compute_stdev(data,ni,mean)
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   integer, intent(in) :: ni
@@ -2675,7 +2679,7 @@ end function compute_stdev
 !! \param  meanr  Mean of data
 
 function compute_stdev_real(datar,ni,meanr)
-  use basic, only: double
+  use SUFR_kinds, only: double
   implicit none
   integer, intent(in) :: ni
   real, intent(in) :: datar(ni), meanr
@@ -2727,7 +2731,7 @@ end function get_ran_seed
 !! - tab is a Bays-Durham shuffle table of length Ntab
 
 function ran_unif(seed1)
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   integer, intent(inout) :: seed1
@@ -2877,7 +2881,7 @@ end subroutine findFiles
 !> \brief  Define constants that contain the current date or time
 
 subroutine set_currentdate_constants()
-  use basic, only: double
+  use SUFR_kinds, only: double
   use constants, only: currentdatestr,currenttimestr,currenttimezonestr
   
   implicit none

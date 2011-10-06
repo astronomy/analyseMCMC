@@ -41,18 +41,18 @@
 !> \brief Main routine
 
 program analyseMCMC
-  use basic, only: double,dbl, stdOut,stdErr
+  use SUFR_kinds, only: double,dbl
+  use basic, only: stdOut,stdErr
   use constants, only: os,stdOutFile,workdir,hostname,username,currenttimezonestr,currenttimestr,currentdatestr
   use analysemcmc_settings, only: panels,wikioutput,map_projection,html,prProgress,file,colour,prStdOut,prRunInfo,prChainInfo
   use analysemcmc_settings, only: prInitial,prStat,prCorr,prIval,prConv,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D,plotSky
   use analysemcmc_settings, only: plAnim,plInject,plStart,plMedian,plRange,plBurn,plLmax,normPDF2D,bmpXSz,bmpYSz,Npdf2D,reverseRead
   use analysemcmc_settings, only: whiteBG,scFac,scrSz,scrRat,PSsz,PSrat,unSharp,orientation,chainSymbol,quality,plJump,savePDF
-  use analysemcmc_settings, only: wrapData,update,nPlPar,mergeChains,tailoredOutput,plACorr
+  use analysemcmc_settings, only: wrapData,update,nPlPar,mergeChains,tailoredOutput,plACorr, maxChs
   use general_data, only: infiles,allDat,selDat,post,prior,outputdir,nchains0,nchains,ntot,outputname
   use mcmcrun_data, only: nMCMCpar
   use plot_data, only: colours,symbols,colournames,maxdots,bmpsz,bmprat,bmpxpix,pltsz,pltrat,unSharplogl,unSharpchain,unSharppdf1d
   use plot_data, only: unSharppdf2d,psclr,ncolours,nsymbols,defcolour
-  use chain_data, only: maxChs
   
   implicit none
   integer :: i,ic,io,exitcode,tempintarray(99),getos,get_ran_seed,status,system

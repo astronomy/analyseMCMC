@@ -1,4 +1,15 @@
 # Compile AnalyseMCMC
+#
+# Dependencies:
+#
+# At compile/link time:
+# - PGPlot:   http://www.astro.caltech.edu/~tjp/pgplot/
+# - libSUFR:  http://libsufr.sourceforge.net/
+#
+# At runtime:
+# - ImageMagick:  http://www.imagemagick.org
+# - a2ps:         http://www.inf.enst.fr/~demaille/a2ps/
+# - epsropdf:     http://www.tex.ac.uk/tex-archive/help/Catalogue/entries/epstopdf.html, included in TexLive (http://www.tug.org/texlive/)
 
 
 .PHONY: clean cleanwarnings code_version exit 
@@ -38,10 +49,14 @@ BINDIR = .
 
 #ifort:
 ifeq ($(COMP),ifort)
+   # Link against libSUFR:
+   CFLAGS += -I/home/sluys/usr/include/libSUFR/ifort
+   LFLAGS += -lSUFR_ifort
+
    #To develop code  (don't mix -check bounds with -O>0!):
    ifeq ($(RUNCHECK),yes)
       OPT = -O0
-      CFLAGS = -check all -check noarg_temp_created
+      CFLAGS += -check all -check noarg_temp_created
    endif
 
    ifeq ($(OPTIMISE),yes)
@@ -86,6 +101,9 @@ endif
 #gfortran:
 #ifeq ($(COMP),gfortran)
 ifneq (,$(filter $(COMP),gfortran gfortran-4.6))
+   # Link against libSUFR:
+   CFLAGS += -I/home/sluys/usr/include/libSUFR/gfortran
+   LFLAGS += -lSUFR_gfortran
 
    CFLAGS += -fwhole-file #-fwhole-program
    ifeq ($(COMP),gfortran-4.6)
@@ -133,6 +151,9 @@ endif
 
 #g95:
 ifeq ($(COMP),g95)
+   # Link against libSUFR:
+   CFLAGS += -I/home/sluys/usr/include/libSUFR/g95
+   LFLAGS += -lSUFR_g95
 
    ifeq ($(RUNCHECK),yes)
       OPT = -O0
@@ -223,7 +244,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.f90  #Makefile #$(SRCDIR)/code_version.f90
 
 
 
-all: compPDFs analyseMCMC MCMCstats #plotdata plotSignal 
+all: analyseMCMC compPDFs MCMCstats plotSignal plotSpectrum #plotdata 
 
 exit:
 
@@ -243,14 +264,14 @@ analyseMCMC: $(STDOBJ) ${ANALYSEMCMC_OBJ}
 compPDFs: $(STDOBJ) $(OBJDIR)/compPDFs_functions.o $(OBJDIR)/compPDFs.o
 	$(COMP) $(LFLAGS) -o $(BINDIR)/compPDFs $(STDOBJ) $(OBJDIR)/compPDFs_functions.o $(OBJDIR)/compPDFs.o
 
-plotspectrum: $(STDOBJ) $(OBJDIR)/plotspectrum.o
-	$(COMP) $(LFLAGS) -o $(BINDIR)/plotspectrum $(STDOBJ) $(OBJDIR)/plotspectrum.o
+MCMCstats: $(STDOBJ) $(OBJDIR)/MCMCstats.o
+	$(COMP) $(LFLAGS) -o $(BINDIR)/MCMCstats $(STDOBJ) $(OBJDIR)/MCMCstats.o
 
 plotSignal: $(STDOBJ) $(OBJDIR)/plotSignal.o
 	$(COMP) $(LFLAGS) -o $(BINDIR)/plotSignal $(STDOBJ) $(OBJDIR)/plotSignal.o
 
-MCMCstats: $(STDOBJ) $(OBJDIR)/MCMCstats.o
-	$(COMP) $(LFLAGS) -o $(BINDIR)/MCMCstats $(STDOBJ) $(OBJDIR)/MCMCstats.o
+plotSpectrum: $(STDOBJ) $(OBJDIR)/plotSpectrum.o
+	$(COMP) $(LFLAGS) -o $(BINDIR)/plotSpectrum $(STDOBJ) $(OBJDIR)/plotSpectrum.o
 
 
 #$(SRCDIR)/code_version.f90: .svn/entries   #.svn/entries changes when committing/updating

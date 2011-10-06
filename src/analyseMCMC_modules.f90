@@ -62,10 +62,12 @@ end module analysemcmc_settings
 !> \brief Module with (currently) mathematical and string constants
 
 module constants
-  use basic, only: double
+  use SUFR_kinds, only: double
   
   implicit none
   save
+  private :: double
+  
   integer :: os
   real(double) :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
   real :: rpi,rtpi,rpi2,rr2d,rd2r,rr2h,rh2r,rc3rd
@@ -80,11 +82,13 @@ end module constants
 !> \brief Module with Markov-chain data from the SPINspiral output files
 
 module general_data
-  use basic, only: double
+  use SUFR_kinds, only: double
   use analysemcmc_settings, only: maxChs,maxMCMCpar,nParDB,maxNival
   
   implicit none
   save
+  private :: double, maxChs,maxMCMCpar,nParDB,maxNival
+  
   integer, parameter :: maxIter=150000                    ! maxIter: Maximum number of iterations (output lines) that can be stored
   integer, parameter :: nr1=5,nstat1=10,ndets=4
   integer :: n(maxChs),ntot(maxChs),iloglmax,icloglmax,c0,nchains,nchains0
@@ -110,12 +114,14 @@ end module general_data
 !> \brief Module with MCMC run data from the SPINspiral output files
 
 module mcmcrun_data
-  use basic, only: long, double
+  use SUFR_kinds, only: long, double
   use analysemcmc_settings, only: maxChs,nParDB,maxMCMCpar
   use general_data, only: ndets
   
   implicit none
   save
+  private :: long,double, maxChs,nParDB,maxMCMCpar, ndets
+  
   integer :: niter(maxChs),totiter,totlines,totpts,Nburn0(maxChs),ndet(maxChs),totthin(maxChs)
   integer :: nCorr(maxChs),nTemps(maxChs),waveform,nMCMCpar,nMCMCpar0,Tmax(maxChs)
   integer :: samplerate(maxChs,ndets),samplesize(maxChs,ndets),FTsize(maxChs,ndets),detnr(maxChs,ndets),offsetrun
@@ -138,6 +144,8 @@ module stats_data
   use analysemcmc_settings, only: maxMCMCpar,maxNival
   implicit none
   save
+  private :: maxMCMCpar,maxNival
+  
   real :: stdev1(maxMCMCpar),stdev2(maxMCMCpar),absVar1(maxMCMCpar),absVar2(maxMCMCpar)
   integer :: injectionranges2d(maxMCMCpar,maxMCMCpar)
   real :: probarea(maxNival),probareas(maxMCMCpar,maxMCMCpar,maxNival,3)
@@ -166,11 +174,13 @@ end module plot_data
 !> \brief Module with secondary Markov-chain data
 
 module chain_data
-  use basic, only: double
+  use SUFR_kinds, only: double
   use analysemcmc_settings, only: maxMCMCpar,maxChs
   use general_data, only: maxIter
+  
   implicit none
   save
+  private :: double, maxMCMCpar,maxChs, maxIter
   
   real :: is(maxChs,maxIter),isburn(maxChs)
   real :: jumps(maxChs,maxMCMCpar,maxIter)

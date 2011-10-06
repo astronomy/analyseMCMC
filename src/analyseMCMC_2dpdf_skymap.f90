@@ -11,7 +11,7 @@
 !! \param raShift  Shift in RA needed to centre the PDF
 
 subroutine plotthesky(bx10,bx20, by1,by2, raShift)
-  use basic, only: double
+  use SUFR_kinds, only: double
   use constants, only: homedir, tpi,r2d
   use analysemcmc_settings, only: fonttype,fontsize1d
   

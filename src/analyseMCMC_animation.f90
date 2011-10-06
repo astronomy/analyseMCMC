@@ -7,7 +7,8 @@
 !! \retval exitcode  Exit status code (0=ok)
 
 subroutine animation(exitcode)
-  use basic, only: double,stdOut,stdErr
+  use SUFR_kinds, only: double
+  use basic, only: stdOut,stdErr
   use constants, only: upline, pi
   use analysemcmc_settings, only: plAnim,Nbin1D,update,plot,prProgress,maxChs,nAnimFrames,file,ivals,Nburn,maxMCMCpar,scrSz,scrRat
   use analysemcmc_settings, only: colour,whiteBG,animScheme,plInject,plStart,chainSymbol,plBurn,chainPlI,fillPDF,mergeChains

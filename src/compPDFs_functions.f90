@@ -26,6 +26,7 @@ module comp_pdfs_data
   use comp_pdfs_settings, only: nParDB
   implicit none
   save
+  private nParDB
   
   character :: parNames(nParDB)*(8),pgUnits(nParDB)*(99),pgParNs(nParDB)*(99),pgParNss(nParDB)*(99),pgOrigParns(nParDB)*(99)
   

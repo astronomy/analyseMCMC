@@ -12,14 +12,14 @@ subroutine statistics(exitcode)
   use basic, only: maxreal, stdOut
   use constants, only: rc3rd,rr2d,rr2h,rpi,rtpi
   use analysemcmc_settings, only: changeVar,prProgress,mergeChains,wrapData,saveStats,prCorr,ivals,ival0,prStat,prIval,Nival,Nburn
-  use analysemcmc_settings, only: prConv,wikioutput,plAcorr,prAcorr
+  use analysemcmc_settings, only: prConv,wikioutput,plAcorr,prAcorr,maxMCMCpar,maxChs
   use general_data, only: allDat,selDat,startval,shIvals,wrap,shifts,stats,ranges,nChains0,Ntot,nChains,n,raShift,contrChain
-  use general_data, only: raCentre,fixedpar,c0,post,parNames
+  use general_data, only: raCentre,fixedpar,c0,post,parNames, maxIter
   use general_data, only: logebayesfactor,log10bayesfactor,logebayestempfactor,logebayesfactortotalgeom,logebayesfactortotalarith
   use general_data, only: logebayesfactortotalharmo,logebayesfactortotal
   use stats_data, only: absVar1,absVar2,stdev1,stdev2
-  use chain_data, only: corrs,maxIter
-  use mcmcrun_data, only: nMCMCpar,parID,maxMCMCpar,maxChs,Tchain,loglmax
+  use chain_data, only: corrs
+  use mcmcrun_data, only: nMCMCpar,parID,Tchain,loglmax
   
   implicit none
   integer, intent(out) :: exitcode
@@ -876,10 +876,10 @@ end subroutine save_bayes
 subroutine save_cbc_wiki_data(ic)
   use basic, only: stdErr,stdOut
   use constants, only: waveforms,detabbrs, rh2r,rd2r
-  use analysemcmc_settings, only: Nival,ivals,prStdOut
+  use analysemcmc_settings, only: Nival,ivals,prStdOut,maxMCMCpar
   use general_data, only: outputname,outputdir, allDat, logebayesfactor,log10bayesfactor, stats,startval,ranges
   use stats_data, only: stdev2
-  use mcmcrun_data, only: pnOrder,GPStime,ndet,detnr,maxMCMCpar,revID,t0,spinningRun,waveform,logLmax
+  use mcmcrun_data, only: pnOrder,GPStime,ndet,detnr,revID,t0,spinningRun,waveform,logLmax
   
   implicit none
   integer, intent(in) :: ic
@@ -1304,9 +1304,9 @@ end subroutine save_cbc_wiki_data
 
 subroutine compute_convergence()
   use basic, only: double, stdOut
-  use analysemcmc_settings, only: prConv,Nburn
+  use analysemcmc_settings, only: prConv,Nburn,maxChs,maxMCMCpar
   use general_data, only: Rhat,contrChains,contrChain,nChains0,Ntot,allDat,fixedpar,parNames
-  use mcmcrun_data, only: maxChs,maxMCMCpar,parID,revID,nMCMCpar
+  use mcmcrun_data, only: parID,revID,nMCMCpar
   
   implicit none
   integer :: i,ic,p,nn,nn1

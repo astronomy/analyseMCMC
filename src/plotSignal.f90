@@ -1,5 +1,6 @@
 !> \file plotSignal.f90  Read and plot the signal output from SPINspiral
 
+!***********************************************************************************************************************************
 program plotsignal
   use basic
   implicit none
@@ -109,7 +110,8 @@ program plotsignal
   end do !f
   
   write(6,'(6(A10,F8.3))')'m1:',m1,'m2:',m2,'mc:',mc,'eta:',eta,'dl:',dl,'spin:',spin
-  !write(title,'(A,F5.1,A,F5.1,A,F4.1,A,F5.1,A)') 'M\d1\u =',m1,'M\d\(2281)\u,  M\d2\u =',m2,'M\d\(2281)\u,  a\dspin\u =',spin,',  d\dL\u=',dl,'Mpc'
+  !write(title,'(A,F5.1,A,F5.1,A,F4.1,A,F5.1,A)') 'M\d1\u =',m1,'M\d\(2281)\u,  M\d2\u =',m2,'M\d\(2281)\u,  a\dspin\u =',spin,', &
+  !d\dL\u=',dl,'Mpc'
   write(m1s,'(F5.1)')m1
   if(m1.lt.10.) write(m1s,'(F4.1)')m1
   write(m2s,'(F5.1)')m2
@@ -118,11 +120,13 @@ program plotsignal
   if(dl.lt.10.) write(dls,'(F4.1)')dl
   write(spins,'(F5.1)')spin
   if(spin.lt.10.) write(spins,'(F4.1)')spin
-  !write(title,'(A)')'M\d1\u ='//trim(m1s)//'M\d\(2281)\u,  M\d2\u ='//trim(m2s)//'M\d\(2281)\u,  a\dspin\u ='//trim(spins)//',  d\dL\u='//trim(dls)//'Mpc'
+  !write(title,'(A)')'M\d1\u ='//trim(m1s)//'M\d\(2281)\u,  M\d2\u ='//trim(m2s)//'M\d\(2281)\u,  a\dspin\u ='//trim(spins)//', &
+  !d\dL\u='//trim(dls)//'Mpc'
   write(title,'(A)')'M\d1\u ='//trim(m1s)//'M\d\(2281)\u,  M\d2\u ='//trim(m2s)//'M\d\(2281)\u,  d\dL\u='//trim(dls)//'Mpc'
   !write(title,'(A)')'M\d1\u ='//trim(m1s)//'M\d\(2281)\u,  M\d2\u ='//trim(m2s)//'M\d\(2281)\u'
   !print*,trim(title)
-  !write(6,'(8(A10,F15.5))')'lat:',lat,'lon:',lon,'phase:',phase,'kappa:',kappa,'theta_Jo:',thJ0,'phi_Jo:',phJ0,'alpha:',alpha,'tc:',tc
+  !write(6,'(8(A10,F15.5))')'lat:',lat,'lon:',lon,'phase:',phase,'kappa:',kappa,'theta_Jo:',thJ0,'phi_Jo:',phJ0,'alpha:',alpha, &
+  !'tc:',tc
   
   do f=1,nf
      do i=n(f),2,-1
@@ -328,7 +332,7 @@ program plotsignal
   
   write(6,*)''
 end program plotsignal
-!************************************************************************************************************************************
+!***********************************************************************************************************************************
 
 
 

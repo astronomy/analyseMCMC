@@ -3,6 +3,12 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   202: sluys, 06/10/2011
+     - Make USEd variables in modules private
+       - fix use statements that obtained variables indirectly via a different module
+     - Make sure plotSignal compiles
+     - Updated Doxyfile
+     
    201: sluys, 06/10/2011
      - Updated code_version.sh to allow bzr
      

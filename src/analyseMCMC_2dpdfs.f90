@@ -10,12 +10,12 @@ subroutine pdfs2d(exitcode)
   use basic, only: stdOut,stdErr
   use constants, only: upline, pi,rpi,rh2r
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
-  use analysemcmc_settings, only: plLmax,fontsize2d,map_projection
+  use analysemcmc_settings, only: plLmax,fontsize2d,map_projection,maxChs
   use analysemcmc_settings, only: plInject,mergeChains,Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky,wrapData
   use analysemcmc_settings, only: savePDF,plot,ivals,Nival,normPDF2D,plPDF1D,plPDF2D,plMedian,plRange,prIval
   use general_data, only: allDat,outputname,outputdir,startval,icloglmax,iloglmax,parNames,pgParNs,nfixedpar
   use general_data, only: selDat,stats,ranges,c0,n,maxIter,wrap,fixedpar,shifts,shIvals,raCentre,raShift
-  use mcmcrun_data, only: totpts,maxChs,revID,parID, nMCMCpar
+  use mcmcrun_data, only: totpts,revID,parID, nMCMCpar
   use plot_data, only: psclr,bmpsz,bmprat,bmpxpix,unSharppdf2d,pltsz,pltrat
   use stats_data, only: probArea,probAreas,injectionranges2d
   
