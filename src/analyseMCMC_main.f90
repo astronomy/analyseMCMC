@@ -42,7 +42,7 @@
 
 program analyseMCMC
   use SUFR_kinds, only: double,dbl
-  use basic, only: stdOut,stdErr
+  use SUFR_constants, only: stdOut,stdErr, set_SUFR_constants
   use constants, only: os,stdOutFile,workdir,hostname,username,currenttimezonestr,currenttimestr,currentdatestr
   use analysemcmc_settings, only: panels,wikioutput,map_projection,html,prProgress,file,colour,prStdOut,prRunInfo,prChainInfo
   use analysemcmc_settings, only: prInitial,prStat,prCorr,prIval,prConv,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D,plotSky
@@ -61,26 +61,27 @@ program analyseMCMC
   logical :: ex,timing
   
   
-  outputdir = '.'     !Directory where output is saved (either relative or absolute path)
-  wikioutput = 1      !Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
-  map_projection = 1  !Choose map projection: 1-Mollweide
-  html = 0            !Produce HTML output
+  outputdir = '.'     ! Directory where output is saved (either relative or absolute path)
+  wikioutput = 1      ! Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
+  map_projection = 1  ! Choose map projection: 1-Mollweide
+  html = 0            ! Produce HTML output
   
-  call setconstants()         !Define mathematical constants
-  os = getos()                !1-Linux, 2-MacOS
+  call set_SUFR_constants()   ! Define constants in libSUFR
+  call setconstants()         ! Define mathematical constants
+  os = getos()                ! 1-Linux, 2-MacOS
   timestamps = 0.0_dbl
   timestamps(1) = timestamp()
   timing = .false.
   if(abs(timestamps(1)).gt.1.e-6_dbl .and. abs(timestamps(1)).lt.1.e20_dbl) timing = .true.
   
   
-  call set_plotsettings()     !Set plot settings to 'default' values
-  call read_settingsfile()    !Read the plot settings (overwrite the defaults)
-  if(prProgress.ge.3) call write_settingsfile()   !Write the input file back to disc
-  !call write_settingsfile()   !Write the input file back to disc
+  call set_plotsettings()     ! Set plot settings to 'default' values
+  call read_settingsfile()    ! Read the plot settings (overwrite the defaults)
+  if(prProgress.ge.3) call write_settingsfile()   ! Write the input file back to disc
+  !call write_settingsfile()   ! Write the input file back to disc
   
   if(html.ge.1) then
-     outputdir = 'html'     !Directory where output is saved (either relative or absolute path)
+     outputdir = 'html'       ! Directory where output is saved (either relative or absolute path)
      
      file = 1
      colour = 1
@@ -123,13 +124,13 @@ program analyseMCMC
   
   
   
-  inquire(file=trim(outputdir), exist=ex)  !Check whether the directory already exists 
+  inquire(file=trim(outputdir), exist=ex)  ! Check whether the directory already exists 
   if(.not.ex) then
      status = system('mkdir -p '//trim(outputdir))
      if(status.ne.0) call quit_program('Could not create output directory: '//trim(outputdir)//'/')
   end if
   
-  if(prStdOut.ge.2) then  !Write standard output to file rather than screen
+  if(prStdOut.ge.2) then  ! Write standard output to file rather than screen
      stdOut = 19
      write(stdOutFile,'(A,I6.6,A)')trim(outputdir)//'/analysemcmc_tempstdout_',abs(get_ran_seed(0)),'.txt'
      open(unit=stdOut,action='write',form='formatted',status='replace',file=trim(stdOutFile),iostat=io)
@@ -137,13 +138,13 @@ program analyseMCMC
   end if
   write(stdOut,*)
   
-  !Print code version:
+  ! Print code version:
   if(prChainInfo.ge.1) then
      write(stdOut,'(A)', advance="no")'  AnalyseMCMC, '
      call print_code_version
   end if
   
-  if(html.ge.1) then  !Write standardised HTML output
+  if(html.ge.1) then  ! Write standardised HTML output
      open(unit=51,action='write',form='formatted',status='replace',file=trim(outputdir)//'/index.html',iostat=io)
      if(io.ne.0) call quit_program('Error opening HTML output file '//trim(outputdir)//'/index.html')
   end if
@@ -152,9 +153,9 @@ program analyseMCMC
   
   
   
-  !Get command-line arguments
+  ! Get command-line arguments:
   nchains0 = command_argument_count()
-  if(nchains0.lt.1) then  !No command-line arguments - select all files SPINspiral.output.*.00 in the current dir
+  if(nchains0.lt.1) then  ! No command-line arguments - select all files SPINspiral.output.*.00 in the current dir
      call findFiles('SPINspiral.output.*.00',maxChs,1,infiles,nchains0)
      if(nchains0.eq.0) then
         write(stdErr,'(A)')'  No files matching  SPINspiral.output.*.00  were found in the current directory.'
@@ -166,9 +167,9 @@ program analyseMCMC
   else
      do ic = 1,nchains0
         if(reverseRead.eq.0) then
-           call get_command_argument(ic,infile) !Read file name from the command-line arguments
+           call get_command_argument(ic,infile)  ! Read file name from the command-line arguments
         else
-           call get_command_argument(nchains0-ic+1,infile) !Read file name from the command-line arguments in reverse order
+           call get_command_argument(nchains0-ic+1,infile)  ! Read file name from the command-line arguments in reverse order
         end if
         infiles(ic) = infile
      end do

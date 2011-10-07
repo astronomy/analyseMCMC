@@ -7,7 +7,7 @@
 !! \retval exitcode  Exit code: 0=ok
 
 subroutine pdfs1d(exitcode)
-  use basic, only: stdOut,stdErr
+  use SUFR_constants, only: stdOut,stdErr
   use constants, only: rtpi
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: plLmax,fontsize1d,nPlPar,panels,plPars,changeVar

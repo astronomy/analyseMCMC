@@ -3,9 +3,13 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   203: sluys, 07/10/2011
+     - Remove module basic; use libSUFR instead
+     
    202: sluys, 06/10/2011
      - Make USEd variables in modules private
        - fix use statements that obtained variables indirectly via a different module
+     - Start using libSUFR
      - Make sure plotSignal compiles
      - Updated Doxyfile
      

@@ -598,7 +598,7 @@ end subroutine plotpdf2d
 !! \param lbl     Plot label
 
 subroutine plotwave(fname1,thingy,lbl)
-  use basic, only: double, dbl
+  use SUFR_kinds, only: double, dbl
   
   implicit none
   character, intent(in) :: fname1*(99), lbl*(99)

@@ -2,9 +2,11 @@
 
 !***********************************************************************************************************************************
 program plotsignal
-  use basic
+  use SUFR_kinds, only: double
+  
   implicit none
   integer, parameter :: n1=1000000,nf=1
+  
   integer :: n(nf),i,j,io,pgopen,file,f,prname,prtitle,system,thin
   real(double) :: t0,t1(nf,n1)
   real :: t(nf,n1),h(nf,n1),dx,dy,xmin,xmax,ymin,ymax

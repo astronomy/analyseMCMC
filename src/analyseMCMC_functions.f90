@@ -5,7 +5,7 @@
 !> \brief  Define the constants
 
 subroutine setconstants()
-  use basic, only: stdErr,stdOut
+  use SUFR_constants, only: stdErr,stdOut
   use constants, only: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd, rpi,rtpi,rpi2,rr2d,rd2r,rr2h,rh2r,rc3rd
   use constants, only: upline,detabbrs,waveforms, homedir,workdir,hostname,username
   
@@ -71,7 +71,7 @@ end subroutine setconstants
 
 subroutine read_settingsfile()
   use SUFR_kinds, only: double
-  use basic, only: stdErr
+  use SUFR_constants, only: stdErr
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
@@ -497,7 +497,7 @@ end subroutine set_plotsettings
 
 subroutine read_mcmcfiles(exitcode)
   use SUFR_kinds, only: double
-  use basic, only: stdErr,stdOut
+  use SUFR_constants, only: stdErr,stdOut
   use analysemcmc_settings, only: thin,maxChLen,maxMCMCpar
   use general_data, only: allDat,post,prior,ntot,n,nchains,nchains0,infiles,maxIter
   use mcmcrun_data, only: niter,Nburn0,detnames,detnr,parID,seed,snr,revID,ndet,flow,fhigh,t_before,nCorr,nTemps,Tmax,Tchain
@@ -722,7 +722,7 @@ end subroutine read_mcmcfiles
 
 subroutine mcmcruninfo(exitcode)  
   use SUFR_kinds, only: double
-  use basic, only: stdOut,stdErr
+  use SUFR_constants, only: stdOut,stdErr
   use constants, only: waveforms,detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
@@ -1282,7 +1282,7 @@ end function ra2lon
 
 function gmst(GPSsec)
   use SUFR_kinds, only: double
-  use basic, only: stdErr
+  use SUFR_constants, only: stdErr
   use constants, only: tpi
   
   implicit none
@@ -2010,7 +2010,7 @@ end function tms
 !> \brief  Determine the operating system type: 1-Linux, 2-MacOSX
 
 function getos()
-  use basic, only: stdErr
+  use SUFR_constants, only: stdErr
   use constants, only: homedir
   
   implicit none
@@ -2791,7 +2791,7 @@ end function ran_unif
 !! \retval nf      The actual number of files returned in fnames ( = min(number found, nff))
 
 subroutine findFiles(match,nff,all, fnames,nf)  
-  use basic, only: stdErr
+  use SUFR_constants, only: stdErr
   use constants, only: homedir
   
   implicit none
@@ -2911,7 +2911,7 @@ end subroutine set_currentdate_constants
 !! \param message  Exit message
 
 subroutine quit_program(message)
-  use basic, only: stdErr
+  use SUFR_constants, only: stdErr
   
   implicit none
   character, intent(in) :: message*(*)

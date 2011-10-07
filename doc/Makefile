@@ -125,6 +125,11 @@ ifneq (,$(filter $(COMP),gfortran gfortran-4.6))
       CFLAGS += -Wall -Wextra
       CFLAGS += -Werror -fmax-errors=10
       CFLAGS += -Wcharacter-truncation -Wunderflow
+#      CFLAGS += -Wno-array-temporaries
+#      CFLAGS += -Wconversion
+#      CFLAGS += -Wimplicit-interface
+# Use implicit none everywhere:
+#      CFLAGS += -fimplicit-none
    endif
 
    #To debug code:
@@ -223,11 +228,15 @@ endif
 
 
 STDOBJ = $(OBJDIR)/analyseMCMC_modules.o $(OBJDIR)/code_version.o
+
 ANALYSEMCMC_OBJ =  $(OBJDIR)/analyseMCMC_functions.o $(OBJDIR)/analyseMCMC_textroutines.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_stats.o $(OBJDIR)/analyseMCMC_tailored.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_chains.o $(OBJDIR)/analyseMCMC_1dpdfs.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_2dpdf_skymap.o $(OBJDIR)/analyseMCMC_2dpdf_routines.o $(OBJDIR)/analyseMCMC_2dpdfs.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_animation.o $(OBJDIR)/analyseMCMC_plot.o $(OBJDIR)/analyseMCMC_main.o
+
+COMPPDFS_OBJ =  $(OBJDIR)/compPDFs_functions.o
+
 
 ifeq ($(COMP),g95)
   STDOBJ += $(OBJDIR)/nagfor.o
@@ -253,10 +262,14 @@ exit:
 analyseMCMC_modules: $(SRCDIR)/analyseMCMC_modules.f90
 	$(COMP) $(OPT) $(CFLAGS) -c $(SRCDIR)/analyseMCMC_modules.f90  -o $(OBJDIR)/analyseMCMC_modules.o
 
+compPDFs_functions: $(SRCDIR)/compPDFs_functions.f90
+	$(COMP) $(OPT) $(CFLAGS) -c $(SRCDIR)/compPDFs_functions.f90  -o $(OBJDIR)/compPDFs_functions.o
 
 
 
-$(OBJDIR)/$(ANALYSEMCMC_OBJ): $(SRCDIR)/analyseMCMC_modules.f90  #All analyseMCMC*.o files depend on analyseMCMC_modules.f90
+
+$(OBJDIR)/$(ANALYSEMCMC_OBJ): $(SRCDIR)/analyseMCMC_modules.f90  # All analyseMCMC*.o files depend on analyseMCMC_modules.f90
+$(OBJDIR)/$(COMPPDFS_OBJ): $(SRCDIR)/compPDFs_functions.f90        # All compPDF*.o files depend on compPDFs_functions.f90
 
 analyseMCMC: $(STDOBJ) ${ANALYSEMCMC_OBJ}
 	$(COMP) -o $(BINDIR)/analyseMCMC $(LFLAGS) $(STDOBJ) ${ANALYSEMCMC_OBJ}

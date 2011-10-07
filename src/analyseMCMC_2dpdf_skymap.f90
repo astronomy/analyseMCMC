@@ -473,7 +473,7 @@ end subroutine pgimag_project
 !!   - Convergence is relatively fast, somewhat slower near poles
 
 subroutine project_skymap(x,y,raCentre,projection)
-  use basic, only: stdErr
+  use SUFR_constants, only: stdErr
   use constants, only: rd2r,rpi
   
   implicit none

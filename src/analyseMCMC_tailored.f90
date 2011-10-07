@@ -13,7 +13,7 @@
 !! - 2: Methods paper 2010
 
 subroutine tailored_output(exitcode)
-  use basic, only: stdOut
+  use SUFR_constants, only: stdOut
   use general_data, only: outputname,outputdir
   use analysemcmc_settings, only: tailoredOutput,prProgress
   
@@ -72,7 +72,8 @@ end subroutine tailored_output
 !! \retval exitcode  Exit status code
 
 subroutine tailored_output_0002(out,exitcode)
-  use basic, only: double, stdOut,stdErr
+  use SUFR_kinds, only: double
+  use SUFR_constants, only: stdOut,stdErr
   use analysemcmc_settings, only: normPDF2D,plPDF2D,prIval,PDF2Dpairs,Npdf2D,ival0
   use general_data, only: startval,ranges
   use mcmcrun_data, only: nMCMCpar0, waveform,revID,spinningRun

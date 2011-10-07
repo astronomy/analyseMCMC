@@ -323,7 +323,7 @@ end subroutine bindata2da
 !! \param tr  Transformation elements used by PGPlot
 
 subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
-  use basic, only: stdOut
+  use SUFR_constants, only: stdOut
   use constants, only: rd2r
   use analysemcmc_settings, only: changeVar,ivals,prProgress
   use mcmcrun_data, only: parID

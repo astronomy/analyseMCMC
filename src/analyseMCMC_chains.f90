@@ -7,7 +7,7 @@
 !! \retval exitcode  Exit status code (0=ok)
 
 subroutine chains(exitcode)
-  use basic, only: stdOut,stdErr
+  use SUFR_constants, only: stdOut,stdErr
   use analysemcmc_settings, only: plLogL,update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality,scLogLpl
   use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,plChain,fontsize1d,nPlPar,panels,plPars,scChainsPl,changeVar
   use analysemcmc_settings, only: chainSymbol,plInject,mergeChains,plStart,prConv,plParL,plJump,plAcorr,nAcorr

@@ -3,34 +3,6 @@
 
 
 !***********************************************************************************************************************************
-!> \brief Module with data types, etc.
-
-module basic
-  implicit none
-  
-  ! Determine real double-precision kind for the current compiler/OS:
-  integer, parameter :: double = selected_real_kind(15,307),  dbl = double
-  
-  ! Determine integer double-precision kind for the current compiler/OS:
-  integer, parameter :: long = selected_int_kind(18),  lng = long
-  
-  ! Determine maximum-precision kinds for the current compiler/OS:
-  !   selected_int/real_kind return negative integers for unsupported precision, and supposedly larger values for supported kinds
-  !   with larger precision.  Int 9,18 are standard int,long; real 6,15 are standard single,double precision.  Larger precisions
-  !   used are found in some compilers, except 99, which I made up.
-  
-  integer, parameter :: maxint = max(selected_int_kind(9),selected_int_kind(18),selected_int_kind(38),selected_int_kind(99)) 
-  integer, parameter :: maxreal = max(selected_real_kind(6),selected_real_kind(15),selected_real_kind(18), &
-       selected_real_kind(31),selected_real_kind(33),selected_real_kind(99))
-  !integer, parameter :: maxreal = double  ! If the above doesn't work
-  
-  integer :: stdOut,stdErr
-  
-end module basic
-!***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
 !> \brief Module with settings from the input file (e.g. analysemcmc.dat)
 
 module analysemcmc_settings

@@ -9,7 +9,8 @@
 !! - Other results are returned using a number of modules
 
 subroutine statistics(exitcode)
-  use basic, only: maxreal, stdOut
+  use SUFR_kinds, only: realkindmax
+  use SUFR_constants, only: stdOut
   use constants, only: rc3rd,rr2d,rr2h,rpi,rtpi
   use analysemcmc_settings, only: changeVar,prProgress,mergeChains,wrapData,saveStats,prCorr,ivals,ival0,prStat,prIval,Nival,Nburn
   use analysemcmc_settings, only: prConv,wikioutput,plAcorr,prAcorr,maxMCMCpar,maxChs
@@ -30,7 +31,7 @@ subroutine statistics(exitcode)
   real :: x1,x2,y1,y2
   real :: range1,minrange,ival,wrapival,centre,maxlogl,minlogl,shift,shIval,shIval2
   real :: medians(maxMCMCpar),mean(maxMCMCpar),var1(maxMCMCpar),var2(maxMCMCpar),corr,corr1,corr2
-  real(kind=maxreal) :: var,total,total2,total3,deltab  !Need extra accuracy to compute Bayes factor
+  real(kind=realkindmax) :: var,total,total2,total3,deltab  !Need extra accuracy to compute Bayes factor
   
   exitcode = 0
   
@@ -655,7 +656,7 @@ end subroutine statistics
 !! \retval exitcode  Exit status code
 
 subroutine save_stats(exitcode)
-  use basic, only: stdErr,stdOut
+  use SUFR_constants, only: stdErr,stdOut
   use analysemcmc_settings, only: Nival,ivals,Npdf2D,Nbin2Dx,Nbin2Dy,PDF2Dpairs,saveStats,prProgress
   use general_data, only: outputname,outputdir,nChains0,contrChains,post,fixedpar,parNames,startval,stats,ranges
   use mcmcrun_data, only: totiter,totlines,totpts,seed,ndet,networkSNR,detnames,detnr,snr,flow,fhigh,t_before,t_after,FTstart
@@ -820,7 +821,7 @@ end subroutine save_stats
 !! \retval exitcode  Exit status code
 
 subroutine save_bayes(exitcode)
-  use basic, only: stdOut
+  use SUFR_constants, only: stdOut
   use analysemcmc_settings, only: saveStats,prProgress
   use general_data, only: outputname,outputdir,nchains0,contrChains
   use general_data, only: logebayesfactortotalarith,logebayesfactortotalharmo,logebayesfactortotal,logebayesfactortotalgeom
@@ -874,7 +875,7 @@ end subroutine save_bayes
 !! \param ic  Chain number
 
 subroutine save_cbc_wiki_data(ic)
-  use basic, only: stdErr,stdOut
+  use SUFR_constants, only: stdErr,stdOut
   use constants, only: waveforms,detabbrs, rh2r,rd2r
   use analysemcmc_settings, only: Nival,ivals,prStdOut,maxMCMCpar
   use general_data, only: outputname,outputdir, allDat, logebayesfactor,log10bayesfactor, stats,startval,ranges
@@ -1303,7 +1304,8 @@ end subroutine save_cbc_wiki_data
 !! \todo  do we need unwrapped data for this? - probably not, since the different chains are wrapped in the same way
 
 subroutine compute_convergence()
-  use basic, only: double, stdOut
+  use SUFR_kinds, only: double
+  use SUFR_constants, only: stdOut
   use analysemcmc_settings, only: prConv,Nburn,maxChs,maxMCMCpar
   use general_data, only: Rhat,contrChains,contrChain,nChains0,Ntot,allDat,fixedpar,parNames
   use mcmcrun_data, only: parID,revID,nMCMCpar
@@ -1528,7 +1530,7 @@ end subroutine compute_convergence
 !! - results are printed to stdout if prAcorr>0
 
 subroutine compute_autocorrelations()
-  use basic, only: stdOut,stdErr
+  use SUFR_constants, only: stdOut,stdErr
   use analysemcmc_settings, only: prAcorr,nAcorr
   use general_data, only: allDat,fixedpar,parNames,nChains0,Ntot
   use mcmcrun_data, only: nMCMCpar,parID,totthin
