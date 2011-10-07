@@ -8,7 +8,7 @@
 
 subroutine pdfs2d(exitcode)
   use SUFR_constants, only: stdOut,stdErr
-  use constants, only: upline, pi,rpi,rh2r
+  use SUFR_constants, only: cursorup, pi,rpi,rh2r
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: plLmax,fontsize2d,map_projection,maxChs
   use analysemcmc_settings, only: plInject,mergeChains,Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky,wrapData
@@ -159,7 +159,7 @@ subroutine pdfs2d(exitcode)
            if(p2.le.p1) cycle
            if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
            if(stdOut.lt.10) then
-              write(stdOut,*)upline  ! Move cursor up 1 line
+              write(stdOut,*)cursorup  ! Move cursor up 1 line
               if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(F7.1,A)')real(countplots+1)/real(totplots)*100, &
                    '%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                      '
            end if

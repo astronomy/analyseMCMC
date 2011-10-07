@@ -43,7 +43,10 @@
 program analyseMCMC
   use SUFR_kinds, only: double,dbl
   use SUFR_constants, only: stdOut,stdErr, set_SUFR_constants
-  use constants, only: os,stdOutFile,workdir,hostname,username,currenttimezonestr,currenttimestr,currentdatestr
+  use SUFR_constants, only: workdir,hostname,username,currenttimezonestr,currenttimestr,currentdatestr
+  use SUFR_system, only: quit_program_error
+  
+  use aM_constants, only: os, stdOutFile
   use analysemcmc_settings, only: panels,wikioutput,map_projection,html,prProgress,file,colour,prStdOut,prRunInfo,prChainInfo
   use analysemcmc_settings, only: prInitial,prStat,prCorr,prIval,prConv,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D,plotSky
   use analysemcmc_settings, only: plAnim,plInject,plStart,plMedian,plRange,plBurn,plLmax,normPDF2D,bmpXSz,bmpYSz,Npdf2D,reverseRead
@@ -127,14 +130,14 @@ program analyseMCMC
   inquire(file=trim(outputdir), exist=ex)  ! Check whether the directory already exists 
   if(.not.ex) then
      status = system('mkdir -p '//trim(outputdir))
-     if(status.ne.0) call quit_program('Could not create output directory: '//trim(outputdir)//'/')
+     if(status.ne.0) call quit_program_error('Could not create output directory: '//trim(outputdir)//'/',1)
   end if
   
   if(prStdOut.ge.2) then  ! Write standard output to file rather than screen
      stdOut = 19
      write(stdOutFile,'(A,I6.6,A)')trim(outputdir)//'/analysemcmc_tempstdout_',abs(get_ran_seed(0)),'.txt'
      open(unit=stdOut,action='write',form='formatted',status='replace',file=trim(stdOutFile),iostat=io)
-     if(io.ne.0) call quit_program('Error opening output file '//trim(stdOutFile))
+     if(io.ne.0) call quit_program_error('Error opening output file '//trim(stdOutFile),1)
   end if
   write(stdOut,*)
   
@@ -146,7 +149,7 @@ program analyseMCMC
   
   if(html.ge.1) then  ! Write standardised HTML output
      open(unit=51,action='write',form='formatted',status='replace',file=trim(outputdir)//'/index.html',iostat=io)
-     if(io.ne.0) call quit_program('Error opening HTML output file '//trim(outputdir)//'/index.html')
+     if(io.ne.0) call quit_program_error('Error opening HTML output file '//trim(outputdir)//'/index.html',1)
   end if
   
   
@@ -161,8 +164,8 @@ program analyseMCMC
         write(stdErr,'(A)')'  No files matching  SPINspiral.output.*.00  were found in the current directory.'
         write(stdErr,'(A)')'  I will try the old file names  mcmc.output.*.00  instead.'
         call findFiles('mcmc.output.*.00',maxChs,1,infiles,nchains0)
-        if(nchains0.eq.0) call quit_program('No valid input files were found in the current directory.'// &
-             '  Please specify input files manually.')
+        if(nchains0.eq.0) call quit_program_error('No valid input files were found in the current directory.'// &
+             '  Please specify input files manually.',1)
      end if
   else
      do ic = 1,nchains0

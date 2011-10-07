@@ -9,7 +9,7 @@
 subroutine animation(exitcode)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdOut,stdErr
-  use constants, only: upline, pi
+  use SUFR_constants, only: cursorup, pi
   use analysemcmc_settings, only: plAnim,Nbin1D,update,plot,prProgress,maxChs,nAnimFrames,file,ivals,Nburn,maxMCMCpar,scrSz,scrRat
   use analysemcmc_settings, only: colour,whiteBG,animScheme,plInject,plStart,chainSymbol,plBurn,chainPlI,fillPDF,mergeChains
   use analysemcmc_settings, only: normPDF1D,smooth,changeVar
@@ -66,7 +66,7 @@ subroutine animation(exitcode)
      nplt = nint(real(iframe)/real(nAnimFrames)*maxval(ntot(1:nchains)))  !This is the line number, not the iteration number
      
      if(prProgress.ge.1.and.update.eq.0) then
-        write(stdOut,*)upline !Move cursor up 1 line
+        write(stdOut,*)cursorup !Move cursor up 1 line
         write(stdOut,'(A,I5,A1,I5,A,I6,A,I6,A)',advance="no")'  Plotting movie frame',iframe,'/',nAnimFrames, &
              '  (',nplt,'/',ntot(1:nchains),' points)'
         

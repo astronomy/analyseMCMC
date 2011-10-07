@@ -8,7 +8,7 @@
 
 subroutine pdfs1d(exitcode)
   use SUFR_constants, only: stdOut,stdErr
-  use constants, only: rtpi
+  use SUFR_constants, only: rpi2
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: plLmax,fontsize1d,nPlPar,panels,plPars,changeVar
   use analysemcmc_settings, only: plInject,mergeChains,maxChs
@@ -327,7 +327,7 @@ subroutine pdfs1d(exitcode)
               call pgline(2,(/xbin1(1)-bindx,xbin1(1)/)+bindx/2.,(/0.,ybin1(1)/))
               call pgline(2,(/xbin1(Nbin1D+1),xbin1(Nbin1D+1)/)+bindx/2.,(/ybin1(Nbin1D+1),0./))
            else  ! If parameter is wrapped
-              plshift = rtpi  !2pi
+              plshift = rpi2  !2pi
               if(changeVar.ge.1) then
                  plshift = 360.
                  if(parID(p).eq.31) plshift = 24.   ! RA in hours

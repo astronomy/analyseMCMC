@@ -324,7 +324,7 @@ end subroutine bindata2da
 
 subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   use SUFR_constants, only: stdOut
-  use constants, only: rd2r
+  use SUFR_constants, only: rd2r
   use analysemcmc_settings, only: changeVar,ivals,prProgress
   use mcmcrun_data, only: parID
   
@@ -410,7 +410,7 @@ end subroutine identify_2d_ranges
 !! \retval area  Probability areas
 
 subroutine calc_2d_areas(p1,p2,ni,nx,ny,z,tr,area)
-  use constants, only: rd2r
+  use SUFR_constants, only: rd2r
   use analysemcmc_settings, only: changeVar
   use mcmcrun_data, only: parID
   

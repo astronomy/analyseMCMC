@@ -6,31 +6,9 @@
 
 subroutine setconstants()
   use SUFR_constants, only: stdErr,stdOut
-  use constants, only: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd, rpi,rtpi,rpi2,rr2d,rd2r,rr2h,rh2r,rc3rd
-  use constants, only: upline,detabbrs,waveforms, homedir,workdir,hostname,username
+  use aM_constants, only: detabbrs,waveforms
   
   implicit none
-  integer :: i1,i2
-  
-  ! Double precision:
-  pi =  4*atan(1.d0)  ! pi
-  tpi = 2*pi          ! 2pi
-  pi2 = 0.5d0*pi      ! pi/2
-  r2d = 180.d0/pi     ! rad->deg
-  d2r = pi/180.d0     ! deg->rad
-  r2h = 12.d0/pi      ! rad->hr
-  h2r = pi/12.d0      ! hr->rad
-  c3rd = 1.d0/3.d0    ! 1/3     
-  
-  ! Single precision:
-  rpi = 4*atan(1.)    ! pi      
-  rtpi = 2*rpi        ! 2pi     
-  rpi2 = 0.5*rpi      ! pi/2    
-  rr2d = 180./rpi     ! rad->deg
-  rd2r = rpi/180.     ! deg->rad
-  rr2h = 12./rpi      ! rad->hr 
-  rh2r = rpi/12.      ! hr->rad 
-  rc3rd = 1./3.       ! 1/3     
   
   stdErr = 0  ! Standard error unit
   stdOut = 6  ! Standard output unit - screen
@@ -47,21 +25,6 @@ subroutine setconstants()
   waveforms(5) = 'PhenSpinInspiralRD'
   waveforms(9) = 'Ana.L'
   
-  upline = char(27)//'[2A'   ! Printing this makes the cursor move up one line (actually two lines, since a hard return is included)
-  
-  call get_environment_variable('HOME',homedir)       ! Get the current user's home directory
-  call get_environment_variable('PWD',workdir)        ! Set workdir  = $PWD
-  call get_environment_variable('HOSTNAME',hostname)  ! Set hostname = $HOSTNAME  !Apparently not always exported
-  call get_environment_variable('USER',username)      ! Set username = $USER
-  
-  i1 = index(workdir,trim(homedir))
-  if(i1.gt.0.and.i1.lt.99) then
-     i2 = len_trim(homedir)
-     if(i1.eq.1) write(workdir,'(A)') '~'//trim(workdir(i2+1:))
-  end if
-  
-  call set_currentdate_constants()
-  
 end subroutine setconstants
 !***********************************************************************************************************************************
 
@@ -72,6 +35,8 @@ end subroutine setconstants
 subroutine read_settingsfile()
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdErr
+  use SUFR_system, only: quit_program
+  
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
@@ -723,7 +688,7 @@ end subroutine read_mcmcfiles
 subroutine mcmcruninfo(exitcode)  
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdOut,stdErr
-  use constants, only: waveforms,detabbrs
+  use aM_constants, only: waveforms,detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
   use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar
@@ -1239,13 +1204,13 @@ end subroutine save_data
 
 function lon2ra(lon, GPSsec)
   use SUFR_kinds, only: double
-  use constants, only: tpi
+  use SUFR_constants, only: pi2
   
   implicit none
   real(double), intent(in) :: lon,GPSsec
   real(double) :: lon2ra,gmst
   
-  lon2ra = mod(lon + gmst(GPSsec) + 10*tpi,tpi)
+  lon2ra = mod(lon + gmst(GPSsec) + 10*pi2,pi2)
   
 end function lon2ra
 !***********************************************************************************************************************************
@@ -1261,13 +1226,13 @@ end function lon2ra
 
 function ra2lon(ra, GPSsec)
   use SUFR_kinds, only: double
-  use constants, only: tpi
+  use SUFR_constants, only: pi2
   
   implicit none
   real(double), intent(in) :: ra,GPSsec
   real(double) :: ra2lon,gmst
   
-  ra2lon = mod(ra - gmst(GPSsec) + 10*tpi,tpi)
+  ra2lon = mod(ra - gmst(GPSsec) + 10*pi2,pi2)
   
 end function ra2lon
 !***********************************************************************************************************************************
@@ -1283,7 +1248,7 @@ end function ra2lon
 function gmst(GPSsec)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdErr
-  use constants, only: tpi
+  use SUFR_constants, only: pi2
   
   implicit none
   real(double), intent(in) :: GPSsec
@@ -1304,7 +1269,7 @@ function gmst(GPSsec)
   gmst = 24110.54841d0 + (centuries*(8640184.812866d0 + centuries*(0.093104d0 + centuries*6.2d-6)))
   gmst = gmst + secCurrentDay * 1.002737909350795d0   !UTC day is 1.002 * MST day
   gmst = mod(gmst/86400.d0,1.d0)
-  gmst = gmst * tpi
+  gmst = gmst * pi2
   
 end function gmst
 !***********************************************************************************************************************************
@@ -1657,7 +1622,7 @@ end subroutine ludcmp
 
 function drev2pi(x)
   use SUFR_kinds, only: double
-  use constants, only: pi
+  use SUFR_constants, only: pi
   
   implicit none
   real(double), intent(in) :: x
@@ -1692,7 +1657,7 @@ end function revper
 !! \param x  Angle (rad)
 
 function revpipi(x)
-  use constants, only: rpi,rpi2
+  use SUFR_constants, only: rpi,rpi2
   
   implicit none
   real, intent(in) :: x
@@ -1777,7 +1742,7 @@ end function rev2pi
 
 function drevpi(x)
   use SUFR_kinds, only: double
-  use constants, only: pi
+  use SUFR_constants, only: pi
   
   implicit none
   real(double), intent(in) :: x
@@ -1795,7 +1760,7 @@ end function drevpi
 !! \param x  Angle (rad)
 
 function rrevpi(x)
-  use constants, only: rpi
+  use SUFR_constants, only: rpi
   implicit none
   real, intent(in) :: x
   real :: rrevpi
@@ -2011,7 +1976,7 @@ end function tms
 
 function getos()
   use SUFR_constants, only: stdErr
-  use constants, only: homedir
+  use SUFR_constants, only: homedir
   
   implicit none
   integer :: status,system,getos,io
@@ -2791,8 +2756,8 @@ end function ran_unif
 !! \retval nf      The actual number of files returned in fnames ( = min(number found, nff))
 
 subroutine findFiles(match,nff,all, fnames,nf)  
-  use SUFR_constants, only: stdErr
-  use constants, only: homedir
+  use SUFR_constants, only: stdErr, homedir
+  use SUFR_system, only: quit_program_error
   
   implicit none
   character, intent(in) :: match*(*)
@@ -2803,10 +2768,7 @@ subroutine findFiles(match,nff,all, fnames,nf)
   integer :: i,j,k,fnum,status,system,io
   character :: names(nff)*(99),tempfile*(99)
   
-  if(len_trim(homedir).eq.99) then
-     write(stdErr,'(/,A,/)')'  FindFiles:  ERROR:  variable homedir not defined (forgot to call setconstants?), quitting.'
-     stop
-  end if
+  if(len_trim(homedir).ge.99) call quit_program_error('FindFiles: variable homedir not defined (forgot to call setconstants?)',1)
   
   tempfile = trim(homedir)//'/.findFile.tmp'
   !Shell command to list all the files with the search string and pipe them to a temporary file:
@@ -2875,53 +2837,5 @@ subroutine findFiles(match,nff,all, fnames,nf)
   
 end subroutine findFiles
 !***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
-!> \brief  Define constants that contain the current date or time
-
-subroutine set_currentdate_constants()
-  use SUFR_kinds, only: double
-  use constants, only: currentdatestr,currenttimestr,currenttimezonestr
-  
-  implicit none
-  integer :: dt(8)
-  real(double) :: tz
-  character :: tzstr*(9),signstr
-  
-  call date_and_time(currentdatestr,currenttimestr,currenttimezonestr,dt)
-  
-  write(currentdatestr,'(I2.2,A1,I2.2,A1,I4.4)')dt(3),'/',dt(2),'/',dt(1)
-  write(currenttimestr,'(I2.2,A1,I2.2,A1,I2.2)')dt(5),':',dt(6),':',dt(7)
-  
-  tz = abs(dble(dt(4))/60.d0)
-  write(tzstr,'(F5.2)')tz
-  if(nint(tz).lt.10) write(tzstr,'(A1,F4.2)')'0',tz
-  signstr = '-'
-  if(dt(4).ge.0) signstr = '+'
-  write(currenttimezonestr,'(A)')'UTC'//signstr//trim(tzstr)
-  
-end subroutine set_currentdate_constants
-!***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
-!> \brief  Print a message and stop the execution of the current program
-!!
-!! \param message  Exit message
-
-subroutine quit_program(message)
-  use SUFR_constants, only: stdErr
-  
-  implicit none
-  character, intent(in) :: message*(*)
-  
-  write(stdErr,'(/,A)')'  '//trim(message)
-  write(stdErr,'(A,/)')'  Aborting...'
-  stop
-  
-end subroutine quit_program
-!***********************************************************************************************************************************
-
 
 

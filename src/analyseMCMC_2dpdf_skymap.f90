@@ -12,7 +12,7 @@
 
 subroutine plotthesky(bx10,bx20, by1,by2, raShift)
   use SUFR_kinds, only: double
-  use constants, only: homedir, tpi,r2d
+  use SUFR_constants, only: homedir, pi2,r2d
   use analysemcmc_settings, only: fonttype,fontsize1d
   
   implicit none
@@ -61,7 +61,7 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
      read(21,320)name,ra(i),dec(i),pma,pmd,rv,vm(i),par,mult,var
 320  format(A10,1x,2F10.6,1x,2F7.3,I5,F6.2,F6.3,A2,A10)
      sn(i) = getsname(name)
-     ra(i) = mod(ra(i)+raShift,tpi)-raShift
+     ra(i) = mod(ra(i)+raShift,pi2)-raShift
   end do
   close(21)
   
@@ -91,7 +91,7 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
      !constx(i) = x1
      !consty(i) = y1
      !constx(i) = real(ra1*r2d)
-     constx(i) = real((mod(ra1+raShift,tpi)-raShift)*r2d)
+     constx(i) = real((mod(ra1+raShift,pi2)-raShift)*r2d)
      consty(i) = real(dec1*r2d)
   end do
 340 close(22)
@@ -308,7 +308,7 @@ end function getmag
 !! - Clone of pgimag, use projection if projection > 0
 
 subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, tr, projection)
-  use constants, only: rtpi
+  use SUFR_constants, only: rpi2
   use general_data, only: raCentre
   
   implicit none
@@ -379,7 +379,7 @@ subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, tr, projection)
      
      ! Get data to plot ellipses:
      do i=1,nell
-        x = real(i-1)/real(nell-1)*rtpi
+        x = real(i-1)/real(nell-1)*rpi2
         xell(i) = sin(x)
         yell(i) = cos(x)
      end do
@@ -473,8 +473,8 @@ end subroutine pgimag_project
 !!   - Convergence is relatively fast, somewhat slower near poles
 
 subroutine project_skymap(x,y,raCentre,projection)
-  use SUFR_constants, only: stdErr
-  use constants, only: rd2r,rpi
+  use SUFR_constants, only: stdErr, rd2r,rpi
+  use SUFR_system, only: quit_program
   
   implicit none
   real, intent(inout) :: x,y

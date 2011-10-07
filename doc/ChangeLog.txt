@@ -3,6 +3,10 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   204: sluys, 07/10/2011
+     - Replaced module constants with aM_constants
+     - Use module SUFR_constants
+     
    203: sluys, 07/10/2011
      - Remove module basic; use libSUFR instead
      

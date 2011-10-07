@@ -31,21 +31,16 @@ end module analysemcmc_settings
 
 
 !***********************************************************************************************************************************
-!> \brief Module with (currently) mathematical and string constants
+!> \brief Module with constants for analyseMCMC
 
-module constants
-  use SUFR_kinds, only: double
-  
+module aM_constants
   implicit none
   save
-  private :: double
   
   integer :: os
-  real(double) :: pi,tpi,pi2,r2d,d2r,r2h,h2r,c3rd
-  real :: rpi,rtpi,rpi2,rr2d,rd2r,rr2h,rh2r,rc3rd
-  character :: upline*(4),detabbrs(4)*(2),waveforms(0:9)*(99),currentdatestr*(19),currenttimestr*(19),currenttimezonestr*(19)
-  character(len=99) :: homedir,workdir,hostname,username,stdOutFile
-end module constants
+  character :: detabbrs(4)*(2),waveforms(0:9)*(99)
+  character(len=99) :: stdOutFile
+end module aM_constants
 
 !***********************************************************************************************************************************
 

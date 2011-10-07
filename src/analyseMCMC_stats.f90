@@ -11,7 +11,7 @@
 subroutine statistics(exitcode)
   use SUFR_kinds, only: realkindmax
   use SUFR_constants, only: stdOut
-  use constants, only: rc3rd,rr2d,rr2h,rpi,rtpi
+  use SUFR_constants, only: rc3rd,rr2d,rr2h,rpi,rpi2
   use analysemcmc_settings, only: changeVar,prProgress,mergeChains,wrapData,saveStats,prCorr,ivals,ival0,prStat,prIval,Nival,Nburn
   use analysemcmc_settings, only: prConv,wikioutput,plAcorr,prAcorr,maxMCMCpar,maxChs
   use general_data, only: allDat,selDat,startval,shIvals,wrap,shifts,stats,ranges,nChains0,Ntot,nChains,n,raShift,contrChain
@@ -126,7 +126,7 @@ subroutine statistics(exitcode)
         ! Determine shift interval from wraptype:
         select case(wraptype)
         case(1)
-           shIval = rtpi        ! "Phase": 0-2pi
+           shIval = rpi2        ! "Phase": 0-2pi
         case(2)
            shIval = rpi         ! Pol.angle: 0-pi
         case(11)
@@ -876,7 +876,9 @@ end subroutine save_bayes
 
 subroutine save_cbc_wiki_data(ic)
   use SUFR_constants, only: stdErr,stdOut
-  use constants, only: waveforms,detabbrs, rh2r,rd2r
+  use SUFR_constants, only: rh2r,rd2r
+  use aM_constants, only: waveforms,detabbrs
+  
   use analysemcmc_settings, only: Nival,ivals,prStdOut,maxMCMCpar
   use general_data, only: outputname,outputdir, allDat, logebayesfactor,log10bayesfactor, stats,startval,ranges
   use stats_data, only: stdev2
