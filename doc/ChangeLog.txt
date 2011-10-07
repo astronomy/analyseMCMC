@@ -3,6 +3,9 @@
   Revisions in the spinning_mcmc repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   205: sluys, 07/10/2011
+     - Added src/PG2PLplot.f90
+     
    204: sluys, 07/10/2011
      - Replaced module constants with aM_constants
      - Use module SUFR_constants
