@@ -29,8 +29,8 @@ subroutine pdfs2d(exitcode)
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
-  character :: string*(99),str*(99),tempfile*(99),ivalstr*(99),delta*(19),outputbasefile*(199)
-  logical :: project_map,sky_position,binary_orientation
+  character :: string*(99),str*(99),tempfile*(99),ivalstr*(99),delta*(19),outputbasefile*(199), convopts*(99)
+  logical :: project_map,sky_position,binary_orientation, ex
   !real :: xmin1,xmax1,ymin1,ymax1
   
   
@@ -196,8 +196,8 @@ subroutine pdfs2d(exitcode)
               call pginitl(colour,file,whiteBG)
            end if
            if(file.eq.1) then
-              write(tempfile,'(A)') trim(outputbasefile)//'.ppm'
-              io = pgopen(trim(tempfile)//'/ppm')
+              write(tempfile,'(A)') trim(outputbasefile)
+              io = pgopen(trim(tempfile)//'.ppm/ppm')
               if(project_map) then
                  call pgpap(bmpsz/0.5*bmprat,0.5)
               else
@@ -206,8 +206,8 @@ subroutine pdfs2d(exitcode)
               call pginitl(colour,file,whiteBG)
            end if
            if(file.ge.2) then
-              write(tempfile,'(A)') trim(outputbasefile)//'.eps'
-              io = pgopen(trim(tempfile)//trim(psclr))
+              write(tempfile,'(A)') trim(outputbasefile)
+              io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
               if(project_map) then
                  call pgpap(PSsz/0.5*PSrat,0.5)
               else
@@ -778,28 +778,31 @@ subroutine pdfs2d(exitcode)
            ! Convert plot:
            if(file.eq.1) then
               call pgend
-              if(countplots.eq.Npdf2D) then 
-                 
-                 ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
-                 status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)//' '// &
-                      trim(tempfile)//' '//trim(outputbasefile)//'.png')
-                 
-              else  ! in the background
-                 
-                 status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)//' '// &
-                      trim(tempfile)//' '//trim(outputbasefile)//'.png &')
-                 
-              end if
               
-              if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'// &
-                   trim(parNames(parID(p2)))
+              inquire(file=trim(tempfile)//'.ppm', exist=ex)
+              if(ex) then
+                 convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)
+                 if(countplots.eq.Npdf2D) then 
+                    
+                    ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
+                    status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm '//trim(outputbasefile)//'.png')
+                    
+                 else  ! in the background
+                    
+                    status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm '//trim(outputbasefile)//'.png &')
+                    
+                 end if
+                 
+                 if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'// &
+                      trim(parNames(parID(p2)))
+              end if
            end if
            
            !if(file.ge.2.and.multipagefile) call pgpage
            if(file.ge.2) then
               call pgend
               if(file.eq.3) then
-                 status = system('eps2pdf '//trim(tempfile)//' &> /dev/null')
+                 status = system('eps2pdf '//trim(tempfile)//'.eps &> /dev/null')
                  if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'// &
                       trim(parNames(parID(p2)))
               end if
@@ -866,20 +869,23 @@ subroutine pdfs2d(exitcode)
               
               countplots = countplots + 1  ! The current plot is number countplots
               write(outputbasefile,'(A)') trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
-              write(tempfile,'(A)') trim(outputdir)//'/'//trim(outputbasefile)//'.ppm'
-              status = system('rm -f '//trim(tempfile))
+              write(tempfile,'(A)') trim(outputdir)//'/'//trim(outputbasefile)
+              status = system('rm -f '//trim(tempfile)//'.ppm')
               
               if(html.ge.1) then
-                 ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
-                 if(countplots.eq.Npdf2D) then 
-                    status = system('convert -resize 200x200 '//trim(outputdir)//'/'//trim(outputbasefile)//'.png '// &
-                         trim(outputdir)//'/'//trim(outputbasefile)//'_thumb.png')
-                 else
-                    status = system('convert -resize 200x200 '//trim(outputdir)//'/'//trim(outputbasefile)//'.png '// &
-                         trim(outputdir)//'/'//trim(outputbasefile)//'_thumb.png &')
+                 
+                 inquire(file=trim(tempfile)//'.png', exist=ex)
+                 if(ex) then
+                    
+                    ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
+                    if(countplots.eq.Npdf2D) then 
+                       status = system('convert -resize 200x200 '//trim(tempfile)//'.png '//trim(tempfile)//'_thumb.png')
+                    else
+                       status = system('convert -resize 200x200 '//trim(tempfile)//'.png '//trim(tempfile)//'_thumb.png &')
+                    end if
+                    if(status.ne.0) write(stdErr,'(A)')'  Error creating thumbnail for '//trim(parNames(parID(p1)))//'-'// &
+                         trim(parNames(parID(p2)))
                  end if
-                 if(status.ne.0) write(stdErr,'(A)')'  Error creating thumbnail for '//trim(parNames(parID(p1)))//'-'// &
-                      trim(parNames(parID(p2)))
                  
                  write(51,'(A)')'<td>'
                  write(51,'(A)')'  <a href="'//trim(outputbasefile)//'.png">'

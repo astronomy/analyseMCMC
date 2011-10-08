@@ -1,8 +1,19 @@
 
 
-  Revisions in the spinning_mcmc repository.  
+  Revisions in the AnalyseMCMC repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   207: sluys, 08/10/2011
+     - Updating routines in PG2PLplot:
+       - added and used  pg2pldev() to convert a PGPlot device ID to PLplot
+       - copied replace_substring() from libSUFR
+       - fixed bug in pgqci()
+       - warn only once about non-existing PLplot equivalents
+     - AnalyseMCMC:
+       - convert chain, PDF plots ppm -> png only if ppm file exists	
+       - use tempfile and convopts to convert
+       - moved pgscidark() to analyseMCMC_plot.f90
+     
    206: sluys, 08/10/2011
      - Adding routines to PG2PLplot
      

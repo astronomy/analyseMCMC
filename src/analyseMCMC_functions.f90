@@ -2020,35 +2020,6 @@ end function timestamp
 
 
 !***********************************************************************************************************************************
-!> \brief Set the colour to ci, but use a darker shade if the background is black or a lighter shade if it is white
-!! 
-!! \param ci0      Colour index
-!! \param file     Output file type
-!! \param whiteBG  Have a white background (1) or nor (0)
-
-subroutine pgscidark(ci0,file,whiteBG)  
-  implicit none
-  integer, intent(in) :: ci0,file,whiteBG
-  integer :: ci
-  real :: r,g,b,weight
-  
-  ci = ci0
-  call pgqcr(ci,r,g,b)
-  
-  ! Use half the RGB value to create a darker shade:
-  call pgscr(99,r*0.5,g*0.5,b*0.5)
-  
-  ! Use the weighted mean of the RGB value and 1. to create a lighter shade:
-  weight = 3.
-  if(file.ge.2.or.whiteBG.ge.1) call pgscr(99,(r+weight)/(weight+1.),(g+weight)/(weight+1.),(b+weight)/(weight+1.)) 
-  call pgsci(99)
-  
-end subroutine pgscidark
-!***********************************************************************************************************************************
-
-
-
-!***********************************************************************************************************************************
 !> \brief  Transforms longitude l, latitude b and radius r into a vector with length r.  Use r=1 for a unit vector
 !!
 !! \param l     Longitude (rad)

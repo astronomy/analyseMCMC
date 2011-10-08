@@ -37,8 +37,10 @@ end subroutine pgslw
 subroutine pgqlw(lw)
   implicit none
   integer, intent(out) :: lw
+  integer, save :: warn
   
-  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgqlw()'
+  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgqlw()'
+  warn = 123
   
   lw = 1
   
@@ -70,8 +72,10 @@ subroutine pgsci(ci1)
   integer :: ci2,colours(0:15)
   
   ci2 = 15 !White
+  ci2 = ci1
   colours = (/0,15,1,3,9,7,13,2,8,12,4,11,10,5,7,7/)
   if(ci1.ge.0.and.ci1.le.15) ci2 = colours(ci1)
+  
   !write(6,'(A,2I6)')'  pgsci: ',ci1,ci2
   
   call plcol0(ci2)
@@ -100,10 +104,11 @@ subroutine pgscr(ci1, r,g,b)
   colours = (/0,15,1,3,9,7,13,2,8,12,4,11,10,5,7,7/)
   ci2 = ci1
   if(ci1.ge.0.and.ci1.le.15) ci2 = colours(ci1)
+  if(ci2.gt.15) call plscmap0n(256)  ! Allows indices 0-255
   
   call plscol0(ci2, ri,gi,bi)
   
-  write(6,'(A,2I6,3F10.3)')'  pgscr: ',ci1,ci2,r,g,b
+  !write(6,'(A,2I6, 5x,3F10.3, 5x,3I6)')'  pgscr: ',ci1,ci2, r,g,b, ri,gi,bi
   
 end subroutine pgscr
 !***********************************************************************************************************************************
@@ -122,17 +127,17 @@ subroutine pgqcr(ci1,r,g,b)
   real, intent(out) :: r,g,b
   integer :: ci2,ri,gi,bi,colours(0:15)
   
-  ri = nint(r*255)
-  gi = nint(g*255)
-  bi = nint(b*255)
-  
-  colours = (/0,15,1,3,9,7,13,2,8,12,4,11,10,5,7,7/)
   ci2 = ci1
+  colours = (/0,15,1,3,9,7,13,2,8,12,4,11,10,5,7,7/)
   if(ci1.ge.0.and.ci1.le.15) ci2 = colours(ci1)
   
   call plgcol0(ci2,ri,gi,bi)
   
-  !write(6,'(A,2I6,3F10.3)')'  pgqcr: ',ci1,ci2,r,g,b
+  r = real(ri)/255.
+  g = real(gi)/255.
+  b = real(bi)/255.
+  
+  !write(6,'(A,2I6,5x,3I6,5x,3F10.3)')'  pgqcr: ',ci1,ci2, ri,gi,bi, r,g,b
   
 end subroutine pgqcr
 !***********************************************************************************************************************************
@@ -147,11 +152,13 @@ subroutine pgscir(ci1,ci2)
   implicit none
   integer, intent(in) :: ci1,ci2
   integer :: tmp
+  integer, save :: warn
   
   tmp = ci1
   tmp = ci2
   
-  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgscir()'
+  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgscir()'
+  warn = 123
   
 end subroutine pgscir
 !***********************************************************************************************************************************
@@ -166,11 +173,13 @@ end subroutine pgscir
 subroutine pgqcir(ci1,ci2)
   implicit none
   integer, intent(out) :: ci1,ci2
+  integer, save :: warn
   
   ci1 = 0
   ci2 = 255
   
-  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgqcir()'
+  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgqcir()'
+  warn = 123
   
 end subroutine pgqcir
 !***********************************************************************************************************************************
@@ -260,12 +269,14 @@ subroutine pgsah(fs, angle, barb)
   integer, intent(in) :: fs
   real, intent(in) :: angle, barb
   integer :: tmp
-  
+  integer, save :: warn
+    
   tmp = fs
   tmp = nint(angle)
   tmp = nint(barb)
   
-  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgsah()'
+  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgsah()'
+  warn = 123
   
 end subroutine pgsah
 !***********************************************************************************************************************************
@@ -484,7 +495,8 @@ subroutine pgconf(arr, nx,ny, ix1,ix2, iy1,iy2, c1, c2, tr)
   real, intent(in) :: arr(nx,ny), c1,c2, tr(6)
   !real(kind=plflt) :: arr1(nx,ny), clevel(nc), tr1(6)
   integer :: tmp
-  
+  integer, save :: warn
+    
   tmp = nint(arr(1,1))
   tmp = nx
   tmp = ny
@@ -503,7 +515,8 @@ subroutine pgconf(arr, nx,ny, ix1,ix2, iy1,iy2, c1, c2, tr)
   !
   !call plshade1(arr1, ix1,ix2, iy1,iy2, clevel, tr1)
   
-  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgconf()'
+  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgconf()'
+  warn = 123
   
 end subroutine pgconf
 !***********************************************************************************************************************************
@@ -536,9 +549,10 @@ subroutine pgptxt(x1,y1,ang,just1,text)
   
   implicit none
   real, intent(in) :: x1,y1,ang,just1
-  character, intent(inout) :: text*(*)
+  character, intent(in) :: text*(*)
   real :: d2r
   real(kind=plflt) :: x2,y2,just2,dx,dy,xmin,xmax,ymin,ymax
+  character :: text1*(len(text))
   
   d2r = atan(1.)/45.
   call plgvpw(xmin,xmax,ymin,ymax)
@@ -563,10 +577,11 @@ subroutine pgptxt(x1,y1,ang,just1,text)
   y2 = y1
   just2 = just1
   
-  call plptex(x2,y2,dx,dy,just2,text)
-  !write(6,'(A,4F10.3,A)')'  pgptext: ',x1,y1,ang,just1,trim(text)
+  text1 = text
+  call pg2pltext(text1)
+  call plptex(x2,y2,dx,dy,just2,text1)
   
-  call pg2pltext(text)
+  !write(6,'(A,4F10.3,A)')'  pgptext: ',x1,y1,ang,just1,trim(text)
   !write(6,'(A,5F10.3,A)')'  pgptext: ',x2,y2,dx,dy,just2,trim(text)
   
 end subroutine pgptxt
@@ -586,7 +601,7 @@ end subroutine pgptxt
 subroutine pgptext(x,y,ang,just,text)
   implicit none
   real, intent(in) :: x,y,ang,just
-  character, intent(inout) :: text*(*)
+  character, intent(in) :: text*(*)
   
   call pgptxt(x,y,ang,just,text)
   
@@ -606,8 +621,9 @@ subroutine pgtext(x1,y1,text)
   
   implicit none
   real, intent(in) :: x1,y1
-  character, intent(inout) :: text*(*)
+  character, intent(in) :: text*(*)
   real(kind=plflt) :: x2,y2,just,dx,dy
+  character :: text1*(len(text))
   
   !Convert angle=0deg -> dy/dx
   dx = 1.
@@ -617,9 +633,9 @@ subroutine pgtext(x1,y1,text)
   x2 = x1
   y2 = y1
   
-  call pg2pltext(text)
-  
-  call plptex(x2,y2,dx,dy,just,text)
+  text1 = text
+  call pg2pltext(text1)
+  call plptex(x2,y2,dx,dy,just,text1)
   
 end subroutine pgtext
 !***********************************************************************************************************************************
@@ -641,7 +657,8 @@ subroutine pgmtxt(side, disp1, pos1, just1, text)
   real, intent(in) :: disp1,pos1,just1
   real(kind=plflt) :: disp2,pos2,just2
   character, intent(in) :: side*(*)
-  character, intent(inout) :: text*(*)
+  character, intent(in) :: text*(*)
+  character :: text1*(len(text))
   
   disp2 = disp1
   pos2  = pos1
@@ -649,8 +666,9 @@ subroutine pgmtxt(side, disp1, pos1, just1, text)
   
   !write(6,'(2A,2(3F10.3,5x),A)')'  pgmtxt: ',trim(side),disp1,pos1,just1,disp2,pos2,just2,trim(text)
   
-  call pg2pltext(text)
-  call plmtex(side, disp2, pos2, just2, text)  
+  text1 = text
+  call pg2pltext(text1)
+  call plmtex(side, disp2, pos2, just2, text1)
   
 end subroutine pgmtxt
 !***********************************************************************************************************************************
@@ -668,10 +686,12 @@ subroutine pgmtext(side, disp, pos, just, text)
   implicit none
   real, intent(in) :: disp,pos,just
   character, intent(in) :: side*(*)
-  character, intent(inout) :: text*(*)
+  character, intent(in) :: text*(*)
+  character :: text1*(len(text))
   
-  !call pg2pltext(text)
-  call pgmtxt(side, disp, pos, just, text)  
+  text1 = text
+  call pg2pltext(text1)
+  call pgmtxt(side, disp, pos, just, text1)
   
 end subroutine pgmtext
 !***********************************************************************************************************************************
@@ -693,26 +713,32 @@ function pgopen(pgdev)
   implicit none
   integer :: pgopen
   character, intent(in) :: pgdev*(*)
-  character :: pgdev1*(len_trim(pgdev))
+  !character :: pgdev1*(len_trim(pgdev))
   character :: pldev*(99),filename*(99)
   
-  pgdev1 = pgdev
+  !pgdev1 = pgdev
+  !
+  !!pldev = 'xwin'
+  !!pldev = 'wxwidgets'
+  !!pldev = 'xcairo'
+  !!pldev = 'qtwidget'
+  !
+  !pldev = 'png'       !No anti-aliasing in lines
+  !!pldev = 'wxpng'     !No extended characters
+  !!pldev = 'pngcairo'
+  !!pldev = 'pngqt'
+  !
+  !filename = 'plot_temp.png'
   
-  !pldev = 'xwin'
-  !pldev = 'wxwidgets'
-  !pldev = 'xcairo'
-  !pldev = 'qtwidget'
   
-  pldev = 'png'       !No anti-aliasing in lines
-  !pldev = 'wxpng'     !No extended characters
-  !pldev = 'pngcairo'
-  !pldev = 'pngqt'
+  call pg2pldev(pgdev, pldev,filename)
   
-  filename = 'plot_temp.png'
+  !write(0,'(A)')trim(pgdev)//' - '//trim(pldev)//' - '//trim(filename)
   
   !call plsdev(trim(pldev))
   !call plinit()
-  if(pldev.ne.'xwin') call plsfnam(trim(filename))         !Set output file name
+  
+  if(trim(pldev).ne.'xwin') call plsfnam(trim(filename))         !Set output file name
   call plfontld(1)                     !Load extended character set(?)
   call plspause(.true.)                !Pause at pgend()
   
@@ -744,21 +770,25 @@ subroutine pgbegin(i,pgdev,nx,ny)
   
   i1=i !Is ignored by pgbegin, can't be self, since calling argument is likely a constant
   i1 = i1
+  
   !Need to convert pgdev -> pldev + filename as in pgbegin()
-  pldev = trim(pgdev)
-  !pldev = 'xwin'
-  
-  !pldev = 'xwin'
-  !pldev = 'wxwidgets'
-  !pldev = 'xcairo'
-  !pldev = 'qtwidget'
-  
-  pldev = 'png'       !No anti-aliasing in lines
-  !pldev = 'wxpng'     !No extended characters
-  !pldev = 'pngcairo'
-  !pldev = 'pngqt'
+  !pldev = trim(pgdev)
+  !!pldev = 'xwin'
+  !
+  !!pldev = 'xwin'
+  !!pldev = 'wxwidgets'
+  !!pldev = 'xcairo'
+  !!pldev = 'qtwidget'
+  !
+  !pldev = 'png'       !No anti-aliasing in lines
+  !!pldev = 'wxpng'     !No extended characters
+  !!pldev = 'pngcairo'
+  !!pldev = 'pngqt'
   
   filename = 'plot_temp.png'
+  
+  
+  call pg2pldev(pgdev, pldev,filename)
   
   call plsfnam(trim(filename))         !Set output file name
   call plfontld(1)                     !Load extended character set(?)
@@ -965,6 +995,7 @@ subroutine pgtick(x1, y1, x2, y2, v, tikl, tikr, disp, orient, str)
   real, intent(in) :: x1, y1, x2, y2, v, tikl, tikr, disp, orient
   character, intent(in) :: str*(*)
   
+  integer, save :: warn
   real :: x
   character :: str1*(len(str))
   
@@ -979,7 +1010,8 @@ subroutine pgtick(x1, y1, x2, y2, v, tikl, tikr, disp, orient, str)
   x = orient
   str1 = str
   
-  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgtick()'
+  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgtick()'
+  warn = 123
   
 end subroutine pgtick
 !***********************************************************************************************************************************
@@ -1000,13 +1032,15 @@ subroutine pgolin(maxpt, npt, x, y, symbol)
   real, intent(out) :: x(maxpt),y(maxpt)
   
   integer :: symbol1
+  integer, save :: warn
   
   npt = maxpt
   x = 0.d0
   y = 0.d0
   symbol1 = symbol
   
-  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgolin()'
+  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgolin()'
+  warn = 123
   
 end subroutine pgolin
 !***********************************************************************************************************************************
@@ -1023,13 +1057,68 @@ subroutine pg2pltext(string)
   integer :: i,n
   
   n = len_trim(string)
-  !print*,trim(string),n
   do i=1,n
-     !print*,i,string(i:i)
-     !if(string(i:i).eq.'\') string(i:i) = '#' !'
-     if(string(i:i).eq.'\') write(string(i:i),'(A1)') '#' !'
+     if(string(i:i).eq.'\') string(i:i) = '#' !'
+     !if(string(i:i).eq.'\') write(string(i:i),'(A1)') '#' !'
   end do
+  
   
 end subroutine pg2pltext
 !***********************************************************************************************************************************
 
+!***********************************************************************************************************************************
+!> \brief  Converts PGplot device ID to PLplot device ID + file name
+!!
+!! \param  pgdev     PGplot device ID (includes filename: 'file.name/dev')
+!! \retval pldev     PLplot device ID ('dev')
+!! \retval filename  PLplot file name ('file.name')
+
+subroutine pg2pldev(pgdev, pldev,filename)
+  implicit none
+  character, intent(in) :: pgdev*(*)
+  character, intent(out) :: pldev*(*), filename*(*)
+  integer :: i
+  
+  
+  i = index(pgdev, '/', back=.true.)
+  
+  filename = ' '
+  if(i.ne.1) filename = pgdev(1:i-1)
+  
+  pldev = ' '
+  pldev = pgdev(i+1:)
+  
+  ! Change PGplot ppm output tot png:
+  call replace_substring(pldev,'ppm','png')
+  call replace_substring(filename,'ppm','png')
+  
+  !write(0,'(A)')trim(pgdev)//' - '//trim(pldev)//' - '//trim(filename)
+  
+  !stop
+  
+end subroutine pg2pldev
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Search and replace occurences of a substring in a string, taken from libSUFR
+!!
+!! \param string   Original string to replace in
+!! \param str_in   Search string
+!! \param str_out  Replacement string
+
+subroutine replace_substring(string, str_in, str_out)
+  character, intent(inout) :: string*(*)
+  character, intent(in) :: str_in*(*),str_out*(*)
+  integer :: is,l
+  
+  l = len_trim(str_in)
+  is = huge(is)
+  do
+     is = index(string, str_in, back=.false.)
+     if(is.le.0) exit
+     string = string(1:is-1)//trim(str_out)//trim(string(is+l:))
+  end do
+  
+end subroutine replace_substring
+!***********************************************************************************************************************************

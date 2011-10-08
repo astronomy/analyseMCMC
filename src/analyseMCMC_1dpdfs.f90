@@ -28,7 +28,8 @@ subroutine pdfs1d(exitcode)
   ! These depend on Nbin1D, allocate after reading input file:
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ysum(:),yconv(:),ycum(:)  
   real :: plshift,plx,ply,x0,norm,bindx
-  character :: string*(99),str*(99),str1*(99),str2*(99),delta*(19)
+  character :: string*(99),str*(99),str1*(99),str2*(99),delta*(19), tempfile*(199), convopts*(99)
+  logical :: ex
   
   
   exitcode=0
@@ -64,8 +65,9 @@ subroutine pdfs1d(exitcode)
         lw = nint(1*fontsize1d)
      end if
      if(file.ge.1) then
-        if(file.eq.1) io = pgopen(trim(outputdir)//'/pdfs.ppm/ppm')
-        if(file.ge.2) io = pgopen(trim(outputdir)//'/pdfs.eps'//trim(psclr))
+        tempfile = trim(outputdir)//'/'//trim(outputname)//'__pdfs'
+        if(file.eq.1) io = pgopen(trim(tempfile)//'.ppm/ppm')
+        if(file.ge.2) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
         lw = nint(3*fontsize1d)
         if(nPlPar.ge.10) lw = nint(2*fontsize1d)
         if(quality.lt.2) lw = max(lw-1,1)  ! Draft/Paper
@@ -631,16 +633,17 @@ subroutine pdfs1d(exitcode)
      
      if(file.ge.2) then
         if(file.eq.3) then
-           status = system('eps2pdf '//trim(outputdir)//'/pdfs.eps -o '// &
-                trim(outputdir)//'/'//trim(outputname)//'__pdfs.pdf >& /dev/null')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
+           status = system('eps2pdf '//trim(tempfile)//'.eps -o '//trim(tempfile)//'.pdf  >& /dev/null')
+           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps - >pdf',status
         end if
-        status = system('mv -f '//trim(outputdir)//'/pdfs.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.eps')
      else if(file.eq.1) then
-        status = system('convert -resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf1d)//' '// &
-             trim(outputdir)//'/pdfs.ppm '//trim(outputdir)//'/'//trim(outputname)//'__pdfs.png')
-        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot',status
-        status = system('rm -f '//trim(outputdir)//'/pdfs.ppm')
+        inquire(file=trim(tempfile)//'.ppm', exist=ex)
+        if(ex) then
+           convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf1d)
+           status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm '//trim(tempfile)//'.png')
+           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot ppm -> png',status
+           status = system('rm -f '//trim(tempfile)//'.ppm')
+        end if
      end if
   end if !if(plot.eq.1)
   

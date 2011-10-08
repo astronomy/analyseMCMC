@@ -45,3 +45,32 @@ end subroutine pginitl
 !***********************************************************************************************************************************
 
 
+!***********************************************************************************************************************************
+!> \brief Set the colour to ci, but use a darker shade if the background is black or a lighter shade if it is white
+!! 
+!! \param ci       Colour index
+!! \param file     Output file type
+!! \param whiteBG  Have a white background (1) or nor (0)
+
+subroutine pgscidark(ci,file,whiteBG)  
+  implicit none
+  integer, intent(in) :: ci,file,whiteBG
+  integer :: ci1
+  real :: r,g,b,weight
+  
+  call pgqcr(ci,r,g,b)
+  
+  ci1 = 99
+  ! Use half the RGB value to create a darker shade:
+  call pgscr(ci1,r*0.5,g*0.5,b*0.5)
+  
+  ! Use the weighted mean of the RGB value and 1. to create a lighter shade:
+  weight = 3.
+  if(file.ge.2.or.whiteBG.ge.1) call pgscr(ci1,(r+weight)/(weight+1.),(g+weight)/(weight+1.),(b+weight)/(weight+1.)) 
+  call pgsci(ci1)
+  
+end subroutine pgscidark
+!***********************************************************************************************************************************
+
+
+
