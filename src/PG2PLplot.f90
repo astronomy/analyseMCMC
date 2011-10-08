@@ -1,164 +1,544 @@
-!> \file pg2plplot.f90  Contains pgplot-to-plplot bindings (i.e., call PLplot from PGplot commands)
+!> \file PG2PLplot.f90  Contains pgplot-to-plplot bindings (i.e., call PLplot from PGplot commands)
 
 
 !***********************************************************************************************************************************
-!> \brief  
-subroutine pgsls(i)
+!> \brief  Set line style
+!!
+!! \param ls  Line style
+
+subroutine pgsls(ls)
   implicit none
-  integer, intent(in) :: i
-  call pllsty(i)
+  integer, intent(in) :: ls
+  
+  call pllsty(ls)
+  
 end subroutine pgsls
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> \brief  
-subroutine pgslw(i)
+!> \brief  Set line width
+!!
+!! \param lw  Line width
+
+subroutine pgslw(lw)
   implicit none
-  integer, intent(in) :: i
-  call plwid(i)
+  integer, intent(in) :: lw
+  
+  call plwid(lw)
+  
 end subroutine pgslw
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> \brief  
-subroutine pgscf(i)
+!> \brief  Query line width - dymmy routine
+!!
+!! \param lw  Line width
+
+subroutine pgqlw(lw)
   implicit none
-  integer, intent(in) :: i
-  call plfont(i)
+  integer, intent(out) :: lw
+  
+  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgqlw()'
+  
+  lw = 1
+  
+end subroutine pgqlw
+!***********************************************************************************************************************************
+
+!***********************************************************************************************************************************
+!> \brief  Set character font
+!!
+!! \param cf  Character font
+
+subroutine pgscf(cf)
+  implicit none
+  integer, intent(in) :: cf
+  
+  call plfont(cf)
+  
 end subroutine pgscf
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> \brief  
-subroutine pgsci(c1)
+!> \brief  Set colour index
+!!
+!! \param ci1  Colour index
+
+subroutine pgsci(ci1)
   implicit none
-  integer, intent(in) :: c1
-  integer :: c2,colours(0:15)
+  integer, intent(in) :: ci1
+  integer :: ci2,colours(0:15)
   
-  c2 = 15 !White
+  ci2 = 15 !White
   colours = (/0,15,1,3,9,7,13,2,8,12,4,11,10,5,7,7/)
-  if(c1.ge.0.and.c1.le.15) c2 = colours(c1)
-  !write(6,'(A,2I6)')'  pgsci: ',c1,c2
-  call plcol0(c2)
+  if(ci1.ge.0.and.ci1.le.15) ci2 = colours(ci1)
+  !write(6,'(A,2I6)')'  pgsci: ',ci1,ci2
+  
+  call plcol0(ci2)
+  
 end subroutine pgsci
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> \brief  
-subroutine pgscr(c1,r,g,b)
+!> \brief  Set colour representation
+!!
+!! \param ci1  Colour index 
+!! \param r    Red colour (0-1)
+!! \param g    Green colour (0-1)
+!! \param b    Blue colour (0-1)
+
+subroutine pgscr(ci1, r,g,b)
   implicit none
-  integer, intent(in) :: c1
+  integer, intent(in) :: ci1
   real, intent(in) :: r,g,b
-  integer :: c2,ri,gi,bi,colours(0:15)
+  integer :: ci2,ri,gi,bi,colours(0:15)
   
   ri = nint(r*255)
   gi = nint(g*255)
   bi = nint(b*255)
   
   colours = (/0,15,1,3,9,7,13,2,8,12,4,11,10,5,7,7/)
-  c2 = c1
-  if(c1.ge.0.and.c1.le.15) c2 = colours(c1)
-  call plscol0(c2,ri,gi,bi)
-  !write(6,'(A,2I6,3F10.3)')'  pgscr: ',c1,c2,r,g,b
+  ci2 = ci1
+  if(ci1.ge.0.and.ci1.le.15) ci2 = colours(ci1)
+  
+  call plscol0(ci2, ri,gi,bi)
+  
+  write(6,'(A,2I6,3F10.3)')'  pgscr: ',ci1,ci2,r,g,b
+  
 end subroutine pgscr
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> \brief  
-subroutine pgsfs(i)
+!> \brief  Query colour representation
+!!
+!! \param  ci1  Colour index 
+!! \retval r    Red colour (0-1)
+!! \retval g    Green colour (0-1)
+!! \retval b    Blue colour (0-1)
+
+subroutine pgqcr(ci1,r,g,b)
   implicit none
-  integer, intent(in) :: i
-  call plpsty(i)
+  integer, intent(in) :: ci1
+  real, intent(out) :: r,g,b
+  integer :: ci2,ri,gi,bi,colours(0:15)
+  
+  ri = nint(r*255)
+  gi = nint(g*255)
+  bi = nint(b*255)
+  
+  colours = (/0,15,1,3,9,7,13,2,8,12,4,11,10,5,7,7/)
+  ci2 = ci1
+  if(ci1.ge.0.and.ci1.le.15) ci2 = colours(ci1)
+  
+  call plgcol0(ci2,ri,gi,bi)
+  
+  !write(6,'(A,2I6,3F10.3)')'  pgqcr: ',ci1,ci2,r,g,b
+  
+end subroutine pgqcr
+!***********************************************************************************************************************************
+
+!***********************************************************************************************************************************
+!> \brief  Set colour-index range for pggray and pgimag - dummy routine!
+!!
+!! \param  ci1  Lower colour index 
+!! \param  ci2  Upper colour index 
+
+subroutine pgscir(ci1,ci2)
+  implicit none
+  integer, intent(in) :: ci1,ci2
+  integer :: tmp
+  
+  tmp = ci1
+  tmp = ci2
+  
+  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgscir()'
+  
+end subroutine pgscir
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Query colour-index range for pggray and pgimag - dummy routine!
+!!
+!! \param  ci1  Lower colour index 
+!! \param  ci2  Upper colour index 
+
+subroutine pgqcir(ci1,ci2)
+  implicit none
+  integer, intent(out) :: ci1,ci2
+  
+  ci1 = 0
+  ci2 = 255
+  
+  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgqcir()'
+  
+end subroutine pgqcir
+!***********************************************************************************************************************************
+
+
+
+!***********************************************************************************************************************************
+!> \brief  Set fill style
+!!
+!! \param fs  Fill style
+
+subroutine pgsfs(fs)
+  implicit none
+  integer, intent(in) :: fs
+  
+  call plpsty(fs)
+  
 end subroutine pgsfs
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> \brief  
-subroutine pgsch(x1)
-  use plplot
+!> \brief  Set hash style
+!!
+!! \param ang  Angle of the lines (deg)
+!! \param sep  Spacing (in % of view-surface size): >0!
+!! \param ph   Phase of hatching.  Use e.g. 0.0 and 0.5 for double hatching
+
+subroutine pgshs(ang, sep, ph)
   implicit none
-  real, intent(in) :: x1
-  real(kind=plflt) :: x2
-  x2 = x1*0.7
-  call plschr(0.0_plflt,x2)
+  real, intent(in) :: ang, sep, ph
+  integer :: inc, del, tmp
+  
+  inc = nint(ang*10.)   ! Tenths of a degree
+  del = nint(sep*1000)  ! Spacing in micrometers(!)
+  tmp = nint(ph)
+  
+  call plpat(1, inc, del)
+  
+end subroutine pgshs
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Set character height
+!!
+!! \param ch  Character height
+
+subroutine pgsch(ch)
+  use plplot
+  
+  implicit none
+  real, intent(in) :: ch
+  real(kind=plflt) :: ch2
+  
+  ch2 = ch*0.7
+  
+  call plschr(0.0_plflt,ch2)
+  
 end subroutine pgsch
 !***********************************************************************************************************************************
 
 
+!***********************************************************************************************************************************
+!> \brief  Query character height
+!!
+!! \param ch  Character height
+
+subroutine pgqch(ch)
+  use plplot
+  
+  implicit none
+  real, intent(out) :: ch
+  real(kind=plflt) :: x_def,x_cur
+  
+  call plschr(x_def,x_cur)
+  ch = x_cur/0.7 !?
+  
+end subroutine pgqch
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Set arrow head - dummy routine
+
+subroutine pgsah(fs, angle, barb)
+  implicit none
+  integer, intent(in) :: fs
+  real, intent(in) :: angle, barb
+  integer :: tmp
+  
+  tmp = fs
+  tmp = nint(angle)
+  tmp = nint(barb)
+  
+  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgsah()'
+  
+end subroutine pgsah
+!***********************************************************************************************************************************
+
+
+
 
 
 
 
 !***********************************************************************************************************************************
-!> \brief  
+!> \brief  Draw a line
+!!
+!! \param n  Number of points
+!! \param x1 X-values of points
+!! \param y1 Y-values of points
+
 subroutine pgline(n,x1,y1)
   use plplot
+  
   implicit none
   integer, intent(in) :: n
   real, intent(in) :: x1(n),y1(n)
   real(kind=plflt) :: x2(n),y2(n)
+  
   x2 = x1
   y2 = y1
   !write(6,'(A,99F6.2)')'  pgline:  ',x1(21:29),y1(21:29)
   !write(6,'(A,99F6.2)')'  pgline:  ',x2(21:29),y2(21:29)
+  
   call plline(x2,y2)
+  
 end subroutine pgline
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> \brief  
+!> \brief  Draw an arrow - only a line is drawn, arrows not supported in PLplot!
+!!
+!! \param x1  X-value of start point
+!! \param x2  X-value of end point
+!! \param y1  Y-value of start point
+!! \param y2  Y-value of end point
+
+subroutine pgarro(x1,x2, y1,y2)
+  use plplot
+  
+  implicit none
+  real, intent(in) :: x1,x2, y1,y2
+  real(kind=plflt) :: x(2),y(2)
+  
+  x = (/x1,x2/)
+  y = (/y1,y2/)
+  
+  call plline(x,y)
+  call plpoin((/x(2)/),(/y(2)/),2)
+  
+end subroutine pgarro
+!***********************************************************************************************************************************
+
+
+
+!***********************************************************************************************************************************
+!> \brief  Draw points
+!!
+!! \param n  Number of points
+!! \param x1 X-values of points
+!! \param y1 Y-values of points
+!! \param s  Plot symbol to use
+
 subroutine pgpoint(n,x1,y1,s)
   use plplot
+  
   implicit none
   integer, intent(in) :: n,s
   real, intent(in) :: x1(n),y1(n)
   real(kind=plflt) :: x2(n),y2(n)
+  
   x2 = x1
   y2 = y1
+  
   call plpoin(x2,y2,s)
+  
 end subroutine pgpoint
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> \brief  
+!> \brief  Draw a polygone
+!!
+!! \param n  Number of points
+!! \param x1 X-values of points
+!! \param y1 Y-values of points
+
 subroutine pgpoly(n,x1,y1)
   use plplot
+  
   implicit none
   integer, intent(in) :: n
   real, intent(in) :: x1(n),y1(n)
   real(kind=plflt) :: x2(n),y2(n)
+  
   x2 = x1
   y2 = y1
+  
   call plfill(x2,y2)
+  
 end subroutine pgpoly
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> \brief  
+!> \brief  Draw a rectangle
+!!
+!! \param x1  Lower x value
+!! \param x2  Upper x value
+!! \param y1  Lower y value
+!! \param y2  Upper y value
+
 subroutine pgrect(x1,x2,y1,y2)
   use plplot
+  
   implicit none
   real, intent(in) :: x1,x2,y1,y2
   real(kind=plflt) :: x(4),y(4)
+  
   x = (/x1,x1,x2,x2/)
   y = (/y1,y2,y2,y1/)
+  
   call plfill(x,y)
+  
 end subroutine pgrect
 !***********************************************************************************************************************************
 
 
+!***********************************************************************************************************************************
+!> \brief  Draw a circle
+!!
+!! \param xc X-value of centre
+!! \param yc Y-value of centre
+!! \param r  Radius
+
+subroutine pgcirc(xc, yc, r)
+  use plplot
+  
+  implicit none
+  real, intent(in) :: xc, yc, r
+  
+  integer, parameter :: n=100
+  integer :: i
+  real(kind=plflt) :: x(n),y(n),twopi
+  
+  twopi = 8.*atan(1.)
+  
+  do i=1,n
+     x(i) = xc + r * cos(twopi/real(n-1))
+     y(i) = yc + r * sin(twopi/real(n-1))
+  end do
+  
+  call plfill(x,y)
+  
+end subroutine pgcirc
+!***********************************************************************************************************************************
+
 
 
 
 !***********************************************************************************************************************************
-!> \brief  
-subroutine pgptxt(x1,y1,ang,just1,text)  !Angle only right for 0,90,180,270deg or square viewport
+!> \brief  Make a contour plot
+!!
+!! \param arr  Data array
+!! \param nx   Dimension 1 of data array
+!! \param ny   Dimension 2 of data array
+!! \param ix1  Start index range in dimension 1 to use from data array
+!! \param ix2  End index range in dimension 1 to use from data array
+!! \param iy1  Start index range in dimension 2 to use from data array
+!! \param iy2  End index range in dimension 2 to use from data array
+!! \param c    Array with heights to draw contours for
+!! \param nc   Dimension of c
+!! \param tr   Affine transformation elements
+
+subroutine pgcont(arr, nx,ny, ix1,ix2, iy1,iy2, c, nc, tr)
   use plplot
+  
+  implicit none
+  integer, intent(in) :: nx,ny, ix1,ix2, iy1,iy2, nc
+  real, intent(in) :: arr(nx,ny), c(*), tr(6)
+  real(kind=plflt) :: arr1(nx,ny), clevel(nc), tr1(6)
+  
+  arr1 = arr
+  clevel = c(1:nc)
+  tr1 = tr
+  
+  call plcont(arr1, ix1,ix2, iy1,iy2, clevel, tr1)
+  
+end subroutine pgcont
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Shade a region (between contours/heights)
+!!
+!! \param arr  Data array
+!! \param nx   Dimension 1 of data array
+!! \param ny   Dimension 2 of data array
+!! \param ix1  Start index range in dimension 1 to use from data array
+!! \param ix2  End index range in dimension 1 to use from data array
+!! \param iy1  Start index range in dimension 2 to use from data array
+!! \param iy2  End index range in dimension 2 to use from data array
+!! \param c1   Lower limit in height/contour to fill
+!! \param c2   Upper limit in height/contour to fill
+!! \param tr   Affine transformation elements
+
+subroutine pgconf(arr, nx,ny, ix1,ix2, iy1,iy2, c1, c2, tr)
+  use plplot
+  
+  implicit none
+  integer, intent(in) :: nx,ny, ix1,ix2, iy1,iy2
+  real, intent(in) :: arr(nx,ny), c1,c2, tr(6)
+  !real(kind=plflt) :: arr1(nx,ny), clevel(nc), tr1(6)
+  integer :: tmp
+  
+  tmp = nint(arr(1,1))
+  tmp = nx
+  tmp = ny
+  tmp = ix1
+  tmp = ix2
+  tmp = iy1
+  tmp = iy2
+  tmp = c1
+  tmp = c2
+  tmp = nint(tr(1))
+  
+  
+  !arr1 = arr
+  !clevel = c(1:nc)
+  !tr1 = tr
+  !
+  !call plshade1(arr1, ix1,ix2, iy1,iy2, clevel, tr1)
+  
+  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgconf()'
+  
+end subroutine pgconf
+!***********************************************************************************************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+!***********************************************************************************************************************************
+!> \brief  Print text with arbitrary angle and justification
+!!
+!! \param x1     X-coordinate of text
+!! \param y1     Y-coordinate of text
+!! \param ang    Angle
+!! \param just1  Justification
+!! \param text   Text to print
+!!
+!! \note  Angle only right for 0,90,180,270deg or square viewport
+
+subroutine pgptxt(x1,y1,ang,just1,text)
+  use plplot
+  
   implicit none
   real, intent(in) :: x1,y1,ang,just1
+  character, intent(inout) :: text*(*)
   real :: d2r
   real(kind=plflt) :: x2,y2,just2,dx,dy,xmin,xmax,ymin,ymax
-  character, intent(in) :: text*(*)
   
   d2r = atan(1.)/45.
   call plgvpw(xmin,xmax,ymin,ymax)
@@ -185,20 +565,49 @@ subroutine pgptxt(x1,y1,ang,just1,text)  !Angle only right for 0,90,180,270deg o
   
   call plptex(x2,y2,dx,dy,just2,text)
   !write(6,'(A,4F10.3,A)')'  pgptext: ',x1,y1,ang,just1,trim(text)
+  
   call pg2pltext(text)
   !write(6,'(A,5F10.3,A)')'  pgptext: ',x2,y2,dx,dy,just2,trim(text)
+  
 end subroutine pgptxt
 !***********************************************************************************************************************************
 
+!***********************************************************************************************************************************
+!> \brief  Non-standard alias for pgptxt()
+!!
+!! \param x1     X-coordinate of text
+!! \param y1     Y-coordinate of text
+!! \param ang    Angle
+!! \param just1  Justification
+!! \param text   Text to print
+!!
+!! \note  Angle only right for 0,90,180,270deg or square viewport
+
+subroutine pgptext(x,y,ang,just,text)
+  implicit none
+  real, intent(in) :: x,y,ang,just
+  character, intent(inout) :: text*(*)
+  
+  call pgptxt(x,y,ang,just,text)
+  
+end subroutine pgptext
+!***********************************************************************************************************************************
+
 
 !***********************************************************************************************************************************
-!> \brief  
+!> \brief  Print text with default angle and justification
+!!
+!! \param x1     X-coordinate of text
+!! \param y1     Y-coordinate of text
+!! \param text   Text to print
+
 subroutine pgtext(x1,y1,text)
   use plplot
+  
   implicit none
   real, intent(in) :: x1,y1
+  character, intent(inout) :: text*(*)
   real(kind=plflt) :: x2,y2,just,dx,dy
-  character, intent(in) :: text*(*)
   
   !Convert angle=0deg -> dy/dx
   dx = 1.
@@ -207,39 +616,63 @@ subroutine pgtext(x1,y1,text)
   
   x2 = x1
   y2 = y1
+  
   call pg2pltext(text)
+  
   call plptex(x2,y2,dx,dy,just,text)
+  
 end subroutine pgtext
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
-!> \brief  
+!> \brief  Print text in the margin
+!!
+!! \param side   Side to print text on ('L','R','T','B')
+!! \param disp1  
+!! \param pos1   Position
+!! \param just1  Justification
+!! \param text   Text to print
+
 subroutine pgmtxt(side, disp1, pos1, just1, text)
   use plplot
+  
   implicit none
   real, intent(in) :: disp1,pos1,just1
   real(kind=plflt) :: disp2,pos2,just2
-  character, intent(in) :: side*(*),text*(*)
+  character, intent(in) :: side*(*)
+  character, intent(inout) :: text*(*)
+  
   disp2 = disp1
-  pos2 = pos1
+  pos2  = pos1
   just2 = just1
   
   !write(6,'(2A,2(3F10.3,5x),A)')'  pgmtxt: ',trim(side),disp1,pos1,just1,disp2,pos2,just2,trim(text)
   
   call pg2pltext(text)
   call plmtex(side, disp2, pos2, just2, text)  
+  
 end subroutine pgmtxt
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> \brief  
+!> \brief  Alias for pgmtxt()
+!!
+!! \param side   Side to print text on ('L','R','T','B')
+!! \param disp   
+!! \param pos    Position
+!! \param just   Justification
+!! \param text   Text to print
+
 subroutine pgmtext(side, disp, pos, just, text)
   implicit none
   real, intent(in) :: disp,pos,just
-  character, intent(in) :: side*(*),text*(*)
+  character, intent(in) :: side*(*)
+  character, intent(inout) :: text*(*)
+  
   !call pg2pltext(text)
   call pgmtxt(side, disp, pos, just, text)  
+  
 end subroutine pgmtext
 !***********************************************************************************************************************************
 
@@ -248,11 +681,15 @@ end subroutine pgmtext
 
 
 !***********************************************************************************************************************************
-!> \brief  
-!> 
+!> \brief  Start a new plot
+!!
+!! \param pgdev  PGplot device
+!!
 !! \todo Need to convert pgdev -> pldev + filename as in pgbegin()
+
 function pgopen(pgdev)
   use plplot
+  
   implicit none
   integer :: pgopen
   character, intent(in) :: pgdev*(*)
@@ -283,14 +720,22 @@ function pgopen(pgdev)
   call pladv(0)                        !Advance to first (sub)page
   
   pgopen = 1
+  
 end function pgopen
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
-!> \brief  
+!> \brief  Begin a new plot
+!!
+!! \param i      Display ID
+!! \param pgdev  PGplot device
+!! \param nx     Number of frames in the x-direction
+!! \param ny     Number of frames in the y-direction
+
 subroutine pgbegin(i,pgdev,nx,ny)
   use plplot
+  
   implicit none
   integer, intent(in) :: i,nx,ny
   character, intent(in) :: pgdev*(*)
@@ -328,18 +773,26 @@ end subroutine pgbegin
 
 
 !***********************************************************************************************************************************
-!> \brief  
+!> \brief  End a plot
+
 subroutine pgend()
   implicit none
+  
   call plend()
+  
 end subroutine pgend
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
-!> \brief  
+!> \brief  Set paper size
+!!
+!! \param width  Paper width
+!! \param ratio  Paper aspect ratio
+
 subroutine pgpap(width,ratio)
   use plplot
+  
   implicit none
   real, intent(in) :: width,ratio
   integer :: xlen,ylen,xoff,yoff
@@ -353,48 +806,127 @@ subroutine pgpap(width,ratio)
   yoff = 0
   
   !call plspage(xp,yp,xlen,ylen,xoff,yoff)  !CHECK: must be called before plinit()
+  
 end subroutine pgpap
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
-!> \brief  
+!> \brief  Set view port
+!!
+!! \param xl1  Left side of the x-axis
+!! \param xr1  Right side of the x-axis
+!! \param yl1  Left side of the y-axis
+!! \param yr1  Right side of the y-axis
+
+
 subroutine pgsvp(xl1,xr1,yb1,yt1)
   use plplot
+  
   implicit none
   real, intent(in) :: xl1,xr1,yb1,yt1
   real(kind=plflt) :: xl2,xr2,yb2,yt2
+  
   xl2 = xl1
   xr2 = xr1
   yb2 = yb1
   yt2 = yt1
   !write(6,'(A,2(4F10.3,5x))')'  pgsvp: ',xl1,xr1,yb1,yt1,xl2,xr2,yb2,yt2
+  
   call plvpor(xl2,xr2,yb2,yt2)
+  
 end subroutine pgsvp
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
-!> \brief  
+!> \brief  Set window
+!!
+!! \param xmin1  Left
+!! \param xmax1  Right
+!! \param ymin1  Top
+!! \param ymax1  Bottom
+
 subroutine pgswin(xmin1,xmax1,ymin1,ymax1)
   use plplot
+  
   implicit none
   real, intent(in) :: xmin1,xmax1,ymin1,ymax1
   real(kind=plflt) :: xmin2,xmax2,ymin2,ymax2
+  
   xmin2 = xmin1
   xmax2 = xmax1
   ymin2 = ymin1
   ymax2 = ymax1
   !write(6,'(A,2(4F10.3,5x))')'  pgswin: ',xmin1,xmax1,ymin1,ymax1,xmin2,xmax2,ymin2,ymax2
+  
   call plwind(xmin2,xmax2,ymin2,ymax2)
+  
 end subroutine pgswin
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
-!> \brief  
+!> \brief  Subdivide view surface into panels
+!!
+!! \param nxsub   Number of subticks on the x-axis
+!! \param nysub   Number of subticks on the y-axis
+
+subroutine pgsubp(nxsub, nysub)
+  implicit none
+  integer, intent(in) :: nxsub,nysub
+  
+  call plssub(nxsub, nysub)
+  
+end subroutine pgsubp
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Advance to the next (sub-)page
+
+subroutine pgpage()
+  implicit none
+  
+  call pladv(0)
+  
+end subroutine pgpage
+!***********************************************************************************************************************************
+
+!***********************************************************************************************************************************
+!> \brief  Start buffering output - dummy routine
+
+subroutine pgbbuf()
+  implicit none
+  
+end subroutine pgbbuf
+!***********************************************************************************************************************************
+
+!***********************************************************************************************************************************
+!> \brief  End buffering output - dummy routine
+
+subroutine pgebuf()
+  implicit none
+  
+end subroutine pgebuf
+!***********************************************************************************************************************************
+
+
+
+
+!***********************************************************************************************************************************
+!> \brief  Draw a box (+axes) around a plot
+!!
+!! \param xopt    Options for the x-axis
+!! \param xtick1  Distance between ticks on the x-axis
+!! \param nxsub   Number of subticks on the x-axis
+!! \param yopt    Options for the y-axis
+!! \param ytick1  Distance between ticks on the y-axis
+!! \param nysub   Number of subticks on the y-axis
+
 subroutine pgbox(xopt, xtick1, nxsub, yopt, ytick1, nysub)
   use plplot
+  
   implicit none
   integer, intent(in) :: nxsub,nysub
   real, intent(in) :: xtick1,ytick1
@@ -404,44 +936,100 @@ subroutine pgbox(xopt, xtick1, nxsub, yopt, ytick1, nysub)
   xtick2 = xtick1
   ytick2 = ytick1
   !write(6,'(A,2(2F10.3,5x))')'  pgbox: ',xtick1,ytick1,xtick2,ytick2
+  
   call plbox(xopt, xtick2, nxsub, yopt, ytick2, nysub)
+  
 end subroutine pgbox
 !***********************************************************************************************************************************
 
 
 
 !***********************************************************************************************************************************
-!> \brief  
-!> 
+!> \brief  Draw a single tick mark - no PLplot routine found
+!!
+!! \param x1      world coordinates of one endpoint of the axis
+!! \param y1      world coordinates of one endpoint of the axis
+!! \param x2      world coordinates of the other endpoint of the axis
+!! \param y2      world coordinates of the other endpoint of the axis
+!! \param v       draw the tick mark at fraction V (0<=V<=1) along the line from (X1,Y1) to (X2,Y2)
+!! \param tikl    length of tick mark drawn to left of axis
+!! \param tikr    length of major tick marks drawn to right of axis
+!! \param disp    displacement of label text to right of axis
+!! \param orient  orientation of label text, in degrees
+!! \param str     text of label (may be blank)
+
+subroutine pgtick(x1, y1, x2, y2, v, tikl, tikr, disp, orient, str)
+  use plplot
+  
+  implicit none
+  real, intent(in) :: x1, y1, x2, y2, v, tikl, tikr, disp, orient
+  character, intent(in) :: str*(*)
+  
+  real :: x
+  character :: str1*(len(str))
+  
+  x = x1
+  x = x2
+  x = y1
+  x = y2
+  x = v
+  x = tikl
+  x = tikr
+  x = disp
+  x = orient
+  str1 = str
+  
+  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgtick()'
+  
+end subroutine pgtick
+!***********************************************************************************************************************************
+
+
+
+!***********************************************************************************************************************************
+!> \brief  Read data from screen - no PLplot equivalent (yet)!
+!!
 !! \todo No plplot routine found yet - using dummy
+
 subroutine pgolin(maxpt, npt, x, y, symbol)
   use plplot
-  implicit none
-  integer, intent(in) :: maxpt,npt,symbol
-  real, intent(in) :: x(:),y(:)
-  integer :: maxpt1,npt1,symbol1
-  real :: x1(size(x)),y1(size(y))
   
-  maxpt1 = maxpt
-  npt1 = npt
-  x1 = x
-  y1 = y
+  implicit none
+  integer, intent(in) :: maxpt,symbol
+  integer, intent(out) :: npt
+  real, intent(out) :: x(maxpt),y(maxpt)
+  
+  integer :: symbol1
+  
+  npt = maxpt
+  x = 0.d0
+  y = 0.d0
   symbol1 = symbol
+  
+  write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgolin()'
   
 end subroutine pgolin
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
-!> \brief  
-subroutine pg2pltext(string)  !Replace the PGPlot escape character '\' with the PLplot escape character '#'
+!> \brief  Replace the PGPlot escape character '\' with the PLplot escape character '#'
+!!
+!! \param string  Text string to convert
+
+subroutine pg2pltext(string)
   implicit none
   character, intent(inout) :: string*(*)
   integer :: i,n
   
   n = len_trim(string)
+  !print*,trim(string),n
   do i=1,n
-     if(string(i:i).eq.'\') string(i:i) = '#' !'
+     !print*,i,string(i:i)
+     !if(string(i:i).eq.'\') string(i:i) = '#' !'
+     if(string(i:i).eq.'\') write(string(i:i),'(A1)') '#' !'
   end do
+  
 end subroutine pg2pltext
 !***********************************************************************************************************************************
+

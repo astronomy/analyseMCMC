@@ -9,6 +9,8 @@
 subroutine pdfs2d(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   use SUFR_constants, only: cursorup, pi,rpi,rh2r
+  use SUFR_system, only: warn
+  
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: plLmax,fontsize2d,map_projection,maxChs
   use analysemcmc_settings, only: plInject,mergeChains,Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky,wrapData
@@ -403,6 +405,7 @@ subroutine pdfs2d(exitcode)
               if(normPDF2D.lt.4) then  ! Grey scales
                  call pgscir(0,nint(1e9))
                  call pgqcir(clr,maxclr)  ! Maxclr is device-dependent
+                 if(maxclr.lt.30) call warn('Not enough colours on device for 2D plot!',0)
                  do i=0,maxclr-30  ! Colour indices typically run 0-255, but this is device-dependent. 
                     ! Reserve ~0-29 for other purposes -> (maxclr-30) for these grey scales:
                     x = real((maxclr-30) - i)/real(maxclr-30)          ! White background
