@@ -9,8 +9,20 @@
 subroutine pgsls(ls)
   implicit none
   integer, intent(in) :: ls
+  integer :: ls1,ls2, styles(5)
   
-  call pllsty(ls)
+  styles = (/1,4,5,2,6/)
+  
+  ls1 = ls   ! 1: solid, 2: dashes, 3: dash-dotted, 4: dotted, 5: dash-dot-dot-dot
+  if (ls1.lt.1.or.ls1.gt.5) ls1 = 1
+  
+  
+  ls2 = styles(ls1)  ! 1: solid, 2: short dashes, 3: long dashes, 4: long dashes, short gaps, 5: long-short dashes, 
+  !                    6: long-short dashes, long-short gaps, 7: ?, 8: ?
+  
+  call pllsty(ls2)
+  
+  !print*,'pgsls: ',ls,ls1,ls2
   
 end subroutine pgsls
 !***********************************************************************************************************************************
@@ -23,8 +35,14 @@ end subroutine pgsls
 subroutine pgslw(lw)
   implicit none
   integer, intent(in) :: lw
+  integer :: lw1,lw2
+  
+  lw1 = max(min(lw,201),1)
+  lw2 = lw1 - 1
   
   call plwid(lw)
+  
+  !print*,'pgslw: ',lw,lw1,lw2
   
 end subroutine pgslw
 !***********************************************************************************************************************************
@@ -39,7 +57,7 @@ subroutine pgqlw(lw)
   integer, intent(out) :: lw
   integer, save :: warn
   
-  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgqlw()'
+  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgqlw()  ***'
   warn = 123
   
   lw = 1
@@ -76,9 +94,9 @@ subroutine pgsci(ci1)
   colours = (/0,15,1,3,9,7,13,2,8,12,4,11,10,5,7,7/)
   if(ci1.ge.0.and.ci1.le.15) ci2 = colours(ci1)
   
-  !write(6,'(A,2I6)')'  pgsci: ',ci1,ci2
-  
   call plcol0(ci2)
+  
+  !write(6,'(A,2I6)')'  pgsci: ',ci1,ci2
   
 end subroutine pgsci
 !***********************************************************************************************************************************
@@ -157,7 +175,7 @@ subroutine pgscir(ci1,ci2)
   tmp = ci1
   tmp = ci2
   
-  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgscir()'
+  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgscir()  ***'
   warn = 123
   
 end subroutine pgscir
@@ -178,7 +196,7 @@ subroutine pgqcir(ci1,ci2)
   ci1 = 0
   ci2 = 255
   
-  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgqcir()'
+  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgqcir()  ***'
   warn = 123
   
 end subroutine pgqcir
@@ -189,13 +207,27 @@ end subroutine pgqcir
 !***********************************************************************************************************************************
 !> \brief  Set fill style
 !!
-!! \param fs  Fill style
+!! \param fs  Fill style (1-4, no match for 2: outline)
 
 subroutine pgsfs(fs)
   implicit none
   integer, intent(in) :: fs
+  integer :: fs1,fs2, styles(4)
   
-  call plpsty(fs)
+  fs1 = fs
+  if(fs.lt.1.or.fs.gt.4) fs1 = 1
+  
+  ! fs1:  1: solid, 2: outline, 3-hatched, 4-cross-hatched
+  ! fs2:  0: solid, 1: H lines, 2: V lines, 3: hatches 45d up, 4: hatches 45d down, 5: hatches 30d up, 6: hatches 30d down
+  !       7: upright cross-hatces, 8: 45d cross-hatces
+  
+  styles = (/0,0,3,8/)
+  
+  fs2 = styles(fs1)
+  
+  call plpsty(fs2)  
+  
+  !print*,'pgsfs: ',fs1,fs2
   
 end subroutine pgsfs
 !***********************************************************************************************************************************
@@ -232,11 +264,19 @@ subroutine pgsch(ch)
   
   implicit none
   real, intent(in) :: ch
-  real(kind=plflt) :: ch2
+  real(kind=plflt) :: ch1,ch2, fac
   
-  ch2 = ch*0.7
+  fac = 0.35_plflt
   
-  call plschr(0.0_plflt,ch2)
+  ch1 = 0.0_plflt  ! 0: don't change
+  ch2 = ch * fac
+  
+  !ch1 = ch * fac
+  !ch2 = fac
+  
+  call plschr(ch1,ch2)
+  
+  !print*,'pgsch: ',ch,ch1,ch2
   
 end subroutine pgsch
 !***********************************************************************************************************************************
@@ -255,7 +295,7 @@ subroutine pgqch(ch)
   real(kind=plflt) :: x_def,x_cur
   
   call plschr(x_def,x_cur)
-  ch = x_cur/0.7 !?
+  ch = x_cur/0.35 !?
   
 end subroutine pgqch
 !***********************************************************************************************************************************
@@ -275,7 +315,7 @@ subroutine pgsah(fs, angle, barb)
   tmp = nint(angle)
   tmp = nint(barb)
   
-  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgsah()'
+  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgsah()  ***'
   warn = 123
   
 end subroutine pgsah
@@ -304,10 +344,11 @@ subroutine pgline(n,x1,y1)
   
   x2 = x1
   y2 = y1
-  !write(6,'(A,99F6.2)')'  pgline:  ',x1(21:29),y1(21:29)
-  !write(6,'(A,99F6.2)')'  pgline:  ',x2(21:29),y2(21:29)
   
   call plline(x2,y2)
+  
+  !write(6,'(A,99ES16.9)')'  pgline1:  ',x1(1:min(n,9)),y1(1:min(n,9))
+  !write(6,'(A,99ES16.9)')'  pgline2:  ',x2(1:min(n,9)),y2(1:min(n,9))
   
 end subroutine pgline
 !***********************************************************************************************************************************
@@ -316,11 +357,11 @@ end subroutine pgline
 !> \brief  Draw an arrow - only a line is drawn, arrows not supported in PLplot!
 !!
 !! \param x1  X-value of start point
-!! \param x2  X-value of end point
 !! \param y1  Y-value of start point
+!! \param x2  X-value of end point
 !! \param y2  Y-value of end point
 
-subroutine pgarro(x1,x2, y1,y2)
+subroutine pgarro(x1,y1, x2,y2)
   use plplot
   
   implicit none
@@ -332,6 +373,8 @@ subroutine pgarro(x1,x2, y1,y2)
   
   call plline(x,y)
   call plpoin((/x(2)/),(/y(2)/),2)
+  
+  !print*,'pgarro: ',x1,x2,y1,y2,'  ',x,y
   
 end subroutine pgarro
 !***********************************************************************************************************************************
@@ -358,6 +401,7 @@ subroutine pgpoint(n,x1,y1,s)
   y2 = y1
   
   call plpoin(x2,y2,s)
+  !call plsym(x2,y2,s)  ! Produces Hershey -> many letters, etc
   
 end subroutine pgpoint
 !***********************************************************************************************************************************
@@ -381,6 +425,8 @@ subroutine pgpoly(n,x1,y1)
   y2 = y1
   
   call plfill(x2,y2)
+  
+  !print*,'pgpoly: ',n,x1(1),x1(n),y1(1),y1(n)
   
 end subroutine pgpoly
 !***********************************************************************************************************************************
@@ -515,7 +561,7 @@ subroutine pgconf(arr, nx,ny, ix1,ix2, iy1,iy2, c1, c2, tr)
   !
   !call plshade1(arr1, ix1,ix2, iy1,iy2, clevel, tr1)
   
-  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgconf()'
+  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgconf()  ***'
   warn = 123
   
 end subroutine pgconf
@@ -556,7 +602,6 @@ subroutine pgptxt(x1,y1,ang,just1,text)
   
   d2r = atan(1.)/45.
   call plgvpw(xmin,xmax,ymin,ymax)
-  !print*,xmin,xmax,ymin,ymax
   
   !Convert angle -> dy/dx
   dx = xmax-xmin
@@ -579,10 +624,11 @@ subroutine pgptxt(x1,y1,ang,just1,text)
   
   text1 = text
   call pg2pltext(text1)
-  call plptex(x2,y2,dx,dy,just2,text1)
   
-  !write(6,'(A,4F10.3,A)')'  pgptext: ',x1,y1,ang,just1,trim(text)
-  !write(6,'(A,5F10.3,A)')'  pgptext: ',x2,y2,dx,dy,just2,trim(text)
+  call plptex(x2,y2,dx,dy,just2,trim(text1))
+  
+  !write(6,'(A,4F10.3,A)')'  pgptxt: ',x1,y1,ang,just1,trim(text)
+  !write(6,'(A,5F10.3,A)')'  pgptxt: ',x2,y2,dx,dy,just2,trim(text)
   
 end subroutine pgptxt
 !***********************************************************************************************************************************
@@ -738,12 +784,13 @@ function pgopen(pgdev)
   !call plsdev(trim(pldev))
   !call plinit()
   
-  if(trim(pldev).ne.'xwin') call plsfnam(trim(filename))         !Set output file name
-  call plfontld(1)                     !Load extended character set(?)
-  call plspause(.true.)                !Pause at pgend()
+  if(trim(pldev).ne.'xwin') call plsfnam(trim(filename))         ! Set output file name
+  call plfontld(1)                     ! Load extended character set(?)
+  call plspause(.true.)                ! Pause at plend()
+  call plscolbg(255,255,255)           ! Set background colour to white
   
-  call plstart(trim(pldev),1,1)        !Initialise plplot with pldev with 1x1 subpages
-  call pladv(0)                        !Advance to first (sub)page
+  call plstart(trim(pldev),1,1)        ! Initialise plplot with pldev with 1x1 subpages
+  call pladv(0)                        ! Advance to first (sub)page
   
   pgopen = 1
   
@@ -780,8 +827,8 @@ subroutine pgbegin(i,pgdev,nx,ny)
   !!pldev = 'xcairo'
   !!pldev = 'qtwidget'
   !
-  !pldev = 'png'       !No anti-aliasing in lines
-  !!pldev = 'wxpng'     !No extended characters
+  !pldev = 'png'       ! No anti-aliasing in lines
+  !!pldev = 'wxpng'     ! No extended characters
   !!pldev = 'pngcairo'
   !!pldev = 'pngqt'
   
@@ -790,9 +837,10 @@ subroutine pgbegin(i,pgdev,nx,ny)
   
   call pg2pldev(pgdev, pldev,filename)
   
-  call plsfnam(trim(filename))         !Set output file name
-  call plfontld(1)                     !Load extended character set(?)
-  call plspause(.true.)                !Pause at pgend()
+  call plsfnam(trim(filename))         ! Set output file name
+  call plfontld(1)                     ! Load extended character set(?)
+  call plspause(.true.)                ! Pause at pgend()
+  call plscolbg(255,255,255)           ! Set background colour to white
   
   call plstart(trim(pldev),nx,ny)
   call pladv(0)  
@@ -1010,7 +1058,7 @@ subroutine pgtick(x1, y1, x2, y2, v, tikl, tikr, disp, orient, str)
   x = orient
   str1 = str
   
-  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgtick()'
+  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgtick()  ***'
   warn = 123
   
 end subroutine pgtick
@@ -1039,7 +1087,7 @@ subroutine pgolin(maxpt, npt, x, y, symbol)
   y = 0.d0
   symbol1 = symbol
   
-  if(warn.ne.123) write(0,'(/,A,/)') '  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgolin()'
+  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgolin()  ***'
   warn = 123
   
 end subroutine pgolin
@@ -1058,9 +1106,11 @@ subroutine pg2pltext(string)
   !print*,trim(string)
   
   call replace_substring(string, '\', '#')        ! Replace the PGPlot escape character \ with the PLplot escape character # '
-  !call replace_substring(string, '#(0248)', '~')        ! \approx -> ~
   call replace_substring(string, '#(0248)', '#(2246)')  ! \approx -> \sim
-  call replace_substring(string, '#(0649)', '#(2149)')  ! psi
+  call replace_substring(string, '#(062',   '#(212')    ! alpha - gamma
+  call replace_substring(string, '#(063',   '#(213')    ! delta - nu
+  call replace_substring(string, '#(064',   '#(214')    ! xi - psi
+  call replace_substring(string, '#(0650',  '#(2150')   ! omega
   call replace_substring(string, '#(0685)', '#(2185)')  ! (var)theta
   
   !print*,trim(string)

@@ -137,8 +137,8 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
            if((x2-x1)**2+(y2-y1)**2.le.90.**2)  call pgline(2,(/x1,x2/),(/y1,y2/))  !Not too far from centre and each other 
         end do
         if(constx(i).lt.bx1.or.constx(i).gt.bx2.or.consty(i).lt.by1.or.consty(i).gt.by2) cycle
-        if(plcst.eq.2) call pgptext(constx(i),consty(i),0.,0.5,cn(i))
-        if(plcst.eq.3) call pgptext(constx(i),consty(i),0.,0.5,con(i))
+        if(plcst.eq.2) call pgptxt(constx(i),consty(i),0.,0.5,cn(i))
+        if(plcst.eq.3) call pgptxt(constx(i),consty(i),0.,0.5,con(i))
      end do
      call pgsch(schfac)
      call pgscf(fonttype)
@@ -305,32 +305,49 @@ end function getmag
 !***********************************************************************************************************************************
 !> \brief  Plot a projected image
 !!
-!! - Clone of pgimag, use projection if projection > 0
+!! \param z     Binned data array
+!!
+!! \param nbx   Number of bins in the x-direction
+!! \param nby   Number of bins in the y-direction
+!! \param xb1   First bin to plot in the x-direction
+!! \param xb2   Last bin to plot in the x-direction
+!! \param yb1   First bin to plot in the y-direction
+!! \param yb2   Last bin to plot in the y-direction 
+!!
+!! \param z1    Lowest array value, will appear in first colour (clr1)
+!! \param z2    Highest array value, will appear in last colour (clr2)
+!! \param clr1  First colour, use with lowest array valye (z1)
+!! \param clr2  Last colour, use with lowest array valye (z1)
+!!
+!! \param tr
+!! \param projection
+!!
+!! \note  Clone of pgimag, use projection if projection > 0
 
-subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, tr, projection)
+subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, clr1,clr2, tr, projection)
   use SUFR_constants, only: rpi2
   use general_data, only: raCentre
   
   implicit none
   integer, parameter :: nell=100
-  integer, intent(in) :: nbx,nby, xb1,xb2, yb1,yb2, projection
+  integer, intent(in) :: nbx,nby, xb1,xb2, yb1,yb2, clr1,clr2, projection
   real, intent(in) :: z(nbx,nby), z1,z2, tr(6)
   
   real :: dz,dcdz
   real :: x,y,dx,dy,xs(5),ys(5),xell(nell),yell(nell),sch
-  integer :: i,ix,iy,clr1,clr2,dc,ci,lw
+  integer :: i,ix,iy,dc,ci,lw
   character :: str*(99)
   
   
   call pgqch(sch)  ! Save current character height
   call pgsch(0.5*sch)
   
-  call pgqcir(clr1,clr2)
+  !call pgqcir(clr1,clr2)
   dz = z2-z1
   dc = clr2-clr1
   dcdz = real(dc)/dz
   
-  call pgbbuf         ! Buffer output to speed up screen plotting
+  call pgbbuf()       ! Buffer output to speed up screen plotting
   dx = tr(2)/2.*1.05  ! Distance between pixel centres / 2 = half width of pixels
   dy = tr(6)/2.*1.05  ! Spaces between pixels seem to go away when multiplying with a factor between 1.02 and 1.04
   
@@ -397,7 +414,7 @@ subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, tr, projection)
            !Print label:
            write(str,'(I2,A)')mod(48-i,24),'\uh\d'
            if(mod(48-i,24).lt.10) write(str,'(I1,A)')mod(48-i,24),'\uh\d'
-           call pgptext(x+raCentre-0.1,2.,0.,0.,trim(str))
+           call pgptxt(x+raCentre-0.1,2.,0.,0.,trim(str))
         end if
      end do
      
@@ -421,17 +438,20 @@ subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, tr, projection)
         ! Print labels:
         if(i.gt.0) then
            write(str,'(A1,I2,A)')'+',i,'\(2218)'
-           call pgptext(xs(2)+0.2,ys(1),0.,1.,trim(str))
+           call pgptxt(xs(2)+0.2,ys(1),0.,1.,trim(str))
+        else if(i.eq.0) then  ! Used to be in the <=0 case, seems to have caused segfaults when using PLplot and gfortran -O2 (?)
+           write(str,'(I3,A)')i,'\(2218)'
+           call pgptxt(xs(2)+0.4,ys(1)-2.,0.,1.,trim(str))
         else
            write(str,'(I3,A)')i,'\(2218)'
-           call pgptext(xs(2)+0.4,ys(1)-2.,0.,1.,trim(str))
+           call pgptxt(xs(2)+0.4,ys(1)-2.,0.,1.,trim(str))
         end if
      end do
      
      ! Overplot main lines:
      call pgsci(1)
-     call pgptext(raCentre,92.,0.,0.5,'+90\(2218)')           ! NP
-     call pgptext(raCentre,-95.,0.,0.5,'-90\(2218)')          ! SP
+     call pgptxt(raCentre,92.,0.,0.5,'+90\(2218)')           ! NP
+     call pgptxt(raCentre,-95.,0.,0.5,'-90\(2218)')          ! SP
      call pgline(2,(/raCentre-12.,raCentre+12./),(/0.,0./))   ! Equator
      
      ! Plot null-meridian:

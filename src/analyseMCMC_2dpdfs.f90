@@ -25,7 +25,7 @@ subroutine pdfs2d(exitcode)
   integer, intent(out) :: exitcode
   
   integer :: i,j,j1,j2,p1,p2,ic,lw,io,c,status,system,pgopen,clr,maxclr
-  integer :: npdf,ncont,flw,plotthis,injectionrange2d,countplots,totplots
+  integer :: npdf,ncont,flw,plotthis,injectionrange2d,countplots,totplots, clr1,clr2
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
@@ -469,7 +469,9 @@ subroutine pdfs2d(exitcode)
                        call pgscr(35,1.,0.,0.)  ! Red
                     end if
                  end if
-                 call pgscir(30,30+Nival)  ! set colour-index range for pgimag
+                 clr1 = 30
+                 clr2 = 30+Nival
+                 call pgscir(clr1,clr2)  ! set colour-index range for pgimag
               end if  !if(normPDF2D.eq.4)
               
               
@@ -477,14 +479,14 @@ subroutine pdfs2d(exitcode)
               ! Plot the PDF:
               if(project_map .and. plotSky.ge.2) then
                  if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  plotting map projection...'
-                 call pgimag_project(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr,map_projection)
+                 call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, map_projection)
               else
                  if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  plotting 2D PDF...'
                  
                  ! CHECK Gives seg.fault (on amd64) - but why? - need more memory?
                  !call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr)
                  
-                 call pgimag_project(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr,0)  ! 0-no projection
+                 call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, 0)  ! 0-no projection
               end if
               
            end if  !if(plPDF2D.eq.1.or.plPDF2D.eq.2)
@@ -574,11 +576,11 @@ subroutine pdfs2d(exitcode)
                  
                  plx = allDat(icloglmax,p1,iloglmax)
                  if(wrap(ic,p1).ne.0) plx = mod(plx + shifts(ic,p1), shIvals(ic,p1)) - shifts(ic,p1)
-                 call pgline(2,(/plx,plx/),(/-1.e20,1.e20/))  ! Max logL
+                 call pgline(2,(/plx,plx/),(/ymin,ymax/))  ! Max logL
                  
                  ply = allDat(icloglmax,p2,iloglmax)
                  if(wrap(ic,p2).ne.0) ply = mod(ply + shifts(ic,p2), shIvals(ic,p2)) - shifts(ic,p2)
-                 call pgline(2,(/-1.e20,1.e20/),(/ply,ply/))  ! Max logL
+                 call pgline(2,(/xmin,xmax/),(/ply,ply/))  ! Max logL
                  
                  call pgpoint(1,plx,ply,12)
               end if
@@ -603,7 +605,7 @@ subroutine pdfs2d(exitcode)
                     if(plLmax.eq.0) call pgsls(3)  
                     plx = startval(ic,p1,1)
                     if(wrap(ic,p1).ne.0) plx = mod(plx + shifts(ic,p1), shIvals(ic,p1)) - shifts(ic,p1)
-                    call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Injection value
+                    call pgline(2,(/plx,plx/),(/ymin,ymax/)) !Injection value
                     
                     ! y:
                     call pgsls(2); call pgsci(1)
@@ -612,7 +614,7 @@ subroutine pdfs2d(exitcode)
                     if(plLmax.eq.0) call pgsls(3)  
                     ply = startval(ic,p2,1)
                     if(wrap(ic,p2).ne.0) ply = mod(ply + shifts(ic,p2), shIvals(ic,p2)) - shifts(ic,p2)
-                    call pgline(2,(/-1.e20,1.e20/),(/ply,ply/)) !Injection value
+                    call pgline(2,(/xmin,xmax/),(/ply,ply/)) !Injection value
                     
                     call pgpoint(1,plx,ply,18)
                  end if
@@ -622,8 +624,8 @@ subroutine pdfs2d(exitcode)
               
               
               ! Plot starting values in 2D PDF:
-              !call pgline(2,(/startval(ic,p1,2),startval(ic,p1,2)/),(/-1.e20,1.e20/))
-              !call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p2,2),startval(ic,p2,2)/))
+              !call pgline(2,(/startval(ic,p1,2),startval(ic,p1,2)/),(/ymin,ymax/))
+              !call pgline(2,(/xmin,xmax/),(/startval(ic,p2,2),startval(ic,p2,2)/))
               
               call pgsci(2)
               
@@ -653,8 +655,8 @@ subroutine pdfs2d(exitcode)
               
               ! Plot medians in 2D PDF:
               if(plMedian.eq.2.or.plMedian.eq.3.or.plMedian.eq.5.or.plMedian.eq.6) then
-                 call pgline(2,(/stats(ic,p1,1),stats(ic,p1,1)/),(/-1.e20,1.e20/))
-                 call pgline(2,(/-1.e20,1.e20/),(/stats(ic,p2,1),stats(ic,p2,1)/))
+                 call pgline(2,(/stats(ic,p1,1),stats(ic,p1,1)/),(/ymin,ymax/))
+                 call pgline(2,(/xmin,xmax/),(/stats(ic,p2,1),stats(ic,p2,1)/))
                  call pgpoint(1,stats(ic,p1,1),stats(ic,p2,1),18)
               end if
               

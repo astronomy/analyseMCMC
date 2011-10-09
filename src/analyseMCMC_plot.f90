@@ -19,17 +19,18 @@ subroutine pginitl(colour,file,whiteBG)
      call pgscr(1,0.,0.,0.)                ! Default foreground colour always black
      if(file.le.1) then                    ! png: create white background
         if(use_PLplot) then
-           call pgsvp(0.,1.,0.,1.)
+           call pgsvp(0.08,0.92,0.12,0.94) ! Default viewport size (?)
         else
            call pgsvp(-100.,100.,-100.,100.)
+           call pgswin(0.,1.,0.,1.)
+           call pgsci(0)
+           call pgrect(-1.,2.,-1.,2.)
+           call pgsvp(0.08,0.95,0.06,0.87) ! Default viewport size (?)
         end if
-        call pgswin(0.,1.,0.,1.)
-        call pgsci(0)
-        call pgrect(-1.,2.,-1.,2.)
-        call pgsvp(0.08,0.95,0.06,0.87) !Default viewport size (?)
-        call pgsci(1)
      end if
+     call pgsci(1)
   end if
+  
   if(colour.eq.0) then
      do i=0,99
         call pgscr(i,0.,0.,0.)

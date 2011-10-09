@@ -25,8 +25,6 @@ subroutine setconstants()
   waveforms(5) = 'PhenSpinInspiralRD'
   waveforms(9) = 'Ana.L'
   
-  !call set_use_PGPLplot()
-  
 end subroutine setconstants
 !***********************************************************************************************************************************
 
@@ -1072,12 +1070,14 @@ subroutine mcmcruninfo(exitcode)
      end do
      write(stdOut,*)
      if(prInitial.ge.4) then
-        write(stdOut,'(5x,A10)',advance="no")'Diff:  '
-        write(stdOut,'(F11.3)',advance="no")abs(post(ic,1)-post(icloglmax,iloglmax))
-        do p=1,nMCMCpar
-           write(stdOut,'(F9.4)',advance="no")abs(startval(1,p,1)-startval(1,p,3))
+        do ic=1,1 !nchains
+           write(stdOut,'(I4,A1,A10)',advance="no")ic,':','Diff:  '
+           write(stdOut,'(F11.3)',advance="no")abs(post(ic,1)-post(icloglmax,iloglmax))
+           do p=1,nMCMCpar
+              write(stdOut,'(F9.4)',advance="no")abs(startval(ic,p,1)-startval(ic,p,3))
+           end do
+           write(stdOut,*)
         end do
-        write(stdOut,*)
      end if
      write(stdOut,*)
   end if

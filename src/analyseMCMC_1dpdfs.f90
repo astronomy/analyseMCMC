@@ -7,8 +7,8 @@
 !! \retval exitcode  Exit code: 0=ok
 
 subroutine pdfs1d(exitcode)
-  use SUFR_constants, only: stdOut,stdErr
-  use SUFR_constants, only: rpi2
+  use SUFR_constants, only: stdOut,stdErr, rpi2
+  use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: plLmax,fontsize1d,nPlPar,panels,plPars,changeVar
   use analysemcmc_settings, only: plInject,mergeChains,maxChs
@@ -153,9 +153,11 @@ subroutine pdfs1d(exitcode)
      end if
      
      if(plot.eq.1) then
-        call pgpage
-        if(j.eq.1) call pginitl(colour,file,whiteBG)
+        call pgpage()
+        if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
+        call pgsch(sch)
      end if
+     
      ! Set x-ranges for plotting, bin the data and get y-ranges
      ! Use widest probability range (hopefully ~3-sigma) - doesn't always work well...
      if(1.eq.2) then  ! This can only be used if ranges are computed - isn't this always the case?
@@ -413,7 +415,7 @@ subroutine pdfs1d(exitcode)
            if(parID(p).eq.52) ply = rev180(ply)
            call pgsci(1)
            call pgsls(5)
-           call pgline(2,(/ply,ply/),(/-1.e20,1.e20/))
+           call pgline(2,(/ply,ply/),(/ymin,ymax/))
         end if
         
         
@@ -428,24 +430,24 @@ subroutine pdfs1d(exitcode)
               call pgslw(lw)
               call pgsls(1); call pgsci(0)
               ! Injection value:
-              if(plInject.eq.1.or.plInject.eq.3) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))
+              if(plInject.eq.1.or.plInject.eq.3) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/ymin,ymax/))
               
               ! Injection value - mass, t_c and spin only (?) - CHECK put in input file?
               if((plInject.eq.2.or.plInject.eq.4).and.(parID(p).eq.11.or.parID(p).eq.12 &
                    .or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64.or. &
-                   parID(p).eq.71.or.parID(p).eq.81)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/-1.e20,1.e20/))  
+                   parID(p).eq.71.or.parID(p).eq.81)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/ymin,ymax/))  
               
-              !if(plStart.ge.1) call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))              ! Starting value
+              !if(plStart.ge.1) call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/ymin,ymax/))              ! Starting value
               
               ! Median:
               if(plMedian.eq.1.or.plMedian.eq.3.or.plMedian.eq.4.or.plMedian.eq.6)  &
-                   call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))
+                   call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/ymin,ymax/))
               
               ! Ranges:
               if(plRange.eq.1.or.plRange.eq.3.or.plRange.eq.4.or.plRange.eq.6) then
-                 if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/)) ! Left limit of interval
-                 if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/)) ! Right limit of interval
-                 if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/-1.e20,1.e20/)) ! Centre of interval
+                 if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/ymin,ymax/)) ! Left limit of interval
+                 if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/ymin,ymax/)) ! Right limit of interval
+                 if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/ymin,ymax/)) ! Centre of interval
               end if
            end if
            
@@ -455,15 +457,15 @@ subroutine pdfs1d(exitcode)
            ! Median:
            if((plMedian.eq.1.or.plMedian.eq.3.or.plMedian.eq.4.or.plMedian.eq.6)) then
               call pgsls(2); call pgsci(2); if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-              call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/-1.e20,1.e20/))
+              call pgline(2,(/stats(ic,p,1),stats(ic,p,1)/),(/ymin,ymax/))
            end if
            
            ! Plot ranges in 1D PDF:
            if((plRange.eq.1.or.plRange.eq.3.or.plRange.eq.4.or.plRange.eq.6)) then
               call pgsls(4); call pgsci(2); if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-              if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/-1.e20,1.e20/))   ! Left limit of interval
-              if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/-1.e20,1.e20/))   ! Right limit of interval
-              !if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/-1.e20,1.e20/))  ! Centre of interval
+              if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,1)/),(/ymin,ymax/))   ! Left limit of interval
+              if(nchains.lt.2) call pgline(2,(/ranges(ic,c0,p,2),ranges(ic,c0,p,2)/),(/ymin,ymax/))   ! Right limit of interval
+              !if(nchains.eq.1) call pgline(2,(/ranges(ic,c0,p,3),ranges(ic,c0,p,3)/),(/ymin,ymax/))  ! Centre of interval
            end if
            
            ! Plot injection value in PDF:
@@ -479,14 +481,14 @@ subroutine pdfs1d(exitcode)
                  if(plLmax.eq.0) call pgsls(3)  
                  plx = startval(ic,p,1)
                  if(wrap(ic,p).ne.0) plx = mod(plx + shifts(ic,p), shIvals(ic,p)) - shifts(ic,p)
-                 call pgline(2,(/plx,plx/),(/-1.e20,1.e20/)) !Injection value
+                 call pgline(2,(/plx,plx/),(/ymin,ymax/)) !Injection value
               end if
            end if
            
            ! Plot starting value in 1D PDF:
            !if(plStart.eq.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/startval(ic,p,1)).gt.1.e-10) then
            !   call pgsls(4); call pgsci(1); if(nchains.gt.1) call pgsci(1)
-           !   call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/-1.e20,1.e20/))
+           !   call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/ymin,ymax/))
            !end if
            
            call pgsls(1)
@@ -790,14 +792,17 @@ end subroutine bindata1da
 !! \param style  Histogram style:  0: don't drop vertical lines to 0 at each bin, 1: do this, 2: fill the histogram
 
 subroutine verthist(n,x1,y1,style)
+  use analysemcmc_settings, only: fillPDF
+  
   implicit none
   integer, intent(in) :: n,style
   real, intent(in) :: x1(n+1),y1(n+1)
+  
   integer :: j
   real :: dx,c, x(n+1),y(n+1)
   
   ! Make columns overlap a little:
-  dx = x(2)-x(1)
+  dx = x1(2)-x1(1)
   c = 0.001*dx
   
   x = x1
@@ -826,6 +831,7 @@ subroutine verthist(n,x1,y1,style)
   
   ! Fill the histogram:
   if(style.eq.2) then
+     call pgsfs(fillPDF)
      do j=1,n
         call pgpoly(4,(/x(j)-c,x(j)-c,x(j+1)+c,x(j+1)+c/),(/0.,y(j),y(j),0./))
      end do

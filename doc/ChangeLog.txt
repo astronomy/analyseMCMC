@@ -3,6 +3,19 @@
   Revisions in the AnalyseMCMC repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   209: sluys, 09/10/2011
+     - Update PG2PLplot:
+       - translate line styles, line widths, fill styles better
+       - start plot with white background
+     - Optimise AnalyseMCMC for use with PLplot:
+       - call pginitl() and pgsch() for every subpage
+       - plot horizontal/vertical lines from x/ymin to x/ymax rather than -1.e20 - 1.e20
+       - change in pgimag_project() seems to avoid segfaults somehow(?)
+     - Bugfixes:
+       - bug in verthist() in _1dpdfs (dx = x1(2)-x1(1), not x(2)-x(1))
+       - minor bug in mcmcruninfo() in _functions
+       - bug: order of arguments in pgarro() in PG2PLplot
+       
    208: sluys, 09/10/2011
      - Decide whether to use PLplot or not with one option in Makefile at compile time:
        - updated Makefile, code_version.sh, hence code_version.f90

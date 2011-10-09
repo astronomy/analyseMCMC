@@ -65,7 +65,7 @@ subroutine chains(exitcode)
      
      ic = 1
      p=1
-     !call pgpage
+     !call pgpage()
      xmax = -1.e30
      ymin =  1.e30
      ymax = -1.e30
@@ -120,19 +120,19 @@ subroutine chains(exitcode)
         call pgsci(1)
         call pgpoint(1,is(icloglmax,iloglmax),ply,18)
         call pgsls(5)
-        call pgline(2,(/-1.e20,1.e20/),(/ply,ply/))
+        call pgline(2,(/xmin,xmax/),(/ply,ply/))
      end if
      
      do ic=1,nChains0
         call pgsci(1)
         call pgsls(2)
         !Plot injection value, only if injection was done:
-        if(abs(post(ic,1)).gt.1.e-4) call pgline(2,(/-1.e20,1.e20/),(/post(ic,1),post(ic,1)/))  
+        if(abs(post(ic,1)).gt.1.e-4) call pgline(2,(/xmin,xmax/),(/post(ic,1),post(ic,1)/))  
         call pgsci(colours(mod(ic-1,ncolours)+1))
         !Vertical line at burn-in:
-        if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/)) 
+        if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/)) 
         call pgsls(4)
-        call pgline(2,(/-1.e20,1.e20/),(/post(ic,2),post(ic,2)/))  !Horizontal dotted line at starting value
+        call pgline(2,(/xmin,xmax/),(/post(ic,2),post(ic,2)/))  !Horizontal dotted line at starting value
      end do
      call pgsci(1)
      call pgsls(1)
@@ -268,10 +268,10 @@ subroutine chains(exitcode)
            cycle
         end if
         
-        call pgpage
+        call pgpage()
+        if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
+        call pgsch(sch)
         
-        
-        if(j.eq.1) call pginitl(colour,file,whiteBG)
         if(file.eq.0.and.scrRat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.ge.2.and.PSrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
@@ -405,7 +405,7 @@ subroutine chains(exitcode)
            call pgsci(1)
            call pgpoint(1,is(icloglmax,iloglmax),ply,12)
            call pgsls(5)
-           call pgline(2,(/-1.e20,1.e20/),(/ply,ply/))
+           call pgline(2,(/xmin,xmax/),(/ply,ply/))
         end if
         
         !Plot burn-in, injection and starting values
@@ -415,8 +415,8 @@ subroutine chains(exitcode)
            
            !Plot burn-in phase
            if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
+           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
            call pgsci(1)
            
            
@@ -438,18 +438,18 @@ subroutine chains(exitcode)
                        plx = rev180(plx)
                     end select
                  end if
-                 call pgline(2,(/-1.e20,1.e20/),(/plx,plx/))
+                 call pgline(2,(/xmin,xmax/),(/plx,plx/))
                  if(changeVar.ge.1) then
                     select case(parID(p))
                     case(31)
-                       call pgline(2,(/-1.e20,1.e20/),(/plx-24.,plx-24./))
-                       call pgline(2,(/-1.e20,1.e20/),(/plx+24.,plx+24./))
+                       call pgline(2,(/xmin,xmax/),(/plx-24.,plx-24./))
+                       call pgline(2,(/xmin,xmax/),(/plx+24.,plx+24./))
                     case(41,54,73,83)
-                       call pgline(2,(/-1.e20,1.e20/),(/plx-360.,plx-360./))
-                       call pgline(2,(/-1.e20,1.e20/),(/plx+360.,plx+360./))
+                       call pgline(2,(/xmin,xmax/),(/plx-360.,plx-360./))
+                       call pgline(2,(/xmin,xmax/),(/plx+360.,plx+360./))
                     case(52)
-                       call pgline(2,(/-1.e20,1.e20/),(/plx-180.,plx-180./))
-                       call pgline(2,(/-1.e20,1.e20/),(/plx+180.,plx+180./))
+                       call pgline(2,(/xmin,xmax/),(/plx-180.,plx-180./))
+                       call pgline(2,(/xmin,xmax/),(/plx+180.,plx+180./))
                     end select
                  end if
               end if
@@ -471,18 +471,18 @@ subroutine chains(exitcode)
                     plx = rev180(plx)
                  end select
               end if
-              call pgline(2,(/-1.e20,1.e20/),(/plx,plx/))
+              call pgline(2,(/xmin,xmax/),(/plx,plx/))
               if(changeVar.ge.1) then
                  select case(parID(p))
                  case(31)
-                    call pgline(2,(/-1.e20,1.e20/),(/plx-24.,plx-24./))
-                    call pgline(2,(/-1.e20,1.e20/),(/plx+24.,plx+24./))
+                    call pgline(2,(/xmin,xmax/),(/plx-24.,plx-24./))
+                    call pgline(2,(/xmin,xmax/),(/plx+24.,plx+24./))
                  case(41,54,73,83)
-                    call pgline(2,(/-1.e20,1.e20/),(/plx-360.,plx-360./))
-                    call pgline(2,(/-1.e20,1.e20/),(/plx+360.,plx+360./))
+                    call pgline(2,(/xmin,xmax/),(/plx-360.,plx-360./))
+                    call pgline(2,(/xmin,xmax/),(/plx+360.,plx+360./))
                  case(52)
-                    call pgline(2,(/-1.e20,1.e20/),(/plx-180.,plx-180./))
-                    call pgline(2,(/-1.e20,1.e20/),(/plx+180.,plx+180./))
+                    call pgline(2,(/xmin,xmax/),(/plx-180.,plx-180./))
+                    call pgline(2,(/xmin,xmax/),(/plx+180.,plx+180./))
                  end select
               end if
            end if
@@ -633,8 +633,10 @@ subroutine chains(exitcode)
            cycle
         end if
         
-        call pgpage
-        if(j.eq.1) call pginitl(colour,file,whiteBG)
+        call pgpage()
+        if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
+        call pgsch(sch)
+        
         xmin = 1.e30
         xmax = -1.e30
         ymin =  1.e30
@@ -754,7 +756,7 @@ subroutine chains(exitcode)
            call pgsci(1)
            call pgpoint(1,plx,ply,12)
            call pgsls(5)
-           call pgline(2,(/plx,plx/),(/-1.e20,1.e20/))
+           call pgline(2,(/plx,plx/),(/ymin,ymax/))
         end if
         
         
@@ -780,18 +782,18 @@ subroutine chains(exitcode)
                        plx = rev180(plx)
                     end select
                  end if
-                 call pgline(2,(/plx,plx/),(/-1.e20,1.e20/))
+                 call pgline(2,(/plx,plx/),(/ymin,ymax/))
                  if(changeVar.ge.1) then
                     select case(parID(p))
                     case(31)
-                       call pgline(2,(/plx-24.,plx-24./),(/-1.e20,1.e20/))
-                       call pgline(2,(/plx+24.,plx+24./),(/-1.e20,1.e20/))
+                       call pgline(2,(/plx-24.,plx-24./),(/ymin,ymax/))
+                       call pgline(2,(/plx+24.,plx+24./),(/ymin,ymax/))
                     case(41,54,73,83)
-                       call pgline(2,(/plx-360.,plx-360./),(/-1.e20,1.e20/))
-                       call pgline(2,(/plx+360.,plx+360./),(/-1.e20,1.e20/))
+                       call pgline(2,(/plx-360.,plx-360./),(/ymin,ymax/))
+                       call pgline(2,(/plx+360.,plx+360./),(/ymin,ymax/))
                     case(52)
-                       call pgline(2,(/plx-180.,plx-180./),(/-1.e20,1.e20/))
-                       call pgline(2,(/plx+180.,plx+180./),(/-1.e20,1.e20/))
+                       call pgline(2,(/plx-180.,plx-180./),(/ymin,ymax/))
+                       call pgline(2,(/plx+180.,plx+180./),(/ymin,ymax/))
                     end select
                  end if
               end if
@@ -880,8 +882,10 @@ subroutine chains(exitcode)
            cycle
         end if
         
-        call pgpage
-        if(j.eq.1) call pginitl(colour,file,whiteBG)
+        call pgpage()
+        if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
+        call pgsch(sch)
+        
         xmax = -1.e30
         ymin =  1.e30
         ymax = -1.e30
@@ -929,10 +933,10 @@ subroutine chains(exitcode)
         call pgsls(2)
         call pgsci(6)
         do ic=1,nChains0
-           !call pgline(2,(/real(Nburn(ic)),real(Nburn(ic))/),(/-1.e20,1.e20/))
+           !call pgline(2,(/real(Nburn(ic)),real(Nburn(ic))/),(/ymin,ymax/))
            if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+           !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
+           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
         end do
         call pgsci(1)
         call pgsls(1)
@@ -1021,6 +1025,7 @@ subroutine chains(exitcode)
         
         call pgpage()
         if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
+        call pgsch(sch)
         
         xmin = 0.
         xmin = minval(acorrs(1:nChains0,0,0:nAcorr))
@@ -1056,12 +1061,12 @@ subroutine chains(exitcode)
         call pgsci(defcolour)
         do ic=1,nChains0
            if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           call pgline(2,(/lAcorrs(ic,p),lAcorrs(ic,p)/),(/-1.e20,1.e20/))
+           call pgline(2,(/lAcorrs(ic,p),lAcorrs(ic,p)/),(/ymin,ymax/))
         end do
         
         !Plot horizontal line at 0
         call pgsci(1)
-        call pgline(2,(/-1.e20,1.e20/),(/0.,0./))
+        call pgline(2,(/xmin,xmax/),(/0.,0./))
         call pgsci(1)
         call pgsls(1)
         !write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', mean length:',sum(lAcorrs(1:nChains0,p))/real(nChains0)
