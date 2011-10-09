@@ -4,6 +4,9 @@
 #
 # At compile/link time:
 # - PGPlot:   http://www.astro.caltech.edu/~tjp/pgplot/
+# or:
+# - PLplot:   http://plplot.sourceforge.net/
+#
 # - libSUFR:  http://libsufr.sourceforge.net/
 #
 # At runtime:
@@ -28,13 +31,21 @@ WARN = yes#               # to compile with compile-time warnings
 #OPTIMISE = yes#           # to compile with some extra run-time optimisation (sets RUNCHECK=no)
 F2003 = yes#              # compile with Fortran 2003 standard
 #STATIC = yes#              # link statically
+#PLPLOT = yes#             # use PLplot instead of PGPlot
 
 
 
-#General:
+# General:
 OPT = -O0
 OPT = -O2
-LFLAGS = -lpgplot 
+ifeq ($(PLPLOT),yes)
+  LFLAGS += -lplplotf95d
+  CFLAGS += -I/usr/lib64/fortran/modules/plplot/
+else
+  LFLAGS += -lpgplot
+endif
+
+
 
 
 
@@ -47,7 +58,7 @@ BINDIR = .
 
 
 
-#ifort:
+# ifort:
 ifeq ($(COMP),ifort)
    # Link against libSUFR:
    CFLAGS += -I/home/sluys/usr/include/libSUFR/ifort
@@ -98,7 +109,7 @@ ifeq ($(COMP),ifort)
 endif
 
 
-#gfortran:
+# gfortran:
 #ifeq ($(COMP),gfortran)
 ifneq (,$(filter $(COMP),gfortran gfortran-4.6))
    # Link against libSUFR:
@@ -154,7 +165,7 @@ endif
 
 
 
-#g95:
+# g95:
 ifeq ($(COMP),g95)
    # Link against libSUFR:
    CFLAGS += -I/home/sluys/usr/include/libSUFR/g95
@@ -228,6 +239,9 @@ endif
 
 
 STDOBJ = $(OBJDIR)/analyseMCMC_modules.o $(OBJDIR)/code_version.o
+ifeq ($(PLPLOT),yes)
+  STDOBJ += $(OBJDIR)/PG2PLplot.o
+endif
 
 ANALYSEMCMC_OBJ =  $(OBJDIR)/analyseMCMC_functions.o $(OBJDIR)/analyseMCMC_textroutines.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_stats.o $(OBJDIR)/analyseMCMC_tailored.o 
@@ -288,8 +302,8 @@ plotSpectrum: $(STDOBJ) $(OBJDIR)/plotSpectrum.o
 
 
 #$(SRCDIR)/code_version.f90: .svn/entries   #.svn/entries changes when committing/updating
-$(SRCDIR)/code_version.f90: code_version    #code_version is PHONY and always out-of-date
-	@. ./code_version.sh . "$(COMP) $(OPT)"
+$(SRCDIR)/code_version.f90: code_version    # regenerate code_version.f90; code_version is PHONY and always out-of-date
+	@. ./code_version.sh src/code_version.f90 $(COMP) $(OPT) $(PLPLOT)
 
 
 dirs:

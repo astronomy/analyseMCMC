@@ -9,6 +9,7 @@
 !! \param whiteBG  Use a white background:  0:no, 1-yes
 
 subroutine pginitl(colour,file,whiteBG)
+  use aM_constants, only: use_PLplot
   implicit none
   integer, intent(in) :: colour,file,whiteBG
   integer :: i
@@ -17,7 +18,11 @@ subroutine pginitl(colour,file,whiteBG)
      call pgscr(0,1.,1.,1.)                ! Background colour always white (also on screen, bitmap)
      call pgscr(1,0.,0.,0.)                ! Default foreground colour always black
      if(file.le.1) then                    ! png: create white background
-        call pgsvp(-100.,100.,-100.,100.)
+        if(use_PLplot) then
+           call pgsvp(0.,1.,0.,1.)
+        else
+           call pgsvp(-100.,100.,-100.,100.)
+        end if
         call pgswin(0.,1.,0.,1.)
         call pgsci(0)
         call pgrect(-1.,2.,-1.,2.)

@@ -3,6 +3,11 @@
   Revisions in the AnalyseMCMC repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   208: sluys, 09/10/2011
+     - Decide whether to use PLplot or not with one option in Makefile at compile time:
+       - updated Makefile, code_version.sh, hence code_version.f90
+       - set Fortran variable use_PLplot in code_version.f90, for use at run time
+       
    207: sluys, 08/10/2011
      - Updating routines in PG2PLplot:
        - added and used  pg2pldev() to convert a PGPlot device ID to PLplot

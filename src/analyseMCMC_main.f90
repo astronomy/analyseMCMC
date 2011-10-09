@@ -46,7 +46,7 @@ program analyseMCMC
   use SUFR_constants, only: workdir,hostname,username,currenttimezonestr,currenttimestr,currentdatestr
   use SUFR_system, only: quit_program_error
   
-  use aM_constants, only: os, stdOutFile
+  use aM_constants, only: os, stdOutFile, use_PLplot
   use analysemcmc_settings, only: panels,wikioutput,map_projection,html,prProgress,file,colour,prStdOut,prRunInfo,prChainInfo
   use analysemcmc_settings, only: prInitial,prStat,prCorr,prIval,prConv,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D,plotSky
   use analysemcmc_settings, only: plAnim,plInject,plStart,plMedian,plRange,plBurn,plLmax,normPDF2D,bmpXSz,bmpYSz,Npdf2D,reverseRead
@@ -77,11 +77,16 @@ program analyseMCMC
   timing = .false.
   if(abs(timestamps(1)).gt.1.e-6_dbl .and. abs(timestamps(1)).lt.1.e20_dbl) timing = .true.
   
-  
   call set_plotsettings()     ! Set plot settings to 'default' values
   call read_settingsfile()    ! Read the plot settings (overwrite the defaults)
   if(prProgress.ge.3) call write_settingsfile()   ! Write the input file back to disc
   !call write_settingsfile()   ! Write the input file back to disc
+  
+  ! Print code version and set use_PLplot:
+  if(prProgress.ge.1) then
+     write(stdOut,'(A)', advance="no")'  AnalyseMCMC, '
+     call print_code_version(stdOut, use_PLplot)
+  end if
   
   if(html.ge.1) then
      outputdir = 'html'       ! Directory where output is saved (either relative or absolute path)
@@ -140,12 +145,6 @@ program analyseMCMC
      if(io.ne.0) call quit_program_error('Error opening output file '//trim(stdOutFile),1)
   end if
   write(stdOut,*)
-  
-  ! Print code version:
-  if(prChainInfo.ge.1) then
-     write(stdOut,'(A)', advance="no")'  AnalyseMCMC, '
-     call print_code_version
-  end if
   
   if(html.ge.1) then  ! Write standardised HTML output
      open(unit=51,action='write',form='formatted',status='replace',file=trim(outputdir)//'/index.html',iostat=io)

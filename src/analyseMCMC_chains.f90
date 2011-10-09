@@ -8,6 +8,7 @@
 
 subroutine chains(exitcode)
   use SUFR_constants, only: stdOut,stdErr
+  use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: plLogL,update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality,scLogLpl
   use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,plChain,fontsize1d,nPlPar,panels,plPars,scChainsPl,changeVar
   use analysemcmc_settings, only: chainSymbol,plInject,mergeChains,plStart,prConv,plParL,plJump,plAcorr,nAcorr
@@ -137,7 +138,6 @@ subroutine chains(exitcode)
      call pgsls(1)
      !call pgmtxt('T',0.5,0.1,0.1,'log Posterior')
      call pgmtxt('L',2.0,0.5,0.5,'log Posterior')
-     
      call pgmtxt('R',2.5,0.5,0.5,'\(2267)(2logP) \(0248) SNR')
      
      if(quality.eq.0) then
@@ -493,6 +493,7 @@ subroutine chains(exitcode)
         call pgmtxt('T',1.,0.,0.,' '//trim(pgParNs(parID(p))))
         write(title,'(F6.3)')rhat(p)
         if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',1.,1.,1.,'R-hat: '//trim(title))
+        
      end do !do j=1,nPlPar
      
      if(quality.eq.0) then
@@ -1018,8 +1019,8 @@ subroutine chains(exitcode)
            cycle
         end if
         
-        call pgpage
-        if(j.eq.1) call pginitl(colour,file,whiteBG)
+        call pgpage()
+        if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
         
         xmin = 0.
         xmin = minval(acorrs(1:nChains0,0,0:nAcorr))

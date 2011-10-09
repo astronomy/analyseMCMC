@@ -40,8 +40,9 @@ module aM_constants
   integer :: os
   character :: detabbrs(4)*(2),waveforms(0:9)*(99)
   character(len=99) :: stdOutFile
+  logical :: use_PLplot
+  
 end module aM_constants
-
 !***********************************************************************************************************************************
 
 

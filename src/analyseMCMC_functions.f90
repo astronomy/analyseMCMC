@@ -25,6 +25,8 @@ subroutine setconstants()
   waveforms(5) = 'PhenSpinInspiralRD'
   waveforms(9) = 'Ana.L'
   
+  !call set_use_PGPLplot()
+  
 end subroutine setconstants
 !***********************************************************************************************************************************
 
@@ -893,10 +895,18 @@ subroutine mcmcruninfo(exitcode)
      !Use ntot and nchains0, since n is low if many points are in the burn-in:
      chainPlI = max(1,nint(real(sum(ntot(1:nchains0)))/real(maxdots)))  
      if(prChainInfo.ge.1.and.update.eq.0) then
-        if(chainPlI.gt.1) then  !Change the number of points plotted in chains,logL, etc. (For all output formats)
-           write(stdOut,'(A,I4,A,I5,A,I5,A)')'    Plotting every',chainPlI, &
-                '-th state in likelihood, chains, jumps, etc. plots.  Average total thinning is',nint(avgtotthin), &
-                'x, for these plots it is',nint(avgtotthin*chainPlI),'x.'
+        if(chainPlI.gt.1) then  ! Change the number of points plotted in chains,logL, etc. (For all output formats)
+           if(chainPlI.eq.1) then
+              write(stdOut,'(A)', advance='no')'    Plotting every'
+           else if(chainPlI.eq.2) then
+              write(stdOut,'(A,I2,A)', advance='no')'    Plotting every',chainPlI,'-nd'
+           else if(chainPlI.eq.2) then
+              write(stdOut,'(A,I2,A)', advance='no')'    Plotting every',chainPlI,'-rd'
+           else if(chainPlI.eq.2) then
+              write(stdOut,'(A,I4,A)', advance='no')'    Plotting every',chainPlI,'-th'
+           end if
+           write(stdOut,'(A,I5,A,I5,A)')' state in likelihood, chains, jumps, etc. plots.  Average total thinning is', &
+                nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*chainPlI),'x.'
         else
            write(stdOut,'(A,I4,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.'// &
                 '  Average total thinning remains',nint(avgtotthin),'x for these plots.'

@@ -1054,14 +1054,16 @@ end subroutine pgolin
 subroutine pg2pltext(string)
   implicit none
   character, intent(inout) :: string*(*)
-  integer :: i,n
   
-  n = len_trim(string)
-  do i=1,n
-     if(string(i:i).eq.'\') string(i:i) = '#' !'
-     !if(string(i:i).eq.'\') write(string(i:i),'(A1)') '#' !'
-  end do
+  !print*,trim(string)
   
+  call replace_substring(string, '\', '#')        ! Replace the PGPlot escape character \ with the PLplot escape character # '
+  !call replace_substring(string, '#(0248)', '~')        ! \approx -> ~
+  call replace_substring(string, '#(0248)', '#(2246)')  ! \approx -> \sim
+  call replace_substring(string, '#(0649)', '#(2149)')  ! psi
+  call replace_substring(string, '#(0685)', '#(2185)')  ! (var)theta
+  
+  !print*,trim(string)
   
 end subroutine pg2pltext
 !***********************************************************************************************************************************
