@@ -1,5 +1,20 @@
 !> \file PG2PLplot.f90  Contains pgplot-to-plplot bindings (i.e., call PLplot from PGplot commands)
 
+!***********************************************************************************************************************************
+!> \brief  PG2PLplot module
+
+module PG2PLplot
+  use plplot, only: plflt
+  implicit none
+  private plflt
+  save
+  
+  !> Conversion factor for the character height
+  real, parameter :: ch_fac = 0.35_plflt
+  
+end module PG2PLplot
+!***********************************************************************************************************************************
+
 
 !***********************************************************************************************************************************
 !> \brief  Set line style
@@ -260,23 +275,22 @@ end subroutine pgshs
 !! \param ch  Character height
 
 subroutine pgsch(ch)
-  use plplot
+  use plplot, only: plflt
+  use PG2PLplot, only: ch_fac
   
   implicit none
   real, intent(in) :: ch
-  real(kind=plflt) :: ch1,ch2, fac
-  
-  fac = 0.35_plflt
+  real(kind=plflt) :: ch1,ch2
   
   ch1 = 0.0_plflt  ! 0: don't change
-  ch2 = ch * fac
-  
-  !ch1 = ch * fac
-  !ch2 = fac
+  ch2 = ch * ch_fac
   
   call plschr(ch1,ch2)
   
-  !print*,'pgsch: ',ch,ch1,ch2
+  !print*
+  !print*,'pgsch1: ',ch,ch1,ch2
+  !call plgchr(ch1,ch2)
+  !print*,'pgsch2: ',ch,ch1,ch2
   
 end subroutine pgsch
 !***********************************************************************************************************************************
@@ -288,14 +302,17 @@ end subroutine pgsch
 !! \param ch  Character height
 
 subroutine pgqch(ch)
-  use plplot
+  use plplot, only: plflt
+  use PG2PLplot, only: ch_fac
   
   implicit none
   real, intent(out) :: ch
-  real(kind=plflt) :: x_def,x_cur
+  real(kind=plflt) :: ch1,ch2
   
-  call plschr(x_def,x_cur)
-  ch = x_cur/0.35 !?
+  call plgchr(ch1,ch2)
+  ch = ch2/(ch1*ch_fac)
+  
+  !print*,'pgqch: ',ch,ch1,ch2
   
 end subroutine pgqch
 !***********************************************************************************************************************************
@@ -335,7 +352,7 @@ end subroutine pgsah
 !! \param y1 Y-values of points
 
 subroutine pgline(n,x1,y1)
-  use plplot
+  use plplot, only: plflt, plline
   
   implicit none
   integer, intent(in) :: n
@@ -362,7 +379,7 @@ end subroutine pgline
 !! \param y2  Y-value of end point
 
 subroutine pgarro(x1,y1, x2,y2)
-  use plplot
+  use plplot, only: plflt, plline, plpoin
   
   implicit none
   real, intent(in) :: x1,x2, y1,y2
@@ -390,7 +407,7 @@ end subroutine pgarro
 !! \param s  Plot symbol to use
 
 subroutine pgpoint(n,x1,y1,s)
-  use plplot
+  use plplot, only: plflt, plpoin
   
   implicit none
   integer, intent(in) :: n,s
@@ -414,7 +431,7 @@ end subroutine pgpoint
 !! \param y1 Y-values of points
 
 subroutine pgpoly(n,x1,y1)
-  use plplot
+  use plplot, only: plflt, plfill
   
   implicit none
   integer, intent(in) :: n
@@ -440,7 +457,7 @@ end subroutine pgpoly
 !! \param y2  Upper y value
 
 subroutine pgrect(x1,x2,y1,y2)
-  use plplot
+  use plplot, only: plflt, plfill
   
   implicit none
   real, intent(in) :: x1,x2,y1,y2
@@ -463,7 +480,7 @@ end subroutine pgrect
 !! \param r  Radius
 
 subroutine pgcirc(xc, yc, r)
-  use plplot
+  use plplot, only: plflt, plfill
   
   implicit none
   real, intent(in) :: xc, yc, r
@@ -502,7 +519,7 @@ end subroutine pgcirc
 !! \param tr   Affine transformation elements
 
 subroutine pgcont(arr, nx,ny, ix1,ix2, iy1,iy2, c, nc, tr)
-  use plplot
+  use plplot, only: plflt, plcont
   
   implicit none
   integer, intent(in) :: nx,ny, ix1,ix2, iy1,iy2, nc
@@ -534,7 +551,7 @@ end subroutine pgcont
 !! \param tr   Affine transformation elements
 
 subroutine pgconf(arr, nx,ny, ix1,ix2, iy1,iy2, c1, c2, tr)
-  use plplot
+  use plplot, only: plflt
   
   implicit none
   integer, intent(in) :: nx,ny, ix1,ix2, iy1,iy2
@@ -588,10 +605,10 @@ end subroutine pgconf
 !! \param just1  Justification
 !! \param text   Text to print
 !!
-!! \note  Angle only right for 0,90,180,270deg or square viewport
+!! \note  Angle only correct for 0,90,180,270deg or square viewport
 
 subroutine pgptxt(x1,y1,ang,just1,text)
-  use plplot
+  use plplot, only: plflt, plptex
   
   implicit none
   real, intent(in) :: x1,y1,ang,just1
@@ -603,16 +620,22 @@ subroutine pgptxt(x1,y1,ang,just1,text)
   d2r = atan(1.)/45.
   call plgvpw(xmin,xmax,ymin,ymax)
   
-  !Convert angle -> dy/dx
-  dx = xmax-xmin
-  !print*,ang,abs(mod(ang-90.,180.)),tan(ang*d2r)
-  if(abs(mod(ang-90.,180.)).lt.1.e-5) then        !ang = +/-90deg
+  ! Convert angle -> dy/dx
+  dx = (xmax-xmin)*0.1
+  
+  !if(abs(ang).lt.1.e-5) then                       ! ang ~ 0 deg
+  !   dx = -1.0
+  !   dy =  0.0
+  !else 
+  if(abs(mod(ang-90.,180.)).lt.1.e-5) then    ! ang = +/-90deg
      dx = 0.
-     dy = -1.                                      !ang = -90deg
-     if(abs(mod(ang-90.,360.)).lt.1.e-5) dy = 1.  !ang = +90deg
+     dy = -1.                                      ! ang = -90deg
+     if(abs(mod(ang-90.,360.)).lt.1.e-5) dy = 1.   ! ang = +90deg
   else
-     dy = dx*tan(ang*d2r) * (ymax-ymin) !/(xmax-xmin)
-     if(ang.gt.90..and.ang.lt.270. .or. ang.lt.-90..and.ang.gt.-270.) then
+     !dy = dx*tan(ang*d2r) * (ymax-ymin) !/(xmax-xmin)
+     dx = 1.0
+     dy = dx*tan(ang*d2r) * (ymax-ymin)/(xmax-xmin)
+     if(abs(ang).lt.90..or.abs(ang).gt.270.) then
         dx = -dx
         dy = -dy
      end if
@@ -628,7 +651,7 @@ subroutine pgptxt(x1,y1,ang,just1,text)
   call plptex(x2,y2,dx,dy,just2,trim(text1))
   
   !write(6,'(A,4F10.3,A)')'  pgptxt: ',x1,y1,ang,just1,trim(text)
-  !write(6,'(A,5F10.3,A)')'  pgptxt: ',x2,y2,dx,dy,just2,trim(text)
+  !write(6,'(A,5F10.3,A)')'  pgptxt: ',x2,y2,dx,dy,just2,trim(text1)
   
 end subroutine pgptxt
 !***********************************************************************************************************************************
@@ -663,7 +686,7 @@ end subroutine pgptext
 !! \param text   Text to print
 
 subroutine pgtext(x1,y1,text)
-  use plplot
+  use plplot, only: plflt, plptex
   
   implicit none
   real, intent(in) :: x1,y1
@@ -697,7 +720,7 @@ end subroutine pgtext
 !! \param text   Text to print
 
 subroutine pgmtxt(side, disp1, pos1, just1, text)
-  use plplot
+  use plplot, only: plflt, plmtex
   
   implicit none
   real, intent(in) :: disp1,pos1,just1
@@ -754,7 +777,7 @@ end subroutine pgmtext
 !! \todo Need to convert pgdev -> pldev + filename as in pgbegin()
 
 function pgopen(pgdev)
-  use plplot
+  use plplot, only: plflt, plspause, plstart, plsfnam
   
   implicit none
   integer :: pgopen
@@ -807,7 +830,7 @@ end function pgopen
 !! \param ny     Number of frames in the y-direction
 
 subroutine pgbegin(i,pgdev,nx,ny)
-  use plplot
+  use plplot, only: plflt, plspause, plstart, plsfnam
   
   implicit none
   integer, intent(in) :: i,nx,ny
@@ -869,7 +892,7 @@ end subroutine pgend
 !! \param ratio  Paper aspect ratio
 
 subroutine pgpap(width,ratio)
-  use plplot
+  use plplot, only: plflt
   
   implicit none
   real, intent(in) :: width,ratio
@@ -899,7 +922,7 @@ end subroutine pgpap
 
 
 subroutine pgsvp(xl1,xr1,yb1,yt1)
-  use plplot
+  use plplot, only: plflt
   
   implicit none
   real, intent(in) :: xl1,xr1,yb1,yt1
@@ -926,7 +949,7 @@ end subroutine pgsvp
 !! \param ymax1  Bottom
 
 subroutine pgswin(xmin1,xmax1,ymin1,ymax1)
-  use plplot
+  use plplot, only: plflt
   
   implicit none
   real, intent(in) :: xmin1,xmax1,ymin1,ymax1
@@ -1003,7 +1026,7 @@ end subroutine pgebuf
 !! \param nysub   Number of subticks on the y-axis
 
 subroutine pgbox(xopt, xtick1, nxsub, yopt, ytick1, nysub)
-  use plplot
+  use plplot, only: plflt, plbox
   
   implicit none
   integer, intent(in) :: nxsub,nysub
@@ -1037,7 +1060,7 @@ end subroutine pgbox
 !! \param str     text of label (may be blank)
 
 subroutine pgtick(x1, y1, x2, y2, v, tikl, tikr, disp, orient, str)
-  use plplot
+  use plplot, only: plflt
   
   implicit none
   real, intent(in) :: x1, y1, x2, y2, v, tikl, tikr, disp, orient
@@ -1072,7 +1095,7 @@ end subroutine pgtick
 !! \todo No plplot routine found yet - using dummy
 
 subroutine pgolin(maxpt, npt, x, y, symbol)
-  use plplot
+  use plplot, only: plflt
   
   implicit none
   integer, intent(in) :: maxpt,symbol

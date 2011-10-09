@@ -60,6 +60,10 @@ BINDIR = .
 
 # ifort:
 ifeq ($(COMP),ifort)
+   #ifeq ($(PLPLOT),yes)
+   #  LFLAGS += -lplplotf95d
+   #  CFLAGS += -I/home/sluys/usr/include/plplot/ifort
+   #endif
    # Link against libSUFR:
    CFLAGS += -I/home/sluys/usr/include/libSUFR/ifort
    LFLAGS += -lSUFR_ifort
@@ -123,8 +127,9 @@ ifneq (,$(filter $(COMP),gfortran gfortran-4.6))
 
    ifeq ($(RUNCHECK),yes)
       OPT = -O0
-      CFLAGS += -fcheck=all
-      CFLAGS += -fbacktrace
+      #CFLAGS += -fcheck=all
+      CFLAGS += -fcheck=bounds,do,mem,pointer,recursion
+      CFLAGS += -fbacktrace -g  # -g for line numbers
    endif
 
 

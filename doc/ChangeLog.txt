@@ -3,8 +3,16 @@
   Revisions in the AnalyseMCMC repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   210: sluys, 09/10/2011
+     - Updating PG2PLplot:
+       - created module PG2PLplot
+       - use 'only' attributes for 'use' statements
+       - make pgqch() return values set with pgsch()
+       - fixed(?) angle -> dx/dy
+     - Bugfix: pgqch() called plschr() rather than plgchr()
+     
    209: sluys, 09/10/2011
-     - Update PG2PLplot:
+     - Updating PG2PLplot:
        - translate line styles, line widths, fill styles better
        - start plot with white background
      - Optimise AnalyseMCMC for use with PLplot:

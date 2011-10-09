@@ -342,7 +342,6 @@ subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, clr1,clr2, tr, pr
   call pgqch(sch)  ! Save current character height
   call pgsch(0.5*sch)
   
-  !call pgqcir(clr1,clr2)
   dz = z2-z1
   dc = clr2-clr1
   dcdz = real(dc)/dz

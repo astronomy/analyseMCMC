@@ -383,7 +383,6 @@ subroutine pdfs2d(exitcode)
            
            call pgsch(sch)
            
-           
            if(project_map .and. plotSky.ge.2) then
               call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.05*sch)   ! Make room for title and +90deg label
            else
@@ -473,6 +472,7 @@ subroutine pdfs2d(exitcode)
                  clr2 = 30+Nival
                  call pgscir(clr1,clr2)  ! set colour-index range for pgimag
               end if  !if(normPDF2D.eq.4)
+              
               
               
               
