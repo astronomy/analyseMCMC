@@ -35,6 +35,22 @@ subroutine chains(exitcode)
   ! Plot posterior chain:
   if(plLogL.eq.1) then
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' posterior chain, '
+     
+     if(use_PLplot) then
+        if(file.eq.0) then
+           call pgpap(scrSz,scrRat)
+           call pgsch(1.5)
+        end if
+        if(file.eq.1) then
+           call pgpap(bmpsz,bmprat)
+           call pgsch(1.5)
+        end if
+        if(file.ge.2) then
+           call pgpap(PSsz,PSrat)
+           call pgscf(fonttype)
+        end if
+     end if
+     
      if(file.eq.0) then
         io = pgopen('12/xs')
         call pgsch(1.5)
@@ -50,12 +66,22 @@ subroutine chains(exitcode)
         exitcode = 1
         return
      end if
-     if(file.eq.0) call pgpap(scrSz,scrRat)
-     if(file.eq.0) call pgsch(1.5)
-     if(file.eq.1) call pgpap(bmpsz,bmprat)
-     if(file.eq.1) call pgsch(1.5)
-     if(file.ge.2) call pgpap(PSsz,PSrat)
-     if(file.ge.2) call pgscf(fonttype)
+     
+     if(.not.use_PLplot) then
+        if(file.eq.0) then
+           call pgpap(scrSz,scrRat)
+           call pgsch(1.5)
+        end if
+        if(file.eq.1) then
+           call pgpap(bmpsz,bmprat)
+           call pgsch(1.5)
+        end if
+        if(file.ge.2) then
+           call pgpap(PSsz,PSrat)
+           call pgscf(fonttype)
+        end if
+     end if
+     
      !call pgscr(3,0.,0.5,0.)
      call pginitl(colour,file,whiteBG)
      !call pgsubp(1,2)
@@ -186,15 +212,29 @@ subroutine chains(exitcode)
   if(plChain.eq.1) then
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter chains, '
      if(file.eq.0) then
-        io = pgopen('13/xs')
+        if(.not.use_PLplot) io = pgopen('13/xs')
+        call pgpap(scrSz,scrRat)
+        if(use_PLplot) io = pgopen('13/xs')
+        
         sch = fontsize1d*1.5
         lw = 1
      end if
      if(file.ge.1) then
         tempfile = trim(outputdir)//'/'//trim(outputname)//'__chains'
-        if(file.eq.1) io = pgopen(trim(tempfile)//'.ppm/ppm')
-        if(file.ge.2) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+        if(file.eq.1) then
+           if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+           call pgpap(bmpsz,bmprat)
+           if(use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+        end if
+        if(file.ge.2) then
+           if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+           call pgpap(PSsz,PSrat)
+           if(use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+           
+           call pgscf(fonttype)
+        end if
         
+
         lw = 3
         if(nPlPar.ge.10) lw = 2
         if(quality.lt.2) lw = max(lw-1,1)  !Draft/Paper
@@ -247,10 +287,6 @@ subroutine chains(exitcode)
         exitcode = 1
         return
      end if
-     if(file.eq.0) call pgpap(scrSz,scrRat)
-     if(file.eq.1) call pgpap(bmpsz,bmprat)
-     if(file.ge.2) call pgpap(PSsz,PSrat)
-     if(file.ge.2) call pgscf(fonttype)
      !if(file.eq.1) call pgsch(1.5)
      
      call pgsch(sch)
@@ -550,15 +586,30 @@ subroutine chains(exitcode)
   if(plParL.eq.1) then
      !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting parameter-L plot...'
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter-L, '
+     
      if(file.eq.0) then
-        io = pgopen('22/xs')
+        if(.not.use_PLplot) io = pgopen('22/xs')
+        call pgpap(scrSz,scrRat)
+        if(use_PLplot) io = pgopen('22/xs')
+        
         sch = fontsize1d*1.5
         lw = 1
      end if
      if(file.ge.1) then
         tempfile = trim(outputdir)//'/'//trim(outputname)//'__logl'
-        if(file.eq.1) io = pgopen(trim(tempfile)//'.ppm/ppm')
-        if(file.ge.2) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+        if(file.eq.1) then
+           if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+           call pgpap(bmpsz,bmprat)
+           if(use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+        end if
+        if(file.ge.2) then
+           if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+           call pgpap(PSsz,PSrat)
+           if(use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+           
+           call pgscf(fonttype)
+        end if
+        
         
         lw = 3
         if(nPlPar.ge.10) lw = 2
@@ -608,10 +659,6 @@ subroutine chains(exitcode)
         exitcode = 1
         return
      end if
-     if(file.eq.0) call pgpap(scrSz,scrRat)
-     if(file.eq.1) call pgpap(bmpsz,bmprat)
-     if(file.ge.2) call pgpap(PSsz,PSrat)
-     if(file.ge.2) call pgscf(fonttype)
      !if(file.eq.1) call pgsch(1.5)
      
      call pgsch(sch)
@@ -844,24 +891,36 @@ subroutine chains(exitcode)
      !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting jump sizes...'
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' jump sizes, '
      if(file.eq.0) then
-        io = pgopen('18/xs')
+        if(.not.use_PLplot) io = pgopen('18/xs')
+        call pgpap(scrSz,scrRat)
+        if(use_PLplot) io = pgopen('18/xs')
+        
         sch = fontsize1d*1.5
      end if
      if(file.ge.1) then
         tempfile = trim(outputdir)//'/'//trim(outputname)//'__jumps'
-        if(file.eq.1) io = pgopen(trim(tempfile)//'.ppm/ppm')
-        if(file.ge.2) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
-        sch = fontsize1d*1.2
+        if(file.eq.1) then
+           if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+           call pgpap(bmpsz,bmprat)
+           if(use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+           
+           sch = fontsize1d*1.5
+        end if
+        if(file.ge.2) then
+           if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+           call pgpap(PSsz,PSrat)
+           if(use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+           
+           sch = fontsize1d*1.2
+        end if
      end if
+     
      if(io.le.0) then
         write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
         return
      end if
-     if(file.eq.0) call pgpap(scrSz,scrRat)
-     if(file.eq.0) sch = fontsize1d*1.5
-     if(file.eq.1) call pgpap(bmpsz,bmprat)
-     if(file.eq.1) sch = fontsize1d*1.5
+     
      if(quality.eq.0) then !Draft
         !sch = sch*1.75
         sch = sch*1.4
@@ -982,24 +1041,30 @@ subroutine chains(exitcode)
   if(plAcorr.gt.0) then
      !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting autocorrelations...'
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' autocorrelations, '
+     
      if(file.eq.0) then
-        io = pgopen('19/xs')
+        if(.not.use_Plplot) io = pgopen('19/xs')
+        call pgpap(scrSz,scrRat)
+        if(use_Plplot) io = pgopen('19/xs')
+        
         sch = fontsize1d*1.5
         sch = sch*1.5
-        call pgpap(scrSz,scrRat)
      end if
      tempfile = trim(outputdir)//'/'//trim(outputname)//'__acorrs'
      if(file.eq.1) then
-        io = pgopen(trim(tempfile)//'.ppm/ppm')
+        if(.not.use_Plplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+        call pgpap(bmpsz,bmprat)
+        if(use_Plplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
         sch = fontsize1d*1.2
         sch = sch*1.5
-        call pgpap(bmpsz,bmprat)
      end if
      if(file.ge.2) then
-        io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+        if(.not.use_Plplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+        call pgpap(PSsz,PSrat)
+        if(use_Plplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+        
         sch = fontsize1d*1.2
         sch = sch*1.5
-        call pgpap(PSsz,PSrat)
         call pgscf(fonttype)
      end if
      if(io.le.0) then

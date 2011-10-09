@@ -59,6 +59,18 @@ subroutine pdfs1d(exitcode)
        ybin1(Nbin1D+1),ysum(Nbin1D+1),yconv(Nbin1D+1),ycum(Nbin1D+1))
   
   if(plot.eq.1) then
+     
+     if(use_PLplot) then  ! then call pgpap *before* pgopen
+        if(file.eq.0) call pgpap(scrSz,scrRat)
+        if(file.eq.1) call pgpap(bmpsz,bmprat)
+        if(file.ge.2) then
+           call pgpap(PSsz,PSrat)
+           !if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.925)
+           if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.85)
+           !call pgscf(fonttype)
+        end if
+     end if
+     
      if(file.eq.0) then
         io = pgopen('14/xs')
         sch = 1.5*fontsize1d
@@ -116,14 +128,18 @@ subroutine pdfs1d(exitcode)
         exitcode = 1
         return
      end if
-     if(file.eq.0) call pgpap(scrSz,scrRat)
-     if(file.eq.1) call pgpap(bmpsz,bmprat)
-     if(file.ge.2) then
-        call pgpap(PSsz,PSrat)
-        !if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.925)
-        if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.85)
-        call pgscf(fonttype)
+     
+     if(.not.use_PLplot) then  ! then call pgpap *after* pgopen
+        if(file.eq.0) call pgpap(scrSz,scrRat)
+        if(file.eq.1) call pgpap(bmpsz,bmprat)
+        if(file.ge.2) then
+           call pgpap(PSsz,PSrat)
+           !if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.925)
+           if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.85)
+           call pgscf(fonttype)
+        end if
      end if
+     
      !call pgscr(3,0.,0.5,0.)
      !call pginitl(colour,file,whiteBG)
      call pgslw(lw)
@@ -619,8 +635,11 @@ subroutine pdfs1d(exitcode)
   
   if(plot.eq.1) then
      call pgsubp(1,1)
-     call pgsvp(0.,1.,0.,1.)
-     call pgswin(-1.,1.,-1.,1.)
+     
+     ! CHECK: PLplot complains, needed for PGPlot?
+     !call pgsvp(0.,1.,0.,1.)
+     !call pgswin(-1.,1.,-1.,1.)
+     
      
      if(quality.eq.0) then
         ! Remove also the pgsvp at the beginning of the plot:

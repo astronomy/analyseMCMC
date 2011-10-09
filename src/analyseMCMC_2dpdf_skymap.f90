@@ -326,6 +326,7 @@ end function getmag
 
 subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, clr1,clr2, tr, projection)
   use SUFR_constants, only: rpi2
+  use aM_constants, only: use_PLplot
   use general_data, only: raCentre
   
   implicit none
@@ -334,7 +335,7 @@ subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, clr1,clr2, tr, pr
   real, intent(in) :: z(nbx,nby), z1,z2, tr(6)
   
   real :: dz,dcdz
-  real :: x,y,dx,dy,xs(5),ys(5),xell(nell),yell(nell),sch
+  real :: x,y,dx,dy,xs(5),ys(5),xell(nell),yell(nell),sch, ang
   integer :: i,ix,iy,dc,ci,lw
   character :: str*(99)
   
@@ -401,19 +402,23 @@ subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, clr1,clr2, tr, pr
      end do
      call pgsci(1)
      
+     ! Angle under which to print text:
+     ang = 0.
+     if(use_PLplot) ang = 180.  ! Needed for sky map because RA decreases to the right
+     
      ! Plot meridians:
-     do i=-24,24,3  !In hours
+     do i=-24,24,3  ! In hours
         call pgsci(14)
         if(i.eq.0.or.abs(i).eq.24) call pgsci(1) !Null-meridian in black
         if(real(i).gt.-raCentre-12.and.real(i).lt.-raCentre+12) then
-           !Plot line:
+           ! Plot line:
            x = -(raCentre+real(i))
            call pgline(nell/2+1,xell*x+raCentre,yell*90.)
            
-           !Print label:
+           ! Print label:
            write(str,'(I2,A)')mod(48-i,24),'\uh\d'
            if(mod(48-i,24).lt.10) write(str,'(I1,A)')mod(48-i,24),'\uh\d'
-           call pgptxt(x+raCentre-0.1,2.,0.,0.,trim(str))
+           call pgptxt(x+raCentre-0.1, 2., ang, 0., trim(str))
         end if
      end do
      
@@ -421,7 +426,7 @@ subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, clr1,clr2, tr, pr
      do i=-90,90,15  !In degrees
         if(abs(i).eq.90) cycle
         call pgsci(14)
-        if(i.eq.0) call pgsci(1) !Equator in black
+        if(i.eq.0) call pgsci(1)  ! Equator in black
         
         ! Get start and end point on line and project them:
         xs(1) = raCentre-12.
@@ -437,13 +442,13 @@ subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, clr1,clr2, tr, pr
         ! Print labels:
         if(i.gt.0) then
            write(str,'(A1,I2,A)')'+',i,'\(2218)'
-           call pgptxt(xs(2)+0.2,ys(1),0.,1.,trim(str))
+           call pgptxt(xs(2)+0.2, ys(1), ang, 1., trim(str))
         else if(i.eq.0) then  ! Used to be in the <=0 case, seems to have caused segfaults when using PLplot and gfortran -O2 (?)
            write(str,'(I3,A)')i,'\(2218)'
-           call pgptxt(xs(2)+0.4,ys(1)-2.,0.,1.,trim(str))
+           call pgptxt(xs(2)+0.4, ys(1)-2., ang, 1., trim(str))
         else
            write(str,'(I3,A)')i,'\(2218)'
-           call pgptxt(xs(2)+0.4,ys(1)-2.,0.,1.,trim(str))
+           call pgptxt(xs(2)+0.4, ys(1)-2., ang, 1., trim(str))
         end if
      end do
      

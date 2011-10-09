@@ -2820,3 +2820,29 @@ end subroutine findFiles
 !***********************************************************************************************************************************
 
 
+!***********************************************************************************************************************************
+!> \brief  Compute the size needed for PGPlot to get the desired bitmap size in pixels
+!!
+!! \param bmpXSz   Desired x-size in pixels
+!! \param bmpYSz   Desired y-size in pixels
+!! \param scFac    Scale factor; produce a larger bitmap, the shrink to get smoother graphics
+!!
+!! \retval bmpsz   Size of the bitmap (x)
+!! \retval bmprat  Aspect ration of the bitmap
+
+subroutine compBitmapSize(bmpXSz,bmpYSz, scFac, bmpsz,bmprat)
+  use aM_constants, only: use_PLplot
+  implicit none
+  integer, intent(in) :: bmpXSz,bmpYSz
+  real, intent(in) :: scFac
+  real, intent(out) :: bmpsz,bmprat
+  
+  if(use_PLplot) then
+     bmpsz = real(bmpXSz)/300.               ! PLplot (300 dpi?), no resizing afterwards
+  else
+     bmpsz = real(bmpXSz-1)/85. * scFac      ! PGPlot: Make png larger, so that convert interpolates and makes the plot smoother
+  end if
+  bmprat = real(bmpYSz-1)/real(bmpXSz-1)
+  
+end subroutine compBitmapSize
+!***********************************************************************************************************************************

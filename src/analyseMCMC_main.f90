@@ -193,9 +193,9 @@ program analyseMCMC
   !Use a white background in screen and bitmap plots: 0-no (black), 1-yes.  Used to be in input file.
   whiteBG = 1                 
   
-  !Determine plot sizes and ratios:   (ratio ~ y/x and usually < 1 ('landscape'))
-  bmpsz = real(bmpXSz-1)/85. * scFac !Make png larger, so that convert interpolates and makes the plot smoother
-  bmprat = real(bmpYSz-1)/real(bmpXSz-1)
+  ! Determine plot sizes and ratios:   (ratio ~ y/x and usually < 1 ('landscape'))
+  call compBitmapSize(bmpXSz,bmpYSz, scFac, bmpsz,bmprat)  
+  
   write(bmpxpix,'(I4)')bmpXSz  !Used as a text string by convert
   if(file.eq.0) pltsz = scrSz
   if(file.eq.0) pltrat = scrRat

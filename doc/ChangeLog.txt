@@ -3,12 +3,19 @@
   Revisions in the AnalyseMCMC repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
+   211: sluys, 09/10/2011
+     - Updating PG2PLplot:
+       - reverted angle 'fix' in pgptxt() in previous revision
+     - Updating AnalyseMCMC for use with PLplot:
+       - call pgpap() before pgopen() when using PLplot
+       - created compBitmapSize(); takes into account use_PLplot
+
    210: sluys, 09/10/2011
      - Updating PG2PLplot:
        - created module PG2PLplot
        - use 'only' attributes for 'use' statements
        - make pgqch() return values set with pgsch()
-       - fixed(?) angle -> dx/dy
+       - fixed(?) angle -> dx/dy in pgptxt()
      - Bugfix: pgqch() called plschr() rather than plgchr()
      
    209: sluys, 09/10/2011

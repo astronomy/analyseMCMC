@@ -11,6 +11,7 @@ subroutine pdfs2d(exitcode)
   use SUFR_constants, only: cursorup, pi,rpi,rh2r
   use SUFR_system, only: warn
   
+  use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: plLmax,fontsize2d,map_projection,maxChs
   use analysemcmc_settings, only: plInject,mergeChains,Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky,wrapData
@@ -66,9 +67,8 @@ subroutine pdfs2d(exitcode)
      bmpXSz = 700
      bmpYSz = 700
      
-     bmpsz = real(bmpXSz-1)/85. * scFac  ! Make png larger, so that convert interpolates and makes the plot smoother
-     bmprat = real(bmpYSz-1)/real(bmpXSz-1)
-     write(bmpxpix,'(I4)')bmpXSz  ! Used as a text string by convert
+     call compBitmapSize(bmpXSz,bmpYSz, scFac, bmpsz,bmprat)  ! Determine plot size and ratio
+     write(bmpxpix,'(I4)')bmpXSz                              ! Used as a text string by convert
      pltsz = bmpsz
      pltrat = bmprat
   end if
@@ -187,32 +187,35 @@ subroutine pdfs2d(exitcode)
            if(file.eq.0) then
               npdf=npdf+1
               write(str,'(I3,A3)')200+npdf,'/xs'
-              io = pgopen(trim(str))
+              if(.not.use_PLplot) io = pgopen(trim(str))
               if(project_map) then
                  call pgpap(scrSz/0.5*scrRat,0.5)
               else
                  call pgpap(scrSz,scrRat)
               end if
+              if(use_PLplot) io = pgopen(trim(str))
               call pginitl(colour,file,whiteBG)
            end if
            if(file.eq.1) then
               write(tempfile,'(A)') trim(outputbasefile)
-              io = pgopen(trim(tempfile)//'.ppm/ppm')
+              if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
               if(project_map) then
                  call pgpap(bmpsz/0.5*bmprat,0.5)
               else
                  call pgpap(bmpsz,bmprat)
               end if
+              if(use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
               call pginitl(colour,file,whiteBG)
            end if
            if(file.ge.2) then
               write(tempfile,'(A)') trim(outputbasefile)
-              io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+              if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
               if(project_map) then
                  call pgpap(PSsz/0.5*PSrat,0.5)
               else
                  call pgpap(PSsz,PSrat)
               end if
+              if(use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
               call pginitl(colour,file,whiteBG)
               call pgscf(fonttype)
            end if
@@ -906,8 +909,7 @@ subroutine pdfs2d(exitcode)
         bmpXSz = 1000
         bmpYSz =  700
         
-        bmpsz = real(bmpXSz-1)/85. * scFac  ! Make png larger, so that convert interpolates and makes the plot smoother
-        bmprat = real(bmpYSz-1)/real(bmpXSz-1)
+        call compBitmapSize(bmpXSz,bmpYSz, scFac, bmpsz,bmprat)  ! Determine plot size and ratio
         write(bmpxpix,'(I4)')bmpXSz  ! Used as a text string by convert
         pltsz = bmpsz
         pltrat = bmprat

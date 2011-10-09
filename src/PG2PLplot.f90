@@ -635,7 +635,7 @@ subroutine pgptxt(x1,y1,ang,just1,text)
      !dy = dx*tan(ang*d2r) * (ymax-ymin) !/(xmax-xmin)
      dx = 1.0
      dy = dx*tan(ang*d2r) * (ymax-ymin)/(xmax-xmin)
-     if(abs(ang).lt.90..or.abs(ang).gt.270.) then
+     if(ang.gt.90. .and. ang.lt.270.  .or. ang.lt.-90. .and. ang.gt.-270.) then
         dx = -dx
         dy = -dy
      end if
@@ -802,7 +802,7 @@ function pgopen(pgdev)
   
   call pg2pldev(pgdev, pldev,filename)
   
-  !write(0,'(A)')trim(pgdev)//' - '//trim(pldev)//' - '//trim(filename)
+  !write(0,'(A)')'pgopen: '//trim(pgdev)//' - '//trim(pldev)//' - '//trim(filename)
   
   !call plsdev(trim(pldev))
   !call plinit()
@@ -858,7 +858,10 @@ subroutine pgbegin(i,pgdev,nx,ny)
   filename = 'plot_temp.png'
   
   
+  
   call pg2pldev(pgdev, pldev,filename)
+  
+  !write(0,'(A)')'pgbegin: '//trim(pgdev)//' - '//trim(pldev)//' - '//trim(filename)
   
   call plsfnam(trim(filename))         ! Set output file name
   call plfontld(1)                     ! Load extended character set(?)
@@ -906,7 +909,7 @@ subroutine pgpap(width,ratio)
   xoff = 0  !Offset
   yoff = 0
   
-  !call plspage(xp,yp,xlen,ylen,xoff,yoff)  !CHECK: must be called before plinit()
+  call plspage(xp,yp,xlen,ylen,xoff,yoff)  ! Must be called before plinit()!
   
 end subroutine pgpap
 !***********************************************************************************************************************************
