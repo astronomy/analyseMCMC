@@ -3,7 +3,11 @@
   Revisions in the AnalyseMCMC repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
-   211: sluys, 09/10/2011
+   212: sluys, 10/10/2011
+     - Updated Makefile:  allow linking against PLplot versions for g95,ifort
+     - Updated PG2PLplot: remove warnings from g95
+     
+   211: sluys, 10/10/2011
      - Updating PG2PLplot:
        - reverted angle 'fix' in pgptxt() in previous revision
      - Updating AnalyseMCMC for use with PLplot:

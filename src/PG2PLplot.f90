@@ -10,7 +10,7 @@ module PG2PLplot
   save
   
   !> Conversion factor for the character height
-  real, parameter :: ch_fac = 0.35_plflt
+  real(plflt), parameter :: ch_fac = 0.35_plflt
   
 end module PG2PLplot
 !***********************************************************************************************************************************
@@ -55,7 +55,7 @@ subroutine pgslw(lw)
   lw1 = max(min(lw,201),1)
   lw2 = lw1 - 1
   
-  call plwid(lw)
+  call plwid(lw2)
   
   !print*,'pgslw: ',lw,lw1,lw2
   
@@ -189,6 +189,7 @@ subroutine pgscir(ci1,ci2)
   
   tmp = ci1
   tmp = ci2
+  tmp = tmp  ! Avoid 'variable is set but not used' warnings from compiler for dummy variable
   
   if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgscir()  ***'
   warn = 123
@@ -252,7 +253,7 @@ end subroutine pgsfs
 !!
 !! \param ang  Angle of the lines (deg)
 !! \param sep  Spacing (in % of view-surface size): >0!
-!! \param ph   Phase of hatching.  Use e.g. 0.0 and 0.5 for double hatching
+!! \param ph   Phase of hatching.  Use e.g. 0.0 and 0.5 for double hatching - dummy variable: not used
 
 subroutine pgshs(ang, sep, ph)
   implicit none
@@ -262,6 +263,7 @@ subroutine pgshs(ang, sep, ph)
   inc = nint(ang*10.)   ! Tenths of a degree
   del = nint(sep*1000)  ! Spacing in micrometers(!)
   tmp = nint(ph)
+  tmp = tmp  ! Avoid 'variable is set but not used' warnings from compiler for dummy variable
   
   call plpat(1, inc, del)
   
@@ -310,7 +312,7 @@ subroutine pgqch(ch)
   real(kind=plflt) :: ch1,ch2
   
   call plgchr(ch1,ch2)
-  ch = ch2/(ch1*ch_fac)
+  ch = real(ch2/(ch1*ch_fac))
   
   !print*,'pgqch: ',ch,ch1,ch2
   
@@ -331,6 +333,7 @@ subroutine pgsah(fs, angle, barb)
   tmp = fs
   tmp = nint(angle)
   tmp = nint(barb)
+  tmp = tmp  ! Avoid 'variable is set but not used' warnings from compiler for dummy variable
   
   if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgsah()  ***'
   warn = 123
@@ -567,9 +570,10 @@ subroutine pgconf(arr, nx,ny, ix1,ix2, iy1,iy2, c1, c2, tr)
   tmp = ix2
   tmp = iy1
   tmp = iy2
-  tmp = c1
-  tmp = c2
+  tmp = nint(c1)
+  tmp = nint(c2)
   tmp = nint(tr(1))
+  tmp = tmp  ! Avoid 'variable is set but not used' warnings from compiler for dummy variable
   
   
   !arr1 = arr
@@ -1082,7 +1086,9 @@ subroutine pgtick(x1, y1, x2, y2, v, tikl, tikr, disp, orient, str)
   x = tikr
   x = disp
   x = orient
+  x = x  ! Avoid 'variable is set but not used' warnings from compiler for dummy variable
   str1 = str
+  str1 = str1  ! Avoid 'variable is set but not used' warnings from compiler for dummy variable
   
   if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgtick()  ***'
   warn = 123
@@ -1112,6 +1118,7 @@ subroutine pgolin(maxpt, npt, x, y, symbol)
   x = 0.d0
   y = 0.d0
   symbol1 = symbol
+  symbol1 = symbol1  ! Avoid 'variable is set but not used' warnings from compiler for dummy variable
   
   if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgolin()  ***'
   warn = 123

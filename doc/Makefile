@@ -39,8 +39,8 @@ F2003 = yes#              # compile with Fortran 2003 standard
 OPT = -O0
 OPT = -O2
 ifeq ($(PLPLOT),yes)
-  LFLAGS += -lplplotf95d
-  CFLAGS += -I/usr/lib64/fortran/modules/plplot/
+  #LFLAGS += -lplplotf95d
+  #CFLAGS += -I/usr/lib64/fortran/modules/plplot/
 else
   LFLAGS += -lpgplot
 endif
@@ -60,10 +60,12 @@ BINDIR = .
 
 # ifort:
 ifeq ($(COMP),ifort)
-   #ifeq ($(PLPLOT),yes)
-   #  LFLAGS += -lplplotf95d
-   #  CFLAGS += -I/home/sluys/usr/include/plplot/ifort
-   #endif
+
+   # Links against PLplot?
+   ifeq ($(PLPLOT),yes)
+     LFLAGS += -lplplotf95d_ifort
+     CFLAGS += -I/home/sluys/usr/include/plplot/ifort
+   endif
    # Link against libSUFR:
    CFLAGS += -I/home/sluys/usr/include/libSUFR/ifort
    LFLAGS += -lSUFR_ifort
@@ -116,9 +118,26 @@ endif
 # gfortran:
 #ifeq ($(COMP),gfortran)
 ifneq (,$(filter $(COMP),gfortran gfortran-4.6))
+
+   # Link against PLplot?
+   ifeq ($(PLPLOT),yes)
+     ifeq ($(COMP),gfortran-4.6)
+       LFLAGS += -lplplotf95d_gfortran-4.6
+       CFLAGS += -I/home/sluys/usr/include/plplot/gfortran-4.6
+     else
+       LFLAGS += -lplplotf95d_gfortran
+       CFLAGS += -I/home/sluys/usr/include/plplot/gfortran
+     endif
+   endif
+
    # Link against libSUFR:
-   CFLAGS += -I/home/sluys/usr/include/libSUFR/gfortran
-   LFLAGS += -lSUFR_gfortran
+   ifeq ($(COMP),gfortran-4.6)
+     CFLAGS += -I/home/sluys/usr/include/libSUFR/gfortran-4.6
+     LFLAGS += -lSUFR_gfortran-4.6
+   else
+     CFLAGS += -I/home/sluys/usr/include/libSUFR/gfortran
+     LFLAGS += -lSUFR_gfortran
+   endif
 
    CFLAGS += -fwhole-file #-fwhole-program
    ifeq ($(COMP),gfortran-4.6)
@@ -172,6 +191,13 @@ endif
 
 # g95:
 ifeq ($(COMP),g95)
+
+   # Link against PLplot?
+   ifeq ($(PLPLOT),yes)
+     LFLAGS += -lplplotf95d_g95
+     CFLAGS += -I/home/sluys/usr/include/plplot/g95
+   endif
+
    # Link against libSUFR:
    CFLAGS += -I/home/sluys/usr/include/libSUFR/g95
    LFLAGS += -lSUFR_g95
