@@ -36,7 +36,7 @@
 ## -----------------------------------------------------------------------------
 ## Standard locations where to look for required components
 
-include( CMakeSettings )
+include( CMakeLocations )
 
 ## -----------------------------------------------------------------------------
 ## Check for the header files
@@ -88,7 +88,6 @@ if( HAVE_PGPLOT )
     message( STATUS "Found components for PGPLOT:" )
     message( STATUS "PGPLOT_INCLUDES  = ${PGPLOT_INCLUDES}" )
     message( STATUS "PGPLOT_LIBRARIES = ${PGPLOT_LIBRARIES}" )
-    #message( "" )
   endif( NOT PGPLOT_FIND_QUIETLY )
 else( HAVE_PGPLOT )
   if( PGPLOT_FIND_REQUIRED )

@@ -1,8 +1,11 @@
 
 
   Revisions in the AnalyseMCMC repository.  
-  Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
+  Please log (major) changes here (and add a short comment using svn/bzr commit -m 'Comment').
+  Revision numbers >200 are for Bazaar (bzr# = svn# + 1)
    
+   215: sluys, 20/10/2011
+     - 
    214: sluys, 20/10/2011
      - analyseMCMC_functions.f90, read_mcmcfiles():
        - BUGFIX: make sure old (< July 2009) output can still be read:
