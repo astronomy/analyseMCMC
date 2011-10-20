@@ -496,15 +496,20 @@ subroutine read_mcmcfiles(exitcode)
      !     '    Using colour',colours(mod(ic-1,ncolours)+1),': '//colournames(colours(mod(ic-1,ncolours)+1))
      
      !Read the headers
-     !Determine from the length of the first line whether this is output from before of after July 2009
-     !  before: first line is >80 characters long header (     Niter       Nburn    seed       <d|d>...
-     !  after:  first line is <80 characters long version number (  SPINspiral version:    1.00)
-     !CHANGE. LALInference format has long first line (  LALInference version:d4cd156ea4b0174d3fbd8b67ade5584981b34aed,2010-12-15 
+     !Determine from the length of the first line whether this is output from before (~114 characters) 
+     ! or after July 2009 (~29 characters), or LALInference (~180 characters):
+     !
+     !  before 7/09: first line is >80 characters long header (     Niter       Nburn    seed       <d|d>...
+     !  after  7/09: first line is <80 characters long version number (  SPINspiral version:    1.00)
+     ! LALInference format has long first line (  LALInference version:d4cd156ea4b0174d3fbd8b67ade5584981b34aed,2010-12-15 
      !05:58:56 +0000,cbc_bayesian_devel,Vivien Raymond <vivien.raymond@ligo.org>,CLEAN: All modifications committed)
      
-     outputVersion = 1.0  !Use new format, causes the old format never to be used.
      read(10,'(A999)',end=199,err=199)firstLine
-     if(len_trim(firstLine).lt.80) read(firstLine,'(A21,F8.2)')tmpStr,outputVersion  !Use new format
+     outputVersion = 1.0  ! SPINspiral output, after July 2009, keep 1<=oV<2
+     if(len_trim(firstLine).gt.80 .and. len_trim(firstLine).lt.140)  outputVersion = 0.0  ! SPINspiral output, before July 2009
+     if(len_trim(firstLine).ge.140)  outputVersion = 2.0  ! LALInference output (after December 2010), keep 2.0<=oV<3.0
+     
+     if(floor(outputVersion).eq.1) read(firstLine,'(A21,F8.2)')tmpStr,outputVersion
      
      if(outputVersion > 0.5) then
         ! Read command line between version number and first header. Read nothing if no command line:
@@ -514,10 +519,15 @@ subroutine read_mcmcfiles(exitcode)
         read(10,*,end=199,err=199)tmpStr
      end if
      
-     !read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') &
-     read(10,*) &
-          niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform, &
-          pnOrder,nMCMCpar
+     if(outputVersion.lt.0.5) then
+        read(10,*) &
+             niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic)
+     else
+        !read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') &
+        read(10,*) &
+             niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform, &
+             pnOrder,nMCMCpar
+     end if
      
      nMCMCpar0 = nMCMCpar  ! nMCMCpar may change when secondary parameters are computed
      
@@ -546,6 +556,7 @@ subroutine read_mcmcfiles(exitcode)
            write(stdErr,'(//,A,//)')'  Error reading MCMC parameter IDs, aborting...'
            stop
         end if
+        
      else  !Set the parameter IDs of an old MCMC output file manually:
         
         !Assume 12-parameter Apostolatos:

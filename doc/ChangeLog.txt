@@ -3,18 +3,27 @@
   Revisions in the AnalyseMCMC repository.  
   Please log (major) changes here (and add a short comment using svn commit -m 'Comment').
    
-   212: sluys, 10/10/2011
+   214: sluys, 20/10/2011
+     - analyseMCMC_functions.f90, read_mcmcfiles():
+       - BUGFIX: make sure old (< July 2009) output can still be read:
+         - outputVersion = 0.0: SPINspiral output, < July 2009
+         - 1.0 <= outputVersion < 2.0: SPINspiral output, > July 2009
+         - 2.0 <= outputVersion: LALInference output
+     - code_version.sh: remove touch; doesn't work in FreeBSD (different syntax)
+     - nagfor.f90: minor update
+     
+   213: sluys, 10/10/2011
      - Updated Makefile:  allow linking against PLplot versions for g95,ifort
      - Updated PG2PLplot: remove warnings from g95
      
-   211: sluys, 10/10/2011
+   212: sluys, 10/10/2011
      - Updating PG2PLplot:
        - reverted angle 'fix' in pgptxt() in previous revision
      - Updating AnalyseMCMC for use with PLplot:
        - call pgpap() before pgopen() when using PLplot
        - created compBitmapSize(); takes into account use_PLplot
 
-   210: sluys, 09/10/2011
+   211: sluys, 09/10/2011
      - Updating PG2PLplot:
        - created module PG2PLplot
        - use 'only' attributes for 'use' statements
@@ -22,7 +31,7 @@
        - fixed(?) angle -> dx/dy in pgptxt()
      - Bugfix: pgqch() called plschr() rather than plgchr()
      
-   209: sluys, 09/10/2011
+   210: sluys, 09/10/2011
      - Updating PG2PLplot:
        - translate line styles, line widths, fill styles better
        - start plot with white background
@@ -35,12 +44,12 @@
        - minor bug in mcmcruninfo() in _functions
        - bug: order of arguments in pgarro() in PG2PLplot
        
-   208: sluys, 09/10/2011
+   209: sluys, 09/10/2011
      - Decide whether to use PLplot or not with one option in Makefile at compile time:
        - updated Makefile, code_version.sh, hence code_version.f90
        - set Fortran variable use_PLplot in code_version.f90, for use at run time
        
-   207: sluys, 08/10/2011
+   208: sluys, 08/10/2011
      - Updating routines in PG2PLplot:
        - added and used  pg2pldev() to convert a PGPlot device ID to PLplot
        - copied replace_substring() from libSUFR
@@ -51,28 +60,36 @@
        - use tempfile and convopts to convert
        - moved pgscidark() to analyseMCMC_plot.f90
      
-   206: sluys, 08/10/2011
+   207: sluys, 08/10/2011
      - Adding routines to PG2PLplot
      
-   205: sluys, 07/10/2011
+   206: sluys, 07/10/2011
      - Added src/PG2PLplot.f90
      
-   204: sluys, 07/10/2011
+   205: sluys, 07/10/2011
      - Replaced module constants with aM_constants
      - Use module SUFR_constants
      
-   203: sluys, 07/10/2011
+   204: sluys, 07/10/2011
      - Remove module basic; use libSUFR instead
      
-   202: sluys, 06/10/2011
+   203: sluys, 06/10/2011
      - Make USEd variables in modules private
        - fix use statements that obtained variables indirectly via a different module
      - Start using libSUFR
      - Make sure plotSignal compiles
      - Updated Doxyfile
      
-   201: sluys, 06/10/2011
+   202: sluys, 06/10/2011
      - Updated code_version.sh to allow bzr
+
+     
+BZR rev.201
+
+***************************************************************************************
+
+SVN rev.200
+
      
    200: sluys, 05/10/2011
      - functions: 

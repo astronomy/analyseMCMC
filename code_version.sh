@@ -55,7 +55,8 @@ else
     echo "end subroutine print_code_version" >> ${F90FILE}
     echo "!***********************************************************************************************************************************" >> ${F90FILE}
     
-    touch -d "1 Jan 2001" ${F90FILE}            # Make the file look old
+    # touch -d doesn't work on FreeBSD
+    #touch -d "1 Jan 2001" ${F90FILE}            # Make the file look old
     
 fi
 
