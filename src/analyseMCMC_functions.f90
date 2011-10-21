@@ -1298,7 +1298,14 @@ end function gmst
 
 
 !***********************************************************************************************************************************
-subroutine dindexx(n,arr,indx)
+!> \brief  Sort an array and return a list of sorted indices
+!!
+!! \param  n     Dimension of arr and indx
+!! \param  arr   Data array to be sorted
+!!
+!! \retval indx  Array with sorted indices
+
+subroutine dindexx(n, arr, indx)
   use SUFR_kinds, only: double
   
   implicit none
@@ -1313,10 +1320,14 @@ subroutine dindexx(n,arr,indx)
   do j=1,n
      indx(j) = j
   end do
+  
   jstack = 0
   l = 1
   ir = n
-1 if(ir-l.lt.m) then
+  
+1 continue
+  
+  if(ir-l.lt.m) then
      do j=l+1,ir
         indxt = indx(j)
         a = arr(indxt)
@@ -1325,52 +1336,69 @@ subroutine dindexx(n,arr,indx)
            indx(i+1) = indx(i)
         end do
         i = l-1
-2       indx(i+1) = indxt
+2       continue
+        indx(i+1) = indxt
      end do
+     
      if(jstack.eq.0) return
+     
      ir = istack(jstack)
      l = istack(jstack-1)
      jstack = jstack-2
+     
   else
+     
      k = (l+ir)/2
      itemp = indx(k)
      indx(k) = indx(l+1)
      indx(l+1) = itemp
+     
      if(arr(indx(l)).gt.arr(indx(ir))) then
         itemp = indx(l)
         indx(l) = indx(ir)
         indx(ir) = itemp
      end if
+     
      if(arr(indx(l+1)).gt.arr(indx(ir))) then
         itemp = indx(l+1)
         indx(l+1) = indx(ir)
         indx(ir) = itemp
      end if
+     
      if(arr(indx(l)).gt.arr(indx(l+1))) then
         itemp = indx(l)
         indx(l) = indx(l+1)
         indx(l+1) = itemp
      end if
+     
      i = l+1
      j = ir
      indxt = indx(l+1)
      a = arr(indxt)
+     
 3    continue
      i = i+1
      if(arr(indx(i)).lt.a) goto 3
+     
 4    continue
      j = j-1
      if(arr(indx(j)).gt.a) goto 4
+     
      if(j.lt.i) goto 5
+     
      itemp = indx(i)
      indx(i) = indx(j)
      indx(j) = itemp
+     
      goto 3
+     
 5    indx(l+1) = indx(j)
      indx(j) = indxt
      jstack = jstack+2
+     
      !if(jstack.gt.nstack)pause 'nstack too small in indexx'
      if(jstack.gt.nstack) write(0,'(A)')' nstack too small in dindexx'
+     
      if(ir-i+1.ge.j-l) then
         istack(jstack) = ir
         istack(jstack-1) = i
@@ -1380,7 +1408,9 @@ subroutine dindexx(n,arr,indx)
         istack(jstack-1) = l
         l = i
      end if
+     
   end if
+  
   goto 1
   
 end subroutine dindexx
@@ -1388,106 +1418,49 @@ end subroutine dindexx
 
 
 !***********************************************************************************************************************************
-subroutine rindexx(n,arr,indx)
+!> \brief  Single-precision wrapper for sorting routine dindexx()
+!!
+!! \param  n     Dimension of arr and indx
+!! \param  arr   Data array to be sorted
+!!
+!! \retval indx  Array with sorted indices
+
+subroutine rindexx(n, arr, indx)
+  use SUFR_kinds, only: double
+  
   implicit none
   integer, intent(in) :: n
   real, intent(in) :: arr(n)
   integer, intent(out) :: indx(n)
   
-  integer, parameter :: m=7, nstack=50
-  real :: a
+  real(double) :: darr(n)
   
-  integer :: i,indxt,ir,itemp,j,jstack,k,l,istack(nstack)
-  do j=1,n
-     indx(j) = j
-  end do
-  jstack = 0
-  l = 1
-  ir = n
-1 if(ir-l.lt.m) then
-     do j=l+1,ir
-        indxt = indx(j)
-        a = arr(indxt)
-        do i=j-1,l,-1
-           if(arr(indx(i)).le.a) goto 2
-           indx(i+1) = indx(i)
-        end do
-        i = l-1
-2       indx(i+1) = indxt
-     end do
-     if(jstack.eq.0) return
-     ir = istack(jstack)
-     l = istack(jstack-1)
-     jstack = jstack-2
-  else
-     k = (l+ir)/2
-     itemp = indx(k)
-     indx(k) = indx(l+1)
-     indx(l+1) = itemp
-     if(arr(indx(l)).gt.arr(indx(ir))) then
-        itemp = indx(l)
-        indx(l) = indx(ir)
-        indx(ir) = itemp
-     end if
-     if(arr(indx(l+1)).gt.arr(indx(ir))) then
-        itemp = indx(l+1)
-        indx(l+1) = indx(ir)
-        indx(ir) = itemp
-     end if
-     if(arr(indx(l)).gt.arr(indx(l+1))) then
-        itemp = indx(l)
-        indx(l) = indx(l+1)
-        indx(l+1) = itemp
-     end if
-     i = l+1
-     j = ir
-     indxt = indx(l+1)
-     a = arr(indxt)
-3    continue
-     i = i+1
-     if(arr(indx(i)).lt.a) goto 3
-4    continue
-     j = j-1
-     if(arr(indx(j)).gt.a) goto 4
-     if(j.lt.i) goto 5
-     itemp = indx(i)
-     indx(i) = indx(j)
-     indx(j) = itemp
-     goto 3
-5    indx(l+1) = indx(j)
-     indx(j) = indxt
-     jstack = jstack+2
-     !if(jstack.gt.nstack)pause 'nstack too small in indexx'
-     if(jstack.gt.nstack) write(0,'(A)')' nstack too small in rindexx'
-     if(ir-i+1.ge.j-l) then
-        istack(jstack) = ir
-        istack(jstack-1) = i
-        ir = j-1
-     else
-        istack(jstack) = j-1
-        istack(jstack-1) = l
-        l = i
-     end if
-  end if
-  goto 1
+  darr = dble(arr)
+  
+  call dindexx(n,darr,indx)
   
 end subroutine rindexx
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
+!> \brief
+!!
+!! Uses lubksb,ludcmp
+
 subroutine savgol(c, np,nl,nr,ld,m)
   implicit none
   integer, intent(in) :: np,nl,nr,ld,m
   real, intent(out) :: c(np)
   
   integer, parameter :: mmax=6
-  !Uses lubksb,ludcmp
+  
   integer :: imj,ipj,j,k,kk,mm,indx(mmax+1)
   real :: d,fac,sum,a(mmax+1,mmax+1),b(mmax+1)
   
   !if(np.lt.nl+nr+1.or.nl.lt.0.or.nr.lt.0.or.ld.gt.m.or.m.gt.mmax.or.nl+nr.lt.m) pause 'bad args in savgol'
   if(np.lt.nl+nr+1.or.nl.lt.0.or.nr.lt.0.or.ld.gt.m.or.m.gt.mmax.or.nl+nr.lt.m) write(0,'(A)')' Bad args in savgol'
+  
   do ipj=0,2*m
      sum = 0.
      if(ipj.eq.0)sum = 1.
@@ -1502,15 +1475,21 @@ subroutine savgol(c, np,nl,nr,ld,m)
         a(1+(ipj+imj)/2,1+(ipj-imj)/2) = sum
      end do
   end do
+  
   call ludcmp(a,m+1,mmax+1,indx,d)
+  
   do j=1,m+1
      b(j) = 0.
   end do
+  
   b(ld+1) = 1.
+  
   call lubksb(a,m+1,mmax+1,indx,b)
+  
   do kk=1,np
      c(kk) = 0.
   end do
+  
   do k=-nl,nr
      sum = b(1)
      fac = 1.
@@ -1550,6 +1529,7 @@ subroutine lubksb(a,n,np,indx,b)
      end if
      b(i) = sum
   end do
+  
   do i=n,1,-1
      sum = b(i)
      do j=i+1,n
@@ -1588,6 +1568,7 @@ subroutine ludcmp(a,n,np,indx,d)
      if(aamax.eq.0.) write(0,'(A)')' Singular matrix in ludcmp'
      vv(i) = 1./aamax
   end do
+  
   do j=1,n
      do i=1,j-1
         sum = a(i,j)
@@ -1596,7 +1577,9 @@ subroutine ludcmp(a,n,np,indx,d)
         end do
         a(i,j) = sum
      end do
+     
      aamax = 0.
+     
      do i=j,n
         sum = a(i,j)
         do k=1,j-1
@@ -1609,6 +1592,7 @@ subroutine ludcmp(a,n,np,indx,d)
            aamax = dum
         end if
      end do
+     
      if (j.ne.imax) then
         do k=1,n
            dum = a(imax,k)
@@ -1618,8 +1602,10 @@ subroutine ludcmp(a,n,np,indx,d)
         d = -d
         vv(imax) = vv(j)
      end if
+     
      indx(j) = imax
      if(a(j,j).eq.0.) a(j,j) = tiny
+     
      if(j.ne.n) then
         dum = 1./a(j,j)
         do i=j+1,n
@@ -1789,178 +1775,6 @@ function rrevpi(x)
   rrevpi = x - floor(x/rpi)*rpi
   
 end function rrevpi
-!***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
-!> \brief  2D KS test
-!!
-!! \param  data1  Dataset 1 (I/O)
-!! \param  n1     Size of dataset 1
-!! \param  data2  Dataset 2 (I/O)
-!! \param  n2     Size of dataset 2
-!! \retval d      
-!! \retval prob   Probability
-!!
-!! \todo  Should data be changed?
-!! \note Needs probks(), sort()
-
-
-subroutine kstwo(data1,n1, data2,n2, d,prob)
-  use SUFR_kinds, only: double
-  
-  implicit none
-  integer, intent(in) :: n1,n2
-  real(double), intent(inout) :: data1(n1),data2(n2)
-  real(double), intent(out) :: d,prob
-  
-  integer :: j1,j2
-  real(double) :: d1,d2,dt,en1,en2,en,fn1,fn2,probks
-  
-  call sort(n1,data1)
-  call sort(n2,data2)
-  
-  en1 = n1
-  en2 = n2
-  j1 = 1
-  j2 = 1
-  fn1 = 0.d0
-  fn2 = 0.d0
-  d = 0.d0
-  
-1 if(j1.le.n1.and.j2.le.n2) then
-     d1 = data1(j1)
-     d2 = data2(j2)
-     if(d1.le.d2) then
-        fn1 = j1/en1
-        j1 = j1+1
-     end if
-     if(d2.le.d1) then
-        fn2 = j2/en2
-        j2 = j2+1
-     end if
-     dt = abs(fn2-fn1)
-     if(dt.gt.d) d = dt
-     goto 1
-  end if
-  
-  en =  sqrt(en1*en2/(en1+en2))
-  prob = probks((en+0.12d0+0.11d0/en)*d)
-  
-end subroutine kstwo
-!***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
-function probks(alam)
-  use SUFR_kinds, only: double
-  
-  implicit none
-  real(double), parameter :: eps1=1.d-3, eps2=1.d-8
-  real(double), intent(in) :: alam
-  
-  real(double) :: probks
-  integer :: j
-  real(double) :: a2,fac,term,termbf
-  
-  a2 = -2.d0*alam**2
-  fac = 2.d0
-  probks = 0.d0
-  termbf = 0.d0
-  do j=1,100
-     term = fac*exp(a2*j**2)
-     probks = probks+term
-     if(abs(term).le.eps1*termbf.or.abs(term).le.eps2*probks) return
-     fac = -fac
-     termbf = abs(term)
-  end do
-  probks = 1.d0
-  
-end function probks
-!***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
-subroutine sort(n,arr)
-  use SUFR_kinds, only: double
-  
-  implicit none
-  integer, intent(in) :: n
-  real(double), intent(inout) :: arr(n)
-  integer, parameter :: m=7, nstack=50
-  
-  integer :: i,ir,j,jstack,k,l,istack(nstack)
-  real(double) :: a,temp
-  
-  jstack = 0
-  l = 1
-  ir = n
-1 if(ir-l.lt.m) then
-     do j=l+1,ir
-        a = arr(j)
-        do i=j-1,l,-1
-           if(arr(i).le.a) goto 2
-           arr(i+1) = arr(i)
-        end do
-        i = l-1
-2       arr(i+1) = a
-     end do
-     if(jstack.eq.0) return
-     ir = istack(jstack)
-     l = istack(jstack-1)
-     jstack = jstack-2
-  else
-     k = (l+ir)/2
-     temp = arr(k)
-     arr(k) = arr(l+1)
-     arr(l+1) = temp
-     if(arr(l).gt.arr(ir)) then
-        temp = arr(l)
-        arr(l) = arr(ir)
-        arr(ir) = temp
-     end if
-     if(arr(l+1).gt.arr(ir)) then
-        temp = arr(l+1)
-        arr(l+1) = arr(ir)
-        arr(ir) = temp
-     end if
-     if(arr(l).gt.arr(l+1)) then
-        temp = arr(l)
-        arr(l) = arr(l+1)
-        arr(l+1) = temp
-     end if
-     i = l+1
-     j = ir
-     a = arr(l+1)
-3    continue
-     i = i+1
-     if(arr(i).lt.a) goto 3
-4    continue
-     j = j-1
-     if(arr(j).gt.a) goto 4
-     if(j.lt.i) goto 5
-     temp = arr(i)
-     arr(i) = arr(j)
-     arr(j) = temp
-     goto 3
-5    arr(l+1) = arr(j)
-     arr(j) = a
-     jstack = jstack+2
-     !if(jstack.gt.nstack)pause 'nstack too small in sort'
-     if(jstack.gt.nstack) write(0,'(A)')' nstack too small in dindexx'
-     if(ir-i+1.ge.j-l) then
-        istack(jstack) = ir
-        istack(jstack-1) = i
-        ir = j-1
-     else
-        istack(jstack) = j-1
-        istack(jstack-1) = l
-        l = i
-     end if
-  end if
-  goto 1
-  
-end subroutine sort
 !***********************************************************************************************************************************
 
 

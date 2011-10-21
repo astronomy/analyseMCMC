@@ -4,6 +4,9 @@
   Please log (major) changes here (and add a short comment using svn/bzr commit -m 'Comment').
   Revision numbers >200 are for Bazaar (bzr# = svn# + 1)
    
+   219: sluys, 21/10/2011
+     - Removed unused routines from analyseMCMC_functions.f90
+     
    218: sluys, 21/10/2011
      - Updating CMake: Link against PG2PLplot and libplplot if PGPlot is not found
      
