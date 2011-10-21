@@ -14,3 +14,10 @@ set(AnalyseMCMC_SRC_FILES
   src/analyseMCMC_textroutines.f90
 )
 
+if( PLplot_FOUND )
+  set(AnalyseMCMC_SRC_FILES
+    ${AnalyseMCMC_SRC_FILES}
+    src/PG2PLplot.f90
+    )
+endif( PLplot_FOUND )
+
