@@ -77,5 +77,5 @@ set (lib_locations
   )
 
 
-message( "${lib_locations}" )
+#message( "${lib_locations}" )
 

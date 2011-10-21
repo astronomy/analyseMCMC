@@ -45,10 +45,20 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}" )
 
 
 # Find dependencies:
+# libSUFR:
 find_package( LibSUFR REQUIRED )
+set( INCLUDE_FLAGS "-I${LibSUFR_INCLUDES}" )  # will be transferred to CompilerFlags
+
+# PGPlot:
 find_package( PGPLOT )
 
-set( INCLUDE_FLAGS "-I${LibSUFR_INCLUDES}" )  # will be transferred to CompilerFlags
+# PLplot:
+if( NOT PGPLOT_FOUND )
+  find_package( PLplot REQUIRED )
+  set( INCLUDE_FLAGS "${INCLUDE_FLAGS} -I${PLplot_INCLUDE_DIRS}" )  # will be transferred to CompilerFlags
+endif( NOT PGPLOT_FOUND )
+
+
 
 
 
@@ -72,10 +82,13 @@ ADD_CUSTOM_COMMAND(
 SET_SOURCE_FILES_PROPERTIES( ${CMAKE_SOURCE_DIR}/src/code_version.f90 PROPERTIES GENERATED 1 )
 
 
-
 # AnalyseMCMC executable:
 add_executable( analyseMCMC ${AnalyseMCMC_SRC_FILES} src/code_version.f90 )
-target_link_libraries( analyseMCMC ${LibSUFR_LIBRARIES} ${PGPLOT_LIBRARIES} )
+if( PLplot_FOUND )
+  target_link_libraries( analyseMCMC ${LibSUFR_LIBRARIES} ${PLplot_LIBRARIES} )
+else( PLplot_FOUND )
+  target_link_libraries( analyseMCMC ${LibSUFR_LIBRARIES} ${PGPLOT_LIBRARIES} )
+endif( PLplot_FOUND )
 set_target_properties( analyseMCMC PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIRECTORY} )
 
 
