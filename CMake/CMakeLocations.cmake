@@ -1,5 +1,5 @@
 ## -----------------------------------------------------------------------------
-## $Id:: CMakeSettings.cmake 2818 2009-07-15 19:02:31Z baehren                 $
+## $Id:: CMakeLocations.cmake, from CMakeSettings.cmake 2818 2009-07-15 19:02:31Z baehren                 $
 ## -----------------------------------------------------------------------------
 
 ## Variables used through the configuration environment:
