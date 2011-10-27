@@ -57,7 +57,8 @@ subroutine set_originalParameterNames()
      pgParNs(65) = '\(2563)\u1/6\d (M\d\(2281)\u\u1/6\d)'
      pgParNs(66) = 'M\dtot\u (M\d\(2281)\u)'
      pgParNs(67) = 'q'
-     
+     pgParNs(68) = 'log(q)'
+
      pgParNs(71) = 'a\dspin1\u'
      pgParNs(72) = 'cos \(2185)\dspin1\u'
      pgParNs(73) = '\(2147)\dspin1\u (rad)'
@@ -113,7 +114,8 @@ subroutine set_originalParameterNames()
      pgParNss(65) = '\(2563)\u1/6\d'
      pgParNss(66) = 'M\dt\u'
      pgParNss(67) = 'q'
-     
+     pgParNss(68) = 'log(q)'
+
      pgParNss(71) = 'a\dspin1\u'
      pgParNss(72) = 'cos \(2185)\dspin1\u'
      pgParNss(73) = '\(2147)\dspin1\u'
@@ -171,7 +173,8 @@ subroutine set_originalParameterNames()
      pgParNs(65) = '\(2563)\u1/6\d (M\d\(2281)\u\u1/6\d)'
      pgParNs(66) = 'M\dtot\u (M\d\(2281)\u)'
      pgParNs(67) = 'q'
-     
+     pgParNs(68) = 'log(q)'
+
      pgParNs(71) = 'a\dspin1\u'
      pgParNs(72) = 'cos \(0685)\dspin1\u'
      pgParNs(73) = '\(0647)\dspin1\u (rad)'
@@ -227,7 +230,8 @@ subroutine set_originalParameterNames()
      pgParNss(61) = '\(2563)\u1/6\d'
      pgParNss(66) = 'M\dt\u'
      pgParNss(67) = 'q'
-     
+     pgParNss(68) = 'log(q)'
+
      pgParNss(71) = 'a\dspin1\u'
      pgParNss(72) = 'cos \(0685)\dspin1\u'
      pgParNss(73) = '\(0647)\dspin1\u'
@@ -360,7 +364,8 @@ subroutine set_derivedParameterNames()
      pgParNs(65) = '\(2563) (M\d\(2281)\u)'
      pgParNs(66) = 'M\dtot\u (M\d\(2281)\u)'
      pgParNs(67) = 'q'
-     
+     pgParNs(68) = 'log(q)'
+
      pgParNs(71) = 'a\dspin1\u'
      pgParNs(72) = '\(2185)\dspin1\u (\(2218))'
      pgParNs(73) = '\(2147)\dspin1\u (\(2218))'
@@ -416,7 +421,8 @@ subroutine set_derivedParameterNames()
      pgParNss(65) = '\(2563)'
      pgParNss(66) = 'M\dt\u'
      pgParNss(67) = 'q'
-     
+     pgParNss(68) = 'log(q)'
+
      pgParNss(71) = 'a\dspin1\u'
      pgParNss(72) = '\(2185)\dspin1\u'
      pgParNss(73) = '\(2147)\dspin1\u'
@@ -475,7 +481,8 @@ subroutine set_derivedParameterNames()
      pgParNs(65) = '\(2563) (M\d\(2281)\u)'
      pgParNs(66) = 'M\dtot\u (M\d\(2281)\u)'
      pgParNs(67) = 'q'
-     
+     pgParNs(68) = 'log(q)'
+
      pgParNs(71) = 'a\dspin1\u'
      pgParNs(72) = '\(0685)\dspin1\u (\(2218))'
      pgParNs(73) = '\(0647)\dspin1\u (\(2218))'
@@ -531,7 +538,8 @@ subroutine set_derivedParameterNames()
      pgParNss(65) = '\(2563)'
      pgParNss(66) = 'M\dt\u'
      pgParNss(67) = 'q'
-     
+     pgParNss(68) = 'log(q)'
+
      pgParNss(71) = 'a\dspin1\u'
      pgParNss(72) = '\(0685)\dspin1\u'
      pgParNss(73) = '\(0647)\dspin1\u'
