@@ -4,6 +4,12 @@
   Please log (major) changes here (and add a short comment using svn/bzr commit -m 'Comment').
   Revision numbers >200 are for Bazaar (bzr# = svn# + 1)
    
+   222: sluys, 03/11/2011
+     - Updated CMake files to CMakeFiles rev.10
+       - updated flags for ifort
+       - FindLibSUFR: search for compiler-specific files first
+       - FindPLplot: update syntax, messages, comments
+     
    220: sluys, 25/10/2011
      - Added CMake/FindPLplot.cmake to bzr
      

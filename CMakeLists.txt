@@ -66,7 +66,7 @@ endif( NOT PGPLOT_FOUND )
 include( FileList )
 
 # Set FORTRAN compiler flags:
-include( CompilerFlags )
+include( CompilerFlags_Fortran )
 
 
 

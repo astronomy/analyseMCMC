@@ -91,7 +91,7 @@ elseif( Fortran_COMPILER_NAME MATCHES "g95" )
 elseif( Fortran_COMPILER_NAME MATCHES "ifort" )
   
   
-  set( CMAKE_Fortran_FLAGS_ALL "-nogen-interfaces -mcmodel=medium" )
+  set( CMAKE_Fortran_FLAGS_ALL "-nogen-interfaces -mcmodel=medium" )  # -mcmodel exists for Linux only...
   set( CMAKE_Fortran_FLAGS "-vec-guard-write -fpconstant -funroll-loops -align all -ip" )
   set( CMAKE_Fortran_FLAGS_RELEASE "-vec-guard-write -fpconstant -funroll-loops -align all -ip" )
   set( CMAKE_Fortran_FLAGS_DEBUG "-g -traceback" )
@@ -126,7 +126,7 @@ elseif( Fortran_COMPILER_NAME MATCHES "ifort" )
   endif( WANT_CHECKS )
   
   if( WANT_WARNINGS )
-    set( WARN_FLAGS "-warn all -stand f03 -diag-disable 6894" )
+    set( WARN_FLAGS "-warn all -stand f03 -diag-disable 8290,8291" )  # 8290,8291: format for F,ES: too many decimal places
   endif( WANT_WARNINGS )
   
   if( WANT_LIBRARY )
@@ -180,6 +180,7 @@ set( CMAKE_Fortran_FLAGS_RELWITHDEBINFO "${CMAKE_Fortran_FLAGS_RELEASE} -g" )
 #  Report what's going on:
 ######################################################################################################################################################
 
+message( STATUS "" )
 message( STATUS "Using Fortran compiler: " ${Fortran_COMPILER_NAME} " (" ${CMAKE_Fortran_COMPILER}")" )
 
 if( WANT_CHECKS )
@@ -197,4 +198,6 @@ endif( WANT_STATIC )
 
 
 message( STATUS "Compiler flags used:  ${CMAKE_Fortran_FLAGS}" )
+message( STATUS "" )
+
 
