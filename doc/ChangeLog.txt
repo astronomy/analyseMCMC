@@ -4,6 +4,9 @@
   Please log (major) changes here (and add a short comment using svn/bzr commit -m 'Comment').
   Revision numbers >200 are for Bazaar (bzr# = svn# + 1)
    
+   224: sluys, 04/11/2011
+     - Added install target to CMake
+     
    223: sluys, 04/11/2011
      - Added licence/copyright info to source files
      

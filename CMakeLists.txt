@@ -93,7 +93,7 @@ set_target_properties( analyseMCMC PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_
 
 
 # Installation targets:
-#install( TARGETS "AnalyseMCMC" RUNTIME DESTINATION "bin" )
+install( TARGETS "analyseMCMC" RUNTIME DESTINATION "bin" )
 
 # Place the executable in the project's root directory:
 set( EXECUTABLE_OUTPUT_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} )
