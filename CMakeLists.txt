@@ -51,7 +51,7 @@ find_package( PGPLOT )
 # PLplot:
 if( NOT PGPLOT_FOUND )
   find_package( PLplot REQUIRED )
-  set( INCLUDE_FLAGS "${INCLUDE_FLAGS} -I${PLplot_INCLUDE_DIRS}" )  # will be transferred to CompilerFlags
+  set( INCLUDE_FLAGS "${INCLUDE_FLAGS} -I${PLplot_INCLUDES}" )  # will be transferred to CompilerFlags
 endif( NOT PGPLOT_FOUND )
 
 
