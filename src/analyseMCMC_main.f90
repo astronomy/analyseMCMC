@@ -102,10 +102,7 @@ program analyseMCMC
   !call write_settingsfile()   ! Write the input file back to disc
   
   ! Print code version and set use_PLplot:
-  if(prProgress.ge.1) then
-     write(stdOut,'(A)', advance="no")'  AnalyseMCMC, '
-     call print_code_version(stdOut, use_PLplot)
-  end if
+  if(prProgress.ge.1) call print_code_version(stdOut, use_PLplot)
   
   if(html.ge.1) then
      outputdir = 'html'       ! Directory where output is saved (either relative or absolute path)

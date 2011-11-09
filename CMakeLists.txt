@@ -74,13 +74,13 @@ if( CREATE_VERSION )
     ADD_CUSTOM_COMMAND(
       OUTPUT ${CMAKE_SOURCE_DIR}/src/code_version.f90
       COMMAND cd $(CMAKE_SOURCE_DIR)
-      COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh $(CMAKE_SOURCE_DIR)/src/code_version.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS} yes
+      COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh ${CMAKE_SOURCE_DIR} src/code_version.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS} yes
       )
   else( PLplot_FOUND ) 
     ADD_CUSTOM_COMMAND(
       OUTPUT ${CMAKE_SOURCE_DIR}/src/code_version.f90
       COMMAND cd $(CMAKE_SOURCE_DIR)
-      COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh $(CMAKE_SOURCE_DIR)/src/code_version.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS} no
+      COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh $(CMAKE_SOURCE_DIR) src/code_version.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS} no
       )
   endif( PLplot_FOUND )
 endif( CREATE_VERSION )

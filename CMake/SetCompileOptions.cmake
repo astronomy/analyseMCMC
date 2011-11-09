@@ -1,7 +1,7 @@
 # Various compile/optimisation options that we may want to enable:
 
 option( CMAKE_VERBOSE_MAKEFILE  "Verbose makefile" off )
-option( CREATE_VERSION          "Create a code-version file with svn/bzr version and date (for developers)" on )
+option( CREATE_VERSION          "Create a code-version file with svn/bzr version and date (for developers)" off )
 
 option( WANT_CHECKS             "Activate runtime checks (array bounds, NaNs)" off )
 option( WANT_WARNINGS           "Activate warnings" on )
