@@ -67,15 +67,27 @@ include( CompilerFlags_Fortran )
 
 
 
-# Code version generator:
-ADD_CUSTOM_COMMAND(
-  OUTPUT ${CMAKE_SOURCE_DIR}/src/code_version.f90
-  COMMAND cd $(CMAKE_SOURCE_DIR)
-  COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh $(CMAKE_SOURCE_DIR)/src/code_version.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS}
-  )
+# Code-version generator:
+# This implies that the file code_version* is removed by 'make clean'!
+if( CREATE_VERSION )
+  if( PLplot_FOUND )
+    ADD_CUSTOM_COMMAND(
+      OUTPUT ${CMAKE_SOURCE_DIR}/src/code_version.f90
+      COMMAND cd $(CMAKE_SOURCE_DIR)
+      COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh $(CMAKE_SOURCE_DIR)/src/code_version.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS} yes
+      )
+  else( PLplot_FOUND ) 
+    ADD_CUSTOM_COMMAND(
+      OUTPUT ${CMAKE_SOURCE_DIR}/src/code_version.f90
+      COMMAND cd $(CMAKE_SOURCE_DIR)
+      COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh $(CMAKE_SOURCE_DIR)/src/code_version.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS} no
+      )
+  endif( PLplot_FOUND )
+endif( CREATE_VERSION )
+
 
 # Tell CMake the source won't be available until build time.
-SET_SOURCE_FILES_PROPERTIES( ${CMAKE_SOURCE_DIR}/src/code_version.f90 PROPERTIES GENERATED 1 )
+#SET_SOURCE_FILES_PROPERTIES( ${CMAKE_SOURCE_DIR}/src/code_version.f90 PROPERTIES GENERATED 1 )
 
 
 # AnalyseMCMC executable:
