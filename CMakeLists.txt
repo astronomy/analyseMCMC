@@ -67,34 +67,33 @@ include( CompilerFlags_Fortran )
 
 
 
-# Code-version generator:
-# This implies that the file code_version* is removed by 'make clean'!
+# Code-version generator: always create both files:
+# This implies that the files code_version* are removed by 'make clean'!
 if( CREATE_VERSION )
-  if( PLplot_FOUND )
-    ADD_CUSTOM_COMMAND(
-      OUTPUT ${CMAKE_SOURCE_DIR}/src/code_version.f90
-      COMMAND cd $(CMAKE_SOURCE_DIR)
-      COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh ${CMAKE_SOURCE_DIR} src/code_version.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS} yes
-      )
-  else( PLplot_FOUND ) 
-    ADD_CUSTOM_COMMAND(
-      OUTPUT ${CMAKE_SOURCE_DIR}/src/code_version.f90
-      COMMAND cd $(CMAKE_SOURCE_DIR)
-      COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh $(CMAKE_SOURCE_DIR) src/code_version.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS} no
-      )
-  endif( PLplot_FOUND )
+  add_custom_command(
+    # PGPlot:
+    OUTPUT ${CMAKE_SOURCE_DIR}/src/code_version_pgplot.f90
+    COMMAND cd $(CMAKE_SOURCE_DIR)
+    COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh ${CMAKE_SOURCE_DIR} src/code_version_pgplot.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS} no
+    
+    # PLplot:
+    OUTPUT ${CMAKE_SOURCE_DIR}/src/code_version_plplot.f90
+    COMMAND cd $(CMAKE_SOURCE_DIR)
+    COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh $(CMAKE_SOURCE_DIR) src/code_version_plplot.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS} yes
+    )
 endif( CREATE_VERSION )
 
 
-# Tell CMake the source won't be available until build time.
-#SET_SOURCE_FILES_PROPERTIES( ${CMAKE_SOURCE_DIR}/src/code_version.f90 PROPERTIES GENERATED 1 )
 
 
-# AnalyseMCMC executable:
-add_executable( analyseMCMC ${AnalyseMCMC_SRC_FILES} src/code_version.f90 )
+# Build and link AnalyseMCMC executable:
 if( PLplot_FOUND )
+  set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/code_version_plplot.f90 PROPERTIES GENERATED 1 )  # Tell CMake this source file won't be available until build time.
+  add_executable( analyseMCMC ${AnalyseMCMC_SRC_FILES} src/code_version_plplot.f90 )
   target_link_libraries( analyseMCMC ${LibSUFR_LIBRARIES} ${PLplot_LIBRARIES} )
 else( PLplot_FOUND )
+  set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/code_version_pgplot.f90 PROPERTIES GENERATED 1 )  # Tell CMake this source file won't be available until build time.
+  add_executable( analyseMCMC ${AnalyseMCMC_SRC_FILES} src/code_version_pgplot.f90 )
   target_link_libraries( analyseMCMC ${LibSUFR_LIBRARIES} ${PGPLOT_LIBRARIES} )
 endif( PLplot_FOUND )
 set_target_properties( analyseMCMC PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIRECTORY} )
