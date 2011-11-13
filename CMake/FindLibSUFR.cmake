@@ -1,5 +1,6 @@
-# Adapted from FindPGPLOT.cmake
-# MvdS, 27/12/2010
+## FindLibSUFR.cmake:
+## Check for the presence of the LibSUFR headers and libraries
+## MvdS, 27/12/2010
 
 
 # Check for the presence of the LibSUFR headers and libraries
