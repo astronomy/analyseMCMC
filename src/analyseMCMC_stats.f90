@@ -950,6 +950,8 @@ subroutine save_cbc_wiki_data(ic)
   end do
   write(o,'(A6)',advance="no")'    '
   parr(1:14) = (/63,64,61,62,11,71,72,81,82,22,31,32,51,52/)
+  !parr(1:14) = (/63,64,61,67,11,71,72,81,82,22,31,32,51,52/) 
+  !parr(1:14) = (/63,64,61,68,11,71,72,81,82,22,31,32,51,52/) 
   do p=1,14
      p1 = parr(p)
      if(revID(p1).eq.0) then  !Parameter not used
@@ -1025,6 +1027,8 @@ subroutine save_cbc_wiki_data(ic)
   end do
   write(o,'(A10)',advance="no")'       ||'
   !parr(1:10) = (/2,3,4,6,7,5,8,9,11,12/)
+  !parr(1:12) = (/61,67,11,71,72,81,82,22,31,32,51,52/)
+  !parr(1:12) = (/61,68,11,71,72,81,82,22,31,32,51,52/)
   parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
   do p=1,12
      p1 = parr(p)
@@ -1069,6 +1073,8 @@ subroutine save_cbc_wiki_data(ic)
   end do
   write(o,'(A10)',advance="no")'       ||'
   parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
+  !parr(1:12) = (/61,67,11,71,72,81,82,22,31,32,51,52/)
+  !parr(1:12) = (/61,68,11,71,72,81,82,22,31,32,51,52/)
   do p=1,12
      p1 = parr(p)
      if(revID(p1).eq.0) then  !Parameter not used
@@ -1117,6 +1123,8 @@ subroutine save_cbc_wiki_data(ic)
   write(o,'(A11,A5)',advance="no")xs11,'   ||'
   
   parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
+  !parr(1:12) = (/61,67,11,71,72,81,82,22,31,32,51,52/) 
+  !parr(1:12) = (/61,68,11,71,72,81,82,22,31,32,51,52/)
   do p=1,12
      p1 = parr(p)
      if(revID(p1).eq.0) then  !Parameter not used
@@ -1160,6 +1168,8 @@ subroutine save_cbc_wiki_data(ic)
   end do
   write(o,'(A10)',advance="no")'       ||'
   parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
+  !parr(1:12) = (/61,67,11,71,72,81,82,22,31,32,51,52/) 
+  !parr(1:12) = (/61,68,11,71,72,81,82,22,31,32,51,52/)
   do p=1,12
      p1 = parr(p)
      if(revID(p1).eq.0) then  !Parameter not used
@@ -1223,6 +1233,8 @@ subroutine save_cbc_wiki_data(ic)
   end do
   write(o,'(A10)',advance="no")'       ||'
   parr(1:12) = (/61,62,11,71,72,81,82,22,31,32,51,52/)
+  !parr(1:12) = (/61,67,11,71,72,81,82,22,31,32,51,52/) 
+  !parr(1:12) = (/61,68,11,71,72,81,82,22,31,32,51,52/)
   do p=1,12
      p1 = parr(p)
      if(revID(p1).eq.0) then  !Parameter not used
@@ -1272,6 +1284,8 @@ subroutine save_cbc_wiki_data(ic)
   end do
   write(o,'(A6)',advance="no")'    '
   parr(1:14) = (/63,64,61,62,11,71,72,81,82,22,31,32,51,52/)
+  !parr(1:14) = (/63,64,61,67,11,71,72,81,82,22,31,32,51,52/) 
+  !parr(1:14) = (/63,64,61,68,11,71,72,81,82,22,31,32,51,52/)
   do p=1,14
      p1 = parr(p)
      if(revID(p1).eq.0) then  !Parameter not used
@@ -1455,6 +1469,8 @@ subroutine compute_convergence()
      
      ! Find and flag extraordinarily low and high variances:
      IDs(1:4) = (/61,62,71,81/)  !Mass and spin parameters
+     !IDs(1:4) = (/61,67,71,81/)  !q  
+     !IDs(1:4) = (/61,68,71,81/)  !log(q) 
      nLowVar = 0
      nHighVar = 0
      nUsedPar = 0

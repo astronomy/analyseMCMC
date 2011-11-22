@@ -585,6 +585,15 @@ subroutine read_mcmcfiles(exitcode)
         waveform = 1
         pNorder = 1.5
         
+        !Assume 12-parameter Apostolatos: lq=log(q)                                                                                                                           
+        !if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters,"// &
+        !     " assuming that an Apostolatos, 1.5-pN, 12-parameter waveform was used..."
+        !nMCMCpar = 12  !Mc lq tc ld a1 th ra de ph tJ pJ,ph_spin                                                                                                                 
+        !parID(1:12) = (/61,68,11,22,71,72,31,32,41,53,54,73/)
+        !waveform = 1
+        !pNorder = 1.5
+
+
         !Assume 12-parameter SpinTaylor:
         !if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters,"// &
         !" assuming that a SpinTaylor, 3.5-pN, 12-parameter waveform was used..."
@@ -956,7 +965,7 @@ subroutine mcmcruninfo(exitcode)
         parID(nMCMCpar+1) = 61    ! Mc
         revID(61) = nMCMCpar + 1  ! Mc
         nMCMCpar = nMCMCpar + 1
-        if(nMCMCpar.gt.maxMCMCpar) then
+        if(nMCMCpar.gt.maxpMCMCpar) then
            write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
                 ' to at least',nMCMCpar,' in order to continue.  Aborting...'
            stop
@@ -965,8 +974,41 @@ subroutine mcmcruninfo(exitcode)
            allDat(ic,revID(61),1:ntot(ic)) = allDat(ic,revID(65),1:ntot(ic))**6   ! Mc = [Mc_16]^6
         end do
      end if
+
      
-     
+     if(revID(67).eq.0 .and. revID(68).ne.0) then  ! Calculate q from log(q):                                                                                               
+        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing q from log(q)'
+        parID(nMCMCpar+1) = 67    ! Mc                                                                                                                                                                                                                                                 
+        revID(67) = nMCMCpar + 1  ! Mc                                                                                                                                                                                                                                                                                              
+        nMCMCpar = nMCMCpar + 1
+        if(nMCMCpar.gt.maxpMCMCpar) then
+           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
+                ' to at least',nMCMCpar,' in order to continue.  Aborting...'
+           stop
+           end if
+        do ic=1,nchains0
+           allDat(ic,revID(67),1:ntot(ic)) = 10. ** LOG10(allDat(ic,revID(68),1:ntot(ic)))                                                                               
+        end do
+     end if
+
+
+     if(revID(62).eq.0 .and. revID(67).ne.0) then  ! Calculate eta from q:                                                                                           
+        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing eta from q'
+        parID(nMCMCpar+1) = 62    ! Mc                                                                                                                                             
+        revID(62) = nMCMCpar + 1  ! Mc                                                                                                                                             
+        nMCMCpar = nMCMCpar + 1
+        if(nMCMCpar.gt.maxpMCMCpar) then
+           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
+                ' to at least',nMCMCpar,' in order to continue.  Aborting...'
+           stop
+           end if
+        do ic=1,nchains0
+           allDat(ic,revID(62),1:ntot(ic)) = allDat(ic,revID(67),1:ntot(ic)) / (allDat(ic,revID(67),1:ntot(ic)) + 1.d0 )**2   
+           ! eta = q/(1+q)^2                                                                                 
+        end do
+     end if
+
+
      if(revID(61)*revID(62).ne.0 .and. revID(63)+revID(64).eq.0) then  !Calculate the individual masses from Mch and eta:
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing M1, M2 from Mc, eta'
         parID(nMCMCpar+1) = 63    ! M1
@@ -1005,7 +1047,6 @@ subroutine mcmcruninfo(exitcode)
      
      
      ! Compute total mass (var 66) and mass ratio (var 67) (q=M1/M2, not the symmetric mass ratio \eta) from the individual masses:
-     ! + Compute log(q) (to the base 10)
      ! (var 65 is reserved for Mc^(1/6))
      parID(nMCMCpar+1) = 66    ! Mtot
      parID(nMCMCpar+2) = 67    ! q
@@ -1022,7 +1063,6 @@ subroutine mcmcruninfo(exitcode)
      do ic=1,nchains0
         allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))
         allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) / allDat(ic,revID(64),1:ntot(ic))
-        allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))
      end do
      
      
@@ -1205,6 +1245,8 @@ subroutine save_data(exitcode)
   do p=1,nMCMCpar
      if(parID(p).eq.61) write(o,'(A10)',advance="no")'mchirp'
      if(parID(p).eq.62) write(o,'(A10)',advance="no")'eta'
+     if(parID(p).eq.67) write(o,'(A10)',advance="no")'q'
+     if(parID(p).eq.68) write(o,'(A10)',advance="no")'log(q)'
      if(parID(p).eq.11.or.parID(p).eq.12) write(o,'(A10)',advance="no")'time'
      if(parID(p).eq.22) write(o,'(A10)',advance="no")'log(dist)'
      if(parID(p).eq.31) write(o,'(A10)',advance="no")'RA'

@@ -191,6 +191,26 @@ subroutine tailored_output_0002(out,exitcode)
   write(out,'(F7.3)',advance="no") x
   write(out,'(A)',advance="no")trim(col)
   
+  !q                                                                                                    
+  par = revID(67)
+  x = ranges(ic,ival0,par,4)
+  if(x.lt.9.95) then
+     write(out,'(F6.1)',advance="no") x
+  else
+     write(out,'(I6)',advance="no") nint(x)
+  end if
+  write(out,'(A)',advance="no")trim(col)
+
+  !Log(q)
+  par = revID(68)
+  x = ranges(ic,ival0,par,4)
+  if(x.lt.9.95) then
+     write(out,'(F6.1)',advance="no") x
+  else
+     write(out,'(I6)',advance="no") nint(x)
+  end if
+  write(out,'(A)',advance="no")trim(col)
+
   ! M1:
   par = revID(63)
   x = ranges(ic,ival0,par,4)/ranges(ic,ival0,par,3)*100 

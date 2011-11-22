@@ -613,7 +613,9 @@ subroutine pdfs2d(exitcode)
               ! Plot injection value in 2D PDF:
               if((plInject.eq.1.or.plInject.eq.3).and.(.not.project_map) .or. &
                    ((plInject.eq.2.or.plInject.eq.4) .and.  &
-                   (parID(p1).eq.61.and.parID(p2).eq.62).or.(parID(p1).eq.63.and.parID(p2).eq.64)) ) then
+                   (parID(p1).eq.61.and.parID(p2).eq.62).or.(parID(p1).eq.63 &
+                   .and.parID(p2).eq.64.or.parID(p2).eq.61.and.parID(p2).eq.67 &
+                   .or.parID(p2).eq.61.and.parID(p2).eq.68)) ) then
                  
                  ! CHECK The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 
                  ! (but they have for the starting values, why?)
