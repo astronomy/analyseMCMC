@@ -246,7 +246,7 @@ subroutine pdfs1d(exitcode)
                  norm = norm + ybin1(i)
               end do
               norm = norm*(xmax1-xmin1)
-              ybin1 = ybin1/norm
+              if(abs(norm).gt.0.d0) ybin1 = ybin1/norm
            else ! Normalise to the height of the PDF
               if(normPDF1D.eq.2) ybin1 = ybin1/maxval(ybin1)  ! Normalise to the height of the PDF
               if(normPDF1D.eq.3) ybin1 = ybin1/(maxval(ybin1)**0.5)  ! Normalise to the sqrt of the height of the PDF;

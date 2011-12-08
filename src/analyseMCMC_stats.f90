@@ -450,7 +450,7 @@ subroutine statistics(exitcode)
               write(stdOut,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4)',advance="no")parNames(parID(p)),startval(ic,p,1), &
                    stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absVar1(p),  &
                    absVar2(p),ranges(ic,c,p,3),ranges(ic,c,p,1),ranges(ic,c,p,2),ranges(ic,c,p,4),  &
-                   2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),ranges(ic,c,p,5)  !d/drange wrt centre of range
+                   min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),99.9999),ranges(ic,c,p,5)  !d/drange wrt ctr of rng
               if(startval(ic,p,1).ge.ranges(ic,c,p,1).and.startval(ic,p,1).le.ranges(ic,c,p,2)) then
                  write(stdOut,'(A4)',advance="no")'y '
               else
@@ -488,7 +488,7 @@ subroutine statistics(exitcode)
                       min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),9.999) 
               else
                  write(stdOut,'(2x,2F9.4,F6.3)',advance="no")ranges(ic,c,p,3),ranges(ic,c,p,4), &
-                      2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+                      min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),99.999) !Defined with centre of prob. range
               end if
               if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
                  write(stdOut,'(A3)',advance="no")'y '
@@ -766,7 +766,7 @@ subroutine save_stats(exitcode)
         !2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
         if(fixedpar(p).eq.0) then
            write(o,'(2x,2F12.6,F7.3)',advance="no") ranges(ic,c,p,3),ranges(ic,c,p,4), &
-                2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4)  ! Defined with centre of prob. range
+                min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),99.999)  ! Defined with centre of prob. range
         else
            write(o,'(2x,2F12.6,F7.3)',advance="no")0.,0.,99.999
         end if
