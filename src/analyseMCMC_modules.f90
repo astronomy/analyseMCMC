@@ -55,7 +55,7 @@ module aM_constants
   save
   
   integer :: os
-  character :: detabbrs(4)*(2),waveforms(0:9)*(99)
+  character :: detabbrs(4)*(2),waveforms(0:19)*(99)
   character(len=99) :: stdOutFile
   logical :: use_PLplot
   
@@ -109,11 +109,11 @@ module mcmcrun_data
   
   integer :: niter(maxChs),totiter,totlines,totpts,Nburn0(maxChs),ndet(maxChs),totthin(maxChs)
   integer :: nCorr(maxChs),nTemps(maxChs),waveform,nMCMCpar,nMCMCpar0,Tmax(maxChs)
-  integer :: samplerate(maxChs,ndets),samplesize(maxChs,ndets),FTsize(maxChs,ndets),detnr(maxChs,ndets),offsetrun
+  integer :: samplesize(maxChs,ndets),FTsize(maxChs,ndets),detnr(maxChs,ndets),offsetrun
   integer :: parID(maxMCMCpar),revID(nParDB),spinningRun
   integer(long) :: GPStime,seed(maxChs)
   real :: snr(maxChs,ndets),flow(maxChs,ndets),fhigh(maxChs,ndets),t_before(maxChs,ndets),t_after(maxChs,ndets)
-  real :: deltaFT(maxChs,ndets)
+  real :: deltaFT(maxChs,ndets), samplerate(maxChs,ndets)
   real :: Tchain(maxChs),networkSNR(maxChs),pnOrder,outputVersion
   real(double) :: FTstart(maxChs,ndets),t0,loglmax,loglmaxs(maxChs)
   character :: detnames(maxChs,ndets)*(14)

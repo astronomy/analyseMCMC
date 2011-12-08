@@ -38,7 +38,7 @@ subroutine statistics(exitcode)
   use general_data, only: logebayesfactortotalharmo,logebayesfactortotal
   use stats_data, only: absVar1,absVar2,stdev1,stdev2
   use chain_data, only: corrs
-  use mcmcrun_data, only: nMCMCpar,parID,Tchain,loglmax
+  use mcmcrun_data, only: nMCMCpar,parID,Tchain,loglmax, outputVersion
   
   implicit none
   integer, intent(out) :: exitcode
@@ -56,52 +56,54 @@ subroutine statistics(exitcode)
   
   !Convert MCMC parameters/PDFs (cos/sin->ang, rad->deg, etc):
   if(changeVar.ge.1) then
-     do ic=1,nChains0  !selDat consists of nChains chains, allDat of nChains0 chains;  nChains <= nChains0
-        !if(prProgress.ge.1.and.ic.eq.1.and.update.eq.0) write(stdOut,'(A)',advance="no")'.  Change vars. '
-        do p=1,nMCMCpar
-           select case(parID(p))
+     if(outputVersion.lt.2.1) then
+        do ic=1,nChains0  !selDat consists of nChains chains, allDat of nChains0 chains;  nChains <= nChains0
+           !if(prProgress.ge.1.and.ic.eq.1.and.update.eq.0) write(stdOut,'(A)',advance="no")'.  Change vars. '
+           do p=1,nMCMCpar
+              select case(parID(p))
+                 
+              case(21) !Take cube root: d^3 -> Distance:
+                 allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**rc3rd
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**rc3rd
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**rc3rd
+                 
+              case(22) !Take exp: logD -> Distance:
+                 allDat(ic,p,1:Ntot(ic)) = exp(allDat(ic,p,1:Ntot(ic)))   
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = exp(selDat(ic,p,1:n(ic)))
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = exp(startval(1:nChains0,p,1:3))
+                 
+              case(65) !Mc_1/6 -> Mc:
+                 allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**6
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**6
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**6
+                 
+              case(51,72,82) !cos -> deg:
+                 allDat(ic,p,1:Ntot(ic)) = acos(allDat(ic,p,1:Ntot(ic)))*rr2d
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = acos(selDat(ic,p,1:n(ic)))*rr2d
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = acos(startval(1:nChains0,p,1:3))*rr2d
+                 
+              case(31) !rad -> h:
+                 allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*rr2h  !rad -> h
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2h
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2h
+                 
+              case(32,53) !sin -> deg:
+                 allDat(ic,p,1:Ntot(ic)) = asin(allDat(ic,p,1:Ntot(ic)))*rr2d
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = asin(selDat(ic,p,1:n(ic)))*rr2d
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = asin(startval(1:nChains0,p,1:3))*rr2d
+                 
+              case(33,41,52,54,55,73,74,83,84) !rad -> deg:
+                 allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*rr2d
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2d
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2d
+              end select
               
-           case(21) !Take cube root: d^3 -> Distance:
-              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**rc3rd
-              if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**rc3rd
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**rc3rd
-              
-           case(22) !Take exp: logD -> Distance:
-              allDat(ic,p,1:Ntot(ic)) = exp(allDat(ic,p,1:Ntot(ic)))   
-              if(ic.le.nChains) selDat(ic,p,1:n(ic)) = exp(selDat(ic,p,1:n(ic)))
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = exp(startval(1:nChains0,p,1:3))
-              
-           case(65) !Mc_1/6 -> Mc:
-              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**6
-              if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**6
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**6
-              
-           case(51,72,82) !cos -> deg:
-              allDat(ic,p,1:Ntot(ic)) = acos(allDat(ic,p,1:Ntot(ic)))*rr2d
-              if(ic.le.nChains) selDat(ic,p,1:n(ic)) = acos(selDat(ic,p,1:n(ic)))*rr2d
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = acos(startval(1:nChains0,p,1:3))*rr2d
-              
-           case(31) !rad -> h:
-              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*rr2h  !rad -> h
-              if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2h
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2h
-              
-           case(32,53) !sin -> deg:
-              allDat(ic,p,1:Ntot(ic)) = asin(allDat(ic,p,1:Ntot(ic)))*rr2d
-              if(ic.le.nChains) selDat(ic,p,1:n(ic)) = asin(selDat(ic,p,1:n(ic)))*rr2d
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = asin(startval(1:nChains0,p,1:3))*rr2d
-              
-           case(33,41,52,54,55,73,74,83,84) !rad -> deg:
-              allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*rr2d
-              if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2d
-              if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2d
-           end select
+           end do !p
            
-        end do !p
-        
-     end do !ic
+        end do !ic
+     end if  ! if(outputVersion.lt.2.1)
      
-     !Change the parameter names:
+     ! Change the parameter names:
      call set_derivedParameterNames()
      
   end if !if(changeVar.ge.1)
@@ -703,7 +705,7 @@ subroutine save_stats(exitcode)
        'Sample length','Sample rate','Sample size','FT size'
   do i=1,ndet(ic)
      write(o,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')detnames(ic,i),detnr(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i), &
-          t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
+          t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),nint(samplerate(ic,i)),samplesize(ic,i),FTsize(ic,i)
   end do
   write(o,*)
   
@@ -763,8 +765,8 @@ subroutine save_stats(exitcode)
         !write(o,'(2x,2F11.6,F6.3)',advance="no")ranges(ic,c,p,1),ranges(ic,c,p,2), &
         !2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
         if(fixedpar(p).eq.0) then
-           write(o,'(2x,2F12.6,F7.3)',advance="no")ranges(ic,c,p,3),ranges(ic,c,p,4), &
-                2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
+           write(o,'(2x,2F12.6,F7.3)',advance="no") ranges(ic,c,p,3),ranges(ic,c,p,4), &
+                2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4)  ! Defined with centre of prob. range
         else
            write(o,'(2x,2F12.6,F7.3)',advance="no")0.,0.,99.999
         end if

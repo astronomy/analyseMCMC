@@ -35,7 +35,7 @@ subroutine setconstants()
   detabbrs = (/'H1','L1','V ','H2'/)
   
   ! Define waveforms here (don't forget to change waveforms() in the module constants in analyseMCMC_modules.f90):
-  waveforms(0) = 'Unknown'
+  waveforms    = 'Unknown'             ! All of them, except those specified below
   waveforms(1) = 'Apostolatos'
   waveforms(2) = 'SpinTaylor12'
   waveforms(3) = 'SpinTaylor15'
@@ -491,7 +491,7 @@ subroutine read_mcmcfiles(exitcode)
   implicit none
   integer, intent(out) :: exitcode
   integer :: i,tmpInt,io,ic,j,readerror,p
-  character :: tmpStr*(99),detname*(14),firstLine*(999),infile*(99),commandline*(999)
+  character :: tmpStr*(99),detname*(14),firstLine*(999),infile*(99),commandline*(999),parNameStr*(999)
   real(double) :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar),lon2ra,ra2lon
   
   exitcode = 0
@@ -522,7 +522,7 @@ subroutine read_mcmcfiles(exitcode)
      ! LALInference format has long first line (  LALInference version:d4cd156ea4b0174d3fbd8b67ade5584981b34aed,2010-12-15 
      !05:58:56 +0000,cbc_bayesian_devel,Vivien Raymond <vivien.raymond@ligo.org>,CLEAN: All modifications committed)
      
-     read(10,'(A999)',end=199,err=199)firstLine
+     read(10,'(A999)',end=199,err=199) firstLine
      outputVersion = 1.0  ! SPINspiral output, after July 2009, keep 1<=oV<2
      if(len_trim(firstLine).gt.80 .and. len_trim(firstLine).lt.140)  outputVersion = 0.0  ! SPINspiral output, before July 2009
      if(len_trim(firstLine).ge.140)  outputVersion = 2.0  ! LALInference output (after December 2010), keep 2.0<=oV<3.0
@@ -531,8 +531,8 @@ subroutine read_mcmcfiles(exitcode)
      
      if(outputVersion > 0.5) then
         ! Read command line between version number and first header. Read nothing if no command line:
-        read(10,'(A999)',end=199,err=199)commandline
-        
+        read(10,'(A999)',end=199,err=199) commandline
+        if(commandline(1:14).eq.'  Command line') outputVersion = 2.1  ! LALinference, without parameter IDs
         ! Read empty line between version number and first header:
         read(10,*,end=199,err=199)tmpStr
      end if
@@ -549,10 +549,8 @@ subroutine read_mcmcfiles(exitcode)
      
      nMCMCpar0 = nMCMCpar  ! nMCMCpar may change when secondary parameters are computed
      
-     read(10,*,end=199,err=199)tmpStr !Read empty line above detector info
+     read(10,*,end=199,err=199) tmpStr  ! Read (empty) line above detector info
      do i=1,ndet(ic)
-        !read(10,'(2x,A14,F18.8,4F12.2,F22.8,F17.7,3I14)') detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i), &
-        !t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
         read(10,*)detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i), &
              samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
         detname = detnames(ic,i)
@@ -569,10 +567,13 @@ subroutine read_mcmcfiles(exitcode)
      parID = 0
      revID = 0
      if(outputVersion > 0.5) then
-        read(10,*,iostat=io)parID(1:nMCMCpar) !Read parameter IDs
-        if(io.ne.0) then
-           write(stdErr,'(//,A,//)')'  Error reading MCMC parameter IDs, aborting...'
-           stop
+        
+        if(outputVersion.lt.2.1) then  ! Then integer parameter IDs are still used
+           read(10,*,iostat=io)parID(1:nMCMCpar)  ! Read parameter IDs
+           if(io.ne.0) then
+              write(stdErr,'(//,A,//)')'  Error reading MCMC parameter IDs, aborting...'
+              stop
+           end if
         end if
         
      else  !Set the parameter IDs of an old MCMC output file manually:
@@ -612,11 +613,16 @@ subroutine read_mcmcfiles(exitcode)
         
         nMCMCpar0 = nMCMCpar  ! nMCMCpar may change when secondary parameters are computed
      end if
+     
+     read(10,'(A)',end=199,err=199) parNameStr  ! Read empty line
+     read(10,'(A)',end=199,err=199) parNameStr  ! Read empty line
+     read(10,'(A)',end=199,err=199) parNameStr  ! Read empty line
+     read(10,'(A)',end=199,err=199) parNameStr  ! Read line with column headers (Cycle, log Post., Prior, etc)
+     if(outputVersion.ge.2.1) call parNames2IDs(trim(parNameStr),nMCMCpar, parID)  ! Convert parameter names to integer IDs
+     
      do i=1,nMCMCpar
         revID(parID(i)) = i  !Reverse ID
      end do
-     
-     read(10,*,end=199,err=199)tmpStr  !Read line with column headers (Cycle, log Post., Prior, etc)
      
      i=1
      do while(i.le.maxIter)
@@ -691,7 +697,6 @@ subroutine read_mcmcfiles(exitcode)
      end do !i
      
      if(i.ge.maxIter-2) write(stdErr,'(A)',advance="no")'   *** WARNING ***   Not all lines in this file were read    '
-     goto 199
 199  close(10)
      ntot(ic) = i-1
      n(ic) = ntot(ic)  ! n can be changed in rearranging chains, ntot wont be changed
@@ -704,7 +709,42 @@ end subroutine read_mcmcfiles
 
 
 
+!***********************************************************************************************************************************
+!> \brief  Convert parameter names to integer IDs
+!!
+!! \param  parNameStr  String containing parameter names
+!! \retval parID       Array of parameter IDs
 
+subroutine parNames2IDs(parNameStr,nMCMCpar, parID)
+  use SUFR_constants, only: stdErr
+  use SUFR_system, only: quit_program_error
+  use analysemcmc_settings, only: maxMCMCpar
+  
+  implicit none
+  character, intent(in) :: parNameStr*(*)
+  integer, intent(in) :: nMCMCpar
+  integer, intent(out) :: parID(maxMCMCpar)
+  
+  integer, parameter :: npIDs = 9
+  integer :: pr1,pr2,pIDs(npIDs)
+  character :: pnames(19)*(19),pars(19)*(19)
+  
+  parID = 0
+  pnames(1:9) = [character(len=19) :: 'iota','psi','dec','ra','dist','phi_orb','time','q','mc']  ! CHECK: time = t40? tc?
+  pIDs(1:npIDs) = (/                   51,    52,   32,   31,  22,    41,       11,    67, 61/)
+  
+  read(parNameStr,*) (pars(pr1),pr1=1,nMCMCpar+3)
+  do pr1=1,nMCMCpar+3
+     do pr2=1,npIDs
+        if(trim(pars(pr1)).eq.trim(pnames(pr2))) parID(pr1-3) = pIDs(pr2)
+     end do
+     if(pr1.gt.3) then
+        if(parID(pr1-3).eq.0) call quit_program_error('parNames2IDs: Parameter name not recognised: '//trim(pars(pr1)),StdErr)
+     end if
+  end do
+  
+end subroutine parNames2IDs
+!***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
@@ -781,7 +821,7 @@ subroutine mcmcruninfo(exitcode)
                 'Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
            do i=1,ndet(ic)
               write(stdOut,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')trim(detnames(ic,i)),detnr(ic,i),snr(ic,i),flow(ic,i), &
-                   fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),samplerate(ic,i),samplesize(ic,i), &
+                   fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),nint(samplerate(ic,i)),samplesize(ic,i), &
                    FTsize(ic,i)
            end do
            write(stdOut,*)
