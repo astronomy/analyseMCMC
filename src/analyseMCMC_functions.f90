@@ -585,10 +585,10 @@ subroutine read_mcmcfiles(exitcode)
         waveform = 1
         pNorder = 1.5
         
-        !Assume 12-parameter Apostolatos: lq=log(q)                                                                                                                           
+        !Assume 12-parameter Apostolatos: lq=log(q)
         !if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters,"// &
         !     " assuming that an Apostolatos, 1.5-pN, 12-parameter waveform was used..."
-        !nMCMCpar = 12  !Mc lq tc ld a1 th ra de ph tJ pJ,ph_spin                                                                                                                 
+        !nMCMCpar = 12  !Mc lq tc ld a1 th ra de ph tJ pJ,ph_spin
         !parID(1:12) = (/61,68,11,22,71,72,31,32,41,53,54,73/)
         !waveform = 1
         !pNorder = 1.5
@@ -878,7 +878,7 @@ subroutine mcmcruninfo(exitcode)
   end if
   
   
-  !Determine the total number of iterations and lines in the input and data points for statistics; 
+  !Determine the total number of iterations and lines in the input and data points for statistics;
   !determine how many and which chains contribute
   totiter = 0
   totpts  = 0
@@ -965,7 +965,7 @@ subroutine mcmcruninfo(exitcode)
         parID(nMCMCpar+1) = 61    ! Mc
         revID(61) = nMCMCpar + 1  ! Mc
         nMCMCpar = nMCMCpar + 1
-        if(nMCMCpar.gt.maxpMCMCpar) then
+        if(nMCMCpar.gt.maxMCMCpar) then
            write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
                 ' to at least',nMCMCpar,' in order to continue.  Aborting...'
            stop
@@ -974,30 +974,30 @@ subroutine mcmcruninfo(exitcode)
            allDat(ic,revID(61),1:ntot(ic)) = allDat(ic,revID(65),1:ntot(ic))**6   ! Mc = [Mc_16]^6
         end do
      end if
-
      
-     if(revID(67).eq.0 .and. revID(68).ne.0) then  ! Calculate q from log(q):                                                                                               
+     
+     if(revID(67).eq.0 .and. revID(68).ne.0) then  ! Calculate q from log(q):
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing q from log(q)'
-        parID(nMCMCpar+1) = 67    ! Mc                                                                                                                                                                                                                                                 
-        revID(67) = nMCMCpar + 1  ! Mc                                                                                                                                                                                                                                                                                              
+        parID(nMCMCpar+1) = 67    ! Mc
+        revID(67) = nMCMCpar + 1  ! Mc
         nMCMCpar = nMCMCpar + 1
-        if(nMCMCpar.gt.maxpMCMCpar) then
+        if(nMCMCpar.gt.maxMCMCpar) then
            write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
                 ' to at least',nMCMCpar,' in order to continue.  Aborting...'
            stop
            end if
         do ic=1,nchains0
-           allDat(ic,revID(67),1:ntot(ic)) = 10. ** LOG10(allDat(ic,revID(68),1:ntot(ic)))                                                                               
+           allDat(ic,revID(67),1:ntot(ic)) = 10. ** LOG10(allDat(ic,revID(68),1:ntot(ic)))
         end do
      end if
-
-
-     if(revID(62).eq.0 .and. revID(67).ne.0) then  ! Calculate eta from q:                                                                                           
+     
+     
+     if(revID(62).eq.0 .and. revID(67).ne.0) then  ! Calculate eta from q:
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing eta from q'
-        parID(nMCMCpar+1) = 62    ! Mc                                                                                                                                             
-        revID(62) = nMCMCpar + 1  ! Mc                                                                                                                                             
+        parID(nMCMCpar+1) = 62    ! Mc
+        revID(62) = nMCMCpar + 1  ! Mc
         nMCMCpar = nMCMCpar + 1
-        if(nMCMCpar.gt.maxpMCMCpar) then
+        if(nMCMCpar.gt.maxMCMCpar) then
            write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
                 ' to at least',nMCMCpar,' in order to continue.  Aborting...'
            stop

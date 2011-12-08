@@ -469,8 +469,8 @@ subroutine pdfs1d(exitcode)
               ! Injection value - mass, t_c and spin only (?) - CHECK put in input file?
               if((plInject.eq.2.or.plInject.eq.4).and.(parID(p).eq.11.or.parID(p).eq.12 &
                    .or.parID(p).eq.61.or.parID(p).eq.62.or.parID(p).eq.63.or.parID(p).eq.64 &
-                   .or.parID(p).eq.67.or.parID(p).eq.68 &
-                   parID(p).eq.71.or.parID(p).eq.81)) call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/ymin,ymax/))  
+                   .or.parID(p).eq.67.or.parID(p).eq.68.or.parID(p).eq.71.or.parID(p).eq.81)) &
+                   call pgline(2,(/startval(ic,p,1),startval(ic,p,1)/),(/ymin,ymax/))  
               
               !if(plStart.ge.1) call pgline(2,(/startval(ic,p,2),startval(ic,p,2)/),(/ymin,ymax/))              ! Starting value
               
