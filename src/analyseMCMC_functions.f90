@@ -1018,9 +1018,9 @@ subroutine mcmcruninfo(exitcode)
      
      if(revID(62).eq.0 .and. revID(67).eq.0 .and. revID(68).ne.0) then  ! Calculate q from log(q):
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing q from log(q)'
-        parID(nMCMCpar+2) = 67    ! q
-        revID(67) = nMCMCpar + 2  ! q
-        nMCMCpar = nMCMCpar + 2
+        parID(nMCMCpar+1) = 67    ! q
+        revID(67) = nMCMCpar + 1  ! q
+        nMCMCpar = nMCMCpar + 1
         if(nMCMCpar.gt.maxMCMCpar) then
            write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
                 ' to at least',nMCMCpar,' in order to continue.  Aborting...'
@@ -1032,10 +1032,12 @@ subroutine mcmcruninfo(exitcode)
      end if
      
      
-     if(revID(62).eq.0 .and. revID(67).ne.0) then  ! Calculate eta from q:
+     if(revID(62).eq.0 .and. revID(67).ne.0) then  ! Calculate eta and log(q) from q:
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing eta from q'
-        parID(nMCMCpar+2) = 62    ! Eta
-        revID(62) = nMCMCpar + 2  ! Eta
+        parID(nMCMCpar+1) = 62    ! Eta
+        parID(nMCMCpar+2) = 68    ! logq
+        revID(62) = nMCMCpar + 1  ! Eta
+        revID(68) = nMCMCpar + 2  ! logq
         nMCMCpar = nMCMCpar + 2
         if(nMCMCpar.gt.maxMCMCpar) then
            write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
@@ -1044,7 +1046,8 @@ subroutine mcmcruninfo(exitcode)
            end if
         do ic=1,nchains0
            allDat(ic,revID(62),1:ntot(ic)) = allDat(ic,revID(67),1:ntot(ic)) / (allDat(ic,revID(67),1:ntot(ic)) + 1.0 )**2   
-           ! eta = q/(1+q)^2                                                                                 
+           ! eta = q/(1+q)^2
+           allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))
         end do
      end if
 
@@ -1103,6 +1106,7 @@ subroutine mcmcruninfo(exitcode)
      do ic=1,nchains0
         allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))
         allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) / allDat(ic,revID(64),1:ntot(ic))
+        allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))
      end do
      
      
