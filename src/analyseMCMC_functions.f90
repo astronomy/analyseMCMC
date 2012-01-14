@@ -2474,59 +2474,6 @@ end subroutine determine_nbin_1d
 
 
 !***********************************************************************************************************************************
-!> \brief  Compute the standard deviation of a data set data(1:ni) with mean 'mean'  (double precision)
-!!
-!! \param  data  Data set
-!! \param  ni    Number of data points in data set
-!! \param  mean  Mean of data
-
-function compute_stdev(data,ni,mean)
-  use SUFR_kinds, only: double
-  
-  implicit none
-  integer, intent(in) :: ni
-  real(double), intent(in) :: data(ni), mean
-  
-  integer :: i
-  real(double) :: compute_stdev,stdev
-  
-  stdev = 0.d0
-  do i=1,ni
-     stdev = stdev + (data(i)-mean)**2
-  end do
-  
-  compute_stdev = sqrt(stdev/dble(ni-1))
-  
-end function compute_stdev
-!***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
-!> \brief  Compute the standard deviation of a data set datar(1:ni) with mean 'meanr'  (single-precision wrapper)
-!!
-!! \param  datar  Data set
-!! \param  ni     Number of data points in data set
-!! \param  meanr  Mean of data
-
-function compute_stdev_real(datar,ni,meanr)
-  use SUFR_kinds, only: double
-  implicit none
-  integer, intent(in) :: ni
-  real, intent(in) :: datar(ni), meanr
-  
-  real :: compute_stdev_real
-  real(double) :: datad(ni),meand,compute_stdev,stdevd
-  
-  datad = dble(datar)
-  meand = dble(meanr)
-  stdevd = compute_stdev(datad,ni,meand)
-  compute_stdev_real = real(stdevd)
-  
-end function compute_stdev_real
-!***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
 !> \brief  Get a random initialisation seed for a random-numbed generator (i.e., negative integer)
 !! 
 !! \param degree  Degree of randomness: 0-completely (same for a ms), 1-same during an hour, 2-same during a day

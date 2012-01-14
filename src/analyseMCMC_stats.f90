@@ -1571,7 +1571,7 @@ end subroutine compute_convergence
 
 subroutine compute_autocorrelations()
   use SUFR_constants, only: stdOut,stdErr
-  use SUFR_statistics, only: compute_median_real
+  use SUFR_statistics, only: compute_median_real, compute_stdev_real
   
   use analysemcmc_settings, only: prAcorr,nAcorr
   use general_data, only: allDat,fixedpar,parNames,nChains0,Ntot
@@ -1580,7 +1580,7 @@ subroutine compute_autocorrelations()
   
   implicit none
   integer :: ic,j1,p,j,i,np
-  real :: median,medians(nMCMCpar),stdev,compute_stdev_real
+  real :: median,medians(nMCMCpar),stdev
   
   
   if(prAcorr.eq.0) then
@@ -1614,7 +1614,7 @@ subroutine compute_autocorrelations()
         
         median = compute_median_real(Ntot(ic), allDat(ic,p,1:Ntot(ic)))
         !median = sum(selDat(ic,p,1:Ntot(ic)))/real(Ntot(ic))  !Replace median with mean
-        stdev  = compute_stdev_real(allDat(ic,p,1:Ntot(ic)),Ntot(ic),median)
+        stdev  = compute_stdev_real(Ntot(ic), allDat(ic,p,1:Ntot(ic)), median)
         
         do j=0,min(nAcorr,Ntot(ic)-1)
            do i=1,Ntot(ic)-j*j1
