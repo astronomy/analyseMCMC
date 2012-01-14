@@ -1380,178 +1380,32 @@ end function ra2lon
 function gmst(GPSsec)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdErr
-  use SUFR_constants, only: pi2
+  use SUFR_constants, only: pi2  ! 2*pi
   
   implicit none
   real(double), intent(in) :: GPSsec
   real(double) :: gmst,seconds,days,centuries,secCurrentDay
   real(double) :: gps0,leapseconds
   
-  gps0 = 630720013.d0 !GPS time at 1/1/2000 at midnight
-  leapseconds = 32.d0 !At Jan 1st 2000
-  if(GPSsec.gt.820108813.d0) leapseconds = leapseconds + 1.d0 !One more leapsecond after 1/1/2006
-  if(GPSsec.gt.914803214.d0) leapseconds = leapseconds + 1.d0 !One more leapsecond after 1/1/2009
+  gps0 = 630720013.d0  ! GPS time at 1/1/2000 at midnight
+  leapseconds = 32.d0  ! At Jan 1st 2000
+  if(GPSsec.gt.820108813.d0) leapseconds = leapseconds + 1.d0  ! leapsecond after 1/1/2006
+  if(GPSsec.gt.914803214.d0) leapseconds = leapseconds + 1.d0  ! leapsecond after 1/1/2009
   if(GPSsec.lt.630720013.d0) write(stdErr,'(A)')'   WARNING: GMSTs before 01/01/2000 are inaccurate!'
   
-  !Time since 1/1/2000 midnight
+  ! Time since 1/1/2000 midnight:
   seconds       = (GPSsec - gps0) + (leapseconds - 32.d0)
   days          = floor(seconds/86400.d0) - 0.5d0
   secCurrentDay = mod(seconds, 86400.d0)
   centuries     = days/36525.d0
   gmst = 24110.54841d0 + (centuries*(8640184.812866d0 + centuries*(0.093104d0 + centuries*6.2d-6)))
-  gmst = gmst + secCurrentDay * 1.002737909350795d0   !UTC day is 1.002 * MST day
+  gmst = gmst + secCurrentDay * 1.002737909350795d0   ! UTC day is 1.002 * MST day
   gmst = mod(gmst/86400.d0,1.d0)
   gmst = gmst * pi2
   
 end function gmst
 !***********************************************************************************************************************************
 
-
-
-!***********************************************************************************************************************************
-!> \brief  Sort an array and return a list of sorted indices
-!!
-!! \param  n     Dimension of arr and indx
-!! \param  arr   Data array to be sorted
-!!
-!! \retval indx  Array with sorted indices
-
-subroutine dindexx(n, arr, indx)
-  use SUFR_kinds, only: double
-  
-  implicit none
-  integer, intent(in) :: n
-  real(double), intent(in) :: arr(n)
-  integer, intent(out) :: indx(n)
-  
-  integer, parameter :: m=7,nstack=50
-  real(double) :: a
-  integer :: i,indxt,ir,itemp,j,jstack,k,l,istack(nstack)
-  
-  do j=1,n
-     indx(j) = j
-  end do
-  
-  jstack = 0
-  l = 1
-  ir = n
-  
-1 continue
-  
-  if(ir-l.lt.m) then
-     do j=l+1,ir
-        indxt = indx(j)
-        a = arr(indxt)
-        do i=j-1,l,-1
-           if(arr(indx(i)).le.a) goto 2
-           indx(i+1) = indx(i)
-        end do
-        i = l-1
-2       continue
-        indx(i+1) = indxt
-     end do
-     
-     if(jstack.eq.0) return
-     
-     ir = istack(jstack)
-     l = istack(jstack-1)
-     jstack = jstack-2
-     
-  else
-     
-     k = (l+ir)/2
-     itemp = indx(k)
-     indx(k) = indx(l+1)
-     indx(l+1) = itemp
-     
-     if(arr(indx(l)).gt.arr(indx(ir))) then
-        itemp = indx(l)
-        indx(l) = indx(ir)
-        indx(ir) = itemp
-     end if
-     
-     if(arr(indx(l+1)).gt.arr(indx(ir))) then
-        itemp = indx(l+1)
-        indx(l+1) = indx(ir)
-        indx(ir) = itemp
-     end if
-     
-     if(arr(indx(l)).gt.arr(indx(l+1))) then
-        itemp = indx(l)
-        indx(l) = indx(l+1)
-        indx(l+1) = itemp
-     end if
-     
-     i = l+1
-     j = ir
-     indxt = indx(l+1)
-     a = arr(indxt)
-     
-3    continue
-     i = i+1
-     if(arr(indx(i)).lt.a) goto 3
-     
-4    continue
-     j = j-1
-     if(arr(indx(j)).gt.a) goto 4
-     
-     if(j.lt.i) goto 5
-     
-     itemp = indx(i)
-     indx(i) = indx(j)
-     indx(j) = itemp
-     
-     goto 3
-     
-5    indx(l+1) = indx(j)
-     indx(j) = indxt
-     jstack = jstack+2
-     
-     !if(jstack.gt.nstack)pause 'nstack too small in indexx'
-     if(jstack.gt.nstack) write(0,'(A)')' nstack too small in dindexx'
-     
-     if(ir-i+1.ge.j-l) then
-        istack(jstack) = ir
-        istack(jstack-1) = i
-        ir = j-1
-     else
-        istack(jstack) = j-1
-        istack(jstack-1) = l
-        l = i
-     end if
-     
-  end if
-  
-  goto 1
-  
-end subroutine dindexx
-!***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
-!> \brief  Single-precision wrapper for sorting routine dindexx()
-!!
-!! \param  n     Dimension of arr and indx
-!! \param  arr   Data array to be sorted
-!!
-!! \retval indx  Array with sorted indices
-
-subroutine rindexx(n, arr, indx)
-  use SUFR_kinds, only: double
-  
-  implicit none
-  integer, intent(in) :: n
-  real, intent(in) :: arr(n)
-  integer, intent(out) :: indx(n)
-  
-  real(double) :: darr(n)
-  
-  darr = dble(arr)
-  
-  call dindexx(n,darr,indx)
-  
-end subroutine rindexx
-!***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************

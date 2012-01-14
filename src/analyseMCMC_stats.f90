@@ -30,6 +30,8 @@ subroutine statistics(exitcode)
   use SUFR_kinds, only: realkindmax
   use SUFR_constants, only: stdOut
   use SUFR_constants, only: rc3rd,rr2d,rr2h,rpi,rpi2
+  use SUFR_sorting, only: sorted_index_list
+  
   use analysemcmc_settings, only: changeVar,prProgress,mergeChains,wrapData,saveStats,prCorr,ivals,ival0,prStat,prIval,Nival,Nburn
   use analysemcmc_settings, only: prConv,wikioutput,plAcorr,prAcorr,maxMCMCpar,maxChs
   use general_data, only: allDat,selDat,startval,shIvals,wrap,shifts,stats,ranges,nChains0,Ntot,nChains,n,raShift,contrChain
@@ -127,7 +129,7 @@ subroutine statistics(exitcode)
         if(wrapData.eq.0 .or. &
              (parID(p).ne.31.and.parID(p).ne.41.and.parID(p).ne.52.and.parID(p).ne.54.and.parID(p).ne.73.and.parID(p).ne.83) ) &
              then  !Not RA, phi_c, psi, phi_Jo, phi_1,2
-           call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))
+           call sorted_index_list(n(ic), dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
            if(parID(p).eq.31) raCentre = rpi                      !Plot 0-24h when not wrapping -> centre = 12h = pi
            cycle !No wrapping necessary
@@ -165,7 +167,7 @@ subroutine statistics(exitcode)
         do i=1,n(ic)
            selDat(ic,p,i) = revper(selDat(ic,p,i),shIval)          !Bring selDat(i) between 0 and shIval
         end do
-        call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))
+        call sorted_index_list(n(ic), dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))
         indexx(p,1:n(ic)) = index1(1:n(ic))
         
         y1 = 0.
@@ -215,7 +217,7 @@ subroutine statistics(exitcode)
         if(parID(p).eq.31.and.ic.eq.1) raCentre = centre                                   !Save RA centre to plot sky map
         
         minrange = y2-y1
-        call rindexx(n(ic),selDat(ic,p,1:n(ic)),index1(1:n(ic)))  !Re-sort
+        call sorted_index_list(n(ic), dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))         ! Re-sort
         indexx(p,1:n(ic)) = index1(1:n(ic))
         
         !If centre is around shIval2, still needs to be flagged 'wrap' to plot PDF:

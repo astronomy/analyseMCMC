@@ -29,6 +29,7 @@ subroutine animation(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   use SUFR_constants, only: cursorup, pi
   use SUFR_statistics, only: determine_nbin_1d
+  use SUFR_sorting, only: sorted_index_list
   
   use analysemcmc_settings, only: plAnim,Nbin1D,update,plot,prProgress,maxChs,nAnimFrames,file,ivals,Nburn,maxMCMCpar,scrSz,scrRat
   use analysemcmc_settings, only: colour,whiteBG,animScheme,plInject,plStart,chainSymbol,plBurn,chainPlI,fillPDF,mergeChains
@@ -115,9 +116,9 @@ subroutine animation(exitcode)
      if(nplt.gt.Nburn(ic)) then
         
         !Determine the median
-        !call rindexx(nplt-Nburn(ic),allDat(ic,p,1:nplt-Nburn(ic)),index(p,1:nplt-Nburn(ic)))  !Sort
+        !call sorted_index_list(nplt-Nburn(ic), dble(allDat(ic,p,1:nplt-Nburn(ic))), index(p,1:nplt-Nburn(ic)))  !Sort
         x(ic,1:nplt-Nburn(ic)) = allDat(ic,p,Nburn(ic)+1:nplt)
-        call rindexx(nplt-Nburn(ic),x(ic,1:nplt-Nburn(ic)),index(p,1:nplt-Nburn(ic)))  !Sort
+        call sorted_index_list(nplt-Nburn(ic), dble(x(ic,1:nplt-Nburn(ic))), index(p,1:nplt-Nburn(ic)))  !Sort
         !print*,x(ic,index(p,1:nplt-Nburn(ic)))
         
         if(mod(nplt-Nburn(ic),2).eq.0) then

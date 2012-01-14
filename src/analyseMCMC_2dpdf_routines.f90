@@ -340,6 +340,8 @@ end subroutine bindata2da
 subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   use SUFR_constants, only: stdOut
   use SUFR_constants, only: rd2r
+  use SUFR_sorting, only: sorted_index_list
+  
   use analysemcmc_settings, only: changeVar,ivals,prProgress
   use mcmcrun_data, only: parID
   
@@ -380,7 +382,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   
   nn = nx*ny
   x1 = reshape(z,(/nn/))                 ! x1 is an 1D array with the same data as the 2D array z
-  call rindexx(nn,-x1(1:nn),indx(1:nn))  ! -x1: sort the 1D array to descending value
+  call sorted_index_list(nn, dble(-x1(1:nn)), indx(1:nn))  ! -x1: sort the 1D array to descending value
   
   np = sum(z)
   tot = 0.
