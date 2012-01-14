@@ -26,6 +26,8 @@
 
 subroutine chains(exitcode)
   use SUFR_constants, only: stdOut,stdErr
+  use SUFR_statistics, only: compute_median_real
+  
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: plLogL,update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality,scLogLpl
   use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,plChain,fontsize1d,nPlPar,panels,plPars,scChainsPl,changeVar
@@ -40,7 +42,7 @@ subroutine chains(exitcode)
   integer, intent(out) :: exitcode
   
   integer :: i,j,pgopen,imin,ci,lw,symbol,io,ic,p,status,system
-  real :: rev360,rev24,rev180,compute_median_real
+  real :: rev360,rev24,rev180
   real :: dx,dy,xmin,xmax,ymin,ymax,sch,plx,ply
   character :: title*(99), tempfile*(199), convopts*(99)
   logical :: ex
@@ -1154,7 +1156,7 @@ subroutine chains(exitcode)
         call pgsls(1)
         !write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', mean length:',sum(lAcorrs(1:nChains0,p))/real(nChains0)
         write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', med. length:', &
-             compute_median_real(lAcorrs(1:nChains0,p),nChains0)
+             compute_median_real(nChains0, lAcorrs(1:nChains0,p))
         call pgmtxt('T',1.,0.5,0.5,trim(title))
      end do
      

@@ -713,6 +713,8 @@ end subroutine read_mcmcfiles
 !> \brief  Convert parameter names to integer IDs
 !!
 !! \param  parNameStr  String containing parameter names
+!! \param  nMCMCpar    Number of (primary and secondary) MCMC parameters
+!!
 !! \retval parID       Array of parameter IDs
 
 subroutine parNames2IDs(parNameStr,nMCMCpar, parID)
@@ -766,6 +768,7 @@ end subroutine parNames2IDs
 subroutine mcmcruninfo(exitcode)  
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdOut,stdErr
+  use SUFR_statistics, only: compute_median_real
   use aM_constants, only: waveforms,detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
@@ -783,7 +786,7 @@ subroutine mcmcruninfo(exitcode)
   implicit none
   integer, intent(out) :: exitcode
   integer :: i,ic,j,p,maxLine
-  real :: avgtotthin,compute_median_real
+  real :: avgtotthin
   real(double) :: lon2ra,gmst
   character :: infile*(99)
   
@@ -959,7 +962,7 @@ subroutine mcmcruninfo(exitcode)
   if(prChainInfo.ge.1.and.update.ne.1) &
        write(stdOut,'(4x,A, A,ES10.3, A,ES10.3, A,I4, A,ES9.2,   A,ES10.3,  A2,F5.1, A,I3,A1,I2,A1)') &
        'All chains:','  # lines:',real(totlines), ',  # iterations:',real(totiter), ',  thinning:',nint(avgtotthin), &
-       'x,  med.burnin:',compute_median_real(real(isburn(1:nChains0)),nChains0),   ',  # dat.pts after burnin:',real(totpts), &
+       'x,  med.burnin:',compute_median_real(nChains0, real(isburn(1:nChains0))),   ',  # dat.pts after burnin:',real(totpts), &
        ' (',real(totpts)/real(totlines)*100,'%), contrib.chains:',contrChains,'/',nchains0,'.'
   
   
@@ -2467,58 +2470,6 @@ subroutine determine_nbin_1d(npoints,nbin)
   nbin = max(nbin,5)
   
 end subroutine determine_nbin_1d
-!***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
-!> \brief  Compute the median of a data array (double precision)
-!! 
-!! \param data  Data set
-!! \param ni    Number of data points in data set
-
-function compute_median(data,ni)
-  use SUFR_kinds, only: double
-  implicit none
-  integer, intent(in) :: ni
-  real(double), intent(in) :: data(ni)
-  
-  integer :: indexx(ni)
-  real(double) :: compute_median
-  
-  ! Sort the array:
-  call dindexx(ni,data,indexx)
-  
-  ! Determine the median:
-  if(mod(ni,2).eq.0) then
-     compute_median = 0.5*(data(indexx(ni/2)) + data(indexx(ni/2+1)))  ! ni is even
-  else
-     compute_median = data(indexx((ni+1)/2))                           ! ni is odd
-  end if
-  
-end function compute_median
-!***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
-!> \brief  Compute the median of a data array (single-precision wrapper)
-!! 
-!! \param datar  Data set
-!! \param ni     Number of data points in data set
-
-function compute_median_real(datar,ni)
-  use SUFR_kinds, only: double
-  implicit none
-  integer, intent(in) :: ni
-  real, intent(in) :: datar(ni)
-  
-  real :: compute_median_real
-  real(double) :: datad(ni),mediand,compute_median
-  
-  datad = dble(datar)
-  mediand = compute_median(datad,ni)
-  compute_median_real = real(mediand)
-  
-end function compute_median_real
 !***********************************************************************************************************************************
 
 
