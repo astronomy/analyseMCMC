@@ -63,6 +63,7 @@ program analyseMCMC
   use SUFR_kinds, only: double,dbl
   use SUFR_constants, only: stdOut,stdErr, set_SUFR_constants
   use SUFR_constants, only: workdir,hostname,username,currenttimezonestr,currenttimestr,currentdatestr
+  use SUFR_random_numbers, only: get_ran_seed
   use SUFR_system, only: quit_program_error
   
   use aM_constants, only: os, stdOutFile, use_PLplot
@@ -77,7 +78,7 @@ program analyseMCMC
   use plot_data, only: unSharppdf2d,psclr,ncolours,nsymbols,defcolour
   
   implicit none
-  integer :: i,ic,io,exitcode,tempintarray(99),getos,get_ran_seed,status,system
+  integer :: i,ic,io,exitcode,tempintarray(99),getos,status,system
   real(double) :: timestamp,timestamps(9)  ! Time the progress of the code.
   character :: infile*(99)
   logical :: ex,timing

@@ -28,6 +28,8 @@ subroutine animation(exitcode)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdOut,stdErr
   use SUFR_constants, only: cursorup, pi
+  use SUFR_statistics, only: determine_nbin_1d
+  
   use analysemcmc_settings, only: plAnim,Nbin1D,update,plot,prProgress,maxChs,nAnimFrames,file,ivals,Nburn,maxMCMCpar,scrSz,scrRat
   use analysemcmc_settings, only: colour,whiteBG,animScheme,plInject,plStart,chainSymbol,plBurn,chainPlI,fillPDF,mergeChains
   use analysemcmc_settings, only: normPDF1D,smooth,changeVar
@@ -59,7 +61,7 @@ subroutine animation(exitcode)
   
   !Autodetermine number of bins:
   if(Nbin1D.le.0) then
-     call determine_nbin_1d(totpts,Nbin1D)
+     Nbin1D = determine_nbin_1d(totpts)
      if(prProgress.ge.2.and.plot.eq.1.and.update.eq.0) then
         if(Nbin1D.lt.100) write(stdOut,'(A2,I2,A8)',advance="no")' (',Nbin1D,' bins), '
         if(Nbin1D.ge.100) write(stdOut,'(A2,I3,A8)',advance="no")' (',Nbin1D,' bins), '

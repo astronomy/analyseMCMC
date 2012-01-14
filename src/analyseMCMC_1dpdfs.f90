@@ -26,6 +26,8 @@
 
 subroutine pdfs1d(exitcode)
   use SUFR_constants, only: stdOut,stdErr, rpi2
+  use SUFR_statistics, only: determine_nbin_1d
+  
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: plLmax,fontsize1d,nPlPar,panels,plPars,changeVar
@@ -59,7 +61,7 @@ subroutine pdfs1d(exitcode)
   
   ! Autodetermine number of bins:
   if(Nbin1D.le.0) then
-     call determine_nbin_1d(totpts,Nbin1D)
+     Nbin1D = determine_nbin_1d(totpts)
   else
      Nbin1D = max(Nbin1D,5)
   end if
