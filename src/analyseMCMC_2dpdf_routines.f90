@@ -382,7 +382,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   
   nn = nx*ny
   x1 = reshape(z,(/nn/))                 ! x1 is an 1D array with the same data as the 2D array z
-  call sorted_index_list(nn, dble(-x1(1:nn)), indx(1:nn))  ! -x1: sort the 1D array to descending value
+  call sorted_index_list(dble(-x1(1:nn)), indx(1:nn))  ! -x1: sort the 1D array to descending value
   
   np = sum(z)
   tot = 0.

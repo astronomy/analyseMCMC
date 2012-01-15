@@ -1156,7 +1156,7 @@ subroutine chains(exitcode)
         call pgsls(1)
         !write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', mean length:',sum(lAcorrs(1:nChains0,p))/real(nChains0)
         write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', med. length:', &
-             compute_median_real(nChains0, lAcorrs(1:nChains0,p))
+             compute_median_real(lAcorrs(1:nChains0,p))
         call pgmtxt('T',1.,0.5,0.5,trim(title))
      end do
      

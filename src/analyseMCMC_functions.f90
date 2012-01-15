@@ -962,7 +962,7 @@ subroutine mcmcruninfo(exitcode)
   if(prChainInfo.ge.1.and.update.ne.1) &
        write(stdOut,'(4x,A, A,ES10.3, A,ES10.3, A,I4, A,ES9.2,   A,ES10.3,  A2,F5.1, A,I3,A1,I2,A1)') &
        'All chains:','  # lines:',real(totlines), ',  # iterations:',real(totiter), ',  thinning:',nint(avgtotthin), &
-       'x,  med.burnin:',compute_median_real(nChains0, real(isburn(1:nChains0))),   ',  # dat.pts after burnin:',real(totpts), &
+       'x,  med.burnin:',compute_median_real(real(isburn(1:nChains0))),   ',  # dat.pts after burnin:',real(totpts), &
        ' (',real(totpts)/real(totlines)*100,'%), contrib.chains:',contrChains,'/',nchains0,'.'
   
   

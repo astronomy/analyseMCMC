@@ -129,7 +129,7 @@ subroutine statistics(exitcode)
         if(wrapData.eq.0 .or. &
              (parID(p).ne.31.and.parID(p).ne.41.and.parID(p).ne.52.and.parID(p).ne.54.and.parID(p).ne.73.and.parID(p).ne.83) ) &
              then  !Not RA, phi_c, psi, phi_Jo, phi_1,2
-           call sorted_index_list(n(ic), dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))
+           call sorted_index_list(dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
            if(parID(p).eq.31) raCentre = rpi                      !Plot 0-24h when not wrapping -> centre = 12h = pi
            cycle !No wrapping necessary
@@ -167,7 +167,7 @@ subroutine statistics(exitcode)
         do i=1,n(ic)
            selDat(ic,p,i) = revper(selDat(ic,p,i),shIval)          !Bring selDat(i) between 0 and shIval
         end do
-        call sorted_index_list(n(ic), dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))
+        call sorted_index_list(dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))
         indexx(p,1:n(ic)) = index1(1:n(ic))
         
         y1 = 0.
@@ -217,7 +217,7 @@ subroutine statistics(exitcode)
         if(parID(p).eq.31.and.ic.eq.1) raCentre = centre                                   !Save RA centre to plot sky map
         
         minrange = y2-y1
-        call sorted_index_list(n(ic), dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))         ! Re-sort
+        call sorted_index_list(dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))         ! Re-sort
         indexx(p,1:n(ic)) = index1(1:n(ic))
         
         !If centre is around shIval2, still needs to be flagged 'wrap' to plot PDF:
@@ -1557,7 +1557,7 @@ subroutine compute_convergence()
      end do
      !write(stdOut,'(F9.4)')totRhat/dble(nRhat)          !Arithmetic mean
      !write(stdOut,'(F9.4)')totRhat**(1.d0/dble(nRhat))  !Geometric mean
-     write(stdOut,'(F9.4,A)')compute_median(nMCMCpar, Rhat(1:nMCMCpar)),' (med)'  !Median
+     write(stdOut,'(F9.4,A)')compute_median(Rhat(1:nMCMCpar)),' (med)'  !Median
   end if
   
 end subroutine compute_convergence
@@ -1614,9 +1614,9 @@ subroutine compute_autocorrelations()
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  !Varying parameters only
         
-        median = compute_median_real(Ntot(ic), allDat(ic,p,1:Ntot(ic)))
+        median = compute_median_real(allDat(ic,p,1:Ntot(ic)))
         !median = sum(selDat(ic,p,1:Ntot(ic)))/real(Ntot(ic))  !Replace median with mean
-        stdev  = compute_stdev_real(Ntot(ic), allDat(ic,p,1:Ntot(ic)), median)
+        stdev  = compute_stdev_real(allDat(ic,p,1:Ntot(ic)), median)
         
         do j=0,min(nAcorr,Ntot(ic)-1)
            do i=1,Ntot(ic)-j*j1
@@ -1631,7 +1631,7 @@ subroutine compute_autocorrelations()
         if(prAcorr.ge.2) write(stdOut,'(ES9.1)',advance="no")lAcorrs(ic,p)
      end do !p
      
-     if(prAcorr.ge.2) write(stdOut,'(ES11.1)') compute_median_real(nMCMCpar, lAcorrs(ic,1:nMCMCpar))
+     if(prAcorr.ge.2) write(stdOut,'(ES11.1)') compute_median_real(lAcorrs(ic,1:nMCMCpar))
   end do !ic
   
   
@@ -1642,10 +1642,10 @@ subroutine compute_autocorrelations()
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  !Varying parameters only
         np = np+1
-        medians(np) = compute_median_real(nChains0, lAcorrs(1:nChains0,p))
+        medians(np) = compute_median_real(lAcorrs(1:nChains0,p))
         write(stdOut,'(ES9.1)',advance="no")medians(np)
      end do
-     write(stdOut,'(ES11.1)') compute_median_real(np, medians(1:np))
+     write(stdOut,'(ES11.1)') compute_median_real(medians(1:np))
   end if
   
 end subroutine compute_autocorrelations

@@ -116,9 +116,9 @@ subroutine animation(exitcode)
      if(nplt.gt.Nburn(ic)) then
         
         !Determine the median
-        !call sorted_index_list(nplt-Nburn(ic), dble(allDat(ic,p,1:nplt-Nburn(ic))), index(p,1:nplt-Nburn(ic)))  !Sort
+        !call sorted_index_list(dble(allDat(ic,p,1:nplt-Nburn(ic))), index(p,1:nplt-Nburn(ic)))  !Sort
         x(ic,1:nplt-Nburn(ic)) = allDat(ic,p,Nburn(ic)+1:nplt)
-        call sorted_index_list(nplt-Nburn(ic), dble(x(ic,1:nplt-Nburn(ic))), index(p,1:nplt-Nburn(ic)))  !Sort
+        call sorted_index_list(dble(x(ic,1:nplt-Nburn(ic))), index(p,1:nplt-Nburn(ic)))  !Sort
         !print*,x(ic,index(p,1:nplt-Nburn(ic)))
         
         if(mod(nplt-Nburn(ic),2).eq.0) then
