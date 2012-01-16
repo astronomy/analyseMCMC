@@ -128,18 +128,18 @@ end subroutine bindata2dold
 !***********************************************************************************************************************************
 !> \brief Bin data in 2 dimensions - computing the bin number rather than searching for it is ~10x faster
 !! 
-!! \param n  Number of input data points (integer)
-!! \param x  Input data: x values (real)
-!! \param y  Input data: y values (real)
-!! \param norm  Normalise the bins (1) or not (0) (integer)
+!! \param n  Number of input data points
+!! \param x  Input data: x values
+!! \param y  Input data: y values
+!! \param norm  Normalise the bins (1) or not (0)
 !! \param nxbin  Desired number of bins in the x direction
 !! \param nybin  Desired number of bins in the y direction
-!! \param xmin1  Lower limit for the binning range in the x direction - autodetermine if xmin1=xmax1 (real)
-!! \param xmax1  Upper limit for the binning range in the x direction - autodetermine if xmin1=xmax1 (real)
-!! \param ymin1  Lower limit for the binning range in the y direction - autodetermine if ymin1=ymax1 (real)
-!! \param ymax1  Upper limit for the binning range in the y direction - autodetermine if ymin1=ymax1 (real)
-!! \retval z     Binned data set z(nxbin,nybin) (real)
-!! \retval tr    Transformation elements for pgplot tr(6) (real)
+!! \param xmin1  Lower limit for the binning range in the x direction - autodetermine if xmin1=xmax1
+!! \param xmax1  Upper limit for the binning range in the x direction - autodetermine if xmin1=xmax1
+!! \param ymin1  Lower limit for the binning range in the y direction - autodetermine if ymin1=ymax1
+!! \param ymax1  Upper limit for the binning range in the y direction - autodetermine if ymin1=ymax1
+!! \retval z     Binned data set z(nxbin,nybin)
+!! \retval tr    Transformation elements for pgplot tr(6)
 
 subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)
   
@@ -148,20 +148,22 @@ subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)
   real, intent(in) :: x(n),y(n)
   real, intent(inout) :: xmin1,xmax1,ymin1,ymax1
   real, intent(out) :: z(nxbin+1,nybin+1),tr(6)
+  
   integer :: i,bx,by
   real :: xmin,xmax,ymin,ymax,dx,dy
+  
   
   xmin = xmin1
   xmax = xmax1
   ymin = ymin1
   ymax = ymax1
   
-  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then !Autodetermine
+  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then  ! Autodetermine x ranges
      xmin = minval(x(1:n))
      xmax = maxval(x(1:n))
   end if
   dx = abs(xmax - xmin)/real(nxbin)
-  if(abs((ymin-ymax)/(ymax+1.e-30)).lt.1.e-20) then !Autodetermine
+  if(abs((ymin-ymax)/(ymax+1.e-30)).lt.1.e-20) then  ! Autodetermine y ranges
      ymin = minval(y(1:n))
      ymax = maxval(y(1:n))
   end if
