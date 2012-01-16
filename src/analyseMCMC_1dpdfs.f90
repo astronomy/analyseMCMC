@@ -26,7 +26,7 @@
 
 subroutine pdfs1d(exitcode)
   use SUFR_constants, only: stdOut,stdErr, rpi2
-  use SUFR_statistics, only: determine_nbin_1d
+  use SUFR_statistics, only: determine_nbin_1d, bin_data_1d
   
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
@@ -76,7 +76,7 @@ subroutine pdfs1d(exitcode)
   
   ! Allocate memory:
   allocate(xbin(maxChs,Nbin1D+1),ybin(maxChs,Nbin1D+1),xbin1(Nbin1D+1), &
-       ybin1(Nbin1D+1),ysum(Nbin1D+1),yconv(Nbin1D+1),ycum(Nbin1D+1))
+       ybin1(Nbin1D+1),ysum(Nbin1D+1),yconv(Nbin1D+1),ycum(Nbin1D+1))  ! n+1 since we must plot the LH and RH sides the bins
   
   if(plot.eq.1) then
      
@@ -229,11 +229,12 @@ subroutine pdfs1d(exitcode)
            !xmax1 = xmax + 0.1*dx
         end if
         
-        call bindata1d(n(ic),x(ic,1:n(ic)),1,Nbin1D,xmin1,xmax1,xbin1,ybin1)
+        ! Bin data:
+        call bin_data_1d(x(ic,1:n(ic)), Nbin1D, .true.,-1, xmin1,xmax1, xbin1,ybin1)
         
         ! Weigh with likelihood.  I should probably do something like this at the start, to get updated ranges etc.:
         !y(ic,1:n(ic)) = selDat(ic,1,1:n(ic))
-        !call bindata1da(n(ic),x(ic,1:n(ic)),y(ic,1:n(ic)),1,Nbin1D,xmin1,xmax1,xbin1,ybin1) !Measure amount of L in each bin
+        !call bin_data_1d_a(n(ic),x(ic,1:n(ic)),y(ic,1:n(ic)),1,Nbin1D,xmin1,xmax1,xbin1,ybin1) !Measure amount of L in each bin
         
         if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.72.or.parID(p).eq.82.or.parID(p).eq.32.or.parID(p).eq.53) then
            if(ybin1(1).gt.ybin1(2)) ybin1(1)=0.
@@ -707,119 +708,52 @@ end subroutine pdfs1d
 
 
 !***********************************************************************************************************************************
-!> \brief  Bin data 1D by counting the number of points in each bin
-!! 
-!! \param n      Number of data points
-!! \param x      Data to be binned (n points)
-!! \param norm   Normalise histogram (1) or not (0)
-!! \param nbin   Desired number of bins
-!! \param xmin1  Minimum value of the binning range.  Set xmin=xmax to auto-determine (I/O)
-!! \param xmax1  Maximum value of the binning range.  Set xmin=xmax to auto-determine (I/O)
-!! \retval xbin  Binned data, location of the bins.  The x values are the left side of the bin!
-!! \retval ybin  Binned data, height of the bins.
-
-subroutine bindata1d(n,x,norm,nbin,xmin1,xmax1,xbin,ybin)
-  implicit none
-  integer, intent(in) :: n,nbin,norm
-  real, intent(in) :: x(n)
-  real, intent(inout) :: xmin1,xmax1
-  real, intent(out) :: xbin(nbin+1),ybin(nbin+1)
-  integer :: i,k
-  real :: xmin,xmax,dx
-  
-  xmin = xmin1
-  xmax = xmax1
-  
-  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then  !Autodetermine
-     xmin = minval(x(1:n))
-     xmax = maxval(x(1:n))
-     xmin1 = xmin                                    !And return new values
-     xmax1 = xmax
-  end if
-  dx = abs(xmax - xmin)/real(nbin)
-  
-  do k=1,nbin+1
-     !xbin(k) = xmin + (real(k)-0.5)*dx  !x is the centre of the bin
-     xbin(k) = xmin + (k-1)*dx          !x is the left of the bin
-  end do
-  
-  !ybintot=0.
-  ybin = 0.
-  do i=1,n
-     do k=1,nbin
-        if(x(i).ge.xbin(k)) then
-           if(x(i).lt.xbin(k+1)) then
-              ybin(k) = ybin(k) + 1.
-              exit !If point i fits in this bin, don't try the others
-           end if
-        end if
-     end do !k (bin)
-     !ybintot = ybintot + ybin(k)
-  end do
-  !if(norm.eq.1) ybin = ybin/(ybintot+1.e-30)
-  if(norm.eq.1) ybin = ybin/(sum(ybin)+1.e-30)
-  
-end subroutine bindata1d
-!***********************************************************************************************************************************
-
-
-
-!***********************************************************************************************************************************
 !> \brief  "Bin data" 1D by measuring the amount of likelihood in each bin
 !! 
-!! \param n      Number of data points
-!! \param x      Data to be binned (n points)
-!! \param y      Likelihoods of the n points
-!! \param norm   Normalise histogram (1) or not (0)
-!! \param nbin   Desired number of bins
-!! \param xmin1  Minimum value of the binning range.  Set xmin=xmax to auto-determine (I/O)
-!! \param xmax1  Maximum value of the binning range.  Set xmin=xmax to auto-determine (I/O)
+!! \param  ndat  Number of data points
+!! \param  xdat  Data to be binned (n points)
+!! \param  ydat  Likelihoods of the n points
+!! \param  norm  Normalise histogram (1) or not (0)
+!! \param  nbin  Desired number of bins
+!! \param  xmin  Minimum value of the binning range.  Set xmin=xmax to auto-determine (I/O)
+!! \param  xmax  Maximum value of the binning range.  Set xmin=xmax to auto-determine (I/O)
 !!
 !! \retval xbin  Binned data, location of the bins.  The x values are the left side of the bin!
 !! \retval ybin  Binned data, height of the bins.
 
-subroutine bindata1da(n,x,y, norm,nbin,xmin1,xmax1, xbin,ybin)
+subroutine bin_data_1d_a(ndat,xdat,ydat, norm, nbin, xmin,xmax, xbin,ybin)
   implicit none
-  integer, intent(in) :: n,nbin,norm
-  real, intent(in) :: x(n),y(n)
-  real, intent(inout) :: xmin1,xmax1
+  integer, intent(in) :: ndat,nbin,norm
+  real, intent(in) :: xdat(ndat),ydat(ndat)
+  real, intent(inout) :: xmin,xmax
   real, intent(out) :: xbin(nbin+1),ybin(nbin+1)
   integer :: i,k
-  real :: xmin,xmax,dx,ymin,ybintot
+  real :: dx, ymin,ybintot
   
-  xmin = xmin1
-  xmax = xmax1
-  ymin = minval(y)
-  !print*,n,nbin,xmin1,xmax1
-  !print*,minval(y),maxval(y)
+  ymin = minval(ydat)
   
   if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then  ! Autodetermine
-     xmin = minval(x(1:n))
-     xmax = maxval(x(1:n))
+     xmin = minval(xdat(1:ndat))
+     xmax = maxval(xdat(1:ndat))
   end if
   dx = abs(xmax - xmin)/real(nbin)
   
   do k=1,nbin+1
-     !        xbin(k) = xmin + (real(k)-0.5)*dx  !x is the centre< of the bin
+     !xbin(k) = xmin + (real(k)-0.5)*dx  !x is the centre< of the bin
      xbin(k) = xmin + (k-1)*dx          !x is the left of the bin
   end do
   ybintot=0.
   do k=1,nbin
      ybin(k) = 0.
-     do i=1,n
-        !if(x(i).ge.xbin(k).and.x(i).lt.xbin(k+1)) ybin(k) = ybin(k) + 1.
-        if(x(i).ge.xbin(k).and.x(i).lt.xbin(k+1)) ybin(k) = ybin(k) + exp(y(i) - ymin)
+     do i=1,ndat
+        !if(xdat(i).ge.xbin(k).and.xdat(i).lt.xbin(k+1)) ybin(k) = ybin(k) + 1.
+        if(xdat(i).ge.xbin(k).and.xdat(i).lt.xbin(k+1)) ybin(k) = ybin(k) + exp(ydat(i) - ymin)
      end do
      ybintot = ybintot + ybin(k)
   end do
   if(norm.eq.1) ybin = ybin/(ybintot+1.e-30)
   
-  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then   ! Autodetermine
-     xmin1 = xmin
-     xmax1 = xmax
-  end if
-  
-end subroutine bindata1da
+end subroutine bin_data_1d_a
 !***********************************************************************************************************************************
 
 
