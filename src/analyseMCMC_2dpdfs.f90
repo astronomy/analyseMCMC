@@ -28,6 +28,7 @@ subroutine pdfs2d(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   use SUFR_constants, only: cursorup, pi,rpi,rh2r
   use SUFR_system, only: warn
+  use SUFR_statistics, only: bin_data_2d
   
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
@@ -311,7 +312,7 @@ subroutine pdfs2d(exitcode)
         if(normPDF2D.le.2.or.normPDF2D.eq.4) then
            
            ! Bin data:  compute bin number rather than find it, ~10x faster:
-           call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin,xmax,ymin,ymax,z,tr)
+           call bin_data_2d( xx(1:n(ic)),yy(1:n(ic)), 0, Nbin2Dx,Nbin2Dy, xmin,xmax,ymin,ymax, z, tr )
            
            !Test
            !call check_binned_data(Nbin2Dx,Nbin2Dy,z)
@@ -324,7 +325,7 @@ subroutine pdfs2d(exitcode)
            !   ymax1 = ymax
            !   
            !   !Bin data:  compute bin number rather than find it, ~10x faster:
-           !   call bindata2d(n(ic),xx(1:n(ic)),yy(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin1,xmax1,ymin1,ymax1,z,tr)
+           !   call bin_data_2d(xx(1:n(ic)),yy(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin1,xmax1,ymin1,ymax1,z,tr)
            !   
            !   !Test!
            !   call check_binned_data(Nbin2Dx,Nbin2Dy,z)
@@ -364,7 +365,7 @@ subroutine pdfs2d(exitcode)
         if(normPDF2D.eq.3) then  ! Weigh by likelihood value
            if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  binning 2D data...'
            ! Measure amount of likelihood in each bin:
-           call bindata2da(n(ic),xx(1:n(ic)),yy(1:n(ic)),zz(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin,xmax,ymin,ymax,z,tr)
+           call bin_data_2d_a( xx(1:n(ic)),yy(1:n(ic)), zz(1:n(ic)), 0, Nbin2Dx,Nbin2Dy, xmin,xmax,ymin,ymax, z, tr )
         end if
         
         

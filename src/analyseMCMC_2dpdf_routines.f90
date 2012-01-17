@@ -126,105 +126,11 @@ end subroutine bindata2dold
 
 
 !***********************************************************************************************************************************
-!> \brief Bin data in 2 dimensions - computing the bin number rather than searching for it is ~10x faster
-!! 
-!! \param n  Number of input data points
-!! \param x  Input data: x values
-!! \param y  Input data: y values
-!! \param norm  Normalise the bins (1) or not (0)
-!! \param nxbin  Desired number of bins in the x direction
-!! \param nybin  Desired number of bins in the y direction
-!! \param xmin1  Lower limit for the binning range in the x direction - autodetermine if xmin1=xmax1
-!! \param xmax1  Upper limit for the binning range in the x direction - autodetermine if xmin1=xmax1
-!! \param ymin1  Lower limit for the binning range in the y direction - autodetermine if ymin1=ymax1
-!! \param ymax1  Upper limit for the binning range in the y direction - autodetermine if ymin1=ymax1
-!! \retval z     Binned data set z(nxbin,nybin)
-!! \retval tr    Transformation elements for pgplot tr(6)
-
-subroutine bindata2d(n,x,y,norm,nxbin,nybin,xmin1,xmax1,ymin1,ymax1,z,tr)
-  
-  implicit none
-  integer, intent(in) :: n, nxbin,nybin, norm
-  real, intent(in) :: x(n),y(n)
-  real, intent(inout) :: xmin1,xmax1,ymin1,ymax1
-  real, intent(out) :: z(nxbin+1,nybin+1),tr(6)
-  
-  integer :: i,bx,by
-  real :: xmin,xmax,ymin,ymax,dx,dy
-  
-  
-  xmin = xmin1
-  xmax = xmax1
-  ymin = ymin1
-  ymax = ymax1
-  
-  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then  ! Autodetermine x ranges
-     xmin = minval(x(1:n))
-     xmax = maxval(x(1:n))
-  end if
-  dx = abs(xmax - xmin)/real(nxbin)
-  if(abs((ymin-ymax)/(ymax+1.e-30)).lt.1.e-20) then  ! Autodetermine y ranges
-     ymin = minval(y(1:n))
-     ymax = maxval(y(1:n))
-  end if
-  dy = abs(ymax - ymin)/real(nybin)
-  
-  
-  
-  ! Determine transformation elements for pgplot (pggray, pgcont, pgimag):
-  tr(1) = xmin - dx/2.
-  tr(2) = dx
-  tr(3) = 0.
-  tr(4) = ymin - dy/2.
-  tr(5) = 0.
-  tr(6) = dy
-  
-  z = 0.
-  do i=1,n
-     bx = floor((x(i) - xmin)/dx) + 1 
-     by = floor((y(i) - ymin)/dy) + 1
-     !if(bx.lt.1.or.bx.gt.nxbin.or.by.lt.1.or.by.gt.nybin) then
-     !   if(bx.eq.0.or.bx.eq.nxbin+1) bx = max(min(bx,nxbin),1)  !Treat an error of 1 x bin as round-off
-     !   if(by.eq.0.or.by.eq.nybin+1) by = max(min(by,nybin),1)  !Treat an error of 1 y bin as round-off
-     !   
-     !   if(bx.lt.0.or.bx.gt.nxbin+1) then
-     !      !write(stdErr,'(A,I7,A2,F8.3,A,I4,A,I4,A1)') &
-     !'  Bindata2d:  error for X data point',i,' (',x(i),').  I found bin',bx,', but it should lie between 1 and',nxbin,'.'
-     !   else if(by.lt.0.or.by.gt.nybin+1) then
-     !      !write(stdErr,'(A,I7,A2,F8.3,A,I4,A,I4,A1)') &
-     !'  Bindata2d:  error for Y data point',i,' (',y(i),').  I found bin',by,', but it should lie between 1 and',nybin,'.'
-     !   else
-     !      z(bx,by) = z(bx,by) + 1.
-     !   end if
-     !else
-     !   z(bx,by) = z(bx,by) + 1.
-     !end if
-     if(bx.ge.1.and.bx.le.nxbin.and.by.ge.1.and.by.le.nybin) z(bx,by) = z(bx,by) + 1.  ! Don't treat 1-bin errors as round-off
-  end do
-  
-  !if(norm.eq.1) z = z/(ztot+1.e-30)
-  if(norm.eq.1) z = z/maxval(z+1.e-30)
-  
-  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  ! Autodetermine
-     xmin1 = xmin
-     xmax1 = xmax
-  end if
-  if(abs((ymin1-ymax1)/(ymax1+1.e-30)).lt.1.e-20) then  ! Autodetermine
-     ymin1 = ymin
-     ymax1 = ymax
-  end if
-  
-end subroutine bindata2d
-!***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
 !> \brief 'Bin data' in 2 dimensions  -  Measure the amount of likelihood in each bin
 !! 
-!! \param n      Number of input data points (integer)
-!! \param x      Input data: x values (real)
-!! \param y      Input data: y values (real)
-!! \param z      Input data: likelihood values
+!! \param xdat   Input data: x values (real)
+!! \param ydat   Input data: y values (real)
+!! \param zdat   Input data: likelihood values
 !!
 !! \param norm   Normalise the bins (1) or not (0) (integer)
 !! \param nxbin  Desired number of bins in the x direction
@@ -240,16 +146,21 @@ end subroutine bindata2d
 !!
 !! \todo  Should z be replaced?
 
-subroutine bindata2da(n, x,y,z, norm, nxbin,nybin, xmin1,xmax1,ymin1,ymax1, zz, tr)
-  
+subroutine bin_data_2d_a(xdat,ydat, zdat, norm, nxbin,nybin, xmin1,xmax1,ymin1,ymax1, zz, tr)
+  use SUFR_system, only: quit_program_error
   implicit none
-  integer, intent(in) :: n, norm, nxbin,nybin
+  integer, intent(in) :: norm, nxbin,nybin
   integer :: i,bx,by
-  real, intent(in) :: x(n),y(n)
-  real, intent(inout) :: z(n), xmin1,xmax1,ymin1,ymax1
+  real, intent(in) :: xdat(:),ydat(:)
+  real, intent(inout) :: zdat(:), xmin1,xmax1,ymin1,ymax1
   real, intent(out) :: zz(nxbin+1,nybin+1), tr(6)
   
+  integer :: ndat
   real :: xbin(nxbin+1),ybin(nybin+1), zztot, xmin,xmax,ymin,ymax, dx,dy ,zmin
+  
+  ndat = size(xdat)
+  if(size(ydat).ne.ndat) call quit_program_error('bin_data_2d(): data arrays xdat and ydat should have the same size',1)
+  if(size(zdat).ne.ndat) call quit_program_error('bin_data_2d(): data arrays xdat and zdat should have the same size',1)
   
   !write(stdOut,'(A4,5I8)')'n:',norm,nxbin,nybin
   !write(stdOut,'(A4,2F8.3)')'x:',xmin1,xmax1
@@ -259,16 +170,16 @@ subroutine bindata2da(n, x,y,z, norm, nxbin,nybin, xmin1,xmax1,ymin1,ymax1, zz, 
   xmax = xmax1
   ymin = ymin1
   ymax = ymax1
-  zmin = minval(z)
+  zmin = minval(zdat)
   
   if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then  ! Autodetermine
-     xmin = minval(x(1:n))
-     xmax = maxval(x(1:n))
+     xmin = minval(xdat(1:ndat))
+     xmax = maxval(xdat(1:ndat))
   end if
   dx = abs(xmax - xmin)/real(nxbin)
   if(abs((ymin-ymax)/(ymax+1.e-30)).lt.1.e-20) then  ! Autodetermine
-     ymin = minval(y(1:n))
-     ymax = maxval(y(1:n))
+     ymin = minval(ydat(1:ndat))
+     ymax = maxval(ydat(1:ndat))
   end if
   dy = abs(ymax - ymin)/real(nybin)
   do bx=1,nxbin+1
@@ -280,8 +191,8 @@ subroutine bindata2da(n, x,y,z, norm, nxbin,nybin, xmin1,xmax1,ymin1,ymax1, zz, 
      ybin(by) = ymin + (by-1)*dy           ! y is the left of the bin
   end do
   
-  !write(stdOut,'(50F5.2)'),x(1:50)
-  !write(stdOut,'(50F5.2)'),y(1:50)
+  !write(stdOut,'(50F5.2)'),xdat(1:50)
+  !write(stdOut,'(50F5.2)'),ydat(1:50)
   !write(stdOut,'(20F8.5)'),xbin
   !write(stdOut,'(20F8.5)'),ybin
   
@@ -290,20 +201,20 @@ subroutine bindata2da(n, x,y,z, norm, nxbin,nybin, xmin1,xmax1,ymin1,ymax1, zz, 
   do bx=1,nxbin
      do by=1,nybin
         zz(bx,by) = 0.
-        do i=1,n
-           !if(x(i).ge.xbin(bx).and.x(i).lt.xbin(bx+1) .and. y(i).ge.ybin(by).and.y(i).lt.ybin(by+1))  &
+        do i=1,ndat
+           !if(xdat(i).ge.xbin(bx).and.xdat(i).lt.xbin(bx+1) .and. ydat(i).ge.ybin(by).and.ydat(i).lt.ybin(by+1))  &
            !zz(bx,by) = zz(bx,by) + 1.
-           if(x(i).ge.xbin(bx).and.x(i).lt.xbin(bx+1) .and. y(i).ge.ybin(by).and.y(i).lt.ybin(by+1))  &
-                zz(bx,by) = zz(bx,by) + exp(z(i) - zmin)
-           !write(stdOut,'(2I4,8F10.5)')bx,by,x(i),xbin(bx),xbin(bx+1),y(i),ybin(by),ybin(by+1),zz(bx,by),z(i)
+           if(xdat(i).ge.xbin(bx).and.xdat(i).lt.xbin(bx+1) .and. ydat(i).ge.ybin(by).and.ydat(i).lt.ybin(by+1))  &
+                zz(bx,by) = zz(bx,by) + exp(zdat(i) - zmin)
+           !write(stdOut,'(2I4,8F10.5)')bx,by,xdat(i),xbin(bx),xbin(bx+1),ydat(i),ybin(by),ybin(by+1),zz(bx,by),zdat(i)
         end do
         zztot = zztot + zz(bx,by) 
         !write(stdOut,'(2I4,5x,4F6.3,5x,10I8)')bx,by,xbin(bx),xbin(bx+1),ybin(by),ybin(by+1),nint(zz(bx,by))
      end do
      !write(stdOut,'(I4,5x,2F6.3,5x,10I8)')bx,xbin(bx),xbin(bx+1),nint(zz(bx,1:nybin))
   end do
-  !if(norm.eq.1) z = z/(zztot+1.e-30)
-  if(norm.eq.1) z = z/maxval(z+1.e-30)
+  !if(norm.eq.1) zdat = zdat/(zztot+1.e-30)
+  if(norm.eq.1) zdat = zdat/maxval(zdat+1.e-30)
   
   if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  !Autodetermine
      xmin1 = xmin
@@ -322,7 +233,7 @@ subroutine bindata2da(n, x,y,z, norm, nxbin,nybin, xmin1,xmax1,ymin1,ymax1, zz, 
   tr(5) = 0.
   tr(6) = dy
   
-end subroutine bindata2da
+end subroutine bin_data_2d_a
 !***********************************************************************************************************************************
 
 
