@@ -999,6 +999,8 @@ subroutine mcmcruninfo(exitcode)
   
   
   !*** Change some MCMC parameters:
+  ! use SUFR_constants, only: pi
+
   if(changeVar.ge.1) then
      if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)',advance="no")'  Changing some parameters...   '
      
@@ -1029,10 +1031,17 @@ subroutine mcmcruninfo(exitcode)
                 ' to at least',nMCMCpar,' in order to continue.  Aborting...'
            stop
            end if
-        do ic=1,nchains0
-           allDat(ic,revID(67),1:ntot(ic)) = 10.0 ** (allDat(ic,revID(68),1:ntot(ic)))
-        end do
-     end if
+           do ic=1,nchains0
+              ! for phi > pi -> logq = -logq & phi = phi - pi                     
+              do j=1, ntot(ic)
+                 if(allDat(ic,revID(41),j).gt.3.14159265) then
+                    allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - 3.14159265
+                    allDat(ic,revID(68),j) = - allDat(ic,revID(68),j)
+                 end if
+              end do
+              allDat(ic,revID(67),1:ntot(ic)) = 10.0 ** (allDat(ic,revID(68),1:ntot(ic)))
+           end do
+        end if
      
      
      if(revID(62).eq.0 .and. revID(67).ne.0) then  ! Calculate eta and log(q) from q:
@@ -1048,6 +1057,13 @@ subroutine mcmcruninfo(exitcode)
            stop
            end if
         do ic=1,nchains0
+           ! for phi > pi -> q = 1/q & phi = phi - pi                                                                              
+           do j=1, ntot(ic)
+              if(allDat(ic,revID(41),j).gt.3.14159265) then
+                 allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - 3.14159265
+                 allDat(ic,revID(68),j) = 1.0 / allDat(ic,revID(68),j)
+              end if
+           end do
            allDat(ic,revID(62),1:ntot(ic)) = allDat(ic,revID(67),1:ntot(ic)) / (allDat(ic,revID(67),1:ntot(ic)) + 1.0 )**2   
            ! eta = q/(1+q)^2
            allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))
@@ -1093,7 +1109,7 @@ subroutine mcmcruninfo(exitcode)
      
      
      ! Compute total mass (var 66) and mass ratio (var 67) (q=M1/M2, not the symmetric mass ratio \eta) from the individual masses:
-     ! (var 65 is reserved for Mc^(1/6))
+     ! (var 65 is reserved for Mc^(1/6)) & convert q -> 1/q, logq -> -logq and phi -> phi -pi for phi > pi
      parID(nMCMCpar+1) = 66    ! Mtot
      parID(nMCMCpar+2) = 67    ! q
      parID(nMCMCpar+3) = 68    ! log(q)
@@ -1106,10 +1122,21 @@ subroutine mcmcruninfo(exitcode)
              ' to at least',nMCMCpar,' in order to continue.  Aborting...'
         stop
      end if
+     ! m2/m1 for q<1, & phi<pi and m1/m2 for q>1 & phi >pi
      do ic=1,nchains0
-        allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))
-        allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) / allDat(ic,revID(64),1:ntot(ic))
-        allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))
+        do j=1, ntot(ic)
+           if(allDat(ic,revID(41),j).gt.3.14159265) then
+              allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - 3.14159265
+              allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))
+              allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) / allDat(ic,revID(64),1:ntot(ic))
+              allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))
+           else
+              allDat(ic,revID(41),j) = allDat(ic,revID(41),j)
+              allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))
+              allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(64),1:ntot(ic)) / allDat(ic,revID(63),1:ntot(ic))
+              allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))
+           end if
+        end do
      end do
      
      
