@@ -26,12 +26,12 @@ COMP = gfortran#           # Use GNU Fortran compiler (reads ~3x slower from dis
 #COMP = nagfor#            # Use NAG Fortran compiler
 
 WARN = yes#               # to compile with compile-time warnings
-#RUNCHECK = yes#           # to compile with runtime-check options
+RUNCHECK = yes#           # to compile with runtime-check options
 #DEBUG = yes#             # compile with debug options
 #OPTIMISE = yes#           # to compile with some extra run-time optimisation (sets RUNCHECK=no)
 F2003 = yes#              # compile with Fortran 2003 standard
 #STATIC = yes#              # link statically
-#PLPLOT = yes#             # use PLplot instead of PGPlot
+PLPLOT = yes#             # use PLplot instead of PGPlot
 
 
 
@@ -39,7 +39,7 @@ F2003 = yes#              # compile with Fortran 2003 standard
 OPT = -O0
 OPT = -O2
 ifeq ($(PLPLOT),yes)
-  #LFLAGS += -lplplotf95d
+  #LFLAGS += -lplplotf95d -lplplotf95cd
   #CFLAGS += -I/usr/lib64/fortran/modules/plplot/
 else
   LFLAGS += -lpgplot
@@ -63,7 +63,7 @@ ifeq ($(COMP),ifort)
 
    # Links against PLplot?
    ifeq ($(PLPLOT),yes)
-     LFLAGS += -lplplotf95d_ifort
+     LFLAGS += -lplplotf95d_ifort -lplplotf95cd_ifort
      CFLAGS += -I/home/sluys/usr/include/plplot/ifort
    endif
    # Link against libSUFR:
@@ -122,10 +122,10 @@ ifneq (,$(filter $(COMP),gfortran gfortran-4.6))
    # Link against PLplot?
    ifeq ($(PLPLOT),yes)
      ifeq ($(COMP),gfortran-4.6)
-       LFLAGS += -lplplotf95d_gfortran-4.6
+       LFLAGS += -lplplotf95d_gfortran-4.6 -lplplotf95cd_gfortran-4.6
        CFLAGS += -I/home/sluys/usr/include/plplot/gfortran-4.6
      else
-       LFLAGS += -lplplotf95d_gfortran
+       LFLAGS += -lplplotf95d_gfortran -lplplotf95cd_gfortran
        CFLAGS += -I/home/sluys/usr/include/plplot/gfortran
      endif
    endif
@@ -194,7 +194,7 @@ ifeq ($(COMP),g95)
 
    # Link against PLplot?
    ifeq ($(PLPLOT),yes)
-     LFLAGS += -lplplotf95d_g95
+     LFLAGS += -lplplotf95d_g95 -lplplotf95cd_g95
      CFLAGS += -I/home/sluys/usr/include/plplot/g95
    endif
 
