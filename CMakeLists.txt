@@ -48,11 +48,11 @@ set( INCLUDE_FLAGS "-I${LibSUFR_INCLUDES}" )  # will be transferred to CompilerF
 # PGPlot:
 find_package( PGPLOT )
 
-# PLplot:
-if( NOT PGPLOT_FOUND )
+# Find PLplot if PGPlot isn't found:
+if( NOT PGPLOT_FOUND OR FORCE_PLPLOT)
   find_package( PLplot REQUIRED )
   set( INCLUDE_FLAGS "${INCLUDE_FLAGS} -I${PLplot_INCLUDES}" )  # will be transferred to CompilerFlags
-endif( NOT PGPLOT_FOUND )
+endif( NOT PGPLOT_FOUND OR FORCE_PLPLOT )
 
 
 
@@ -84,23 +84,34 @@ if( CREATE_VERSION )
 endif( CREATE_VERSION )
 
 
+# Use PLplot if found, otherwise use PGPLOT:
+if( PLplot_FOUND )
+  set( Plot_LIBRARIES ${PLplot_LIBRARIES} )
+  message( STATUS "Linking against PLplot" )
+else( PLplot_FOUND )
+  set( Plot_LIBRARIES ${PGPLOT_LIBRARIES} )
+  message( STATUS "Linking against PGPlot" )
+endif( PLplot_FOUND )
+
 
 
 # Build and link AnalyseMCMC executable:
-if( PLplot_FOUND )
-  set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/code_version_plplot.f90 PROPERTIES GENERATED 1 )  # Tell CMake this source file won't be available until build time.
-  add_executable( analyseMCMC ${AnalyseMCMC_SRC_FILES} )
-  target_link_libraries( analyseMCMC ${LibSUFR_LIBRARIES} ${PLplot_LIBRARIES} )
-else( PLplot_FOUND )
-  set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/code_version_pgplot.f90 PROPERTIES GENERATED 1 )  # Tell CMake this source file won't be available until build time.
-  add_executable( analyseMCMC ${AnalyseMCMC_SRC_FILES} )
-  target_link_libraries( analyseMCMC ${LibSUFR_LIBRARIES} ${PGPLOT_LIBRARIES} )
-endif( PLplot_FOUND )
+set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/code_version_plplot.f90 PROPERTIES GENERATED 1 )  # Tell CMake this source file won't be available until build time.
+add_executable( analyseMCMC ${AnalyseMCMC_SRC_FILES} ${Plot_SRC_FILES} )
+target_link_libraries( analyseMCMC ${LibSUFR_LIBRARIES} ${Plot_LIBRARIES} )
 set_target_properties( analyseMCMC PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIRECTORY} )
+
+
+# Build and link plotSignal executable:
+set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/code_version_plplot.f90 PROPERTIES GENERATED 1 )  # Tell CMake this source file won't be available until build time.
+add_executable( plotSignal ${plotSignal_SRC_FILES} ${Plot_SRC_FILES} )
+target_link_libraries( plotSignal ${LibSUFR_LIBRARIES} ${Plot_LIBRARIES} )
+set_target_properties( plotSignal PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIRECTORY} )
 
 
 # Installation targets:
 install( TARGETS "analyseMCMC" RUNTIME DESTINATION "bin" )
+install( TARGETS "plotSignal" RUNTIME DESTINATION "bin" )
 
 # Place the executable in the project's root directory:
 set( EXECUTABLE_OUTPUT_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} )

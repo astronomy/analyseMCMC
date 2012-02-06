@@ -14,16 +14,18 @@ set( AnalyseMCMC_SRC_FILES
   src/analyseMCMC_textroutines.f90
   )
 
+set( plotSignal_SRC_FILES
+  src/plotSignal.f90
+  )
+
 # Source files specific to PGPlot or PLplot:
 if( PLplot_FOUND )
-  set( AnalyseMCMC_SRC_FILES
-    ${AnalyseMCMC_SRC_FILES}
+  set( Plot_SRC_FILES
     src/PG2PLplot.f90
     src/code_version_plplot.f90
     )
 else( PLplot_FOUND )
-  set( AnalyseMCMC_SRC_FILES
-    ${AnalyseMCMC_SRC_FILES}
+  set( Plot_SRC_FILES
     src/code_version_pgplot.f90
     )
 endif( PLplot_FOUND )

@@ -24,12 +24,12 @@ program plotsignal
   use SUFR_kinds, only: double
   
   implicit none
-  integer, parameter :: n1=1000000,nf=1
+  integer, parameter :: n1=1000000, nf=1
   
   integer :: n(nf),i,j,io,pgopen,file,f,prname,prtitle,system,thin
   real(double) :: t0,t1(nf,n1)
   real :: t(nf,n1),h(nf,n1),dx,dy,xmin,xmax,ymin,ymax
-  character :: title*(1000),fnames(nf)*(99),fname*(99),bla,t0s*(10),detnames(nf)*(99)
+  character :: title*(1000),dirname*(99),fnames(nf)*(99),fname*(99),bla,t0s*(10),detnames(nf)*(99)
   
   integer :: nfrx,nfry,frx,fry,fr,colours(nf)
   real :: xwinmin,xwinmax,ywinmin,ywinmax,dxwin,dywin,xfrmin,xfrmax,yfrmin,yfrmax,sch
@@ -48,20 +48,23 @@ program plotsignal
   !colours = (/2,4,6/)
   !colours = (/4,2,4,2/)
   
-  !fnames = (/'signals/Hanford-signal.dat','signals/Livingston-signal.dat','signals/Pisa-signal.dat'/)
+  ! Directory that contains the signals
+  dirname = '/home/sluys/work/GW/programs/MCMC/SPINspiral/signals/'
+  
+  !fnames = (/'Hanford-signal.dat','Livingston-signal.dat','Pisa-signal.dat'/)
   !detnames = (/'LIGO/Hanford','LIGO/Livingston','VIRGO/Pisa'/)
-  !fnames = (/'signals/Hanford-signal.dat','signals/Pisa-signal.dat'/)
+  !fnames = (/'Hanford-signal.dat','Pisa-signal.dat'/)
   !fnames = (/'ChrisB/Hanford_a0.0_th35.dat','ChrisB/Pisa_a0.0_th35.dat'/)
   !detnames = (/'LIGO','VIRGO'/)
   
-  !fnames = (/'signals/Hanford-signal.dat','signals/Livingston-signal.dat'/)
+  !fnames = (/'Hanford-signal.dat','Livingston-signal.dat'/)
   !detnames = (/'LIGO/Hanford','LIGO/Livingston'/)
   !fnames = (/'Hanford-signal_run003.dat','Hanford-signal_run001.dat','bla'/)
-  !fnames = (/'signals/Hanford-signal_run003.dat','signals/Hanford-signal_run001.dat'/)
+  !fnames = (/'Hanford-signal_run003.dat','Hanford-signal_run001.dat'/)
   !detnames = (/'\(2134)\dSL\u=55\(2218)','\(2134)\dSL\u=25\(2218)','bla'/)
   !fnames = (/'Hanford-run002.dat','Hanford-run004.dat','bla'/)
   !detnames = (/'a\dspin\u = 0.1','a\dspin\u = 0.8','bla'/)
-  !fnames = (/'signals/Hanford_0.10_055.dat','signals/Hanford_0.80_055.dat'/)
+  !fnames = (/'Hanford_0.10_055.dat','Hanford_0.80_055.dat'/)
   !fnames = (/'../signal11H.dat','../signal12H.dat'/)
   !fnames = (/'../Hanford-signal.dat'/)
   !fnames = (/'../signal_00.dat','../signal_de.dat','../signal_ra.dat'/)
@@ -74,26 +77,26 @@ program plotsignal
   !fnames = (/'../Hanford-data.dat','../Livingston-data.dat','../Pisa-data.dat'/)
   !fnames = (/'../Hanford-signal.dat','../Livingston-signal.dat','../Pisa-signal.dat'/)
   !fnames = (/'../Hanford-signal.dat','../Hanford-template.dat','../Pisa-signal.dat'/)
-  !fnames = (/'signals/Hanford_a0.0_th20.dat','signals/Hanford_a0.1_th20.dat','signals/Hanford_a0.5_th20.dat'/)
-  !fnames = (/'signals/Hanford_a0.0_th55.dat','signals/Hanford_a0.1_th55.dat','signals/Hanford_a0.5_th55.dat'/)
-  !fnames = (/'signals/Hanford_a0.5_th20.dat','signals/Hanford_a0.5_th55.dat'/)
+  !fnames = (/'Hanford_a0.0_th20.dat','Hanford_a0.1_th20.dat','Hanford_a0.5_th20.dat'/)
+  !fnames = (/'Hanford_a0.0_th55.dat','Hanford_a0.1_th55.dat','Hanford_a0.5_th55.dat'/)
+  !fnames = (/'Hanford_a0.5_th20.dat','Hanford_a0.5_th55.dat'/)
   !detnames = (/'\(0634)=20\(2218)','\(0634)=55\(2218)'/)
   !fnames = (/'~/work/GW/programs/MCMC/mcmc_code/trunk/Hanford-data.dat', &
   !'~/work/GW/programs/MCMC/backup/spinning.backup/Hanford-data.dat'/)
   !detnames = (/'new','old'/)
   
   !For GWDAW poster:
-  !fnames = (/'/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/0.00_020-signal.dat', &
-  !'/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/0.10_020-signal.dat', &
-  !'/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/0.50_020-signal.dat'/)
+  !fnames = (/'0.00_020-signal.dat', '0.10_020-signal.dat', '0.50_020-signal.dat'/)
   !detnames = (/'','',''/)
   
-  !fnames = (/'/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/Hanford-signal-NS.dat', &
-  !     '/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/Hanford-signal-Sp.dat'/)
+  fnames = (/'0.00_020-signal.dat'/)
+  detnames = (/''/)
+  
+  !fnames = (/'Hanford-signal-NS.dat', 'Hanford-signal-Sp.dat'/)
   !detnames = (/'GeneratePPN','SpinTaylor '/)
   
-  fnames = (/'/home/sluys/work/GW/programs/MCMC/mcmc_code/trunk/signals/Hanford-signal-NS.dat'/)
-  detnames = (/''/)
+  !fnames = (/'Hanford-signal-NS.dat'/)
+  !detnames = (/''/)
   
   !detnames = (/'Ref','Dec','RA'/)
   !detnames = (/'a\dspin\u = 0.0','a\dspin\u = 0.1','a\dspin\u = 0.5'/)
@@ -101,9 +104,10 @@ program plotsignal
   !detnames = (/'a\dspin\u=0.8, \(2134)\dSL\u=25\(2218)','a\dspin\u=0.1, \(2134)\dSL\u=25\(2218)'/)
   !detnames = (/'','','',''/)
   
+  
   write(6,*)''
   do f=1,nf
-     fname = fnames(f)
+     fname = trim(dirname)//trim(fnames(f))
      open(unit=10,form='formatted',status='old',file=trim(fname),iostat=io)
      if(io.ne.0) then
         write(6,'(A,/)')'File not found: '//trim(fname)//'. Quitting the programme.'  

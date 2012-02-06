@@ -20,3 +20,5 @@ option( CREATE_SHAREDLIB        "Create shared libraries" off )
 option( CREATE_STATICLIB        "Create static libraries" off )
 option( COMPILER_SPECIFIC_LIBS  "Create compiler-specific libraries" off )
 
+option( FORCE_PLPLOT            "Force the use of PLplot instead of PGPLOT, even if PGPLOT is found" off )
+
