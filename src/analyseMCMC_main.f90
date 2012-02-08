@@ -72,6 +72,7 @@ program analyseMCMC
   use analysemcmc_settings, only: plAnim,plInject,plStart,plMedian,plRange,plBurn,plLmax,normPDF2D,bmpXSz,bmpYSz,Npdf2D,reverseRead
   use analysemcmc_settings, only: whiteBG,scFac,scrSz,scrRat,PSsz,PSrat,unSharp,orientation,chainSymbol,quality,plJump,savePDF
   use analysemcmc_settings, only: wrapData,update,nPlPar,mergeChains,tailoredOutput,plACorr, maxChs
+  use analysemcmc_settings, only: phi_q_sorting
   use general_data, only: infiles,allDat,selDat,post,prior,outputdir,nchains0,nchains,ntot,outputname
   use mcmcrun_data, only: nMCMCpar
   use plot_data, only: colours,symbols,colournames,maxdots,bmpsz,bmprat,bmpxpix,pltsz,pltrat,unSharplogl,unSharpchain,unSharppdf1d
@@ -101,6 +102,10 @@ program analyseMCMC
   call read_settingsfile()    ! Read the plot settings (overwrite the defaults)
   if(prProgress.ge.3) call write_settingsfile()   ! Write the input file back to disc
   !call write_settingsfile()   ! Write the input file back to disc
+  
+  ! New parameters that should go into the settings file(?):
+  phi_q_sorting = 1  ! Do phase/mass-ratio sorting (if phi>pi, q -> 1/q; m1 <-> m2): 0-no, 1-yes
+  
   
   ! Print code version and set use_PLplot:
   if(prProgress.ge.1) call print_code_version(stdOut, use_PLplot)

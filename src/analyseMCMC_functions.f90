@@ -769,10 +769,11 @@ subroutine mcmcruninfo(exitcode)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdOut,stdErr, rpi
   use SUFR_statistics, only: compute_median_real
+  use SUFR_system, only: swapreal, warn
   use aM_constants, only: waveforms,detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
-  use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar
+  use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar, phi_q_sorting
   
   use general_data, only: allDat,post,ntot,n,nchains,nchains0,infiles,contrChain,startval,fixedpar,selDat,iloglmax,icloglmax
   use general_data, only: contrChains,parNames,nfixedpar,outputname,maxIter
@@ -800,7 +801,7 @@ subroutine mcmcruninfo(exitcode)
   
   
   
-  !Print run info (detectors, SNR, amount of data, FFT, etc)
+  ! Print run info (detectors, SNR, amount of data, FFT, etc):
   if(prRunInfo.gt.0.and.update.eq.0) then
      if(prRunInfo.eq.1) write(stdOut,'(/,A)')'  Run information for chain 1:'
      if(prRunInfo.eq.2) write(stdOut,'(/,A)')'  Run information:'
@@ -867,7 +868,7 @@ subroutine mcmcruninfo(exitcode)
   
   
   
-  !Get point with absolute maximum likelihood over all chains
+  ! Get point with absolute maximum likelihood over all chains:
   loglmax = -1.d99
   loglmaxs = -1.d99
   do ic=1,nchains0
@@ -904,7 +905,7 @@ subroutine mcmcruninfo(exitcode)
   end if
   
   
-  !***AutoBurnin: for each chain, get the first point where log(L) > log(L_max)-autoBurnin
+  !*** AutoBurnin: for each chain, get the first point where log(L) > log(L_max)-autoBurnin:
   if(abs(autoBurnin).gt.1.e-10) then
      if(autoBurnin.lt.-1.e-10) autoBurnin = real(nMCMCpar0)/2.  ! The default value for autoBurnin = Npar/2
      loop1: do ic=1,nchains0
@@ -1021,7 +1022,8 @@ subroutine mcmcruninfo(exitcode)
      end if
      
      
-     if(revID(62).eq.0 .and. revID(67).eq.0 .and. revID(68).ne.0) then  ! Calculate q from log(q):
+     ! Calculate q from log(q):
+     if(revID(67).eq.0 .and. revID(68).ne.0) then
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing q from log(q)'
         parID(nMCMCpar+1) = 67    ! q
         revID(67) = nMCMCpar + 1  ! q
@@ -1030,21 +1032,24 @@ subroutine mcmcruninfo(exitcode)
            write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
                 ' to at least',nMCMCpar,' in order to continue.  Aborting...'
            stop
-           end if
-           do ic=1,nchains0
-              ! for phi > pi -> logq = -logq & phi = phi - pi                     
-              do j=1, ntot(ic)
+        end if
+        do ic=1,nchains0
+           if(phi_q_sorting.gt.0) then  ! for phi > pi -> logq = -logq & phi = phi - pi
+              do j=1,ntot(ic)
                  if(allDat(ic,revID(41),j).gt.rpi) then
-                    allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi
-                    allDat(ic,revID(68),j) = - allDat(ic,revID(68),j)
+                    allDat(ic,revID(41),j) =  allDat(ic,revID(41),j) - rpi                                     ! phi = phi - pi
+                    allDat(ic,revID(68),j) = -allDat(ic,revID(68),j)                                           ! log_q = -log_q
+                    if(revID(63)*revID(64).ne.0) call swapreal(allDat(ic,revID(63),j),allDat(ic,revID(64),j))  ! swap m1 <-> m2
                  end if
               end do
-              allDat(ic,revID(67),1:ntot(ic)) = 10.0 ** (allDat(ic,revID(68),1:ntot(ic)))
-           end do
-        end if
+           end if
+           allDat(ic,revID(67),1:ntot(ic)) = 10.0 ** (allDat(ic,revID(68),1:ntot(ic)))                         ! q = 10**log_q
+        end do
+     end if
      
      
-     if(revID(62).eq.0 .and. revID(67).ne.0) then  ! Calculate eta and log(q) from q:
+     ! Calculate eta and log(q) from q:
+     if(revID(62).eq.0 .and. revID(68).eq.0 .and. revID(67).ne.0) then
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing eta from q'
         parID(nMCMCpar+1) = 62    ! Eta
         parID(nMCMCpar+2) = 68    ! logq
@@ -1055,23 +1060,26 @@ subroutine mcmcruninfo(exitcode)
            write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
                 ' to at least',nMCMCpar,' in order to continue.  Aborting...'
            stop
-           end if
+        end if
         do ic=1,nchains0
-           ! for phi > pi -> q = 1/q & phi = phi - pi                                                                              
-           do j=1, ntot(ic)
-              if(allDat(ic,revID(41),j).gt.rpi) then
-                 allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi
-                 allDat(ic,revID(68),j) = 1.0 / allDat(ic,revID(68),j)
-              end if
-           end do
-           allDat(ic,revID(62),1:ntot(ic)) = allDat(ic,revID(67),1:ntot(ic)) / (allDat(ic,revID(67),1:ntot(ic)) + 1.0 )**2   
-           ! eta = q/(1+q)^2
-           allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))
+           if(phi_q_sorting.gt.0) then  ! for phi > pi -> q = 1/q & phi = phi - pi
+              do j=1,ntot(ic)
+                 if(allDat(ic,revID(41),j).gt.rpi) then
+                    allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                      ! phi = phi - pi
+                    allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)                                      ! q = 1/q
+                    if(revID(63)*revID(64).ne.0) call swapreal(allDat(ic,revID(63),j),allDat(ic,revID(64),j))  ! swap m1 <-> m2
+                 end if
+              end do
+           end if
+           allDat(ic,revID(62),1:ntot(ic)) =  &
+                allDat(ic,revID(67),1:ntot(ic)) / (allDat(ic,revID(67),1:ntot(ic)) + 1.0)**2                ! eta = q/(1+q)^2
+           allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                         ! log_q = log(q)
         end do
      end if
-
-
-     if(revID(61)*revID(62).ne.0 .and. revID(63)+revID(64).eq.0) then  ! Calculate the individual masses from Mch and eta:
+     
+     
+     ! Calculate the individual masses from Mch and eta:
+     if(revID(61)*revID(62).ne.0 .and. revID(63)+revID(64).eq.0) then
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing M1, M2 from Mc, eta'
         parID(nMCMCpar+1) = 63    ! M1
         parID(nMCMCpar+2) = 64    ! M2
@@ -1088,7 +1096,9 @@ subroutine mcmcruninfo(exitcode)
               call mc_eta_2_m1_m2r(allDat(ic,revID(61),i),allDat(ic,revID(62),i), allDat(ic,revID(63),i),allDat(ic,revID(64),i))
            end do
         end do
-     else if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) then  ! Calculate Mc, eta from the individual masses:
+        
+        ! Calculate Mc, eta from the individual masses:
+     else if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) then
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mc, eta from M1, M2'
         parID(nMCMCpar+1) = 61    ! Mc
         parID(nMCMCpar+2) = 62    ! eta
@@ -1105,56 +1115,66 @@ subroutine mcmcruninfo(exitcode)
               call m1_m2_2_mc_etar(allDat(ic,revID(63),i),allDat(ic,revID(64),i), allDat(ic,revID(61),i),allDat(ic,revID(62),i))
            end do
         end do
+        
+     else
+        call warn('Not all of Mc, eta, M1 and M2 are defined', stdOut)
      end if !if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0)
+     
      
      ! Compute total mass (var 66) and mass ratio (var 67) (q=M1/M2, not the symmetric mass ratio \eta) from the individual masses:
      ! (var 65 is reserved for Mc^(1/6)) & convert q -> 1/q, logq -> -logq and phi -> phi -pi for phi > pi
-     parID(nMCMCpar+1) = 66    ! Mtot
-     parID(nMCMCpar+2) = 67    ! q
-     parID(nMCMCpar+3) = 68    ! log(q)
-     revID(66) = nMCMCpar + 1  ! Mtot
-     revID(67) = nMCMCpar + 2  ! q
-     revID(68) = nMCMCpar + 3  ! log(q)
-     nMCMCpar = nMCMCpar + 3
-     if(nMCMCpar.gt.maxMCMCpar) then
-        write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
-             ' to at least',nMCMCpar,' in order to continue.  Aborting...'
-        stop
+     if(revID(63)*revID(64).ne.0) then
+        parID(nMCMCpar+1) = 66    ! Mtot
+        parID(nMCMCpar+2) = 67    ! q
+        parID(nMCMCpar+3) = 68    ! log(q)
+        revID(66) = nMCMCpar + 1  ! Mtot
+        revID(67) = nMCMCpar + 2  ! q
+        revID(68) = nMCMCpar + 3  ! log(q)
+        nMCMCpar = nMCMCpar + 3
+        if(nMCMCpar.gt.maxMCMCpar) then
+           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
+                ' to at least',nMCMCpar,' in order to continue.  Aborting...'
+           stop
+        end if
+        do ic=1,nchains0
+           allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(64),1:ntot(ic)) / allDat(ic,revID(63),1:ntot(ic))     ! q = m2 / m1
+           if(phi_q_sorting.gt.0) then  ! m2/m1 for q<1, & phi<pi and m1/m2 for q>1 & phi >pi
+              do j=1,ntot(ic)
+                 if(allDat(ic,revID(41),j).gt.rpi) then
+                    allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                          ! phi = phi - pi
+                    allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)                                          ! q = 1/q = m1/m2
+                    if(revID(63)*revID(64).ne.0) call swapreal(allDat(ic,revID(63),j),allDat(ic,revID(64),j))      ! swap m1 <-> m2
+                 end if
+              end do
+           end if
+           allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! M = m1 + m2
+           allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                                ! log_q = log(q)
+        end do
      end if
      
-     ! m2/m1 for q<1, & phi<pi and m1/m2 for q>1 & phi >pi
-     do ic=1,nchains0
-        do j=1,ntot(ic)
-           if(allDat(ic,revID(41),j).gt.rpi) then
-              allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                                ! phi = phi - pi
-              allDat(ic,revID(67),j) = allDat(ic,revID(63),j) / allDat(ic,revID(64),j)  ! q = m1 / m2
-           else
-              allDat(ic,revID(67),j) = allDat(ic,revID(64),j) / allDat(ic,revID(63),j)  ! q = m2 / m1
-           end if
-        end do
-        allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! M = m1 + m2
-        allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                                ! logq = log(q)
-     end do
      
      ! Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
-     if(revID(11)*revID(31)*revID(32)*revID(53)*revID(54).ne.0) then  !Then all of these parameters are defined
+     if(revID(11)*revID(31)*revID(32)*revID(53)*revID(54).ne.0) then  ! Then all of these parameters are defined
         do ic=1,nchains0
            do i=1,ntot(ic)
-              !Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad):
+              ! Input: RA, Dec, phi_Jo (hh->RA), theta_Jo (in rad), output: inclination, polarisation angle (rad):
               call compute_incli_polangr(allDat(ic,revID(31),i), asin(allDat(ic,revID(32),i)), &
                    real(lon2ra(dble(allDat(ic,revID(54),i)), dble(allDat(ic,revID(11),i)) + t0)), asin(allDat(ic,revID(53),i)), &
                    allDat(ic,revID(53),i),allDat(ic,revID(54),i))  
               allDat(ic,revID(53),i) = cos(allDat(ic,revID(53),i))    !i -> cos(i)
            end do
         end do !ic
-        parID(revID(53)) = 51  !Was sin(thJ0), now cos(i)
-        parID(revID(54)) = 52  !Was phi_J0, now psi
-        revID(51) = revID(53)  !Now cos(i)
-        revID(52) = revID(54)  !Now psi
-        revID(53) = 0          !No longer exists
-        revID(54) = 0          !No longer exists
+        parID(revID(53)) = 51  ! Was sin(thJ0), now cos(i)
+        parID(revID(54)) = 52  ! Was phi_J0, now psi
+        revID(51) = revID(53)  ! Now cos(i)
+        revID(52) = revID(54)  ! Now psi
+        revID(53) = 0          ! No longer defined
+        revID(54) = 0          ! No longer defined
      end if
+     
   end if !if(changeVar.ge.1)
+  
+  
   
   !*** Put plot data in startval and jumps.  Print initial and starting values to screen.
   !Startval: 1: injection value, 2: starting value, 3: Lmax value
@@ -1403,6 +1423,7 @@ function gmst(GPSsec)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdErr
   use SUFR_constants, only: pi2  ! 2*pi
+  use SUFR_system, only: warn
   
   implicit none
   real(double), intent(in) :: GPSsec
@@ -1413,7 +1434,7 @@ function gmst(GPSsec)
   leapseconds = 32.d0  ! At Jan 1st 2000
   if(GPSsec.gt.820108813.d0) leapseconds = leapseconds + 1.d0  ! leapsecond after 1/1/2006
   if(GPSsec.gt.914803214.d0) leapseconds = leapseconds + 1.d0  ! leapsecond after 1/1/2009
-  if(GPSsec.lt.630720013.d0) write(stdErr,'(A)')'   WARNING: GMSTs before 01/01/2000 are inaccurate!'
+  if(GPSsec.lt.630720013.d0) call warn('GMSTs before 01/01/2000 are inaccurate!', stdErr)
   
   ! Time since 1/1/2000 midnight:
   seconds       = (GPSsec - gps0) + (leapseconds - 32.d0)
@@ -1797,18 +1818,18 @@ end function tms
 !> \brief  Determine the operating system type: 1-Linux, 2-MacOSX
 
 function getos()
-  use SUFR_constants, only: stdErr
-  use SUFR_constants, only: homedir
+  use SUFR_constants, only: stdErr, homedir
+  use SUFR_system, only: warn
   
   implicit none
   integer :: status,system,getos,io
   character :: ostype*(25),filename*(99)
   
   filename = trim(homedir)//'/.analysemcmc.uname.temp'
-  status = system('uname &> '//trim(filename)) !This should return "Linux" or "Darwin"
+  status = system('uname &> '//trim(filename))  ! This should return "Linux" or "Darwin"
   open(unit=16,file=trim(filename), status='old', form='formatted',iostat=io)
-  if(io.ne.0) then  !Something went wrong - guess Linux
-     write(stdErr,'(A)')'  Warning:  getOS(): cannot determine OS - guessing Linux...'
+  if(io.ne.0) then  ! Something went wrong - guess Linux
+     call warn('getOS(): cannot determine OS - guessing Linux...', stdErr)
      getos = 1
      return
   end if
@@ -2320,7 +2341,7 @@ end subroutine detectorvector
 
 subroutine findFiles(match,nff,all, fnames,nf)  
   use SUFR_constants, only: stdErr, homedir
-  use SUFR_system, only: quit_program_error
+  use SUFR_system, only: quit_program_error, warn
   
   implicit none
   character, intent(in) :: match*(*)
@@ -2334,7 +2355,7 @@ subroutine findFiles(match,nff,all, fnames,nf)
   if(len_trim(homedir).ge.99) call quit_program_error('FindFiles: variable homedir not defined (forgot to call setconstants?)',1)
   
   tempfile = trim(homedir)//'/.findFile.tmp'
-  !Shell command to list all the files with the search string and pipe them to a temporary file:
+  ! Shell command to list all the files with the search string and pipe them to a temporary file:
   status = system('ls '//trim(match)//' 1> '//trim(tempfile)//' 2> /dev/null')
   
   do i=1,nff
@@ -2342,9 +2363,9 @@ subroutine findFiles(match,nff,all, fnames,nf)
   end do
   
   k=0
-  open(10,file=trim(tempfile), status='old', form='formatted',iostat=io) !Read the temp file and delete it when closing
+  open(10,file=trim(tempfile), status='old', form='formatted',iostat=io)  ! Read the temp file and delete it when closing
   if(io.ne.0) then
-     write(stdErr,'(A)')'  Warning:  findFiles(): cannot list files in current directory...'
+     call warn('findFiles(): cannot list files in current directory...', stdErr)
      fnames = ''
      nf = 0
      return
@@ -2361,8 +2382,8 @@ subroutine findFiles(match,nff,all, fnames,nf)
   j = 0
   
   if(k.gt.1) then
-     if(all.eq.0) then !Select files manually
-        write(6,'(A)')'  Files found:'  !Don't use stdOut here!
+     if(all.eq.0) then  ! Select files manually
+        write(6,'(A)')'  Files found:'  ! Don't use stdOut here!
         do i=1,k
            write(6,'(I5,A3,A)')i,':  ',trim(names(i))
         end do
@@ -2385,7 +2406,7 @@ subroutine findFiles(match,nff,all, fnames,nf)
            fnames(j) = names(fnum)
            nf = j
         end do !j 
-     else  !Select all files (all=1)
+     else  ! Select all files (all=1)
         nf = min(k,nff)
         fnames(1:nf) = names(1:nf)
         return

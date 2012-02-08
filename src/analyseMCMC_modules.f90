@@ -40,6 +40,7 @@ module analysemcmc_settings
   integer :: chainSymbol,chainPlI,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D,normPDF2D
   integer :: scLogLpl,scChainsPl,bmpXSz,bmpYSz,map_projection
   integer :: nAnimFrames,animScheme,whiteBG,unSharp,Nival,ival0,wikioutput,html
+  integer :: phi_q_sorting
   real :: NburnFrac,autoBurnin,ivals(maxNival)
   real :: scrSz,scrRat,PSsz,PSrat,scFac,fontsize1d,fontsize2d
   
