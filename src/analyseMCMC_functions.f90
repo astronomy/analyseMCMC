@@ -767,7 +767,7 @@ end subroutine parNames2IDs
 
 subroutine mcmcruninfo(exitcode)  
   use SUFR_kinds, only: double
-  use SUFR_constants, only: stdOut,stdErr
+  use SUFR_constants, only: stdOut,stdErr, rpi
   use SUFR_statistics, only: compute_median_real
   use aM_constants, only: waveforms,detabbrs
   
@@ -1000,7 +1000,7 @@ subroutine mcmcruninfo(exitcode)
   
   !*** Change some MCMC parameters:
   ! use SUFR_constants, only: pi
-
+  
   if(changeVar.ge.1) then
      if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)',advance="no")'  Changing some parameters...   '
      
@@ -1034,8 +1034,8 @@ subroutine mcmcruninfo(exitcode)
            do ic=1,nchains0
               ! for phi > pi -> logq = -logq & phi = phi - pi                     
               do j=1, ntot(ic)
-                 if(allDat(ic,revID(41),j).gt.3.14159265) then
-                    allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - 3.14159265
+                 if(allDat(ic,revID(41),j).gt.rpi) then
+                    allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi
                     allDat(ic,revID(68),j) = - allDat(ic,revID(68),j)
                  end if
               end do
@@ -1059,8 +1059,8 @@ subroutine mcmcruninfo(exitcode)
         do ic=1,nchains0
            ! for phi > pi -> q = 1/q & phi = phi - pi                                                                              
            do j=1, ntot(ic)
-              if(allDat(ic,revID(41),j).gt.3.14159265) then
-                 allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - 3.14159265
+              if(allDat(ic,revID(41),j).gt.rpi) then
+                 allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi
                  allDat(ic,revID(68),j) = 1.0 / allDat(ic,revID(68),j)
               end if
            end do
@@ -1071,7 +1071,7 @@ subroutine mcmcruninfo(exitcode)
      end if
 
 
-     if(revID(61)*revID(62).ne.0 .and. revID(63)+revID(64).eq.0) then  !Calculate the individual masses from Mch and eta:
+     if(revID(61)*revID(62).ne.0 .and. revID(63)+revID(64).eq.0) then  ! Calculate the individual masses from Mch and eta:
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing M1, M2 from Mc, eta'
         parID(nMCMCpar+1) = 63    ! M1
         parID(nMCMCpar+2) = 64    ! M2
@@ -1088,7 +1088,7 @@ subroutine mcmcruninfo(exitcode)
               call mc_eta_2_m1_m2r(allDat(ic,revID(61),i),allDat(ic,revID(62),i), allDat(ic,revID(63),i),allDat(ic,revID(64),i))
            end do
         end do
-     else if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) then  !Calculate Mc, eta from the individual masses:
+     else if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) then  ! Calculate Mc, eta from the individual masses:
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mc, eta from M1, M2'
         parID(nMCMCpar+1) = 61    ! Mc
         parID(nMCMCpar+2) = 62    ! eta
@@ -1107,7 +1107,6 @@ subroutine mcmcruninfo(exitcode)
         end do
      end if !if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0)
      
-     
      ! Compute total mass (var 66) and mass ratio (var 67) (q=M1/M2, not the symmetric mass ratio \eta) from the individual masses:
      ! (var 65 is reserved for Mc^(1/6)) & convert q -> 1/q, logq -> -logq and phi -> phi -pi for phi > pi
      parID(nMCMCpar+1) = 66    ! Mtot
@@ -1122,25 +1121,22 @@ subroutine mcmcruninfo(exitcode)
              ' to at least',nMCMCpar,' in order to continue.  Aborting...'
         stop
      end if
+     
      ! m2/m1 for q<1, & phi<pi and m1/m2 for q>1 & phi >pi
      do ic=1,nchains0
-        do j=1, ntot(ic)
-           if(allDat(ic,revID(41),j).gt.3.14159265) then
-              allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - 3.14159265
-              allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))
-              allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) / allDat(ic,revID(64),1:ntot(ic))
-              allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))
+        do j=1,ntot(ic)
+           if(allDat(ic,revID(41),j).gt.rpi) then
+              allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                                ! phi = phi - pi
+              allDat(ic,revID(67),j) = allDat(ic,revID(63),j) / allDat(ic,revID(64),j)  ! q = m1 / m2
            else
-              allDat(ic,revID(41),j) = allDat(ic,revID(41),j)
-              allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))
-              allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(64),1:ntot(ic)) / allDat(ic,revID(63),1:ntot(ic))
-              allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))
+              allDat(ic,revID(67),j) = allDat(ic,revID(64),j) / allDat(ic,revID(63),j)  ! q = m2 / m1
            end if
         end do
+        allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! M = m1 + m2
+        allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                                ! logq = log(q)
      end do
      
-     
-     !Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
+     ! Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
      if(revID(11)*revID(31)*revID(32)*revID(53)*revID(54).ne.0) then  !Then all of these parameters are defined
         do ic=1,nchains0
            do i=1,ntot(ic)
@@ -1160,7 +1156,6 @@ subroutine mcmcruninfo(exitcode)
      end if
   end if !if(changeVar.ge.1)
   
-  
   !*** Put plot data in startval and jumps.  Print initial and starting values to screen.
   !Startval: 1: injection value, 2: starting value, 3: Lmax value
   jumps = 0.
@@ -1169,9 +1164,9 @@ subroutine mcmcruninfo(exitcode)
      if(prInitial.eq.1) write(stdOut,'(/,A)')'  Starting values for the chains:'
      if(prInitial.eq.2) write(stdOut,'(/,A)')'  Injection and starting values for the chains:'
      if(prInitial.ge.3) write(stdOut,'(/,A)')'  Injection, starting and Lmax values for the chains:'
-     write(stdOut,'(5x,A10,A11)',advance="no")'','log Post'
+     write(stdOut,'(15x,A10)',advance="no")'log Post'
      do p=1,nMCMCpar
-        write(stdOut,'(A9)',advance="no")trim(parNames(parID(p)))
+        write(stdOut,'(A8)',advance="no") trim(parNames(parID(p)))
      end do
      write(stdOut,*)
   end if
@@ -1183,9 +1178,9 @@ subroutine mcmcruninfo(exitcode)
      if(prInitial.ne.0) then 
         if(ic.eq.1.and.prInitial.ge.2) then
            write(stdOut,'(4x,A11)',advance="no")'Injection:  '
-           write(stdOut,'(F11.3)',advance="no")post(ic,1)
+           write(stdOut,'(F10.3)',advance="no")post(ic,1)
            do p=1,nMCMCpar
-              write(stdOut,'(F9.4)',advance="no")startval(1,p,1)
+              write(stdOut,'(F8.3)',advance="no")startval(1,p,1)
            end do
            write(stdOut,*)
            if(prInitial.ge.4) write(stdOut,*)
@@ -1193,16 +1188,16 @@ subroutine mcmcruninfo(exitcode)
         if(abs((sum(startval(ic,1:nMCMCpar,1))-sum(startval(ic,1:nMCMCpar,2)))/sum(startval(ic,1:nMCMCpar,1))).gt.1.e-10) then
            offsetrun = 1
            write(stdOut,'(I4,A1,A10)',advance="no")ic,':','  Start: '
-           write(stdOut,'(F11.3)',advance="no")post(ic,2)
+           write(stdOut,'(F10.3)',advance="no")post(ic,2)
            do p=1,nMCMCpar
-              write(stdOut,'(F9.4)',advance="no")startval(ic,p,2)
+              write(stdOut,'(F8.3)',advance="no")startval(ic,p,2)
            end do
            write(stdOut,*)
            if(prInitial.ge.4) then
               write(stdOut,'(5x,A10)',advance="no")'Diff:  '
-              write(stdOut,'(F11.3)',advance="no")abs(post(ic,1)-post(ic,2))
+              write(stdOut,'(F10.3)',advance="no")abs(post(ic,1)-post(ic,2))
               do p=1,nMCMCpar
-                 write(stdOut,'(F9.4)',advance="no")abs(startval(ic,p,1)-startval(ic,p,2))
+                 write(stdOut,'(F8.3)',advance="no")abs(startval(ic,p,1)-startval(ic,p,2))
               end do
               write(stdOut,'(/)')
            end if
@@ -1211,17 +1206,17 @@ subroutine mcmcruninfo(exitcode)
   end do
   if(prInitial.ge.3) then
      write(stdOut,'(5x,A10)',advance="no")'Lmax:  '
-     write(stdOut,'(F11.3)',advance="no")post(icloglmax,iloglmax)
+     write(stdOut,'(F10.3)',advance="no")post(icloglmax,iloglmax)
      do p=1,nMCMCpar
-        write(stdOut,'(F9.4)',advance="no")startval(1,p,3)
+        write(stdOut,'(F8.3)',advance="no")startval(1,p,3)
      end do
      write(stdOut,*)
      if(prInitial.ge.4) then
         do ic=1,1 !nchains
            write(stdOut,'(I4,A1,A10)',advance="no")ic,':','Diff:  '
-           write(stdOut,'(F11.3)',advance="no")abs(post(ic,1)-post(icloglmax,iloglmax))
+           write(stdOut,'(F10.3)',advance="no")abs(post(ic,1)-post(icloglmax,iloglmax))
            do p=1,nMCMCpar
-              write(stdOut,'(F9.4)',advance="no")abs(startval(ic,p,1)-startval(ic,p,3))
+              write(stdOut,'(F8.3)',advance="no")abs(startval(ic,p,1)-startval(ic,p,3))
            end do
            write(stdOut,*)
         end do
