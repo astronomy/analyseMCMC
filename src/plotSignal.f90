@@ -24,28 +24,30 @@ program plotsignal
   use SUFR_kinds, only: double
   
   implicit none
-  integer, parameter :: n1=1000000, nf=1
+  integer, parameter :: n1=1000000, nf0=5
   
-  integer :: n(nf),i,j,io,pgopen,file,f,prname,prtitle,system,thin
-  real(double) :: t0,t1(nf,n1)
-  real :: t(nf,n1),h(nf,n1),dx,dy,xmin,xmax,ymin,ymax
-  character :: title*(1000),dirname*(99),fnames(nf)*(99),fname*(99),bla,t0s*(10),detnames(nf)*(99)
+  integer :: n(nf0),i,j,io,pgopen,file,f,prname,prtitle,system,thin
+  real(double) :: t0,t1(nf0,n1)
+  real :: t(nf0,n1),h(nf0,n1),dx,dy,xmin,xmax,ymin,ymax
+  character :: title*(1000),dirname*(99),subdir*(99),fnames(nf0)*(99),fname*(199),bla*(199),t0s*(10),detnames(nf0)*(99)
   
-  integer :: nfrx,nfry,frx,fry,fr,colours(nf)
+  integer :: nf, nfrx,nfry,frx,fry,fr,colours(nf0), lw
   real :: xwinmin,xwinmax,ywinmin,ywinmax,dxwin,dywin,xfrmin,xfrmax,yfrmin,yfrmax,sch
-  real(double) :: m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
+  real(double) :: m1,m2, dl,spin !,mc,eta,tc,lat,lon,phase,kappa,thJ0,phJ0,alpha
   character :: m1s*(20),m2s*(20),dls*(20),spins*(20)
+  logical :: inOnePanel
   
   file = 1 !0-screen, 1-file: eps, 2-file: pdf, 3-file: png
   thin = 1 !Thin the number of points by this factor at read
   prname = 0 !Print detector name in frame: 0-no, 1-yes
   prtitle = 0 !Print plot title: 0-no, 1-yes
+  inOnePanel = .true.  ! Make all plots in the same panel
   
   colours = 2
   !colours = (/1,1/)
   !colours = (/4,2/)
   !colours = (/4,3,2/)
-  !colours = (/2,4,6/)
+  colours(1:4) = (/2,4,6,3/)
   !colours = (/4,2,4,2/)
   
   ! Directory that contains the signals
@@ -89,8 +91,37 @@ program plotsignal
   !fnames = (/'0.00_020-signal.dat', '0.10_020-signal.dat', '0.50_020-signal.dat'/)
   !detnames = (/'','',''/)
   
-  fnames = (/'0.00_020-signal.dat'/)
-  detnames = (/''/)
+  !! Methods paper 1:
+  !nf = 3
+  !subdir = 'Apo03/'
+  !!fnames = (/'0.00_020-signal.dat', '0.50_020-signal.dat', '1.00_020-signal.dat'/)  ! Apo01
+  !fnames = (/'0.00_050-signal.dat', '0.50_050-signal.dat', '1.00_050-signal.dat'/)  ! Apo02-03
+  !detnames = (/'','',''/)
+  
+  ! Methods paper 2:
+  !nf = 3
+  !subdir = 'ST01/'
+  !fnames(1:nf) = (/'NS_NS-signal.dat', 'HL_NS-signal.dat', 'HL_HL-signal.dat'/)  ! ST01
+  !detnames(1:nf = (/'0 spins','1 spin ','2 spins'/)
+  !nf = 4
+  !fnames(1:nf) = (/'NS_NS-signal.dat', 'HL_NS-signal.dat', 'NS_HL-signal.dat', 'HL_HL-signal.dat'/)  ! ST0
+  !detnames(1:nf) = (/'','','',''/)
+
+  ! Methods paper 3:
+  !nf = 2
+  !subdir = 'ST01/'
+  !!fnames(1:nf) = (/'1.5pN-signal.dat', '3.5pN-signal.dat'/)  ! ST01
+  !fnames(1:nf) = (/'1.5pN_ns-signal.dat', '3.5pN_ns-signal.dat'/)  ! ST01
+  !detnames(1:nf) = (/'',''/)
+  nf = 1
+  subdir = 'ST01/'
+  !fnames(1:nf) = (/'1.5pN-signal.dat', '3.5pN-signal.dat'/)  ! ST01
+  fnames(1:nf) = (/'3.5pN_ns1-signal.dat'/)  ! ST01 - eta=0.04
+  detnames(1:nf) = (/''/)
+  
+  
+  !fnames = (/'0.00_020-signal.dat'/)
+  !detnames = (/''/)
   
   !fnames = (/'Hanford-signal-NS.dat', 'Hanford-signal-Sp.dat'/)
   !detnames = (/'GeneratePPN','SpinTaylor '/)
@@ -107,7 +138,8 @@ program plotsignal
   
   write(6,*)''
   do f=1,nf
-     fname = trim(dirname)//trim(fnames(f))
+     fname = trim(dirname)//trim(subdir)//trim(fnames(f))
+     print*,trim(dirname),' - ',trim(subdir), ' - ', trim(fnames(f))
      open(unit=10,form='formatted',status='old',file=trim(fname),iostat=io)
      if(io.ne.0) then
         write(6,'(A,/)')'File not found: '//trim(fname)//'. Quitting the programme.'  
@@ -115,9 +147,12 @@ program plotsignal
      end if
      rewind(10)
      
-     write(6,'(A)', advance='no') 'Reading input file '//trim(fname)//'...     '
-     read(10,*)bla
-     read(10,*)m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
+     write(6,'(A)') 'Reading input file '//trim(fname)//'...     '
+     read(10,'(A)')bla
+     print*,trim(bla)
+     !read(10,*)m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
+     read(10,'(A)')bla
+     print*,trim(bla)
      read(10,*)bla
      do i=1,n1
         read(10,*,err=195,end=199)t1(f,i),h(f,i)
@@ -134,7 +169,7 @@ program plotsignal
      write(6,'(I5,A12)')n(f),'lines read.'
   end do !f
   
-  write(6,'(6(A10,F8.3))')'m1:',m1,'m2:',m2,'mc:',mc,'eta:',eta,'dl:',dl,'spin:',spin
+  !write(6,'(6(A10,F8.3))')'m1:',m1,'m2:',m2,'mc:',mc,'eta:',eta,'dl:',dl,'spin:',spin
   !write(title,'(A,F5.1,A,F5.1,A,F4.1,A,F5.1,A)') 'M\d1\u =',m1,'M\d\(2281)\u,  M\d2\u =',m2,'M\d\(2281)\u,  a\dspin\u =',spin,', &
   !d\dL\u=',dl,'Mpc'
   write(m1s,'(F5.1)')m1
@@ -191,14 +226,25 @@ program plotsignal
   
   !*** PLOT ***
   
-  h = h*1.e22
+  !h = h*1.e22
   
   write(6,*)''
   if(1.eq.1) then
-     if(file.eq.0) io = pgopen('12/xs')
-     if(file.eq.1) io = pgopen('detectorsignal.eps/cps')
-     if(file.eq.2) io = pgopen('detectorsignal.eps/cps')
-     if(file.eq.3) io = pgopen('detectorsignal.ppm/ppm')
+     select case(file)
+        case(0)
+           io = pgopen('12/xs')
+           lw = 1
+        case(1)
+           io = pgopen('detectorsignal.eps/cps')
+           lw = 1
+        case(2)
+           io = pgopen('detectorsignal.eps/cps')
+           lw = 2
+        case(3)
+           io = pgopen('detectorsignal.ppm/ppm')
+           lw = 1
+     end select
+     
      if(io.le.0) then
         write(0,'(A,I6,/)')'Cannot open PGPlot device.  Quitting the programme ',io
         stop
@@ -206,14 +252,20 @@ program plotsignal
      call pgscf(1)
      !call pgpap(10.,min(max(0.25*real(nf),0.3),0.8))
      !call pgpap(10.,0.75)
-     !call pgpap(10.,0.30)  !Poster plot with 3 waveforms
-     call pgpap(20.,0.20)  !
-     sch = max(3./real(nf),1.5)
-     sch = 3./real(nf)
-     sch = 3.  !Poster plot with 3 waveforms
+     !call pgpap(15.,0.40)  !Poster plot with 3 waveforms
+     if(inOnePanel) then
+        call pgpap(15.,0.1333*8)     ! All in one panel
+     else
+        call pgpap(15.,0.1333*nf)  ! Poster plot with nf waveforms
+     end if
+     !call pgpap(20.,0.20)  !
+     !sch = max(3./real(nf),1.5)
+     sch = 6./real(nf)
+     if(inOnePanel) sch = 6./8.
+     !sch = 3.  !Poster plot with 3 waveforms
      call pgsch(sch)
      call pgscr(3,0.,0.6,0.)
-     if(file.eq.1) call pgslw(2)
+     call pgslw(lw*2)
      
      xmin =  1.e30
      xmax = -1.e30
@@ -222,21 +274,34 @@ program plotsignal
      do f=1,nf
         !xmin = min(minval(t(f,1:n(f))),xmin)
         !xmax = max(maxval(t(f,1:n(f))),xmax)
-        ymin = min(minval(h(f,1:n(f))),ymin)
-        ymax = max(maxval(h(f,1:n(f))),ymax)
         do i=1,n(f)
            if(abs(h(f,i)).gt.1.e-33.and.t(f,i).lt.xmin) xmin = t(f,i)
            if(abs(h(f,i)).gt.1.e-33.and.t(f,i).gt.xmax) xmax = t(f,i)
         end do
         
+        !ymin = min(minval(h(f,1:n(f))),ymin)
+        !ymax = max(maxval(h(f,1:n(f))),ymax)
         ymax = maxval(abs(h))
         ymin = -ymax
-        
-        !xmin  = 999.
-        xmin  = 994.6
-        !xmax = 997.
-        xmax = 1000.1
      end do
+     print*,'hmax:',maxval(abs(h))
+     
+     if(1.eq.1) then
+        t = t - xmax
+        xmin = xmin - xmax
+        xmax = xmax - xmax
+     end if
+     
+     !xmin  = 994.6
+     !xmin  = 999.
+     !xmin  = 1000.
+     xmin = -1.
+     !xmin = -0.2
+     !xmax = 997.
+     !xmax = 1000.1
+     
+     xmin = -5.0
+     xmax = -3.0
      
      dx = abs(xmax-xmin)*0.01
      !dx = abs(xmax-xmin)*0.05
@@ -247,6 +312,7 @@ program plotsignal
      !do f=1,nf
      nfrx = 1      !Number of frames
      nfry = nf      
+     !if(inOnePanel) nfry = 1
      xwinmin = 0.10    !Absolute limits
      xwinmax = 0.95
      !ywinmin = 0.10
@@ -281,11 +347,13 @@ program plotsignal
            xfrmax = xwinmin+dxwin*frx
            yfrmin = ywinmax-dywin*fry
            yfrmax = ywinmax-dywin*(fry-1)
+           !print*,xfrmin,xfrmax,yfrmin,yfrmax
+           
            call pgsci(1)
-           if(fr.eq.1) then
+           if(fr.eq.1 .or. .not.inOnePanel) then
               call pgsvp(xfrmin,xfrmax,yfrmin,yfrmax)
-              !call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
-              call pgswin(xmin-dx,xmax+dx,ymin,ymax+2*dy)
+              call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
+              !call pgswin(xmin-dx,xmax+dx,ymin,ymax+2*dy)
            end if
            
            if(frx.eq.1) then
@@ -303,8 +371,8 @@ program plotsignal
            if(fry.eq.1.and.prtitle.eq.1) call pgmtxt('T',1.,0.5,0.5,trim(title))
            if(fry.eq.nfry) then
               !call pgmtxt('B',2.2,0.5,0.5,'GPStime - '//t0s//' (s)')
-              !call pgmtxt('B',2.5,0.5,0.5,'time (s)')
-              call pgmtxt('B',2.5,0.5,0.5,'tijd (s)')
+              call pgmtxt('B',2.5,0.5,0.5,'time (s)')
+              !call pgmtxt('B',2.5,0.5,0.5,'tijd (s)')
               call pgbox('BCNTS',0.0,0,'',0.0,0)
            else
               call pgbox('BCTS',0.0,0,'',0.0,0)
@@ -312,14 +380,14 @@ program plotsignal
            
            !Plot signal
            call pgsci(colours(fr))
-           call pgslw(1)
+           call pgslw(lw)
            call pgline(n(fr),t(fr,1:n(fr)),h(fr,1:n(fr)))
            !print*,frx,fry,fr
            call pgsch(1.)
            !  call pgpoint(n(fr),t(fr,1:n(fr)),h(fr,1:n(fr)),1)
            call pgsch(sch)
            call pgsci(1)
-           if(file.eq.1) call pgslw(2)
+           call pgslw(lw*2)
            
            !Print detector name
            call pgsci(colours(fr))
