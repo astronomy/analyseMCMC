@@ -627,7 +627,7 @@ subroutine read_mcmcfiles(exitcode)
      do i=1,nMCMCpar
         revID(parID(i)) = i  ! Reverse ID
      end do
-     write(stdOut,'(99A)') parNames(parID(1:nMCMCpar))
+     if(prProgress.ge.3) write(stdOut,'(99A)') 'Parameters identified: ',parNames(parID(1:nMCMCpar))
      
      i=1
      do while(i.le.maxIter)

@@ -79,7 +79,7 @@ program analyseMCMC
   use plot_data, only: unSharppdf2d,psclr,ncolours,nsymbols,defcolour
   
   implicit none
-  integer :: i,ic,io,exitcode,tempintarray(99),getos,status,system
+  integer :: i,ic,io,exitcode,tempintarray(99),getos,status,system, tmpStdOut
   real(double) :: timestamp,timestamps(9)  ! Time the progress of the code.
   character :: infile*(99)
   logical :: ex,timing
@@ -104,7 +104,7 @@ program analyseMCMC
   !call write_settingsfile()   ! Write the input file back to disc
   
   ! New parameters that should go into the settings file(?):
-  phi_q_sorting = 1  ! Do phase/mass-ratio sorting (if phi>pi, q -> 1/q; m1 <-> m2): 0-no, 1-yes
+  phi_q_sorting = 0  ! Do phase/mass-ratio sorting (if phi>pi, q -> 1/q; m1 <-> m2): 0-no, 1-yes
   
   
   ! Print code version and set use_PLplot:
@@ -160,11 +160,17 @@ program analyseMCMC
      if(status.ne.0) call quit_program_error('Could not create output directory: '//trim(outputdir)//'/',1)
   end if
   
-  if(prStdOut.ge.2) then  ! Write standard output to file rather than screen
-     stdOut = 19
-     write(stdOutFile,'(A,I6.6,A)')trim(outputdir)//'/analysemcmc_tempstdout_',abs(get_ran_seed(0)),'.txt'
-     open(unit=stdOut,action='write',form='formatted',status='replace',file=trim(stdOutFile),iostat=io)
-     if(io.ne.0) call quit_program_error('Error opening output file '//trim(stdOutFile),1)
+  ! Write at least the code version to file:
+  tmpStdOut = 19
+  write(stdOutFile,'(A,I6.6,A)')trim(outputdir)//'/analysemcmc_tempstdout_',abs(get_ran_seed(0)),'.txt'
+  open(unit=tmpStdOut,action='write',form='formatted',status='replace',file=trim(stdOutFile),iostat=io)
+  if(io.ne.0) call quit_program_error('Error opening output file '//trim(stdOutFile),1)
+  call print_code_version(tmpStdOut, use_PLplot)
+  
+  if(prStdOut.ge.2) then
+     stdOut = tmpStdOut  ! Keep writing standard output to file rather than screen
+  else
+     close(tmpStdOut)    ! Close file and return to screen output
   end if
   write(stdOut,*)
   
@@ -183,7 +189,12 @@ program analyseMCMC
      call findFiles('SPINspiral.output.*.00',maxChs,1,infiles,nchains0)
      if(nchains0.eq.0) then
         write(stdErr,'(A)')'  No files matching  SPINspiral.output.*.00  were found in the current directory.'
-        write(stdErr,'(A)')'  I will try the old file names  mcmc.output.*.00  instead.'
+        write(stdErr,'(A)')'  I will try LALInference output file names  PTMCMC.output.*.00  instead.'
+        call findFiles('PTMCMC.output.*.00',maxChs,1,infiles,nchains0)
+     end if
+     if(nchains0.eq.0) then
+        write(stdErr,'(A)')'  No files matching  PTMCMC.output.*.00  were found either.'
+        write(stdErr,'(A)')'  I will try the old file names  mcmc.output.*.00  before I give up.'
         call findFiles('mcmc.output.*.00',maxChs,1,infiles,nchains0)
         if(nchains0.eq.0) call quit_program_error('No valid input files were found in the current directory.'// &
              '  Please specify input files manually.',1)
@@ -321,11 +332,16 @@ program analyseMCMC
   
   if(prChainInfo.ge.1) then
      if(nchains0.eq.1) then
-        write(stdOut,'(A)', advance="no")'  Analysing 1 chain from SPINspiral,'
+        write(stdOut,'(A)', advance="no")'  Analysing 1 chain from'
      else
-        write(stdOut,'(A,I3,A)', advance="no")'  Analysing',nchains0,' chains from SPINspiral,'
+        write(stdOut,'(A,I3,A)', advance="no")'  Analysing',nchains0,' chains from'
      end if
-     write(stdOut,'(A)', advance='no')'  in '//trim(username)//'@'//trim(hostname)//':'//trim(workdir)//'/'
+     if(index(infiles(1),'SPINspiral.output').ne.0 .and. index(infiles(1),'mcmc.output').ne.0) then
+        write(stdOut,'(A)', advance="no")' SPINspiral'
+     else
+        write(stdOut,'(A)', advance="no")' LALInference'
+     end if
+     write(stdOut,'(A)', advance='no')',  in '//trim(username)//'@'//trim(hostname)//':'//trim(workdir)//'/'
      write(stdOut,'(A)')',  on '//trim(currentdatestr)//', '//trim(currenttimestr)//' ('//trim(currenttimezonestr)//').'
   end if
   nchains = nchains0
