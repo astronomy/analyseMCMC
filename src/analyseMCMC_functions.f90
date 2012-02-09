@@ -481,7 +481,9 @@ end subroutine set_plotsettings
 subroutine read_mcmcfiles(exitcode)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdErr,stdOut
-  use analysemcmc_settings, only: thin,maxChLen,maxMCMCpar
+  use SUFR_system, only: quit_program_error
+  
+  use analysemcmc_settings, only: thin,maxChLen, maxMCMCpar,parNames
   use general_data, only: allDat,post,prior,ntot,n,nchains,nchains0,infiles,maxIter
   use mcmcrun_data, only: niter,Nburn0,detnames,detnr,parID,seed,snr,revID,ndet,flow,fhigh,t_before,nCorr,nTemps,Tmax,Tchain
   use mcmcrun_data, only: networkSNR,waveform,pnOrder,nMCMCpar,t_after,FTstart,deltaFT,samplerate,samplesize,FTsize,outputVersion
@@ -614,15 +616,18 @@ subroutine read_mcmcfiles(exitcode)
         nMCMCpar0 = nMCMCpar  ! nMCMCpar may change when secondary parameters are computed
      end if
      
-     read(10,'(A)',end=199,err=199) parNameStr  ! Read empty line
-     read(10,'(A)',end=199,err=199) parNameStr  ! Read empty line
-     read(10,'(A)',end=199,err=199) parNameStr  ! Read empty line
      read(10,'(A)',end=199,err=199) parNameStr  ! Read line with column headers (Cycle, log Post., Prior, etc)
-     if(outputVersion.ge.2.1) call parNames2IDs(trim(parNameStr),nMCMCpar, parID)  ! Convert parameter names to integer IDs
+     if(outputVersion.ge.2.1) then
+        read(10,'(A)',end=199,err=199) parNameStr  ! Read empty line
+        read(10,'(A)',end=199,err=199) parNameStr  ! Read empty line
+        read(10,'(A)',end=199,err=199) parNameStr  ! Read empty line
+        call parNames2IDs(trim(parNameStr),nMCMCpar, parID)  ! Convert parameter names to integer IDs
+     end if
      
      do i=1,nMCMCpar
-        revID(parID(i)) = i  !Reverse ID
+        revID(parID(i)) = i  ! Reverse ID
      end do
+     write(stdOut,'(99A)') parNames(parID(1:nMCMCpar))
      
      i=1
      do while(i.le.maxIter)
@@ -631,11 +636,10 @@ subroutine read_mcmcfiles(exitcode)
         else
            read(10,*,iostat=io)tmpInt,post(ic,i),prior(ic,i),tmpDat(1:nMCMCpar)
         end if
-        is(ic,i) = real(tmpInt)
         
-        if(io.lt.0) exit !EOF
-        if(io.gt.0) then !Read error
-           if(readerror.eq.1) then !Read error in previous line as well
+        if(io.lt.0) exit  ! EOF
+        if(io.gt.0) then  ! Read error
+           if(readerror.eq.1) then  ! Read error in previous line as well
               if(i.lt.25) then
                  write(stdErr,'(A,I7)',advance="no")'  Read error in file '//trim(infile)//', line',i
                  write(stdErr,'(A,/)')'  Aborting program...'
@@ -643,7 +647,7 @@ subroutine read_mcmcfiles(exitcode)
               else
                  write(stdOut,'(A,I7)',advance="no")'  Read error in file '//trim(infile)//', line',i
                  i = i-1
-                 write(stdOut,'(2(A,I8))',advance='no')'  iteration:',tmpInt,', last iteration read successfully:',nint(is(ic,i))
+                 write(stdOut,'(2(A,I8))',advance='no')'  iteration:',tmpInt,', last iteration read successfully:',tmpInt
                  write(stdOut,*)
                  exit
               end if
@@ -654,8 +658,10 @@ subroutine read_mcmcfiles(exitcode)
         end if
         readerror = 0
         
+        is(ic,i) = real(tmpInt)
+        !if(i.lt.10) print*,tmpInt
         
-        !GPS time doesn't fit in single-precision variable
+        ! GPS time doesn't fit in single-precision variable
         if(ic.eq.1.and.i.eq.1) then
            dtmpDat = 0.d0
            do p=1,nMCMCpar
@@ -668,10 +674,11 @@ subroutine read_mcmcfiles(exitcode)
         end if
         allDat(ic,1:nMCMCpar,i) = real(tmpDat(1:nMCMCpar) - dtmpDat(1:nMCMCpar))
         
-        if(thin.gt.1.and.i.gt.2) then !'Thin' the output by reading every thin-th line
+        ! 'Thin' the output by reading every thin-th line, after you've read the injection and starting values:
+        if(thin.gt.1.and.i.gt.1) then
            do j=1,thin-1
               read(10,*,iostat=io)tmpStr
-              if(io.lt.0) exit !EOF
+              if(io.lt.0) exit  ! EOF
            end do
         end if
         
@@ -704,6 +711,10 @@ subroutine read_mcmcfiles(exitcode)
      !nint(is(ic,ntot(ic))),', burn-in:',Nburn(ic),'.'
   end do !do ic = 1,nchains0
   
+  if(sum(ntot).lt.10) &
+       call quit_program_error('read_mcmcfiles(): Fewer than 10 data points were read - I must have read the input file(s)'// &
+       ' incorrectly somehow', stdErr)
+  
 end subroutine read_mcmcfiles
 !***********************************************************************************************************************************
 
@@ -727,13 +738,15 @@ subroutine parNames2IDs(parNameStr,nMCMCpar, parID)
   integer, intent(in) :: nMCMCpar
   integer, intent(out) :: parID(maxMCMCpar)
   
-  integer, parameter :: npIDs = 9
+  integer, parameter :: npIDs = 15
   integer :: pr1,pr2,pIDs(npIDs)
   character :: pnames(19)*(19),pars(19)*(19)
   
   parID = 0
-  pnames(1:9) = [character(len=19) :: 'iota','psi','dec','ra','dist','phi_orb','time','q','mc']  ! CHECK: time = t40? tc?
-  pIDs(1:npIDs) = (/                   51,    52,   32,   31,  22,    41,       11,    67, 61/)
+  pnames(1:npIDs) = [character(len=19) :: 'iota','psi','dec','ra','dist','phi_orb','time','q','mc',  &
+       'a1','theta1','phi1','a2','theta2','phi2']  ! CHECK: time = t40? tc?
+  pIDs(1:npIDs) = (/                   51,    52,   32,   31,  22,    41,       11,    67, 61,  &
+       71,72,73, 81,82,83/)
   
   read(parNameStr,*) (pars(pr1),pr1=1,nMCMCpar+3)
   do pr1=1,nMCMCpar+3
@@ -769,7 +782,7 @@ subroutine mcmcruninfo(exitcode)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdOut,stdErr, rpi
   use SUFR_statistics, only: compute_median_real
-  use SUFR_system, only: swapreal, warn
+  use SUFR_system, only: swapreal, warn, quit_program_error
   use aM_constants, only: waveforms,detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
@@ -871,6 +884,8 @@ subroutine mcmcruninfo(exitcode)
   ! Get point with absolute maximum likelihood over all chains:
   loglmax = -1.d99
   loglmaxs = -1.d99
+  iloglmax = 0
+  icloglmax = 0
   do ic=1,nchains0
      do i=3,ntot(ic)  !3: exclude injection and starting values
         if(post(ic,i).gt.loglmaxs(ic)) then
@@ -883,6 +898,9 @@ subroutine mcmcruninfo(exitcode)
         end if
      end do
   end do
+  
+  if(ilogLmax*iclogLmax.eq.0) call quit_program_error('No max logL found - perhaps I read the input files incorrectly?', &
+       stdErr)
   
   if(prRunInfo.ge.1) then
      ic = icloglmax

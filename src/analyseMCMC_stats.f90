@@ -113,7 +113,7 @@ subroutine statistics(exitcode)
   
   
   
-  !Sort all data and find the interval limits for the default probability interval for the wrapable parameters
+  ! Sort all data and find the interval limits for the default probability interval for the wrapable parameters
   if(prProgress.ge.2) write(stdOut,*)
   shift = 0.
   wrap = 0
@@ -369,7 +369,7 @@ subroutine statistics(exitcode)
      
      logebayestempfactor(ic) = real((total3/(n(ic)))*deltab)
      !write(stdOut,'(A,4F10.3,2I9,F10.3)')'ln Bayes',logebayesfactor(ic),log10bayesfactor(ic),maxlogl,minlogl,n(ic),ic,Tchain(ic)
-     write(stdOut,'(A,F10.3,I9,2F10.3,3I9)')'ln Bayes',logebayestempfactor(ic),ic,Tchain(ic),deltab,Nburn(ic),Ntot(ic),n(ic)
+     !write(stdOut,'(A,F10.3,I9,2F10.3,3I9)')'ln Bayes',logebayestempfactor(ic),ic,Tchain(ic),deltab,Nburn(ic),Ntot(ic),n(ic)
      
      
      
@@ -625,7 +625,7 @@ subroutine statistics(exitcode)
   
   
   
-  !Average the Bayes factors from all chains:
+  ! Average the Bayes factors from all chains:
   logebayesfactortotalgeom = 0.0
   logebayesfactortotalarith = 0.0
   logebayesfactortotalharmo = 0.0
@@ -643,6 +643,8 @@ subroutine statistics(exitcode)
      total2 = total2 + (exp(-var))
      !write(6,'(A,F10.3)')'logebayesfactortotalharmo',logebayesfactortotalharmo
      logebayesfactortotal = logebayesfactortotal + logebayestempfactor(ic)
+     if(prProgress.gt.2) write(stdOut,'(A,F10.3,I9,F10.3,3I9)')' ln Bayes: ', &
+          logebayestempfactor(ic),ic,Tchain(ic),Nburn(ic),Ntot(ic),n(ic)
   end do
   logebayesfactortotalgeom = logebayesfactortotalgeom/real(nchains)
   total = total/dble(nchains)
