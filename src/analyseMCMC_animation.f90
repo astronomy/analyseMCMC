@@ -265,12 +265,14 @@ subroutine animation(exitcode)
         call pgsci(2)
         call pgsls(2)
         if(nchains0.gt.1) call pgsci(1)
-        call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p,1),startval(ic,p,1)/)) !Injection value
+        call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p,1),startval(ic,p,1)/))  ! Injection value
+        
+        ! Mark the end of the burn-in phase:
         call pgsci(6)
         if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-        !if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-        if(plBurn.ge.1.and.isburn(ic).lt.is(ic,max(min(nplt,ntot(ic)),1) ))  &
+        if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,max(min(nplt,ntot(ic)),1) ))  &
              call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
+        
         call pgsci(2)
         call pgsls(4)
         if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
@@ -349,12 +351,11 @@ subroutine animation(exitcode)
               if(nchains0.gt.1) call pgsci(1)
               call pgline(2,(/-1.e20,1.e20/),(/startval(ic,p,1),startval(ic,p,1)/))  !Injection value
            end if
+           
+           ! Mark the end of the burn-in phase:
            call pgsci(6)
            if(nchains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !call pgline(2,(/real(Nburn(ic)),real(Nburn(ic))/),(/-1.e20,1.e20/))
-           !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))              !Burn-in
-           !if(plBurn.ge.1.and.isburn(ic).lt.is(ic,ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
-           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,max(min(nplt,ntot(ic)),1) ))  &
+           if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,max(min(nplt,ntot(ic)),1) ))  &
                 call pgline(2,(/isburn(ic),isburn(ic)/),(/-1.e20,1.e20/))
            
            !print*,ic,nplt,isburn(ic),is(ic,nplt),is(ic,max(min(nplt,ntot(ic)),1) )

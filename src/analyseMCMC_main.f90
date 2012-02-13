@@ -140,7 +140,7 @@ program analyseMCMC
      plStart = 1
      plMedian = 1
      plRange = 4
-     plBurn = 1
+     plBurn = 3
      plLmax = 1
      normPDF2D = 4
      

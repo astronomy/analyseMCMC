@@ -301,7 +301,7 @@ subroutine write_settingsfile()
        ' 3-both. 4-6: as 1-3 + write value in PDF panel'
   write(u,11)plRange, 'plRange',   'Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs,'// &
        ' 3-both. 4-6: as 1-3 + write value in PDF panel'
-  write(u,11)plBurn, 'plBurn',   'Plot the burn-in in logL, the chains, etc.'
+  write(u,11)plBurn, 'plBurn',   'Plot the burn-in in logL, the chains, etc.: 0-no, 1-vertical line, 2-colour shade, 3-both'
   write(u,11)plLmax, 'plLmax',   'Plot the position of the max logL, in the chains and pdfs'
   write(u,11)prValues, 'prValues',   'Print values (injection, median, range) in pdfs'
   write(u,11)smooth, 'smooth',   'Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).'// &
@@ -431,7 +431,7 @@ subroutine set_plotsettings()
   plStart = 1       ! Plot starting values in the chains and pdfs
   plMedian = 1      ! Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
   plRange = 1       ! Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
-  plBurn = 1        ! Plot the burn-in in logL, the chains, etc.
+  plBurn = 3        ! Plot the burn-in in logL, the chains, etc.: 0-no, 1-vertical line, 2-colour shade, 3-both
   plLmax = 0        ! Plot the position of the max of logL in chains and pdfs
   prValues = 1      ! Print values (injection, median, range) in pdfs
   smooth = 3        ! Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?)

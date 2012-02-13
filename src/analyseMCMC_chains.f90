@@ -102,9 +102,8 @@ subroutine chains(exitcode)
         end if
      end if
      
-     !call pgscr(3,0.,0.5,0.)
+     ! Custom initialisation of PGPlot/PLplot:
      call pginitl(colour,file,whiteBG)
-     !call pgsubp(1,2)
      
      call pgsvp(0.08,0.92,0.06,0.94) !Need wider margin for title on right
      if(quality.eq.0) call pgsvp(0.08,0.92,0.06,0.94) !To make room for title
@@ -147,15 +146,21 @@ subroutine chains(exitcode)
         call pgsls(1)
      end if
      do ic=1,nChains0
-        !Give pre- and post-burn-in different colour
+        
+        ! Give pre- and post-burn-in different colour:
         ci = defcolour
         if(nChains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
-        call pgscidark(ci,file,whiteBG)
-        do i=ic,Nburn(ic),chainPlI !Start at ic to reduce overplotting
+        
+        ! Pre-burnin:
+        call pgsci(ci)
+        if(plBurn.ge.2) call pgscidark(ci,file,whiteBG)
+        do i=ic,Nburn(ic),chainPlI  ! Start at ic to reduce overplotting
            call pgpoint(1,is(ic,i),post(ic,i),1)
         end do
+        
+        ! Post-burnin:
         call pgsci(ci)
-        do i=Nburn(ic)+ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
+        do i=Nburn(ic)+ic,Ntot(ic),chainPlI  ! Start at ic to reduce overplotting
            call pgpoint(1,is(ic,i),post(ic,i),1)
         end do
      end do
@@ -172,11 +177,13 @@ subroutine chains(exitcode)
      do ic=1,nChains0
         call pgsci(1)
         call pgsls(2)
-        !Plot injection value, only if injection was done:
+        
+        ! Plot injection value, only if injection was done:
         if(abs(post(ic,1)).gt.1.e-4) call pgline(2,(/xmin,xmax/),(/post(ic,1),post(ic,1)/))  
         call pgsci(colours(mod(ic-1,ncolours)+1))
-        !Vertical line at burn-in:
-        if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/)) 
+        
+        ! Mark the end of the burn-in phase:
+        if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
         call pgsls(4)
         call pgline(2,(/xmin,xmax/),(/post(ic,2),post(ic,2)/))  !Horizontal dotted line at starting value
      end do
@@ -405,10 +412,14 @@ subroutine chains(exitcode)
            if(chainSymbol.eq.0) then !Plot lines rather than symbols
               call pgline(Ntot(ic),is(ic,1:Ntot(ic)),allDat(ic,p,1:Ntot(ic)))
            else
-              !Give pre- and post-burn-in different colour
+              
+              ! Give pre- and post-burn-in different colour:
               ci = defcolour
               if(nChains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
-              call pgscidark(ci,file,whiteBG)
+              
+              ! Pre-burnin:
+              call pgsci(ci)
+              if(plBurn.ge.2) call pgscidark(ci,file,whiteBG)
               do i=ic,Nburn(ic),chainPlI !Start at ic to reduce overplotting
                  ply = allDat(ic,p,i)
                  if(changeVar.ge.1) then
@@ -423,6 +434,8 @@ subroutine chains(exitcode)
                  end if
                  call pgpoint(1,is(ic,i),ply,symbol)
               end do
+              
+              ! Post-burnin:
               call pgsci(ci)
               do i=Nburn(ic)+ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
                  ply = allDat(ic,p,i)
@@ -464,19 +477,18 @@ subroutine chains(exitcode)
            call pgline(2,(/xmin,xmax/),(/ply,ply/))
         end if
         
-        !Plot burn-in, injection and starting values
+        ! Plot burn-in, injection and starting values
         do ic=1,nChains0
            call pgsls(2)
            call pgsci(6)
            
-           !Plot burn-in phase
+           ! Mark end of burn-in phase:
            if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
-           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
+           if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
            call pgsci(1)
            
            
-           !Plot injection values in chains
+           ! Plot injection values in chains:
            if(plInject.ge.1) then
               if(mergeChains.ne.1.or.ic.eq.1) then 
                  !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1
@@ -1009,14 +1021,14 @@ subroutine chains(exitcode)
            end if
         end do
         
+        ! Mark the end of the burn-in phase:
         call pgsls(2)
         call pgsci(6)
         do ic=1,nChains0
-           !call pgline(2,(/real(Nburn(ic)),real(Nburn(ic))/),(/ymin,ymax/))
            if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           !if(plBurn.ge.1) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
-           if(plBurn.ge.1.and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
+           if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
         end do
+        
         call pgsci(1)
         call pgsls(1)
         !call pgmtxt('T',1.,0.5,0.5,'Jumps: '//trim(pgOrigParns(parID(p))))
