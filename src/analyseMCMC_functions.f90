@@ -483,7 +483,7 @@ subroutine read_mcmcfiles(exitcode)
   use SUFR_constants, only: stdErr,stdOut
   use SUFR_system, only: quit_program_error
   
-  use analysemcmc_settings, only: thin,maxChLen, maxMCMCpar
+  use analysemcmc_settings, only: thin,maxChLen, maxMCMCpar, prProgress
   use general_data, only: allDat,post,prior,ntot,n,nchains,nchains0,infiles,maxIter, parNames
   use mcmcrun_data, only: niter,Nburn0,detnames,detnr,parID,seed,snr,revID,ndet,flow,fhigh,t_before,nCorr,nTemps,Tmax,Tchain
   use mcmcrun_data, only: networkSNR,waveform,pnOrder,nMCMCpar,t_after,FTstart,deltaFT,samplerate,samplesize,FTsize,outputVersion
