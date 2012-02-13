@@ -53,7 +53,7 @@ subroutine chains(exitcode)
   
   !*********************************************************************************************************************************
   ! Plot posterior chain:
-  if(plLogL.eq.1) then
+  if(plLogL.ge.1) then
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' posterior chain, '
      
      if(use_PLplot) then
@@ -74,12 +74,15 @@ subroutine chains(exitcode)
      if(file.eq.0) then
         io = pgopen('12/xs')
         call pgsch(1.5)
+        lw = 1
      end if
      if(file.ge.1) then
         tempfile = trim(outputdir)//'/'//trim(outputname)//'__posterior'
         if(file.eq.1) io = pgopen(trim(tempfile)//'.ppm/ppm')
         if(file.ge.2) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
         call pgsch(1.2)
+        lw = 1
+        if(file.ge.2) lw = lw*2
      end if
      if(io.le.0) then
         write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
@@ -104,9 +107,10 @@ subroutine chains(exitcode)
      
      ! Custom initialisation of PGPlot/PLplot:
      call pginitl(colour,file,whiteBG)
+     call pgslw(lw)
      
-     call pgsvp(0.08,0.92,0.06,0.94) !Need wider margin for title on right
-     if(quality.eq.0) call pgsvp(0.08,0.92,0.06,0.94) !To make room for title
+     call pgsvp(0.08,0.92,0.06,0.94)  ! Need wider margin for title on right
+     if(quality.eq.0) call pgsvp(0.08,0.92,0.06,0.94)  ! To make room for title
      
      ic = 1
      p=1
@@ -117,17 +121,17 @@ subroutine chains(exitcode)
      do ic=1,nChains0
         xmin = 0.
         xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
-        imin = 10                                              !Take into account burn-in
-        if(scLogLpl.eq.1) imin = Nburn(ic)                   !Scale without taking into account burn-in
+        imin = 10                                              ! Take into account burn-in
+        if(scLogLpl.eq.1) imin = Nburn(ic)                     ! Scale without taking into account burn-in
         ymin = min(ymin,minval(post(ic,imin:Ntot(ic)))) 
         ymax = max(ymax,maxval(post(ic,imin:Ntot(ic))))
      end do
      ic = 1
      p = 1
-     if(scLogLpl.eq.0) then                                 !Take into account 0, injection and starting values
+     if(scLogLpl.eq.0) then                                    ! Take into account 0, injection and starting values
         ymin = min(ymin,post(ic,1),post(ic,2),0.)
         ymax = max(ymax,post(ic,1),post(ic,2),0.)
-     else                                                     !Take into account injection values only
+     else                                                      ! Take into account injection values only
         ymin = min(ymin,post(ic,1))
         ymax = max(ymax,post(ic,1))
      end if
@@ -145,27 +149,31 @@ subroutine chains(exitcode)
         call pgbox('',0.0,0,'G',0.0,0)  ! Plot a grid of horizontal lines
         call pgsls(1)
      end if
+     
      do ic=1,nChains0
-        
         ! Give pre- and post-burn-in different colour:
         ci = defcolour
         if(nChains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
+        
+        symbol = chainSymbol
+        if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
         
         ! Pre-burnin:
         call pgsci(ci)
         if(plBurn.ge.2) call pgscidark(ci,file,whiteBG)
         do i=ic,Nburn(ic),chainPlI  ! Start at ic to reduce overplotting
-           call pgpoint(1,is(ic,i),post(ic,i),1)
+           call pgpoint(1,is(ic,i),post(ic,i), symbol)
         end do
         
         ! Post-burnin:
         call pgsci(ci)
         do i=Nburn(ic)+ic,Ntot(ic),chainPlI  ! Start at ic to reduce overplotting
-           call pgpoint(1,is(ic,i),post(ic,i),1)
+           call pgpoint(1,is(ic,i),post(ic,i), symbol)
         end do
      end do
      
-     !Plot max posterior
+     
+     ! Plot max posterior:
      if(plLmax.ge.1) then
         ply = post(icloglmax,iloglmax)
         call pgsci(1)
@@ -178,14 +186,16 @@ subroutine chains(exitcode)
         call pgsci(1)
         call pgsls(2)
         
-        ! Plot injection value, only if injection was done:
-        if(abs(post(ic,1)).gt.1.e-4) call pgline(2,(/xmin,xmax/),(/post(ic,1),post(ic,1)/))  
+        ! Plot injection value, only if injection was done: dashed horizontal line:
+        if(plInject.ge.1 .and. abs(post(ic,1)).gt.1.e-4) call pgline(2,(/xmin,xmax/),(/post(ic,1),post(ic,1)/))  
         call pgsci(colours(mod(ic-1,ncolours)+1))
         
-        ! Mark the end of the burn-in phase:
+        ! Mark the end of the burn-in phase: dashed vertical line:
         if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
+        
+        ! Starting value: horizontal dotted line:
         call pgsls(4)
-        call pgline(2,(/xmin,xmax/),(/post(ic,2),post(ic,2)/))  !Horizontal dotted line at starting value
+        call pgline(2,(/xmin,xmax/),(/post(ic,2),post(ic,2)/))
      end do
      call pgsci(1)
      call pgsls(1)
@@ -264,14 +274,14 @@ subroutine chains(exitcode)
 
         lw = 3
         if(nPlPar.ge.10) lw = 2
-        if(quality.lt.2) lw = max(lw-1,1)  !Draft/Paper
+        if(quality.lt.2) lw = max(lw-1,1)  ! Draft/Paper
         sch = fontsize1d*1.2
-        if(nChains.eq.1.and.nPlPar.gt.9) sch = fontsize1d*1.2
-        if(quality.eq.0) then !Draft
+        !if(nChains.eq.1.and.nPlPar.gt.9) sch = fontsize1d*1.2
+        if(quality.eq.0) then  ! Draft
            sch = sch*1.75
            lw = 2
         end if
-        if(quality.eq.1) then !Paper
+        if(quality.eq.1) then  ! Paper
            if(nPlPar.le.12) then
               sch = sch*1.75
               lw = 2
@@ -280,7 +290,7 @@ subroutine chains(exitcode)
               lw = 1
            end if
         end if
-        if(quality.eq.2) then !Talk
+        if(quality.eq.2) then  ! Talk
            if(nPlPar.gt.12) then
               sch = sch*1.5
               lw = 1
@@ -308,7 +318,8 @@ subroutine chains(exitcode)
            sch = sch*2.5
            lw = 2
         end if
-     end if
+     end if  ! if(file.ge.1)
+     
      if(io.le.0) then
         write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
@@ -331,14 +342,16 @@ subroutine chains(exitcode)
            cycle
         end if
         
-        call pgpage()
+        if(nPlPar.gt.1) call pgpage()
         if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
-        call pgsch(sch)
+        !call pgsch(sch)
+        call pgsch(sch/2.*sqrt(real(nPlPar)))
         
         if(file.eq.0.and.scrRat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.ge.2.and.PSrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
-        if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
+        if(file.ge.2.and.PSrat.le.1.35.and.nPlPar.eq.1) call pgsvp(0.08,0.92,0.06,0.94)  ! Same as logP plot
+        if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87)  ! To make room for title
         if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
         
         xmin = 0.
@@ -348,8 +361,8 @@ subroutine chains(exitcode)
         ymax = -1.e30
         do ic=1,nChains0
            xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
-           imin = 1                                               !Take into account burn-in
-           if(scChainsPl.eq.1) imin = Nburn(ic)                   !Scale without taking into account burn-in
+           imin = 1                                               ! Take into account burn-in
+           if(scChainsPl.eq.1) imin = Nburn(ic)                   ! Scale without taking into account burn-in
            ymin = min(ymin,minval(allDat(ic,p,imin:Ntot(ic))))
            ymax = max(ymax,maxval(allDat(ic,p,imin:Ntot(ic))))
         end do
@@ -397,14 +410,13 @@ subroutine chains(exitcode)
         if(quality.eq.1) call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy*2)
         call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
         
-        !Plot the actual chain values
+        ! Plot the actual chain values:
         call pgsch(1.)
-        if(chainSymbol.ne.1) call pgsch(0.7)
+        if(nPlPar.ne.1.and.chainSymbol.ne.1) call pgsch(0.7)
+        
         call pgslw(1)
         !write(stdOut,'(15I4)'),nsymbols,symbols(1:nsymbols)
         do ic=1,nChains0
-           !call pgsci(mod(ic*2,10))
-           !symbol = ic+1
            symbol = chainSymbol
            if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
            call pgsci(defcolour)
@@ -455,7 +467,8 @@ subroutine chains(exitcode)
               
            end if
         end do
-        call pgsch(sch)
+        !call pgsch(sch)
+        call pgsch(sch/2.*sqrt(real(nPlPar)))
         call pgslw(lw)
         
         !Plot max posterior
@@ -524,7 +537,7 @@ subroutine chains(exitcode)
            end if
            
            
-           !Plot starting values in chains
+           ! Plot starting values in chains:
            if(plStart.ge.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/startval(ic,p,1)) .gt. 1.e-10) then
               call pgsls(4)
               if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
@@ -558,11 +571,16 @@ subroutine chains(exitcode)
         
         call pgsci(1)
         call pgsls(1)
-        call pgmtxt('T',1.,0.,0.,' '//trim(pgParNs(parID(p))))
-        write(title,'(F6.3)')rhat(p)
+        if(nPlPar.eq.1) then
+           call pgmtxt('L',2.0,0.5,0.5,' '//trim(pgParNs(parID(p))))
+        else
+           call pgmtxt('T',1.,0.,0.,' '//trim(pgParNs(parID(p))))
+        end if
+        write(title,'(F6.3)') rhat(p)
         if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',1.,1.,1.,'R-hat: '//trim(title))
         
      end do !do j=1,nPlPar
+     
      
      if(quality.eq.0) then
         call pgsubp(1,1)
@@ -1005,18 +1023,23 @@ subroutine chains(exitcode)
         if(plJump.eq.2) call pgbox('BCNTS',0.0,0,'BCLNTS',0.0,0) !log
         
         do ic=1,nChains0
+           
            !call pgsci(mod(ic*2,10))
            call pgsci(defcolour)
            if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+           
+           symbol = chainSymbol
+           if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
+           
            if(plJump.eq.1) then
               !do i=1,Ntot(ic),chainPlI
               do i=ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
-                 call pgpoint(1,is(ic,i),jumps(ic,p,i),1)
+                 call pgpoint(1,is(ic,i),jumps(ic,p,i), symbol)
               end do
            else
               !do i=1,Ntot(ic),chainPlI
               do i=ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
-                 call pgpoint(1,is(ic,i),log10(abs(jumps(ic,p,i))+1.e-30),1)
+                 call pgpoint(1,is(ic,i),log10(abs(jumps(ic,p,i))+1.e-30), symbol)
               end do
            end if
         end do
@@ -1147,9 +1170,13 @@ subroutine chains(exitcode)
         
         call pgsci(defcolour)
         do ic=1,nChains0
+           
            if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+           symbol = chainSymbol
+           if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
+           
            do i=1,nAcorr
-              call pgpoint(1,acorrs(ic,0,i),acorrs(ic,p,i),1)
+              call pgpoint(1,acorrs(ic,0,i),acorrs(ic,p,i),symbol)
            end do
         end do
         

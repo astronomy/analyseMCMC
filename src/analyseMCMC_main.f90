@@ -260,10 +260,9 @@ program analyseMCMC
      if(colour.eq.0) psclr = '/vps'
   end if
   
-  ncolours = 5; colours(1:ncolours)=(/4,2,3,6,5/) !Paper
-  ncolours = 10; colours(1:ncolours)=(/2,3,4,5,6,7,8,9,10,11/)
-  nsymbols = 1; symbols(1:nsymbols)=(/chainSymbol/)
-  if(colour.eq.1.and.quality.eq.2) then !Beamer
+  ncolours =  5;  colours(1:ncolours) = (/4,2,3,6,5/)              ! Paper
+  ncolours = 10;  colours(1:ncolours) = (/2,3,4,5,6,7,8,9,10,11/)
+  if(colour.eq.1.and.quality.eq.2) then  ! Beamer
      ncolours = 5
      colours(1:ncolours)=(/4,2,5,11,15/)
   end if
@@ -272,14 +271,6 @@ program analyseMCMC
      colours(1:ncolours)=(/1,14,15/)
      !ncolours=6
      !colours(1:ncolours)=(/1,1,1,15,1,15/)
-     if(chainSymbol.eq.-10) then
-        nsymbols = 8
-        symbols(1:nsymbols) = (/2,4,5,6,7,11,12,15/) !Thin/open symbols
-     end if
-     if(chainSymbol.eq.-11) then
-        nsymbols = 6
-        symbols(1:nsymbols) = (/-3,-4,16,17,18,-6/) !Filled symbols
-     end if
      !print*,chainSymbol,nsymbols
   end if
   if(colour.eq.1.and.quality.eq.0.and.maxChs.gt.5) then
@@ -292,6 +283,15 @@ program analyseMCMC
   !defcolour = 2 !Red e.g. in case of 1 chain
   defcolour = colours(1)
   
+  nsymbols =  1;  symbols(1:nsymbols) = (/chainSymbol/)
+  if(chainSymbol.eq.-10) then
+     nsymbols = 8
+     symbols(1:nsymbols) = (/2,4,5,6,7,11,12,15/) !Thin/open symbols
+  end if
+  if(chainSymbol.eq.-11) then
+     nsymbols = 6
+     symbols(1:nsymbols) = (/-3,-4,16,17,18,-6/) !Filled symbols
+  end if
   
   if(reverseRead.ge.2) then !Reverse colours too
      do i=1,ncolours
