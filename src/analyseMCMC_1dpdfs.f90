@@ -544,7 +544,9 @@ subroutine pdfs1d(exitcode)
         !if(nPlPar.lt.7.or.nPlPar.eq.9) then  !Three or less columns
         if(quality.ne.2.and.quality.ne.3.and.quality.ne.4) then  !Not a talk/poster/thesis
            if(nPlPar.le.5) then
-              write(str,'(A,F7.3,A5,F7.3)')trim(pgParNs(parID(p)))//': mdl:',startval(ic,p,1),' med:',stats(ic,p,1)
+              write(str,'(A,F7.3)') trim(pgParNs(parID(p)))//': mdl:',startval(ic,p,1)
+              if(plMedian.eq.3.or.plMedian.eq.6) write(str,'(A,F7.3)') trim(str)//' med:',stats(ic,p,1)
+              
               if(prIval.ge.1) then
                  if(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6) then
                     
@@ -636,7 +638,11 @@ subroutine pdfs1d(exitcode)
            else
               if(quality.eq.2.or.quality.eq.3) call pgsci(2)
               !call pgptxt(ranges(ic,c0,p,3),ymax,0.,0.5,trim(str))  ! Align with centre of 90%-probability range
-              call pgptxt((xmin+xmax)/2.,ymax,0.,0.5,trim(str))      ! Centre
+              if(nPlPar.eq.1) then
+                 call pgmtxt('B',2.0,0.5,0.5, trim(pgParNs(parID(p))) )   ! Axis label
+              else
+                 call pgptxt((xmin+xmax)/2.,ymax,0.,0.5,trim(str))      ! Centre
+              end if
               call pgsci(2)
               if(plRange.eq.1.or.plRange.eq.3.or.plRange.eq.4.or.plRange.eq.6)  &
                    call pgline(2,(/ranges(ic,c0,p,1),ranges(ic,c0,p,2)/),(/0.99*ymax,0.99*ymax/))  ! Plot line at top over P.range

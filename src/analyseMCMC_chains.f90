@@ -109,8 +109,8 @@ subroutine chains(exitcode)
      call pginitl(colour,file,whiteBG)
      call pgslw(lw)
      
-     call pgsvp(0.08,0.92,0.06,0.94)  ! Need wider margin for title on right
-     if(quality.eq.0) call pgsvp(0.08,0.92,0.06,0.94)  ! To make room for title
+     call pgsvp(0.08,0.92,0.07,0.94)  ! Need wider margin for title on right
+     if(quality.eq.0) call pgsvp(0.08,0.92,0.07,0.94)  ! To make room for title
      
      ic = 1
      p=1
@@ -191,7 +191,8 @@ subroutine chains(exitcode)
         call pgsci(colours(mod(ic-1,ncolours)+1))
         
         ! Mark the end of the burn-in phase: dashed vertical line:
-        if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
+        if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/), &
+             (/ymin-dy,ymax+dy/))
         
         ! Starting value: horizontal dotted line:
         call pgsls(4)
@@ -200,8 +201,9 @@ subroutine chains(exitcode)
      call pgsci(1)
      call pgsls(1)
      !call pgmtxt('T',0.5,0.1,0.1,'log Posterior')
-     call pgmtxt('L',2.0,0.5,0.5,'log Posterior')
+     call pgmtxt('L',2.5,0.5,0.5,'log Posterior')
      call pgmtxt('R',2.5,0.5,0.5,'\(2267)(2logP) \(0248) SNR')
+     if(nPlPar.eq.1.and.quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
      
      if(quality.eq.0) then
         !call pgsch(sch*0.8)
@@ -350,7 +352,7 @@ subroutine chains(exitcode)
         if(file.eq.0.and.scrRat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.ge.2.and.PSrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
-        if(file.ge.2.and.PSrat.le.1.35.and.nPlPar.eq.1) call pgsvp(0.08,0.92,0.06,0.94)  ! Same as logP plot
+        if(file.ge.2.and.PSrat.le.1.35.and.nPlPar.eq.1) call pgsvp(0.08,0.92,0.07,0.94)  ! Same as logP plot
         if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87)  ! To make room for title
         if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
         
@@ -497,7 +499,8 @@ subroutine chains(exitcode)
            
            ! Mark end of burn-in phase:
            if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
+           if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/), &
+                (/ymin-dy,ymax+2*dy/))
            call pgsci(1)
            
            
@@ -573,6 +576,7 @@ subroutine chains(exitcode)
         call pgsls(1)
         if(nPlPar.eq.1) then
            call pgmtxt('L',2.0,0.5,0.5,' '//trim(pgParNs(parID(p))))
+           if(quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
         else
            call pgmtxt('T',1.,0.,0.,' '//trim(pgParNs(parID(p))))
         end if
@@ -836,7 +840,7 @@ subroutine chains(exitcode)
         call pgslw(lw)
         
         
-        !Plot max posterior:
+        ! Plot max posterior:
         if(plLmax.ge.1) then
            plx = allDat(icloglmax,p,iloglmax)
            if(changeVar.ge.1) then
@@ -1049,7 +1053,8 @@ subroutine chains(exitcode)
         call pgsci(6)
         do ic=1,nChains0
            if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/),(/ymin,ymax/))
+           if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/), &
+                (/ymin-dy,ymax+dy/))
         end do
         
         call pgsci(1)
@@ -1180,15 +1185,15 @@ subroutine chains(exitcode)
            end do
         end do
         
-        !Plot autocorrelation length:
+        ! Plot autocorrelation length:
         call pgsls(2)
         call pgsci(defcolour)
         do ic=1,nChains0
            if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           call pgline(2,(/lAcorrs(ic,p),lAcorrs(ic,p)/),(/ymin,ymax/))
+           call pgline(2,(/lAcorrs(ic,p),lAcorrs(ic,p)/),(/ymin-dy,ymax+dy/))
         end do
         
-        !Plot horizontal line at 0
+        ! Plot horizontal line at 0:
         call pgsci(1)
         call pgline(2,(/xmin,xmax/),(/0.,0./))
         call pgsci(1)
