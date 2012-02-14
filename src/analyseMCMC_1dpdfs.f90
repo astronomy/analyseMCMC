@@ -110,7 +110,10 @@ subroutine pdfs1d(exitcode)
            lw = nint(2*fontsize1d)
         end if
         if(quality.eq.1) then  ! Paper
-           if(nPlPar.eq.12) then
+           if(nPlPar.eq.1) then
+              sch = fontsize1d
+              lw = nint(2*fontsize1d)
+           else if(nPlPar.eq.12) then
               sch = sch*1.75
               lw = nint(2*fontsize1d)
            else
@@ -290,8 +293,13 @@ subroutine pdfs1d(exitcode)
      
      if(plot.eq.1) then
         ! Ranges for plot panel:
-        xmin = xmin - 0.1*dx
-        xmax = xmax + 0.1*dx
+        if(nPlPar.eq.1) then
+           xmin = xmin - 0.01*dx
+           xmax = xmax + 0.01*dx
+        else
+           xmin = xmin - 0.1*dx
+           xmax = xmax + 0.1*dx
+        end if
         ymin = 0.
         ymax = tiny(ymax)
         xpeak = 0.
@@ -639,6 +647,7 @@ subroutine pdfs1d(exitcode)
               if(quality.eq.2.or.quality.eq.3) call pgsci(2)
               !call pgptxt(ranges(ic,c0,p,3),ymax,0.,0.5,trim(str))  ! Align with centre of 90%-probability range
               if(nPlPar.eq.1) then
+                 call pgsch(sch)
                  call pgmtxt('B',2.0,0.5,0.5, trim(pgParNs(parID(p))) )   ! Axis label
               else
                  call pgptxt((xmin+xmax)/2.,ymax,0.,0.5,trim(str))      ! Centre

@@ -59,31 +59,36 @@ subroutine chains(exitcode)
      if(use_PLplot) then
         if(file.eq.0) then
            call pgpap(scrSz,scrRat)
-           call pgsch(1.5)
+           call pgsch(1.5*fontsize1D)
         end if
         if(file.eq.1) then
            call pgpap(bmpsz,bmprat)
-           call pgsch(1.5)
+           call pgsch(1.5*fontsize1D)
         end if
         if(file.ge.2) then
            call pgpap(PSsz,PSrat)
            call pgscf(fonttype)
+           call pgsch(fontsize1D)
         end if
      end if
      
      if(file.eq.0) then
         io = pgopen('12/xs')
-        call pgsch(1.5)
+        call pgsch(1.5*fontsize1D)
         lw = 1
      end if
      if(file.ge.1) then
         tempfile = trim(outputdir)//'/'//trim(outputname)//'__posterior'
         if(file.eq.1) io = pgopen(trim(tempfile)//'.ppm/ppm')
         if(file.ge.2) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
-        call pgsch(1.2)
+        call pgsch(1.2*fontsize1D)
         lw = 1
-        if(file.ge.2) lw = lw*2
+        if(file.ge.2) then
+           lw = lw*2
+           if(nPlPar.eq.1) lw = nint(2*fontsize1d)
+        end if
      end if
+     
      if(io.le.0) then
         write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
         exitcode = 1
@@ -93,15 +98,16 @@ subroutine chains(exitcode)
      if(.not.use_PLplot) then
         if(file.eq.0) then
            call pgpap(scrSz,scrRat)
-           call pgsch(1.5)
+           call pgsch(1.5*fontsize1D)
         end if
         if(file.eq.1) then
            call pgpap(bmpsz,bmprat)
-           call pgsch(1.5)
+           call pgsch(1.5*fontsize1D)
         end if
         if(file.ge.2) then
            call pgpap(PSsz,PSrat)
            call pgscf(fonttype)
+           call pgsch(fontsize1D)
         end if
      end if
      
@@ -109,7 +115,8 @@ subroutine chains(exitcode)
      call pginitl(colour,file,whiteBG)
      call pgslw(lw)
      
-     call pgsvp(0.08,0.92,0.07,0.94)  ! Need wider margin for title on right
+     !call pgsvp(0.08,0.92,0.07,0.94)  ! Need wider margin for title on right
+     call pgsvp(0.08*fontsize1D,1.-0.08*fontsize1D,0.07*fontsize1D,1.-0.06*fontsize1D)  ! Need wider margin for title on right
      if(quality.eq.0) call pgsvp(0.08,0.92,0.07,0.94)  ! To make room for title
      
      ic = 1
@@ -206,9 +213,9 @@ subroutine chains(exitcode)
      if(nPlPar.eq.1.and.quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
      
      if(quality.eq.0) then
-        !call pgsch(sch*0.8)
+        !call pgsch(sch*0.8*fontsize1D)
         call pgmtxt('T',0.5,0.9,0.9,trim(outputname))  !Print title
-        !call pgsch(sch)
+        !call pgsch(sch*fontsize1D)
      end if
      
      call pgend
@@ -284,7 +291,10 @@ subroutine chains(exitcode)
            lw = 2
         end if
         if(quality.eq.1) then  ! Paper
-           if(nPlPar.le.12) then
+           if(nPlPar.eq.1) then
+              sch = fontsize1d*2
+              lw = nint(2*fontsize1d)
+           else if(nPlPar.eq.12) then
               sch = sch*1.75
               lw = 2
            else
@@ -352,7 +362,10 @@ subroutine chains(exitcode)
         if(file.eq.0.and.scrRat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.ge.2.and.PSrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
-        if(file.ge.2.and.PSrat.le.1.35.and.nPlPar.eq.1) call pgsvp(0.08,0.92,0.07,0.94)  ! Same as logP plot
+        if(file.ge.2.and.PSrat.le.1.35.and.nPlPar.eq.1) &
+             !call pgsvp(0.08,0.92,0.07,0.94)  ! Same as logP plot
+             call pgsvp(0.08*fontsize1D,1.-0.08*fontsize1D,0.07*fontsize1D,1.-0.06*fontsize1D)
+
         if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87)  ! To make room for title
         if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
         
@@ -413,8 +426,8 @@ subroutine chains(exitcode)
         call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
         
         ! Plot the actual chain values:
-        call pgsch(1.)
-        if(nPlPar.ne.1.and.chainSymbol.ne.1) call pgsch(0.7)
+        call pgsch(sch*0.5)
+        if(nPlPar.ne.1.and.chainSymbol.ne.1) call pgsch(sch*0.7*0.5)
         
         call pgslw(1)
         !write(stdOut,'(15I4)'),nsymbols,symbols(1:nsymbols)
