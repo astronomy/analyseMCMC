@@ -2467,3 +2467,36 @@ subroutine compBitmapSize(bmpXSz,bmpYSz, scFac, bmpsz,bmprat)
   
 end subroutine compBitmapSize
 !***********************************************************************************************************************************
+
+
+
+
+
+!***********************************************************************************************************************************
+!> \brief  Print a single output line to specify when and were AnalyseMCMC was run
+!!
+!! \param op  Output unit
+
+subroutine print_rundata(op)
+  use SUFR_constants, only: workdir,hostname,username,currenttimezonestr,currenttimestr,currentdatestr
+  use general_data, only: infiles,nchains0
+  implicit none
+  integer, intent(in) :: op
+  
+  if(nchains0.eq.1) then
+     write(op,'(A)', advance="no")'  Analysing 1 chain from'
+  else
+     write(op,'(A,I3,A)', advance="no")'  Analysing',nchains0,' chains from'
+  end if
+  if(index(infiles(1),'SPINspiral.output').ne.0 .or. index(infiles(1),'mcmc.output').ne.0) then
+     write(op,'(A)', advance="no")' SPINspiral'
+  else
+     write(op,'(A)', advance="no")' LALInference'
+  end if
+  write(op,'(A)', advance='no')',  in '//trim(username)//'@'//trim(hostname)//':'//trim(workdir)//'/'
+  write(op,'(A)')',  on '//trim(currentdatestr)//', '//trim(currenttimestr)//' ('//trim(currenttimezonestr)//').'
+  
+end subroutine print_rundata
+!***********************************************************************************************************************************
+
+

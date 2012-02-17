@@ -169,8 +169,8 @@ program analyseMCMC
   
   if(prStdOut.ge.2) then
      stdOut = tmpStdOut  ! Keep writing standard output to file rather than screen
-  else
-     close(tmpStdOut)    ! Close file and return to screen output
+  !else
+  !   close(tmpStdOut)    ! Close file and return to screen output
   end if
   write(stdOut,*)
   
@@ -327,22 +327,12 @@ program analyseMCMC
        'dark red            ','purple              ','red-purple          ','dark grey           ','light grey          '/)
   if(file.ge.2) colournames(1) = 'black'
   
-  call set_originalParameterNames()  !Set the names and symbols of the original MCMC parameters in the database
+  call set_originalParameterNames()  ! Set the names and symbols of the original MCMC parameters in the database
   
   
   if(prChainInfo.ge.1) then
-     if(nchains0.eq.1) then
-        write(stdOut,'(A)', advance="no")'  Analysing 1 chain from'
-     else
-        write(stdOut,'(A,I3,A)', advance="no")'  Analysing',nchains0,' chains from'
-     end if
-     if(index(infiles(1),'SPINspiral.output').ne.0 .and. index(infiles(1),'mcmc.output').ne.0) then
-        write(stdOut,'(A)', advance="no")' SPINspiral'
-     else
-        write(stdOut,'(A)', advance="no")' LALInference'
-     end if
-     write(stdOut,'(A)', advance='no')',  in '//trim(username)//'@'//trim(hostname)//':'//trim(workdir)//'/'
-     write(stdOut,'(A)')',  on '//trim(currentdatestr)//', '//trim(currenttimestr)//' ('//trim(currenttimezonestr)//').'
+     call print_rundata(stdOut)
+     if(prStdOut.lt.2) call print_rundata(tmpStdOut)
   end if
   nchains = nchains0
   
@@ -567,25 +557,27 @@ program analyseMCMC
   
   write(stdOut,*)
   
-  !Save standard-output file under final name:
+  
+  ! Save standard-output file under final name:
   if(prStdOut.ge.2) then
-     status = system('mv -f '//trim(stdOutFile)//' '//trim(outputdir)//'/'//trim(outputname)//'__output.txt')
-     if(status.eq.0) then
-        !Should be 6, not stdOut:
-        write(6,'(/,A,/)')'  AnalyseMCMC:  saved standard output to '//trim(outputdir)//'/'//trim(outputname)//'__output.txt'
-     else
-        write(stdErr,'(/,A)')'  AnalyseMCMC:  Error saving standard output to '// &
-             trim(outputdir)//'/'//trim(outputname)//'__output.txt'
-        !write(stdErr,'(A,/)')'                Check the file '//trim(stdOutFile)
-        status = system('rm -f '//trim(stdOutFile))
-        write(stdErr,*)
-     end if
+     close(stdOut)
+  else
+     close(tmpStdOut)
+  end if
+  
+  status = system('mv -f '//trim(stdOutFile)//' '//trim(outputdir)//'/'//trim(outputname)//'__output.txt')
+  if(status.eq.0) then
+     if(prStdOut.ge.2) &  ! Should be 6, not stdOut:
+          write(6,'(/,A,/)')'  AnalyseMCMC:  saved standard output to '//trim(outputdir)//'/'//trim(outputname)//'__output.txt'
+  else
+     write(stdErr,'(/,A)')'  AnalyseMCMC:  Error saving standard output to '// &
+          trim(outputdir)//'/'//trim(outputname)//'__output.txt'
+     status = system('rm -f '//trim(stdOutFile))
+     write(stdErr,*)
   end if
   
 end program analyseMCMC
 !***********************************************************************************************************************************
-
-
 
 
 
