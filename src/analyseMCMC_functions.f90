@@ -302,7 +302,7 @@ subroutine write_settingsfile()
   write(u,11)plRange, 'plRange',   'Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs,'// &
        ' 3-both. 4-6: as 1-3 + write value in PDF panel'
   write(u,11)plBurn, 'plBurn',   'Plot the burn-in in logL, the chains, etc.: 0-no, 1-vertical line, 2-colour shade, 3-both'
-  write(u,11)plLmax, 'plLmax',   'Plot the position of the max logL, in the chains and pdfs'
+  write(u,11)plLmax, 'plLmax',   'Plot the position of the max logL, in the chains and pdfs: 0-no, 1-yes, 2-yes + Lmax-Npar/2'
   write(u,11)prValues, 'prValues',   'Print values (injection, median, range) in pdfs'
   write(u,11)smooth, 'smooth',   'Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).'// &
        '   This is 1D only for now, and can introduce artefacts on narrow peaks!'

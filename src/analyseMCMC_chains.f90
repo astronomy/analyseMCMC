@@ -31,7 +31,7 @@ subroutine chains(exitcode)
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: plLogL,update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality,scLogLpl
   use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,plChain,fontsize1d,nPlPar,panels,plPars,scChainsPl,changeVar
-  use analysemcmc_settings, only: chainSymbol,plInject,mergeChains,plStart,prConv,plParL,plJump,plAcorr,nAcorr
+  use analysemcmc_settings, only: chainSymbol,plInject,mergeChains,plStart,prConv,plParL,plJump,plAcorr,nAcorr, autoBurnin
   use general_data, only: post,allDat,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax,nChains,parNames,pgParNs,rhat
   use general_data, only: pgOrigParns,pgParNss
   use mcmcrun_data, only: revID,parID
@@ -146,12 +146,17 @@ subroutine chains(exitcode)
      ymin = max(0.,ymin)
      dx = abs(xmax-xmin)*0.01
      dy = abs(ymax-ymin)*0.05
+     xmin = xmin - dx
+     xmax = xmax + dx
+     ymin = ymin - dy
+     ymax = ymax + dy
      
-     call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
+     
+     call pgswin(xmin,xmax,ymin,ymax)
      !call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-     call plot_posterior_snr_axes(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
+     call plot_posterior_snr_axes(xmin,xmax,ymin,ymax)
      
-     if(abs(startval(1,1,1)-startval(1,1,2))/abs(startval(1,1,1)).gt.1.e-10) then
+     if(quality.ne.1 .and. abs(startval(1,1,1)-startval(1,1,2))/abs(startval(1,1,1)).gt.1.e-10) then
         call pgsls(4)
         call pgbox('',0.0,0,'G',0.0,0)  ! Plot a grid of horizontal lines
         call pgsls(1)
@@ -187,6 +192,11 @@ subroutine chains(exitcode)
         call pgpoint(1,is(icloglmax,iloglmax),ply,18)
         call pgsls(5)
         call pgline(2,(/xmin,xmax/),(/ply,ply/))
+        if(plLmax.ge.2 .and. abs(autoBurnin).gt.1.e-10) then
+           ply = ply - autoBurnin
+           call pgline(2,(/xmin,xmax/),(/ply,ply/))
+           print*,ply,autoBurnin
+        end if
      end if
      
      do ic=1,nChains0
@@ -199,7 +209,7 @@ subroutine chains(exitcode)
         
         ! Mark the end of the burn-in phase: dashed vertical line:
         if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/), &
-             (/ymin-dy,ymax+dy/))
+             (/ymin,ymax/))
         
         ! Starting value: horizontal dotted line:
         call pgsls(4)
@@ -370,7 +380,7 @@ subroutine chains(exitcode)
         if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
         
         xmin = 0.
-        !xmax = real(maxval(Ntot(1:nChains0)))
+        !xma x = real(maxval(Ntot(1:nChains0)))
         xmax = -1.e30
         ymin =  1.e30
         ymax = -1.e30
@@ -420,9 +430,11 @@ subroutine chains(exitcode)
               ymax = 1.
            end if
         end if
+        xmin = xmin - dx
+        xmax = xmax + dx
         
-        call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
-        if(quality.eq.1) call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy*2)
+        call pgswin(xmin,xmax,ymin-dy,ymax+dy)
+        if(quality.eq.1) call pgswin(xmin,xmax,ymin-dy,ymax+dy*2)
         call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
         
         ! Plot the actual chain values:
