@@ -1378,12 +1378,12 @@ subroutine compute_convergence()
   if(prConv.ge.2) write(stdOut,'(A,I8,A)')'  Convergence parameters for',nn,' data points in each chain:'
   
   
-  !Compute the means for each chain and for all chains:
+  ! Compute the means for each chain and for all chains:
   chMean = 1.d-30
   avgMean = 1.d-30
   do p=1,nMCMCpar
      do ic=1,nChains0
-        if(contrChain(ic).eq.0) cycle  !Contributing chains only
+        if(contrChain(ic).eq.0) cycle  ! Contributing chains only
         do i=Ntot(ic)-nn+1,Ntot(ic)
            chMean(ic,p) = chMean(ic,p) + allDat(ic,p,i)
         end do
@@ -1394,38 +1394,41 @@ subroutine compute_convergence()
   avgMean = avgMean/dble(nn*contrChains)
   
   
-  !Compute variances per chain, for all chains:
+  ! Compute variances per chain, for all chains:
   chVar = 1.d-30
   chVar1 = 1.d-30
   meanVar = 1.d-30
   do p=1,nMCMCpar
      do ic=1,nChains0
-        if(contrChain(ic).eq.0) cycle  !Contributing chains only
+        if(contrChain(ic).eq.0) cycle  ! Contributing chains only
         do i=Ntot(ic)-nn+1,Ntot(ic)
            dx = (dble(allDat(ic,p,i)) - chMean(ic,p))**2
            chVar(p) = chVar(p) + dx
-           chVar1(ic,p) = chVar1(ic,p) + dx !Keep track of the variance per chain
+           chVar1(ic,p) = chVar1(ic,p) + dx  ! Keep track of the variance per chain
         end do
         meanVar(p) = meanVar(p) + (chMean(ic,p) - avgMean(p))**2
         chVar1(ic,p) = chVar1(ic,p)/dble(nn-1)
+        !if(p.eq.1) print*,chVar1(ic,p)
      end do
      chVar(p) = chVar(p)/dble(contrChains*(nn-1))
      meanVar(p) = meanVar(p)/dble(contrChains-1)
      
-     !Compute Rhat:
+     ! Compute Rhat:
      Rhat(p) = min( dble(nn-1)/dble(nn)  +  meanVar(p)/chVar(p) * (1.d0 + 1.d0/dble(contrChains)), 99.d0)
   end do
   
   
-  !Print means per chain:
+  
+  ! Print means per chain:
   if(prConv.ge.1) then
      write(stdOut,*)
      write(stdOut,'(A14)',advance="no")''
      do p=1,nMCMCpar
-        if(fixedpar(p).eq.1) cycle  !Varying parameters only
+        if(fixedpar(p).eq.1) cycle  ! Varying parameters only
         write(stdOut,'(A9)',advance="no")trim(parNames(parID(p)))
      end do
      write(stdOut,'(A9)')'Mean'
+     
      
      if(prConv.ge.3) then
         write(stdOut,'(A)')'  Means:'
@@ -1444,11 +1447,11 @@ subroutine compute_convergence()
         end do
         write(stdOut,'(A14)',advance="no")'        Mean: '
         do p=1,nMCMCpar
-           if(fixedpar(p).eq.1) cycle  !Varying parameters only
+           if(fixedpar(p).eq.1) cycle  ! Varying parameters only
            if(abs(avgMean(p)).lt.10.d0) then
-              write(stdOut,'(F9.5)',advance="no")min(max(avgMean(p),-999.9999d0),999.9999d0)
+              write(stdOut,'(F9.5)',advance="no") min(max(avgMean(p),-999.9999d0),999.9999d0)
            else
-              write(stdOut,'(F9.4)',advance="no")min(max(avgMean(p),-999.9999d0),999.9999d0)
+              write(stdOut,'(F9.4)',advance="no") min(max(avgMean(p),-999.9999d0),999.9999d0)
            end if
         end do
         write(stdOut,*)
@@ -1457,16 +1460,18 @@ subroutine compute_convergence()
   end if !if(prConv.ge.1)
   
   
+  
   ! Flag and print variances:
-  if(prConv.ge.3) write(stdOut,'(/,A)')'  Variances:'
+  !if(prConv.ge.3) write(stdOut,'(/,A)')'  Variances:'
+  if(prConv.ge.3) write(stdOut,'(/,A)')'  Std.devs:'
   do ic=1,nChains0
-     if(contrChain(ic).eq.0) cycle  !Contributing chains only
+     if(contrChain(ic).eq.0) cycle  ! Contributing chains only
      lowVar = 0
      highVar = 0
      meanRelVar = 1.d0
      nmeanRelVar = 0
      do p=1,nMCMCpar
-        !Take only the parameters that were fitted and have a variance > 0:
+        ! Take only the parameters that were fitted and have a variance > 0:
         if(fixedpar(p).eq.0 .and.abs(chVar1(ic,p)).gt.1.e-30) then
            if(chVar1(ic,p).lt.0.5*chVar(p)) lowVar(p) = 1  !Too (?) low variance, mark it
            if(chVar1(ic,p).gt.2*chVar(p))  highVar(p) = 1  !Too (?) high variance, mark it
@@ -1497,18 +1502,19 @@ subroutine compute_convergence()
         ch = ' '
         if(nLowVar.eq.nUsedPar) ch = '*'
         if(nHighVar.eq.nUsedPar) ch = '#'
-        write(stdOut,'(I12,A2)',advance="no")ic,':'//ch
+        write(stdOut,'(I12,A2)',advance="no") ic,':'//ch
         do p=1,nMCMCpar
-           if(fixedpar(p).eq.1) cycle  !Varying parameters only
+           if(fixedpar(p).eq.1) cycle  ! Varying parameters only
            ch = ' '
            if(lowVar(p).eq.1) ch = '*'
            if(highVar(p).eq.1) ch = '#'
-           write(stdOut,'(F8.4,A1)',advance="no")min(max(chVar1(ic,p),-999.9999d0),999.9999d0),ch
+           !write(stdOut,'(F8.4,A1)',advance="no") min(max(chVar1(ic,p),-999.9999d0),999.9999d0),ch             ! Variance
+           write(stdOut,'(F8.4,A1)',advance="no") min(max(sqrt(abs(chVar1(ic,p))),-999.9999d0),999.9999d0),ch  ! Std.dev
         end do
         ch = ' '
         if(meanRelVar.lt.0.5) ch = '*'
         if(meanRelVar.gt.2.0) ch = '#'
-        write(stdOut,'(F8.3,A1)',advance="no")meanRelVar,ch
+        write(stdOut,'(F8.3,A1)',advance="no") meanRelVar,ch
         write(stdOut,*)
      end if !if(prConv.ge.3)
   end do
@@ -1518,8 +1524,9 @@ subroutine compute_convergence()
   if(prConv.ge.3) then
      write(stdOut,'(A13)',advance="no")'   Mean:'
      do p=1,nMCMCpar
-        if(fixedpar(p).eq.1) cycle  !Varying parameters only
-        write(stdOut,'(F9.4)',advance="no")min(max(chVar(p),-999.9999d0),999.9999d0)
+        if(fixedpar(p).eq.1) cycle  ! Varying parameters only
+        !write(stdOut,'(F9.4)',advance="no") min(max(chVar(p),-999.9999d0),999.9999d0)             ! Variance
+        write(stdOut,'(F9.4)',advance="no") min(max(sqrt(abs(chVar(p))),-999.9999d0),999.9999d0)  ! Std.dev
      end do
      write(stdOut,*)
      write(stdOut,*)
@@ -1527,43 +1534,49 @@ subroutine compute_convergence()
   
   ! Print the variances within chains and between chains:
   if(prConv.ge.2) then
-     write(stdOut,'(A)')'  Variances:'
+     !write(stdOut,'(A)')'  Variances:'
+     write(stdOut,'(A)')'  Standard deviations:'
      write(stdOut,'(A14)',advance="no")'      In chs: '
      do p=1,nMCMCpar
-        if(fixedpar(p).eq.1) cycle  !Varying parameters only
-        write(stdOut,'(ES9.1)',advance="no")chVar(p)
+        if(fixedpar(p).eq.1) cycle  ! Varying parameters only
+        !write(stdOut,'(ES9.1)',advance="no") chVar(p)             ! Variance
+        write(stdOut,'(ES9.1)',advance="no") sqrt(abs(chVar(p)))  ! Std.dev
      end do
      write(stdOut,*)
      write(stdOut,'(A14)',advance="no")'   Betw. chs: '
      do p=1,nMCMCpar
-        if(fixedpar(p).eq.1) cycle  !Varying parameters only
-        write(stdOut,'(ES9.1)',advance="no")meanVar(p)
+        if(fixedpar(p).eq.1) cycle  ! Varying parameters only
+        !write(stdOut,'(ES9.1)',advance="no") meanVar(p)  ! Variance
+        write(stdOut,'(ES9.1)',advance="no") meanVar(p)  ! Std.dev
      end do
      write(stdOut,*)
   end if
   
-  !Print R-hat:
+  
+  ! Print R-hat:
   if(prConv.ge.1) then
      write(stdOut,'(A14)',advance="no")'       R-hat: '
      totRhat = 1.d0
      nRhat = 0
      do p=1,nMCMCpar
-        if(fixedpar(p).eq.1) cycle  !Varying parameters only
-        write(stdOut,'(F9.4)',advance="no")Rhat(p)
+        if(fixedpar(p).eq.1) cycle  ! Varying parameters only
+        write(stdOut,'(F9.4)',advance="no") Rhat(p)
         !print*,parID(p)
-        if(parID(p).ne.63.and.parID(p).ne.64) then !If not one of M1,M2
-           !totRhat = totRhat + Rhat(p)   !Arithmetic mean
-           !totRhat = totRhat * Rhat(p)   !Geometric mean
+        if(parID(p).ne.63.and.parID(p).ne.64) then  ! If not one of M1,M2
+           !totRhat = totRhat + Rhat(p)   ! Arithmetic mean
+           !totRhat = totRhat * Rhat(p)   ! Geometric mean
            nRhat = nRhat + 1
         end if
      end do
-     !write(stdOut,'(F9.4)')totRhat/dble(nRhat)          !Arithmetic mean
-     !write(stdOut,'(F9.4)')totRhat**(1.d0/dble(nRhat))  !Geometric mean
-     write(stdOut,'(F9.4,A)')compute_median(Rhat(1:nMCMCpar)),' (med)'  !Median
+     !write(stdOut,'(F9.4)')totRhat/dble(nRhat)          ! Arithmetic mean
+     !write(stdOut,'(F9.4)')totRhat**(1.d0/dble(nRhat))  ! Geometric mean
+     write(stdOut,'(F9.4,A)')compute_median(Rhat(1:nMCMCpar)),' (med)'  ! Median
   end if
   
 end subroutine compute_convergence
 !***********************************************************************************************************************************
+
+
 
 
 
@@ -1575,7 +1588,7 @@ end subroutine compute_convergence
 
 subroutine compute_autocorrelations()
   use SUFR_constants, only: stdOut,stdErr
-  use SUFR_statistics, only: compute_median_real, compute_stdev_real
+  use SUFR_statistics, only: compute_median_sp, compute_stdev_sp
   
   use analysemcmc_settings, only: prAcorr,nAcorr
   use general_data, only: allDat,fixedpar,parNames,nChains0,Ntot
@@ -1616,9 +1629,9 @@ subroutine compute_autocorrelations()
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  !Varying parameters only
         
-        median = compute_median_real(allDat(ic,p,1:Ntot(ic)))
+        median = compute_median_sp(allDat(ic,p,1:Ntot(ic)))
         !median = sum(selDat(ic,p,1:Ntot(ic)))/real(Ntot(ic))  !Replace median with mean
-        stdev  = compute_stdev_real(allDat(ic,p,1:Ntot(ic)), median)
+        stdev  = compute_stdev_sp(allDat(ic,p,1:Ntot(ic)), median)
         
         do j=0,min(nAcorr,Ntot(ic)-1)
            do i=1,Ntot(ic)-j*j1
@@ -1633,7 +1646,7 @@ subroutine compute_autocorrelations()
         if(prAcorr.ge.2) write(stdOut,'(ES9.1)',advance="no")lAcorrs(ic,p)
      end do !p
      
-     if(prAcorr.ge.2) write(stdOut,'(ES11.1)') compute_median_real(lAcorrs(ic,1:nMCMCpar))
+     if(prAcorr.ge.2) write(stdOut,'(ES11.1)') compute_median_sp(lAcorrs(ic,1:nMCMCpar))
   end do !ic
   
   
@@ -1644,10 +1657,10 @@ subroutine compute_autocorrelations()
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  !Varying parameters only
         np = np+1
-        medians(np) = compute_median_real(lAcorrs(1:nChains0,p))
+        medians(np) = compute_median_sp(lAcorrs(1:nChains0,p))
         write(stdOut,'(ES9.1)',advance="no")medians(np)
      end do
-     write(stdOut,'(ES11.1)') compute_median_real(medians(1:np))
+     write(stdOut,'(ES11.1)') compute_median_sp(medians(1:np))
   end if
   
 end subroutine compute_autocorrelations

@@ -26,7 +26,7 @@
 
 subroutine chains(exitcode)
   use SUFR_constants, only: stdOut,stdErr
-  use SUFR_statistics, only: compute_median_real
+  use SUFR_statistics, only: compute_median_sp
   
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: plLogL,update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality,scLogLpl
@@ -1225,7 +1225,7 @@ subroutine chains(exitcode)
         call pgsls(1)
         !write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', mean length:',sum(lAcorrs(1:nChains0,p))/real(nChains0)
         write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', med. length:', &
-             compute_median_real(lAcorrs(1:nChains0,p))
+             compute_median_sp(lAcorrs(1:nChains0,p))
         call pgmtxt('T',1.,0.5,0.5,trim(title))
      end do
      
