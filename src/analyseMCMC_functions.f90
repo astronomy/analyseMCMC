@@ -786,7 +786,7 @@ subroutine mcmcruninfo(exitcode)
   use aM_constants, only: waveforms,detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
-  use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar, phi_q_sorting
+  use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar, phi_q_sorting, plInject,plStart
   
   use general_data, only: allDat,post,ntot,n,nchains,nchains0,infiles,contrChain,startval,fixedpar,selDat,iloglmax,icloglmax
   use general_data, only: contrChains,parNames,nfixedpar,outputname,maxIter
@@ -1209,9 +1209,14 @@ subroutine mcmcruninfo(exitcode)
      write(stdOut,*)
   end if
   
+  startval = 0.
   do ic=1,nchains
-     startval(ic,1:nMCMCpar,1:2)  = allDat(ic,1:nMCMCpar,1:2) !Injection value and starting value
-     startval(ic,1:nMCMCpar,3)    = allDat(icloglmax,1:nMCMCpar,iloglmax) !Lmax value
+     do i=1,2
+        if(nint(is(ic,i)).eq.-1) startval(ic,1:nMCMCpar,1)  = allDat(ic,1:nMCMCpar,i)  ! Injection value
+        if(nint(is(ic,i)).eq.0)  startval(ic,1:nMCMCpar,2)  = allDat(ic,1:nMCMCpar,i)  ! Starting value
+     end do
+     
+     startval(ic,1:nMCMCpar,3)    = allDat(icloglmax,1:nMCMCpar,iloglmax)  ! Lmax value
      jumps(ic,1:nMCMCpar,2:n(ic)) = allDat(ic,1:nMCMCpar,2:n(ic)) -  allDat(ic,1:nMCMCpar,1:n(ic)-1)
      if(prInitial.ne.0) then 
         if(ic.eq.1.and.prInitial.ge.2) then
@@ -1242,6 +1247,12 @@ subroutine mcmcruninfo(exitcode)
         end if
      end if
   end do
+  
+  ! If the injection or starting values are not found, don't plot them:
+  if(abs(sum(startval(:,1:nMCMCpar,1))).lt.1.e-10) plInject = 0
+  if(abs(sum(startval(:,1:nMCMCpar,2))).lt.1.e-10) plStart  = 0
+  
+  
   if(prInitial.ge.3) then
      write(stdOut,'(5x,A10)',advance="no")'Lmax:  '
      write(stdOut,'(F10.3)',advance="no")post(icloglmax,iloglmax)
