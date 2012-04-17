@@ -738,15 +738,15 @@ subroutine parNames2IDs(parNameStr,nMCMCpar, parID)
   integer, intent(in) :: nMCMCpar
   integer, intent(out) :: parID(maxMCMCpar)
   
-  integer, parameter :: npIDs = 15
+  integer, parameter :: npIDs = 16
   integer :: pr1,pr2,pIDs(npIDs)
-  character :: pnames(19)*(19),pars(19)*(19)
+  character :: pnames(npIDs)*(19),pars(npIDs)*(19)
   
   parID = 0
   pnames(1:npIDs) = [character(len=19) :: 'iota','psi','dec','ra','dist','phi_orb','time','q','mc',  &
-       'a1','theta1','phi1','a2','theta2','phi2']  ! CHECK: time = t40? tc?
+       'a1','theta1','phi1','a2','theta2','phi2','eta']  ! CHECK: time = t40? tc?
   pIDs(1:npIDs) = (/                   51,    52,   32,   31,  22,    41,       11,    67, 61,  &
-       71,72,73, 81,82,83/)
+       71,72,73, 81,82,83,62/)
   
   read(parNameStr,*) (pars(pr1),pr1=1,nMCMCpar+3)
   do pr1=1,nMCMCpar+3
