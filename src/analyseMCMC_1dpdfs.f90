@@ -233,7 +233,7 @@ subroutine pdfs1d(exitcode)
         end if
         
         ! Bin data:
-        call bin_data_1d(x(ic,1:n(ic)), Nbin1D, .true.,-1, xmin1,xmax1, xbin1,ybin1)
+        call bin_data_1d(x(ic,1:n(ic)), Nbin1D, .true.,-1,.false., xmin1,xmax1, xbin1,ybin1)
         
         ! Weigh with likelihood.  I should probably do something like this at the start, to get updated ranges etc.:
         !y(ic,1:n(ic)) = selDat(ic,1,1:n(ic))
