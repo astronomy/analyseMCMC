@@ -150,7 +150,13 @@ program plotsignal
      write(6,'(A)') 'Reading input file '//trim(fname)//'...     '
      read(10,'(A)')bla
      print*,trim(bla)
+     
      !read(10,*)m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
+     m1 = 0.
+     m2 = 0.
+     dl = 0.
+     spin = 0.
+     
      read(10,'(A)')bla
      print*,trim(bla)
      read(10,*)bla

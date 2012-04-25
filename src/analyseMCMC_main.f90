@@ -62,7 +62,6 @@
 program analyseMCMC
   use SUFR_kinds, only: double,dbl
   use SUFR_constants, only: stdOut,stdErr, set_SUFR_constants
-  use SUFR_constants, only: workdir,hostname,username,currenttimezonestr,currenttimestr,currentdatestr
   use SUFR_random_numbers, only: get_ran_seed
   use SUFR_system, only: quit_program_error
   
