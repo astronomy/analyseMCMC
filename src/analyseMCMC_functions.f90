@@ -1249,9 +1249,14 @@ subroutine mcmcruninfo(exitcode)
   end do
   
   ! If the injection or starting values are not found, don't plot them:
-  if(abs(sum(startval(:,1:nMCMCpar,1))).lt.1.e-10) plInject = 0
-  if(abs(sum(startval(:,1:nMCMCpar,2))).lt.1.e-10) plStart  = 0
-  
+  if(abs(sum(startval(:,1:nMCMCpar,1))).lt.1.e-10) then
+     if(plInject.ne.0.and.prProgress.ge.2) write(*,'(A)') 'No injection values found, setting plInject to zero'
+     plInject = 0
+  end if
+  if(abs(sum(startval(:,1:nMCMCpar,2))).lt.1.e-10) then
+     if(plStart.ne.0.and.prProgress.ge.2) write(*,'(A)') 'No starting values found, setting plStart to zero'
+     plStart  = 0
+  end if
   
   if(prInitial.ge.3) then
      write(stdOut,'(5x,A10)',advance="no")'Lmax:  '
