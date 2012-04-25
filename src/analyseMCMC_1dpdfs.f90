@@ -650,7 +650,11 @@ subroutine pdfs1d(exitcode)
                  call pgsch(sch)
                  call pgmtxt('B',2.0,0.5,0.5, trim(pgParNs(parID(p))) )   ! Axis label
               else
-                 call pgptxt((xmin+xmax)/2.,ymax,0.,0.5,trim(str))      ! Centre
+                 if(use_PLplot) then
+                    call pgptxt((xmin+xmax)/2.,ymax-0.05*abs(ymax-ymin),0.,0.5,trim(str))      ! Centre
+                 else
+                    call pgptxt((xmin+xmax)/2.,ymax,0.,0.5,trim(str))      ! Centre
+                 end if
               end if
               call pgsci(2)
               if(plRange.eq.1.or.plRange.eq.3.or.plRange.eq.4.or.plRange.eq.6)  &

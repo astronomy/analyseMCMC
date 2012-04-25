@@ -725,8 +725,14 @@ subroutine pdfs2d(exitcode)
            !   call pgsci(1)
            !   call pgbox('N',0.0,0,'N',0.0,0) !Number labels in black
            !end if
-           call pgmtxt('B',2.2,0.5,0.5,trim(pgParNs(parID(p1))))
-           call pgmtxt('L',1.7,0.5,0.5,trim(pgParNs(parID(p2))))
+           
+           if(use_PLplot) then
+              call pgmtxt('B',3.0,0.5,0.5,trim(pgParNs(parID(p1))))
+              call pgmtxt('L',3.0,0.5,0.5,trim(pgParNs(parID(p2))))
+           else
+              call pgmtxt('B',2.2,0.5,0.5,trim(pgParNs(parID(p1))))
+              call pgmtxt('L',1.7,0.5,0.5,trim(pgParNs(parID(p2))))
+           end if
            
            
            ! Print 2D probability ranges in plot title:

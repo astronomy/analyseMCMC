@@ -349,6 +349,7 @@ subroutine chains(exitcode)
      end if
      !if(file.eq.1) call pgsch(1.5)
      
+     if(use_PLplot) sch = sch*0.7
      call pgsch(sch)
      call pgslw(lw)
      
@@ -366,7 +367,7 @@ subroutine chains(exitcode)
         
         if(nPlPar.gt.1) call pgpage()
         if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
-        !call pgsch(sch)
+        
         call pgsch(sch/2.*sqrt(real(nPlPar)))
         
         if(file.eq.0.and.scrRat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
@@ -494,8 +495,9 @@ subroutine chains(exitcode)
               
            end if
         end do
-        !call pgsch(sch)
+        
         call pgsch(sch/2.*sqrt(real(nPlPar)))
+        
         call pgslw(lw)
         
         !Plot max posterior
