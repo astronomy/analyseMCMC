@@ -242,9 +242,9 @@ subroutine write_settingsfile()
        ' (default)'
   write(u,11)wrapData, 'wrapData',   'Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is'// &
        ' around 0)'
-  write(u,11)changeVar, 'changeVar',   'Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)'
-  
-  
+  write(u,11)changeVar, 'changeVar',   'Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg): 0=no, 1=yes, 2=q->1/q'
+
+
   write(u,'(/,A)')' Select what output to print to screen and write to file:'
   write(u,11)prStdOut, 'prStdOut',   'Print standard output to 1: screen, 2: text file'
   write(u,11)prProgress, 'prProgress',   'Print general messages about the progress of the program: 0-no, 1-some, 2-more,'// &
@@ -396,7 +396,7 @@ subroutine set_plotsettings()
   update = 0        ! Update screen plot every 10 seconds: 0-no, 1-yes
   mergeChains = 1   ! Merge the data from different files into one chain: 0-no (treat separately), 1-yes (default)
   wrapData = 1      ! Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
-  changeVar = 1     ! Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)
+  changeVar = 2     ! Change MCMC parameters 0=no, 1=yes (e.g. kappa->theta_SL, rad->deg), 2=yes + q->1/q, phi->phi-pi, m1<->m2
   
   prStdOut = 1      ! Print standard output to 1: screen, 2: text file
   prProgress = 2    ! Print general messages about the progress of the program: 0-no, 1-some, 2-more
@@ -786,7 +786,7 @@ subroutine mcmcruninfo(exitcode)
   use aM_constants, only: waveforms,detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
-  use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar, phi_q_sorting, plInject,plStart
+  use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar
   
   use general_data, only: allDat,post,ntot,n,nchains,nchains0,infiles,contrChain,startval,fixedpar,selDat,iloglmax,icloglmax
   use general_data, only: contrChains,parNames,nfixedpar,outputname,maxIter
@@ -1052,7 +1052,7 @@ subroutine mcmcruninfo(exitcode)
            stop
         end if
         do ic=1,nchains0
-           if(phi_q_sorting.gt.0) then  ! for phi > pi -> logq = -logq & phi = phi - pi
+           if(changeVar.eq.2) then  ! for phi > pi -> logq = -logq & phi = phi - pi
               do j=1,ntot(ic)
                  if(allDat(ic,revID(41),j).gt.rpi) then
                     allDat(ic,revID(41),j) =  allDat(ic,revID(41),j) - rpi                                     ! phi = phi - pi
@@ -1068,7 +1068,7 @@ subroutine mcmcruninfo(exitcode)
      
      ! Calculate eta and log(q) from q:
      if(revID(62).eq.0 .and. revID(68).eq.0 .and. revID(67).ne.0) then
-        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing eta from q'
+        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing eta and log(q) from q'
         parID(nMCMCpar+1) = 62    ! Eta
         parID(nMCMCpar+2) = 68    ! logq
         revID(62) = nMCMCpar + 1  ! Eta
@@ -1080,7 +1080,7 @@ subroutine mcmcruninfo(exitcode)
            stop
         end if
         do ic=1,nchains0
-           if(phi_q_sorting.gt.0) then  ! for phi > pi -> q = 1/q & phi = phi - pi
+           if(changeVar.eq.2) then  ! for phi > pi -> q = 1/q & phi = phi - pi
               do j=1,ntot(ic)
                  if(allDat(ic,revID(41),j).gt.rpi) then
                     allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                      ! phi = phi - pi
@@ -1156,7 +1156,7 @@ subroutine mcmcruninfo(exitcode)
         end if
         do ic=1,nchains0
            allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(64),1:ntot(ic)) / allDat(ic,revID(63),1:ntot(ic))     ! q = m2 / m1
-           if(phi_q_sorting.gt.0) then  ! m2/m1 for q<1, & phi<pi and m1/m2 for q>1 & phi >pi
+           if(changeVar.eq.2) then  ! m2/m1 for q<1, & phi<pi and m1/m2 for q>1 & phi >pi
               do j=1,ntot(ic)
                  if(allDat(ic,revID(41),j).gt.rpi) then
                     allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                          ! phi = phi - pi
