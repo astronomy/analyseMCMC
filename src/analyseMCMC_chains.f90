@@ -217,9 +217,13 @@ subroutine chains(exitcode)
      end do
      call pgsci(1)
      call pgsls(1)
-     !call pgmtxt('T',0.5,0.1,0.1,'log Posterior')
-     call pgmtxt('L',2.5,0.5,0.5,'log Posterior')
-     call pgmtxt('R',2.5,0.5,0.5,'\(2267)(2logP) \(0248) SNR')
+     if(use_PLplot) then
+        call pgmtxt('L',5.0,0.5,0.5,'log Posterior')
+        call pgmtxt('R',5.0,0.5,0.5,'\(2267)(2logP) \(0248) SNR')
+     else
+        call pgmtxt('L',2.5,0.5,0.5,'log Posterior')
+        call pgmtxt('R',2.5,0.5,0.5,'\(2267)(2logP) \(0248) SNR')
+     end if
      if(nPlPar.eq.1.and.quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
      
      if(quality.eq.0) then
@@ -1279,6 +1283,8 @@ end subroutine chains
 !! \param logpmax  Maximum log Posterior in plot (vertical axis)
 
 subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
+  use aM_constants, only: use_PLplot
+  
   implicit none
   real, intent(in) :: itermin,itermax,logpmin,logpmax
   integer :: i,imin,imax, tick_omi, n
@@ -1317,6 +1323,7 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
   ! Print ticks and labels:
   len  = 0.5  ! Tick length
   dist = 0.3  ! Distance axis - label
+  if(use_PLplot) dist = 2.0
   ori  = 0.0  ! Orientation (0-360 degrees)
   
   imin = floor(snrmin/dtick)
@@ -1333,7 +1340,7 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
         write(label,trim(fmt)) nint(snr)
      end if
      
-     call pgtick(itermax,logpmin0,itermax,logpmax, tick, len, 0.0, dist, ori, trim(label))
+     call pgtick(itermax,logpmin0,itermax,logpmax,  tick,  len, 0.0,  dist, ori, trim(label))
   end do
   
   
@@ -1348,7 +1355,7 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
      tick = (logp - logpmin0)/dlogp
      if(tick.lt.0..or.tick.gt.1.) cycle
      
-     call pgtick(itermax,logpmin0,itermax,logpmax, tick, len, 0.0, dist, ori, '')
+     call pgtick(itermax,logpmin0,itermax,logpmax,  tick,  len, 0.0,  dist, ori, '')
   end do
   
 end subroutine plot_posterior_snr_axes
