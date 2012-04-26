@@ -1139,9 +1139,10 @@ subroutine mcmcruninfo(exitcode)
      end if !if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0)
      
      
-     ! Compute total mass (var 66) and mass ratio (var 67) (q=M1/M2, not the symmetric mass ratio \eta) from the individual masses:
+     ! Compute total mass (var 66) and mass ratio (var 67) (q=M2/M1, not the symmetric mass ratio \eta) from the individual masses:
      ! (var 65 is reserved for Mc^(1/6)) & convert q -> 1/q, logq -> -logq and phi -> phi -pi for phi > pi
-     if(revID(63)*revID(64).ne.0) then
+     if(revID(63)*revID(64).ne.0) then 
+        write(stdOut,'(A)')'  Computing Mtot, q, log(q) from masses'
         parID(nMCMCpar+1) = 66    ! Mtot
         parID(nMCMCpar+2) = 67    ! q
         parID(nMCMCpar+3) = 68    ! log(q)
