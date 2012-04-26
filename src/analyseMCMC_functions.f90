@@ -1098,12 +1098,14 @@ subroutine mcmcruninfo(exitcode)
      
      ! Calculate the individual masses from Mch and eta:
      if(revID(61)*revID(62).ne.0 .and. revID(63)+revID(64).eq.0) then
-        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing M1, M2 from Mc, eta'
+        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing M1, M2, Mtot from Mc, eta'
         parID(nMCMCpar+1) = 63    ! M1
         parID(nMCMCpar+2) = 64    ! M2
+        parID(nMCMCpar+3) = 66    ! Mtot
         revID(63) = nMCMCpar + 1  ! M1
         revID(64) = nMCMCpar + 2  ! M2
-        nMCMCpar = nMCMCpar + 2
+        revID(66) = nMCMCpar + 3  ! Mtot
+        nMCMCpar = nMCMCpar + 3
         if(nMCMCpar.gt.maxMCMCpar) then
            write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
                 ' to at least',nMCMCpar,' in order to continue.  Aborting...'
@@ -1113,6 +1115,7 @@ subroutine mcmcruninfo(exitcode)
            do i=1,ntot(ic)
               call mc_eta_2_m1_m2r(allDat(ic,revID(61),i),allDat(ic,revID(62),i), allDat(ic,revID(63),i),allDat(ic,revID(64),i))
            end do
+           allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! Mtot = m1 + m2
         end do
         
         ! Calculate Mc, eta from the individual masses:
@@ -1160,7 +1163,7 @@ subroutine mcmcruninfo(exitcode)
                  end if
               end do
            end if
-           allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! M = m1 + m2
+           allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! Mtot = m1 + m2
            allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                                ! log_q = log(q)
         end do
         
