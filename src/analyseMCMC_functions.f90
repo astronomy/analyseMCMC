@@ -1134,14 +1134,8 @@ subroutine mcmcruninfo(exitcode)
            end do
         end do
         
-     else
-        call warn('Not all of Mc, eta, M1 and M2 are defined', stdOut)
-     end if !if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0)
-     
-     
-     ! Compute total mass (var 66) and mass ratio (var 67) (q=M2/M1, not the symmetric mass ratio \eta) from the individual masses:
-     ! (var 65 is reserved for Mc^(1/6)) & convert q -> 1/q, logq -> -logq and phi -> phi -pi for phi > pi
-     if(revID(63)*revID(64).ne.0) then 
+        ! Compute total mass (var 66) and mass ratio (var 67) (q=M2/M1, not the symmetric mass ratio \eta) from the individual masses:
+        ! (var 65 is reserved for Mc^(1/6)) & convert q -> 1/q, logq -> -logq and phi -> phi -pi for phi > pi
         write(stdOut,'(A)')'  Computing Mtot, q, log(q) from masses'
         parID(nMCMCpar+1) = 66    ! Mtot
         parID(nMCMCpar+2) = 67    ! q
@@ -1169,8 +1163,10 @@ subroutine mcmcruninfo(exitcode)
            allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! M = m1 + m2
            allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                                ! log_q = log(q)
         end do
-     end if
-     
+        
+     else
+        call warn('Not all of Mc, eta, M1 and M2 are defined', stdOut)
+     end if !if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) 
      
      ! Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
      if(revID(11)*revID(31)*revID(32)*revID(53)*revID(54).ne.0) then  ! Then all of these parameters are defined
