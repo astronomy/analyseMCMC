@@ -1108,8 +1108,8 @@ subroutine pgtick(x1, y1, x2, y2, pos, tikl, tikr,  disp, orient, lbl)
   
   call plgvpw(p_xmin, p_xmax, p_ymin, p_ymax)
   
-  dpx = abs(p_xmax-p_xmin)
-  dpy = abs(p_ymax-p_ymin)
+  dpx = real(abs(p_xmax-p_xmin))
+  dpy = real(abs(p_ymax-p_ymin))
   
   
   tlen = 0.03  ! default size of a tickmark

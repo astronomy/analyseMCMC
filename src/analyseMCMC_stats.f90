@@ -175,7 +175,7 @@ subroutine statistics(exitcode)
         minrange = huge(minrange)
         do i=1,n(ic)
            x1 = selDat(ic,p,indexx(p,i))
-           x2 = selDat(ic,p,indexx(p,mod(i+nint(n(ic)*wrapival)-1,n(ic))+1))
+           x2 = selDat(ic,p,indexx(p,mod(i+nint(real(n(ic))*wrapival)-1,n(ic))+1))
            range1 = mod(x2 - x1 + real(10*shIval),shIval)    !0-shIval
            
            if(range1.lt.minrange) then
@@ -283,8 +283,8 @@ subroutine statistics(exitcode)
                     !corrs(p1,p2) = corrs(p1,p2) + (selDat(ic,p1,i) - medians(p1))*(selDat(ic,p2,i) - medians(p2))  !Use median
                     corrs(p1,p2) = corrs(p1,p2) + (selDat(ic,p1,i) - mean(p1))*(selDat(ic,p2,i) - mean(p2)) !Use mean (~median)
                  end do
-                 !corrs(p1,p2) = corrs(p1,p2) / (stdev1(p1)*stdev1(p2)*(n(ic)-1))  !Use median
-                 corrs(p1,p2) = corrs(p1,p2) / (stdev2(p1)*stdev2(p2)*(n(ic)-1))  !Use mean
+                 !corrs(p1,p2) = corrs(p1,p2) / (stdev1(p1)*stdev1(p2)*real(n(ic)-1))  !Use median
+                 corrs(p1,p2) = corrs(p1,p2) / (stdev2(p1)*stdev2(p2)*real(n(ic)-1))  !Use mean
               end if
            end do !p2
         end do !p1
@@ -307,9 +307,9 @@ subroutine statistics(exitcode)
            y2 = 0.
            minrange = huge(minrange)
            !write(stdOut,'(A8,4x,4F10.5,I4)')parNames(parID(p)),y1,y2,minrange,centre,wrap(ic,p)
-           do i=1,floor(n(ic)*(1.-ival))
+           do i=1,floor(real(n(ic))*(1.-ival))
               x1 = selDat(ic,p,indexx(p,i))
-              x2 = selDat(ic,p,indexx(p,i+floor(n(ic)*ival)))
+              x2 = selDat(ic,p,indexx(p,i+floor(real(n(ic))*ival)))
               range1 = abs(x2 - x1)
               !range1 = x2 - x1
               if(range1.lt.minrange) then
@@ -899,8 +899,8 @@ end subroutine save_bayes
 !! \param ic  Chain number
 
 subroutine save_cbc_wiki_data(ic)
-  use SUFR_constants, only: stdErr,stdOut
-  use SUFR_constants, only: rh2r,rd2r
+  use SUFR_kinds, only: long
+  use SUFR_constants, only: stdErr,stdOut, rh2r,rd2r
   use aM_constants, only: waveforms,detabbrs
   
   use analysemcmc_settings, only: Nival,ivals,prStdOut,maxMCMCpar
@@ -926,8 +926,8 @@ subroutine save_cbc_wiki_data(ic)
      write(stdErr,'(A)')'  Error opening '//trim(wikifilename)//', aborting...'
      stop
   end if
-  write(gps,'(I10.10)')GPStime
-  if(GPStime.lt.1e9) write(gps,'(I9.9)')GPStime
+  write(gps,'(I10.10)') GPStime
+  if(GPStime.lt.int(1.e9, long)) write(gps,'(I9.9)') GPStime
   
   write(url,'(A)')'http://www.astro.northwestern.edu/~lsc/E14/GPS'//trim(gps)//'/'
   write(o,'(A)')'= GPS'//trim(gps)//' - description ='
@@ -1637,7 +1637,7 @@ subroutine compute_autocorrelations()
            do i=1,Ntot(ic)-j*j1
               acorrs(ic,p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - median)*(allDat(ic,p,i+j*j1) - median)
            end do
-           acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev*stdev*(Ntot(ic)-j*j1))
+           acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev*stdev*real(Ntot(ic)-j*j1))
            
            if(lAcorrs(ic,p).lt.1. .and. acorrs(ic,p,j).lt.0) lAcorrs(ic,p) = real(j*j1*totthin(ic))
            if(p.eq.1) acorrs(ic,0,j) = real(j*j1*totthin(ic))  !Make sure you get the iteration number, not the data-point number

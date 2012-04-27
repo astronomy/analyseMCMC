@@ -379,8 +379,8 @@ subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, clr1,clr2, tr, pr
         call pgsci(ci)
         
         ! Get central coordinates for this pixel:
-        x = tr(1) + tr(2)*ix + tr(3)*iy
-        y = tr(4) + tr(5)*ix + tr(6)*iy
+        x = tr(1) + tr(2)*real(ix) + tr(3)*real(iy)
+        y = tr(4) + tr(5)*real(ix) + tr(6)*real(iy)
         
         ! Get the coordinates of the four corners (projected rectangular pixel is not necessarily rectangular!):
         xs(1) = x-dx

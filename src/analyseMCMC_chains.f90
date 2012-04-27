@@ -1324,10 +1324,10 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
   dsnr = snrmax-snrmin
   
   
-  ntick0 = 4.                                      ! ~ desired number of ticks
-  tick_om = 10.**(floor(log10(abs(dsnr/ntick0))))  ! Order of magnitude of distance between ticks
+  ntick0 = 4.                                          ! ~ desired number of ticks
+  tick_om = 10.**(floor(log10(abs(dsnr/ntick0))))      ! Order of magnitude of distance between ticks
   tick_omi = nint(log10(tick_om))
-  dtick = nint(dsnr/ntick0 / tick_om) * tick_om    ! Distance between ticks
+  dtick = real(nint(dsnr/ntick0 / tick_om)) * tick_om  ! Distance between ticks
   
   
   ! Format for snr label:
@@ -1350,7 +1350,7 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
   imin = floor(snrmin/dtick)
   imax = ceiling(snrmax/dtick)
   do i=imin,imax
-     snr = i*dtick
+     snr = real(i)*dtick
      logp = (snr**2)/2.
      tick = (logp - logpmin0)/dlogp
      if(tick.lt.0..or.tick.gt.1.) cycle
@@ -1371,7 +1371,7 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
   imin = floor(snrmin/tick_om)
   imax = ceiling(snrmax/tick_om)
   do i=imin,imax
-     snr = i*tick_om
+     snr = real(i)*tick_om
      logp = (snr**2)/2.
      tick = (logp - logpmin0)/dlogp
      if(tick.lt.0..or.tick.gt.1.) cycle

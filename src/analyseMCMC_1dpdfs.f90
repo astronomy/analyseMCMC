@@ -349,7 +349,7 @@ subroutine pdfs1d(exitcode)
            if(mergeChains.eq.0.and.contrchain(ic).eq.0) cycle
            
            ! Set hatch style: angle = +-45deg, phase between 0 and 1 (1/nchains0, 2/nchains0, ...):
-           if(fillPDF.ge.3) call pgshs(45.0*(-1)**ic,2.0,real(ic)/real(nchains0)) 
+           if(fillPDF.ge.3) call pgshs(45.0*real(-1)**ic,2.0,real(ic)/real(nchains0)) 
            if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
            xbin1(1:Nbin1D+1) = xbin(ic,1:Nbin1D+1)
            ybin1(1:Nbin1D+1) = ybin(ic,1:Nbin1D+1)
@@ -626,7 +626,7 @@ subroutine pdfs1d(exitcode)
         
         
         ! Write the deltas of the two pdfs:
-        if(nchains.eq.2..and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6)) then
+        if(nchains.eq.2.and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6)) then
            write(str,'(A)')trim(delta)
            if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then  ! Distance, Mc, M1, M2
               write(str1,'(A,F6.2,A1)')trim(delta)//':',ranges(1,c0,p,5)*100.,'%'
@@ -759,7 +759,7 @@ subroutine bin_data_1d_a(ndat,xdat,ydat, norm, nbin, xmin,xmax, xbin,ybin)
   
   do k=1,nbin+1
      !xbin(k) = xmin + (real(k)-0.5)*dx  !x is the centre< of the bin
-     xbin(k) = xmin + (k-1)*dx          !x is the left of the bin
+     xbin(k) = xmin + real(k-1)*dx          !x is the left of the bin
   end do
   ybintot=0.
   do k=1,nbin

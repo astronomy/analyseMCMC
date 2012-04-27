@@ -84,7 +84,7 @@ subroutine animation(exitcode)
   if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,I5,A,I6,A,/)')'  Creating animation using',nAnimFrames,' frames and', &
        maxval(ntot(1:nchains)),' points..'
   do iframe = 0,nAnimFrames
-     nplt = nint(real(iframe)/real(nAnimFrames)*maxval(ntot(1:nchains)))  !This is the line number, not the iteration number
+     nplt = nint(real(iframe)/real(nAnimFrames)*real(maxval(ntot(1:nchains))))  !This is the line number, not the iteration number
      
      if(prProgress.ge.1.and.update.eq.0) then
         write(stdOut,*)cursorup !Move cursor up 1 line
@@ -136,18 +136,18 @@ subroutine animation(exitcode)
         y1 = 0.
         y2 = 0.
         !do i=1,floor(nplt*(1.-ival))
-        do i=1,floor((nplt-Nburn(ic))*(1.-ival))
+        do i=1,floor(real(nplt-Nburn(ic))*(1.-ival))
            !x1 = allDat(ic,p,index(p,i))
-           !x2 = allDat(ic,p,index(p,i+floor((nplt-Nburn(ic))*ival)))
+           !x2 = allDat(ic,p,index(p,i+floor(real(nplt-Nburn(ic))*ival)))
            x1 = x(ic,index(p,i))
-           x2 = x(ic,index(p,i+floor((nplt-Nburn(ic))*ival)))
+           x2 = x(ic,index(p,i+floor(real(nplt-Nburn(ic))*ival)))
            range = abs(x2 - x1)
            if(range.lt.minrange) then
               minrange = range
               y1 = x1
               y2 = x2
            end if
-           !write(stdOut,'(2I6,7F12.8)')i,i+floor((nplt-Nburn(ic))*ival),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
+           !write(stdOut,'(2I6,7F12.8)')i,i+floor(real(nplt-Nburn(ic))*ival),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
         end do !i
         !centre = (y1+y2)/2.
         !write(stdOut,'(A8,4x,4F10.5,I4)')parNames(p),y1,y2,minrange,centre,wrap(ic,p)
@@ -470,7 +470,7 @@ subroutine animation(exitcode)
         !Plot 1D PDF
         do ic=1,nchains
            !Set hatch style: angle = +-45deg, phase between 0 and 1 (1/nchains0, 2/nchains0, ...)
-           if(fillPDF.ge.3) call pgshs(45.0*(-1)**ic,1.0,real(ic)/real(nchains0)) 
+           if(fillPDF.ge.3) call pgshs(45.0*(-1.0)**ic,1.0,real(ic)/real(nchains0)) 
            if(nchains.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
            xbin1(1:Nbin1D+1) = xbin(ic,1:Nbin1D+1)
            ybin1(1:Nbin1D+1) = ybin(ic,1:Nbin1D+1)

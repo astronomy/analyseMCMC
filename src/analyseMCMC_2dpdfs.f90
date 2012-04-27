@@ -106,7 +106,7 @@ subroutine pdfs2d(exitcode)
      end if
   end if
   if(Nbin2Dy.eq.0) Nbin2Dy = Nbin2Dx
-  if(Nbin2Dy.le.-1) Nbin2Dy = nint(Nbin2Dx*pltrat)
+  if(Nbin2Dy.le.-1) Nbin2Dy = nint(real(Nbin2Dx)*pltrat)
   
   ! Report number of bins used:
   if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0.and.Npdf2D.ge.0) then

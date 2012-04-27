@@ -517,9 +517,9 @@ program analyseMCMC
   if(update.eq.1) then
      deallocate(allDat,selDat,post,prior)
      call sleep(5)
-     if(sum(ntot).gt.1.e4) call sleep(5)
-     if(sum(ntot).gt.1.e5) call sleep(10)
-     if(sum(ntot).gt.1.e6) call sleep(20)
+     if(sum(ntot).gt.nint(1.e4)) call sleep(5)
+     if(sum(ntot).gt.nint(1.e5)) call sleep(10)
+     if(sum(ntot).gt.nint(1.e6)) call sleep(20)
      goto 101
   end if
   

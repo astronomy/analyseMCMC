@@ -1005,7 +1005,7 @@ subroutine mcmcruninfo(exitcode)
               write(stdOut,'(A,I4,A)', advance='no')'    Plotting every',chainPlI,'-th'
            end if
            write(stdOut,'(A,I5,A,I5,A)')' state in likelihood, chains, jumps, etc. plots.  Average total thinning is', &
-                nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*chainPlI),'x.'
+                nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*real(chainPlI)),'x.'
         else
            write(stdOut,'(A,I4,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.'// &
                 '  Average total thinning remains',nint(avgtotthin),'x for these plots.'
@@ -1138,7 +1138,7 @@ subroutine mcmcruninfo(exitcode)
            end do
         end do
         
-        ! Compute total mass (var 66) and mass ratio (var 67) (q=M2/M1, not the symmetric mass ratio \eta) from the individual masses:
+        ! Compute total mass (var 66) and mass ratio (var 67) (q=M2/M1, not \eta) from the individual masses:
         ! (var 65 is reserved for Mc^(1/6)) & convert q -> 1/q, logq -> -logq and phi -> phi -pi for phi > pi
         write(stdOut,'(A)')'  Computing Mtot, q, log(q) from masses'
         parID(nMCMCpar+1) = 66    ! Mtot
@@ -1537,10 +1537,10 @@ subroutine savgol(c, np,nl,nr,ld,m)
      sum = b(1)
      fac = 1.
      do mm=1,m
-        fac = fac*k
-        sum = sum+b(mm+1)*fac
+        fac = fac*real(k)
+        sum = sum + b(mm+1)*fac
      end do
-     kk = mod(np-k,np)+1
+     kk = mod(np-k,np) + 1
      c(kk) = sum
   end do
   
@@ -1695,7 +1695,7 @@ function revper(x,per)
   real, intent(in) :: x,per
   real :: revper
   
-  revper = x - floor(x/per)*per
+  revper = x - real(floor(x/per)) * per
   
 end function revper
 !***********************************************************************************************************************************
@@ -1713,7 +1713,7 @@ function revpipi(x)
   real, intent(in) :: x
   real :: revpipi
   
-  revpipi = x - floor(x/rpi2)*rpi2
+  revpipi = x - real(floor(x/rpi2)) * rpi2
   if(revpipi.gt.rpi) revpipi = revpipi - rpi2
   
 end function revpipi
@@ -1730,7 +1730,7 @@ function rev360(x)
   real, intent(in) :: x
   real :: rev360
   
-  rev360 = x - floor(x/360.)*360.
+  rev360 = x - real(floor(x/360.)) * 360.
   
 end function rev360
 !***********************************************************************************************************************************
@@ -1746,7 +1746,7 @@ function rev180(x)
   real, intent(in) :: x
   real :: rev180
   
-  rev180 = x - floor(x/180.)*180.
+  rev180 = x - real(floor(x/180.)) * 180.
   
 end function rev180
 !***********************************************************************************************************************************
@@ -1762,7 +1762,7 @@ function rev24(x)
   real, intent(in) :: x
   real :: rev24
   
-  rev24 = x - floor(x/24.)*24.
+  rev24 = x - real(floor(x/24.)) * 24.
   
 end function rev24
 !***********************************************************************************************************************************
@@ -1779,7 +1779,7 @@ function rev2pi(x)
   real :: rev2pi,pi
   
   pi = 4*atan(1.)
-  rev2pi = x - floor(x/(2.0*pi))*2.0*pi
+  rev2pi = x - real(floor(x/(2.0*pi))) * 2.0*pi
   
 end function rev2pi
 !***********************************************************************************************************************************
@@ -1798,7 +1798,7 @@ function drevpi(x)
   real(double), intent(in) :: x
   real(double) :: drevpi
   
-  drevpi = x - floor(x/pi)*pi
+  drevpi = x - real(floor(x/pi)) * pi
   
 end function drevpi
 !***********************************************************************************************************************************
@@ -1815,7 +1815,7 @@ function rrevpi(x)
   real, intent(in) :: x
   real :: rrevpi
   
-  rrevpi = x - floor(x/rpi)*rpi
+  rrevpi = x - real(floor(x/rpi)) * rpi
   
 end function rrevpi
 !***********************************************************************************************************************************

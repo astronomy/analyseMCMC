@@ -70,11 +70,11 @@ subroutine bindata2dold(n,x,y,norm,nxbin,nybin, xmin1,xmax1,ymin1,ymax1, z,tr)
   dy = abs(ymax - ymin)/real(nybin)
   do bx=1,nxbin+1
      !xbin(bx) = xmin + (real(bx)-0.5)*dx  ! x is the centre of the bin
-     xbin(bx) = xmin + (bx-1)*dx           ! x is the left of the bin
+     xbin(bx) = xmin + real(bx-1)*dx           ! x is the left of the bin
   end do
   do by=1,nybin+1
      !ybin(by) = ymin + (real(by)-0.5)*dy  ! y is the centre of the bin
-     ybin(by) = ymin + (by-1)*dy           ! y is the left of the bin
+     ybin(by) = ymin + real(by-1)*dy           ! y is the left of the bin
   end do
   
   !write(stdOut,'(50F5.2)'),x(1:50)
@@ -184,11 +184,11 @@ subroutine bin_data_2d_a(xdat,ydat, zdat, norm, nxbin,nybin, xmin1,xmax1,ymin1,y
   dy = abs(ymax - ymin)/real(nybin)
   do bx=1,nxbin+1
      !xbin(bx) = xmin + (real(bx)-0.5)*dx  ! x is the centre of the bin
-     xbin(bx) = xmin + (bx-1)*dx           ! x is the left of the bin
+     xbin(bx) = xmin + real(bx-1)*dx           ! x is the left of the bin
   end do
   do by=1,nybin+1
      !ybin(by) = ymin + (real(by)-0.5)*dy  ! y is the centre of the bin
-     ybin(by) = ymin + (by-1)*dy           ! y is the left of the bin
+     ybin(by) = ymin + real(by-1)*dy           ! y is the left of the bin
   end do
   
   !write(stdOut,'(50F5.2)'),xdat(1:50)
@@ -272,7 +272,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
      if(changeVar.ge.1) then
         if((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) then  
            !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
-           y = tr(4) + tr(6)*iy
+           y = tr(4) + tr(6)*real(iy)
            if(parID(p1).eq.31) then
               if(abs(y).le.90.) then
                  z(1:nx,iy) = z(1:nx,iy)/(cos(y*rd2r)+1.e-30)
@@ -362,7 +362,7 @@ subroutine calc_2d_areas(p1,p2,ni,nx,ny,z,tr,area)
         if(changeVar.ge.1) then
            if((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) then  
               !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
-              y = tr(4) + tr(6)*iy
+              y = tr(4) + tr(6)*real(iy)
               if(parID(p1).eq.31) then
                  dx = dx*cos(y*rd2r)
               else if(parID(p1).eq.52) then
