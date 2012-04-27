@@ -163,7 +163,7 @@ subroutine chains(exitcode)
      end if
      
      do ic=1,nChains0
-        ! Give pre- and post-burn-in different colour:
+        ! Give pre- and post-burn-in different colour in posterior chain:
         ci = defcolour
         if(nChains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
         
@@ -221,7 +221,7 @@ subroutine chains(exitcode)
         call pgmtxt('L',5.0,0.5,0.5,'log Posterior')
         call pgmtxt('R',5.0,0.5,0.5,'\(2267)(2logP) \(0248) SNR')
      else
-        call pgmtxt('L',2.5,0.5,0.5,'log Posterior')
+        call pgmtxt('L',2.3,0.5,0.5,'log Posterior')
         call pgmtxt('R',2.5,0.5,0.5,'\(2267)(2logP) \(0248) SNR')
      end if
      if(nPlPar.eq.1.and.quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
@@ -351,9 +351,13 @@ subroutine chains(exitcode)
         exitcode = 1
         return
      end if
-     !if(file.eq.1) call pgsch(1.5)
      
-     if(use_PLplot) sch = sch*0.7
+     if(file.eq.1) call pgsch(1.5)
+     if(use_PLplot) then
+        sch = sch*0.6
+     else
+        if(file.eq.1) sch = sch*0.8
+     end if
      call pgsch(sch)
      call pgslw(lw)
      
@@ -375,7 +379,17 @@ subroutine chains(exitcode)
         call pgsch(sch/2.*sqrt(real(nPlPar)))
         
         if(file.eq.0.and.scrRat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
-        if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+        if(file.eq.1) then
+           if(bmprat.gt.1.35) then
+              call pgsvp(0.08,0.95,0.1,0.95)
+           else
+              if(use_PLplot) then
+                 call pgsvp(0.1,0.92,0.12,0.9)  ! default case?
+              else
+                 call pgsvp(0.1,0.95,0.08,0.9)  ! default case?
+              end if
+           end if
+        end if
         if(file.ge.2.and.PSrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
         if(file.ge.2.and.PSrat.le.1.35.and.nPlPar.eq.1) &
              !call pgsvp(0.08,0.92,0.07,0.94)  ! Same as logP plot
@@ -457,7 +471,7 @@ subroutine chains(exitcode)
               call pgline(Ntot(ic),is(ic,1:Ntot(ic)),allDat(ic,p,1:Ntot(ic)))
            else
               
-              ! Give pre- and post-burn-in different colour:
+              ! Give pre- and post-burn-in different colour in parameter-chain plots:
               ci = defcolour
               if(nChains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
               
@@ -504,7 +518,7 @@ subroutine chains(exitcode)
         
         call pgslw(lw)
         
-        !Plot max posterior
+        ! Plot max posterior:
         if(plLmax.ge.1) then
            ply = allDat(icloglmax,p,iloglmax)
            if(changeVar.ge.1) then
@@ -518,12 +532,13 @@ subroutine chains(exitcode)
               end select
            end if
            call pgsci(1)
-           call pgpoint(1,is(icloglmax,iloglmax),ply,12)
+           call pgpoint(1,is(icloglmax,iloglmax),ply,18)
            call pgsls(5)
            call pgline(2,(/xmin,xmax/),(/ply,ply/))
         end if
         
-        ! Plot burn-in, injection and starting values
+        
+        ! Plot burn-in, injection and starting values:
         do ic=1,nChains0
            call pgsls(2)
            call pgsci(6)
@@ -603,13 +618,19 @@ subroutine chains(exitcode)
            end if
         end do !ic=1,nChains0
         
+        
+        ! Print labels:
         call pgsci(1)
         call pgsls(1)
         if(nPlPar.eq.1) then
            call pgmtxt('L',2.0,0.5,0.5,' '//trim(pgParNs(parID(p))))
            if(quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
         else
-           call pgmtxt('T',1.,0.,0.,' '//trim(pgParNs(parID(p))))
+           if(use_PLplot) then
+              call pgmtxt('T',2.4,0.,0.,' '//trim(pgParNs(parID(p))))
+           else
+              call pgmtxt('T',1.,0.,0.,' '//trim(pgParNs(parID(p))))
+           end if
         end if
         write(title,'(F6.3)') rhat(p)
         if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',1.,1.,1.,'R-hat: '//trim(title))

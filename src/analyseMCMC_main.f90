@@ -60,6 +60,7 @@
 !> \brief Main routine
 
 program analyseMCMC
+  !use SUFR_version, only: print_libSUFR_version
   use SUFR_kinds, only: double,dbl
   use SUFR_constants, only: stdOut,stdErr, set_SUFR_constants
   use SUFR_random_numbers, only: get_ran_seed
@@ -107,7 +108,12 @@ program analyseMCMC
   
   
   ! Print code version and set use_PLplot:
-  if(prProgress.ge.1) call print_code_version(stdOut, use_PLplot)
+  if(prProgress.ge.1) then
+     call print_code_version(stdOut, use_PLplot)
+     !write(stdOut,'(A)', advance='no') '  Using'
+     !call print_libSUFR_version(stdOut)
+     !write(stdOut,'(A)') '.'
+  end if
   
   if(html.ge.1) then
      outputdir = 'html'       ! Directory where output is saved (either relative or absolute path)

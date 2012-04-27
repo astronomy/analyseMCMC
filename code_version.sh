@@ -30,6 +30,7 @@ else
     if [[ ! -e .bzr/  && -e ${F90FILE} ]]
     then
 	echo "${F90FILE} already exists, no need to create it"
+	exit 0
     else
 	echo "Generating ${F90FILE}"
     fi
