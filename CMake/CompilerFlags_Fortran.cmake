@@ -103,8 +103,7 @@ elseif( Fortran_COMPILER_NAME MATCHES "g95" )
   endif( WANT_CHECKS )
   
   if( WANT_WARNINGS )
-    # 136: module variable not used,  165: implicit interface
-    set( WARN_FLAGS "-Wall -Wextra -Wno=165,163" )
+    set( WARN_FLAGS "-Wall -Wextra -Wno=165" )  # Suppress 165: implicit interface
 
     set( WARN_FLAGS "-std=f2003 ${WARN_FLAGS}" )
   endif( WANT_WARNINGS )
