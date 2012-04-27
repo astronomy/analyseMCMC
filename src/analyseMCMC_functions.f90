@@ -78,108 +78,109 @@ subroutine read_settingsfile()
   io = 0
   io1 = 0
   
-  read(u,*,iostat=io)bla
+  read(u,*,iostat=io) bla
+  bla = bla  ! Remove 'set but never used' warning
   
   
-  read(u,*,iostat=io)bla
-  read(u,*,iostat=io)thin
-  read(u,*,iostat=io)dblvar
+  read(u,*,iostat=io) bla
+  read(u,*,iostat=io) thin
+  read(u,*,iostat=io) dblvar
   Nburn(1) = nint(dblvar)
   do i=2,maxChs
      Nburn(i) = Nburn(1)
   end do
-  read(u,*,iostat=io)NburnFrac
-  read(u,*,iostat=io)autoBurnin
-  read(u,*,iostat=io)dblvar
+  read(u,*,iostat=io) NburnFrac
+  read(u,*,iostat=io) autoBurnin
+  read(u,*,iostat=io) dblvar
   maxChLen = nint(dblvar)
-  read(u,*,iostat=io)file
-  read(u,*,iostat=io)colour
-  read(u,*,iostat=io)quality
-  read(u,*,iostat=io)reverseRead
-  read(u,*,iostat=io)update
-  read(u,*,iostat=io)mergeChains
-  read(u,*,iostat=io)wrapData
-  read(u,*,iostat=io)changeVar
+  read(u,*,iostat=io) file
+  read(u,*,iostat=io) colour
+  read(u,*,iostat=io) quality
+  read(u,*,iostat=io) reverseRead
+  read(u,*,iostat=io) update
+  read(u,*,iostat=io) mergeChains
+  read(u,*,iostat=io) wrapData
+  read(u,*,iostat=io) changeVar
   
-  read(u,*,iostat=io)bla
-  read(u,*,iostat=io)prStdOut
-  read(u,*,iostat=io)prProgress
-  read(u,*,iostat=io)prRunInfo
-  read(u,*,iostat=io)prChainInfo
-  read(u,*,iostat=io)prInitial
-  read(u,*,iostat=io)prStat
-  read(u,*,iostat=io)prCorr
-  read(u,*,iostat=io)prAcorr
-  read(u,*,iostat=io)dblvar
+  read(u,*,iostat=io) bla
+  read(u,*,iostat=io) prStdOut
+  read(u,*,iostat=io) prProgress
+  read(u,*,iostat=io) prRunInfo
+  read(u,*,iostat=io) prChainInfo
+  read(u,*,iostat=io) prInitial
+  read(u,*,iostat=io) prStat
+  read(u,*,iostat=io) prCorr
+  read(u,*,iostat=io) prAcorr
+  read(u,*,iostat=io) dblvar
   nAcorr = nint(dblvar)
-  read(u,*,iostat=io)prIval
-  read(u,*,iostat=io)prConv
-  read(u,*,iostat=io)saveStats
-  read(u,*,iostat=io)savePDF
-  read(u,*,iostat=io)tailoredOutput
+  read(u,*,iostat=io) prIval
+  read(u,*,iostat=io) prConv
+  read(u,*,iostat=io) saveStats
+  read(u,*,iostat=io) savePDF
+  read(u,*,iostat=io) tailoredOutput
   
   
-  read(u,*,iostat=io)bla
-  read(u,*,iostat=io)plot
-  read(u,*,iostat=io)plLogL
-  read(u,*,iostat=io)plChain
-  read(u,*,iostat=io)plParL
-  read(u,*,iostat=io)plJump
-  read(u,*,iostat=io)plPDF1D
-  read(u,*,iostat=io)plPDF2D
-  read(u,*,iostat=io)plAcorr
-  read(u,*,iostat=io)plotSky
-  read(u,*,iostat=io)plAnim
+  read(u,*,iostat=io) bla
+  read(u,*,iostat=io) plot
+  read(u,*,iostat=io) plLogL
+  read(u,*,iostat=io) plChain
+  read(u,*,iostat=io) plParL
+  read(u,*,iostat=io) plJump
+  read(u,*,iostat=io) plPDF1D
+  read(u,*,iostat=io) plPDF2D
+  read(u,*,iostat=io) plAcorr
+  read(u,*,iostat=io) plotSky
+  read(u,*,iostat=io) plAnim
   
   
-  read(u,*,iostat=io)bla
-  read(u,*,iostat=io)chainPlI
-  read(u,*,iostat=io)scLogLpl
-  read(u,*,iostat=io)scChainsPl
-  read(u,*,iostat=io)plInject
-  read(u,*,iostat=io)plStart
-  read(u,*,iostat=io)plMedian
-  read(u,*,iostat=io)plRange
-  read(u,*,iostat=io)plBurn
-  read(u,*,iostat=io)plLmax
-  read(u,*,iostat=io)prValues
-  read(u,*,iostat=io)smooth
-  read(u,*,iostat=io)fillPDF
-  read(u,*,iostat=io)normPDF1D
-  read(u,*,iostat=io)normPDF2D
-  read(u,*,iostat=io)nAnimFrames
-  read(u,*,iostat=io)animScheme
-  read(u,*,iostat=io)Nival,ival0
+  read(u,*,iostat=io) bla
+  read(u,*,iostat=io) chainPlI
+  read(u,*,iostat=io) scLogLpl
+  read(u,*,iostat=io) scChainsPl
+  read(u,*,iostat=io) plInject
+  read(u,*,iostat=io) plStart
+  read(u,*,iostat=io) plMedian
+  read(u,*,iostat=io) plRange
+  read(u,*,iostat=io) plBurn
+  read(u,*,iostat=io) plLmax
+  read(u,*,iostat=io) prValues
+  read(u,*,iostat=io) smooth
+  read(u,*,iostat=io) fillPDF
+  read(u,*,iostat=io) normPDF1D
+  read(u,*,iostat=io) normPDF2D
+  read(u,*,iostat=io) nAnimFrames
+  read(u,*,iostat=io) animScheme
+  read(u,*,iostat=io) Nival,ival0
   read(u,*,iostat=io1)(ivals(i),i=1,Nival)
   
-  read(u,*,iostat=io)bla
-  read(u,*,iostat=io)scrSz
-  read(u,*,iostat=io)scrRat
-  read(u,*,iostat=io)bmpXSz
-  read(u,*,iostat=io)bmpYSz
-  read(u,*,iostat=io)PSsz
-  read(u,*,iostat=io)PSrat
-  read(u,*,iostat=io)scFac
-  read(u,*,iostat=io)unSharp
+  read(u,*,iostat=io) bla
+  read(u,*,iostat=io) scrSz
+  read(u,*,iostat=io) scrRat
+  read(u,*,iostat=io) bmpXSz
+  read(u,*,iostat=io) bmpYSz
+  read(u,*,iostat=io) PSsz
+  read(u,*,iostat=io) PSrat
+  read(u,*,iostat=io) scFac
+  read(u,*,iostat=io) unSharp
   
-  read(u,*,iostat=io)bla
-  read(u,*,iostat=io)orientation
-  read(u,*,iostat=io)fontType
-  read(u,*,iostat=io)fontSize1D
-  read(u,*,iostat=io)fontSize2D
-  read(u,*,iostat=io)chainSymbol
+  read(u,*,iostat=io) bla
+  read(u,*,iostat=io) orientation
+  read(u,*,iostat=io) fontType
+  read(u,*,iostat=io) fontSize1D
+  read(u,*,iostat=io) fontSize2D
+  read(u,*,iostat=io) chainSymbol
   
-  read(u,*,iostat=io)bla
-  read(u,*,iostat=io)bla
-  read(u,*,iostat=io)nPlPar
+  read(u,*,iostat=io) bla
+  read(u,*,iostat=io) bla
+  read(u,*,iostat=io) nPlPar
   read(u,*,iostat=io1)(plPars(i),i=1,nPlPar)
   if(io1.ne.0) nPlPar = i-1
   io1 = 0
-  read(u,*,iostat=io)panels(1:2)
-  read(u,*,iostat=io)Nbin1D
-  read(u,*,iostat=io)Nbin2Dx
-  read(u,*,iostat=io)Nbin2Dy
-  read(u,*,iostat=io)Npdf2D
+  read(u,*,iostat=io) panels(1:2)
+  read(u,*,iostat=io) Nbin1D
+  read(u,*,iostat=io) Nbin2Dx
+  read(u,*,iostat=io) Nbin2Dy
+  read(u,*,iostat=io) Npdf2D
   do i=1,Npdf2D
      read(u,*,iostat=io1)PDF2Dpairs(i,1:2)
      if(io1.ne.0) exit
@@ -504,7 +505,7 @@ subroutine read_mcmcfiles(exitcode)
   
   do ic = 1,nchains0
      infile = infiles(ic)
-     open(unit=10,form='formatted',status='old',file=trim(infile),iostat=io)
+     open(unit=10,form='formatted',status='old',file=trim(infile),iostat=io) 
      if(io.ne.0) then
         write(stdErr,'(A)')'   Error:  File not found: '//trim(infile)//', aborting.'
         exitcode = 1
@@ -529,14 +530,14 @@ subroutine read_mcmcfiles(exitcode)
      if(len_trim(firstLine).gt.80 .and. len_trim(firstLine).lt.140)  outputVersion = 0.0  ! SPINspiral output, before July 2009
      if(len_trim(firstLine).ge.140)  outputVersion = 2.0  ! LALInference output (after December 2010), keep 2.0<=oV<3.0
      
-     if(floor(outputVersion).eq.1) read(firstLine,'(A21,F8.2)')tmpStr,outputVersion
+     if(floor(outputVersion).eq.1) read(firstLine,'(A21,F8.2)') tmpStr,outputVersion
      
      if(outputVersion > 0.5) then
         ! Read command line between version number and first header. Read nothing if no command line:
         read(10,'(A999)',end=199,err=199) commandline
         if(commandline(1:14).eq.'  Command line') outputVersion = 2.1  ! LALinference, without parameter IDs
         ! Read empty line between version number and first header:
-        read(10,*,end=199,err=199)tmpStr
+        read(10,*,end=199,err=199) tmpStr
      end if
      
      if(outputVersion.lt.0.5) then
@@ -571,7 +572,7 @@ subroutine read_mcmcfiles(exitcode)
      if(outputVersion > 0.5) then
         
         if(outputVersion.lt.2.1) then  ! Then integer parameter IDs are still used
-           read(10,*,iostat=io)parID(1:nMCMCpar)  ! Read parameter IDs
+           read(10,*,iostat=io) parID(1:nMCMCpar)  ! Read parameter IDs
            if(io.ne.0) then
               write(stdErr,'(//,A,//)')'  Error reading MCMC parameter IDs, aborting...'
               stop
@@ -632,9 +633,9 @@ subroutine read_mcmcfiles(exitcode)
      i=1
      do while(i.le.maxIter)
         if(outputVersion < 0.5) then
-           read(10,*,iostat=io)tmpInt,post(ic,i),tmpDat(1:nMCMCpar)
+           read(10,*,iostat=io) tmpInt,post(ic,i),tmpDat(1:nMCMCpar)
         else
-           read(10,*,iostat=io)tmpInt,post(ic,i),prior(ic,i),tmpDat(1:nMCMCpar)
+           read(10,*,iostat=io) tmpInt,post(ic,i),prior(ic,i),tmpDat(1:nMCMCpar)
         end if
         
         if(io.lt.0) exit  ! EOF
@@ -677,12 +678,12 @@ subroutine read_mcmcfiles(exitcode)
         ! 'Thin' the output by reading every thin-th line, after you've read the injection and starting values:
         if(thin.gt.1.and.i.gt.1) then
            do j=1,thin-1
-              read(10,*,iostat=io)tmpStr
+              read(10,*,iostat=io) tmpStr
               if(io.lt.0) exit  ! EOF
            end do
         end if
         
-        
+        tmpStr = tmpStr  ! Remove 'set but never used' warning
         if(1.eq.2) then
            !In case you ran with lon rather than RA:
            allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
@@ -1861,6 +1862,7 @@ function getos()
   
   filename = trim(homedir)//'/.analysemcmc.uname.temp'
   status = system('uname &> '//trim(filename))  ! This should return "Linux" or "Darwin"
+  status = status  ! Remove 'set but never used' warning
   open(unit=16,file=trim(filename), status='old', form='formatted',iostat=io)
   if(io.ne.0) then  ! Something went wrong - guess Linux
      call warn('getOS(): cannot determine OS - guessing Linux...', stdErr)
@@ -2390,7 +2392,8 @@ subroutine findFiles(match,nff,all, fnames,nf)
   
   tempfile = trim(homedir)//'/.findFile.tmp'
   ! Shell command to list all the files with the search string and pipe them to a temporary file:
-  status = system('ls '//trim(match)//' 1> '//trim(tempfile)//' 2> /dev/null')
+  status = system('ls '//trim(match)//' 1> '//trim(tempfile)//' 2> /dev/null') 
+  status = status  ! Remove 'set but never used' warning
   
   do i=1,nff
      names(i)=''

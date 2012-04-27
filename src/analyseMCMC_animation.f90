@@ -46,7 +46,7 @@ subroutine animation(exitcode)
   
   integer :: c,i,ic,io,p,iframe,nplt,pgopen,lw,n1,n2, status,system
   integer :: index(maxMCMCpar,maxChs*maxIter),small_anim
-  real :: range,range1,range2,drange,minrange,centre,median,plshift,ival,norm
+  real :: range,range1,range2,drange,minrange,median,plshift,ival,norm  !,centre
   real :: x(maxChs,maxChs*maxIter),x1,x2,xmin,xmax,xmin1,xmax1,dx,y1,y2,ymin,ymax,dy,sch
   real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:)    !These depend on Nbin1D, allocate after reading input file
   real(double) :: ts1,ts2,timestamp
@@ -122,7 +122,7 @@ subroutine animation(exitcode)
         !print*,x(ic,index(p,1:nplt-Nburn(ic)))
         
         if(mod(nplt-Nburn(ic),2).eq.0) then
-           !Centre = nb + (n-nb)/2 = (n+nb)/2:
+           !centre = nb + (n-nb)/2 = (n+nb)/2:
            !median = 0.5*(allDat(ic,p,index(p,(nplt-Nburn(ic))/2)) + allDat(ic,p,index(p,(nplt-Nburn(ic))/2+1)))  
            median = 0.5*(x(ic,index(p,(nplt-Nburn(ic))/2)) + x(ic,index(p,(nplt-Nburn(ic))/2+1)))
         else
@@ -149,7 +149,7 @@ subroutine animation(exitcode)
            end if
            !write(stdOut,'(2I6,7F12.8)')i,i+floor((nplt-Nburn(ic))*ival),x1,x2,range,minrange,y1,y2,(y1+y2)/2.
         end do !i
-        centre = (y1+y2)/2.
+        !centre = (y1+y2)/2.
         !write(stdOut,'(A8,4x,4F10.5,I4)')parNames(p),y1,y2,minrange,centre,wrap(ic,p)
         
         !Save ranges:

@@ -45,7 +45,7 @@ subroutine statistics(exitcode)
   implicit none
   integer, intent(out) :: exitcode
   
-  integer :: c,i,ic,p,p1,p2,nr,nstat,wraptype
+  integer :: c,i,ic,p,p1,p2,wraptype
   integer :: indexx(maxMCMCpar,maxChs*maxIter),index1(maxChs*maxIter)
   real :: revper
   real :: x1,x2,y1,y2
@@ -231,17 +231,17 @@ subroutine statistics(exitcode)
      
      
      
-     !Do statistics:
+     ! Do statistics:
      if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A)',advance="no")'  Calc: stats, '
      do p=1,nMCMCpar
-        !Determine the median
+        ! Determine the median:
         if(mod(n(ic),2).eq.0) medians(p) = 0.5*(selDat(ic,p,indexx(p,n(ic)/2)) + selDat(ic,p,indexx(p,n(ic)/2+1)))
         if(mod(n(ic),2).eq.1) medians(p) = selDat(ic,p,indexx(p,(n(ic)+1)/2))
         
-        !Mean:
+        ! Mean:
         mean(p) = sum(selDat(ic,p,1:n(ic)))/real(n(ic))
         
-        !Variances, etc:
+        ! Variances, etc:
         var1(p)=0.; var2(p)=0.; absVar1(p)=0.; absVar2(p)=0.; stdev1(p)=0.; stdev2(p)=0.
         do i=1,n(ic)
            var1(p) = var1(p) + (selDat(ic,p,i) - medians(p))**2       !Based on median
@@ -257,8 +257,7 @@ subroutine statistics(exitcode)
         stdev1(p)  = sqrt(stdev1(p)/real(n(ic)-1))
         stdev2(p)  = sqrt(stdev2(p)/real(n(ic)-1))
         
-        !Save statistics:
-        nstat = 6
+        ! Save statistics:
         stats(ic,p,1) = medians(p)
         stats(ic,p,2) = mean(p)
         stats(ic,p,3) = absVar1(p)  !Based on median
@@ -271,7 +270,7 @@ subroutine statistics(exitcode)
      
      
      
-     !Compute correlations:
+     ! Compute correlations:
      if(prCorr.gt.0.or.saveStats.gt.0) then
         !write(stdOut,'(A)')' Calculating correlations...   '
         if(prProgress.ge.1) write(stdOut,'(A)',advance="no")' corrs, '
@@ -324,7 +323,6 @@ subroutine statistics(exitcode)
            !write(stdOut,'(A8,4x,4F10.5,I4)')parNames(parID(p)),y1,y2,minrange,centre,wrap(ic,p)
            
            !Save ranges:
-           nr = 4                  !Only ranges(:,:,:,1:nr) get converted later on
            ranges(ic,c,p,1) = y1
            ranges(ic,c,p,2) = y2
            ranges(ic,c,p,3) = centre
@@ -829,6 +827,7 @@ subroutine save_stats(exitcode)
   close(o) !Statistics output file
   if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.txt -o '// &
        trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
+  status = status  ! Remove 'set but never used' warning
   !write(stdOut,*)
   if(prProgress.ge.1) then
      if(saveStats.eq.1) write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.txt'
@@ -880,6 +879,7 @@ subroutine save_bayes(exitcode)
   
   if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.txt -o '// &
        trim(outputdir)//'/'//trim(outputname)//'__bayes.ps')
+  status = status  ! Remove 'set but never used' warning
   !write(stdOut,*)
   if(prProgress.ge.1) then
      if(saveStats.eq.1) write(stdOut,'(A)')'  Bayes factors saved in '//trim(outputdir)//'/'//trim(outputname)//'__bayes.txt'
@@ -1356,7 +1356,7 @@ subroutine compute_convergence()
   integer :: i,ic,p,nn,nn1
   integer :: lowVar(maxMCMCpar),nLowVar,highVar(maxMCMCpar),nHighVar,nmeanRelVar,nRhat,IDs(maxMCMCpar),nUsedPar
   real(double) :: chMean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar), dx
-  real(double) :: totRhat,meanRelVar
+  real(double) :: meanRelVar  !, totRhat
   character :: ch
   
   if(contrChains.le.1) then
@@ -1556,7 +1556,7 @@ subroutine compute_convergence()
   ! Print R-hat:
   if(prConv.ge.1) then
      write(stdOut,'(A14)',advance="no")'       R-hat: '
-     totRhat = 1.d0
+     !totRhat = 1.d0
      nRhat = 0
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  ! Varying parameters only

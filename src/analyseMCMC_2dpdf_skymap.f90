@@ -37,11 +37,11 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
   real, intent(in) :: bx10,bx20, by1,by2, raShift
   
   integer, parameter :: ns=9110, nsn=80
-  integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,spld,n,prslbl,rv
-  real(double) :: ra(ns),dec(ns),dx1,dx2,dy,ra1,dec1,drev2pi,par
-  real :: bx1,bx2,pma,pmd,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
-  real :: schcon,sz1,schfac,schlbl,prinf,snlim,sllim,schmag,getmag,mag,x,y,mlim
-  character :: cn(100)*(3),con(100)*(20),name*(10),sn(ns)*(10),snam(nsn)*(10),sni*(10),getsname*(10),mult,var*(9)
+  integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,spld,prslbl
+  real(double) :: ra(ns),dec(ns),dx1,dx2,dy,ra1,dec1,drev2pi
+  real :: bx1,bx2,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
+  real :: schcon,sz1,schfac,schlbl,snlim,sllim,schmag,getmag,mag,x,y,mlim
+  character :: cn(100)*(3),con(100)*(20),name*(10),sn(ns)*(10),snam(nsn)*(10),sni*(10),getsname*(10)
   
   
   mlim = 6.            ! Magnitude limit for stars
@@ -56,7 +56,6 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
   plcst = 2   ! 0-no, 1-figures, 2-figures+abbreviations, 3-figures+names
   sz1 = 1.    ! CHECK Get rid of this variable?
   
-  prinf = 150.**2
   
   x = 0.
   call pgqcr(1,r1,g1,b1)  ! Store colours
@@ -76,13 +75,12 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
   open(unit=21,form='formatted',status='old',file=trim(homedir)//'/bsc.dat')
   rewind(21)
   do i=1,ns
-     read(21,320)name,ra(i),dec(i),pma,pmd,rv,vm(i),par,mult,var
-320  format(A10,1x,2F10.6,1x,2F7.3,I5,F6.2,F6.3,A2,A10)
+     !read(21,'(A10,1x,2F10.6,1x,2F7.3,I5,F6.2,F6.3,A2,A10)') name,ra(i),dec(i),pma,pmd,rv,vm(i),par,mult,var
+     read(21,'(A10,1x,2F10.6,20x,F6.2)') name,ra(i),dec(i),vm(i)
      sn(i) = getsname(name)
      ra(i) = mod(ra(i)+raShift,pi2)-raShift
   end do
   close(21)
-  
   
   ! Read constellation-figure data for BSC:
   open(unit=22,form='formatted',status='old',file=trim(homedir)//'/bsc_const.dat')
@@ -166,7 +164,6 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
   ! Plot stars: BSC:
   spld = 0
   if(plstar.gt.0) then
-     n = 0
      do i=1,ns
         if(vm(i).lt.mlim.and.vm(i).ne.0.) then
            !call eq2xy(ra(i),dec(i),l0,b0,x,y)
