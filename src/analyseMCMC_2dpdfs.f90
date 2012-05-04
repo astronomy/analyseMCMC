@@ -408,7 +408,7 @@ subroutine pdfs2d(exitcode)
            if(project_map .and. plotSky.ge.2) then
               call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.05*sch)   ! Make room for title and +90deg label
            else
-              call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.033*sch)  ! Make room for title.  
+              call pgsvp(0.05*sch,0.98,0.07*sch,1.0-0.033*sch)  ! Make room for title.  
               ! Since sch is typically ~1.5*fontsize2d: 0.95 -> 1-0.05*fontsize ~ 1-0.03*sch
            end if
            
@@ -604,7 +604,7 @@ subroutine pdfs2d(exitcode)
                  if(wrap(ic,p2).ne.0) ply = mod(ply + shifts(ic,p2), shIvals(ic,p2)) - shifts(ic,p2)
                  call pgline(2,(/xmin,xmax/),(/ply,ply/))  ! Max logL
                  
-                 call pgpoint(1,plx,ply,12)
+                 call pgpoint(1,plx,ply,18)
               end if
               
               
@@ -727,8 +727,8 @@ subroutine pdfs2d(exitcode)
            !end if
            
            if(use_PLplot) then
-              call pgmtxt('B',3.0,0.5,0.5,trim(pgParNs(parID(p1))))
-              call pgmtxt('L',3.0,0.5,0.5,trim(pgParNs(parID(p2))))
+              call pgmtxt('B',5.0,0.5,0.5,trim(pgParNs(parID(p1))))
+              call pgmtxt('L',5.0,0.5,0.5,trim(pgParNs(parID(p2))))
            else
               call pgmtxt('B',2.2,0.5,0.5,trim(pgParNs(parID(p1))))
               call pgmtxt('L',1.7,0.5,0.5,trim(pgParNs(parID(p2))))
@@ -792,9 +792,17 @@ subroutine pdfs2d(exitcode)
                  a = (real(c-1)/real(Nival-1) - 0.5)*0.7 + 0.5
                  call pgsci(30+Nival+1-c)
                  if(project_map .and. plotSky.ge.2) then
-                    call pgmtxt('T',1.0,a,0.5,trim(string))  ! Print title
+                    if(use_PLplot) then
+                       call pgmtxt('T',3.0,a,0.5,trim(string))  ! Print title
+                    else
+                       call pgmtxt('T',1.0,a,0.5,trim(string))  ! Print title
+                    end if
                  else
-                    call pgmtxt('T',0.5,a,0.5,trim(string))  ! Print title
+                    if(use_PLplot) then
+                       call pgmtxt('T',2.0,a,0.5,trim(string))  ! Print title
+                    else
+                       call pgmtxt('T',0.5,a,0.5,trim(string))  ! Print title
+                    end if
                  end if
                  call pgsch(sch)
               end do

@@ -469,9 +469,16 @@ subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, clr1,clr2, tr, pr
      
      ! Overplot main lines:
      call pgsci(1)
-     call pgptxt(raCentre,92.,0.,0.5,'+90\(2218)')           ! NP
-     call pgptxt(raCentre,-95.,0.,0.5,'-90\(2218)')          ! SP
+     if(use_PLplot) then
+        call pgmtxt('T',2.0,0.5,0.5,'+90\(2218)')                 ! NP
+        call pgmtxt('B',2.0,0.5,0.5,'-90\(2218)')                 ! SP
+        call pgmtxt('L',2.0,0.5,0.5,'0\(2218)')                   ! Equator
+     else
+        call pgptxt(raCentre,92.,0.,0.5,'+90\(2218)')             ! NP
+        call pgptxt(raCentre,-95.,0.,0.5,'-90\(2218)')            ! SP
+     end if
      call pgline(2,(/raCentre-12.,raCentre+12./),(/0.,0./))   ! Equator
+     
      
      ! Plot null-meridian:
      do i=-24,24,24
