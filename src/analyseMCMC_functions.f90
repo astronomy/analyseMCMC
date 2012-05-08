@@ -244,8 +244,8 @@ subroutine write_settingsfile()
   write(u,11)wrapData, 'wrapData',   'Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is'// &
        ' around 0)'
   write(u,11)changeVar, 'changeVar',   'Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg): 0=no, 1=yes, 2=q->1/q'
-
-
+  
+  
   write(u,'(/,A)')' Select what output to print to screen and write to file:'
   write(u,11)prStdOut, 'prStdOut',   'Print standard output to 1: screen, 2: text file'
   write(u,11)prProgress, 'prProgress',   'Print general messages about the progress of the program: 0-no, 1-some, 2-more,'// &
@@ -397,7 +397,7 @@ subroutine set_plotsettings()
   update = 0        ! Update screen plot every 10 seconds: 0-no, 1-yes
   mergeChains = 1   ! Merge the data from different files into one chain: 0-no (treat separately), 1-yes (default)
   wrapData = 1      ! Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
-  changeVar = 2     ! Change MCMC parameters 0=no, 1=yes (e.g. kappa->theta_SL, rad->deg), 2=yes + q->1/q, phi->phi-pi, m1<->m2
+  changeVar = 1     ! Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg), 2=yes + q->1/q, phi->phi-pi, m1<->m2
   
   prStdOut = 1      ! Print standard output to 1: screen, 2: text file
   prProgress = 2    ! Print general messages about the progress of the program: 0-no, 1-some, 2-more
@@ -787,7 +787,7 @@ subroutine mcmcruninfo(exitcode)
   use aM_constants, only: waveforms,detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
-  use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar
+  use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar,plInject,plStart
   
   use general_data, only: allDat,post,ntot,n,nchains,nchains0,infiles,contrChain,startval,fixedpar,selDat,iloglmax,icloglmax
   use general_data, only: contrChains,parNames,nfixedpar,outputname,maxIter
