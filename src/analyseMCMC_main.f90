@@ -19,9 +19,9 @@
 
 
  
-!> \mainpage Documentation AnalyseMCMC
+!> \mainpage Documentation <a href="http://analysemcmc.sourceforge.net/">AnalyseMCMC</a>
 !! AnalyseMCMC is a Fortran code that can be used to analyse and present the output of 
-!! <a href="http://www.astro.ru.nl/~sluys/index.php?title=SPINspiral">SPINspiral</a>.
+!! <a href="http://spinspiral.sourceforge.net/">SPINspiral</a>.
 !!
 !! 
 !! 
