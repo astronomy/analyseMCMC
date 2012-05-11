@@ -696,7 +696,7 @@ subroutine save_stats(exitcode)
   open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__statistics.txt')
   write(o,'(A)')trim(outputname)
   
-  !Print general run and detector info:
+  ! Write general run and detector info to file:
   write(o,'(//,A,/)')'GENERAL INFORMATION:'
   write(o,'(6x,4A12,A12,A5, A8,A22,A8,A10,A12)')'totiter','totlines','totpts','totburn','nChains','used','seed', &
        '<d|d>','ndet','NetSNR','logPostInj'
@@ -713,7 +713,7 @@ subroutine save_stats(exitcode)
   
   write(o,'(A,I11)')' t0:',nint(t0)
   
-  !Print statistics
+  ! Write statistics to file:
   write(o,'(///,A,/)')'BASIC STATISTICS:'
   write(o,'(A,2I3)')'Npar,ncol:',nMCMCpar,7
   write(o,'(A8,7A12)')'Param.  ','model','median','mean','stdev1','stdev2','abvar1','abvar2'
@@ -729,7 +729,7 @@ subroutine save_stats(exitcode)
   write(o,*)
   
   
-  !Print correlations:
+  ! Write correlations to file:
   write(o,'(//,A,/)')'CORRELATIONS:'
   write(o,'(A,I3)')'Npar:',nMCMCpar
   write(o,'(A9)',advance="no")''
@@ -746,7 +746,7 @@ subroutine save_stats(exitcode)
   end do
   
   
-  !Print probability intervals:
+  ! Write probability intervals to file:
   write(o,'(///,A,/)')'1D PROBABILITY INTERVALS:'
   write(o,'(A,I3)')'Nival:',Nival
   write(o,'(A22)',advance="no")'Interval:'
@@ -783,7 +783,7 @@ subroutine save_stats(exitcode)
   
   
   
-  !Print 2D intervals
+  ! Write 2D intervals to file:
   write(o,'(///,A,/)')'2D PROBABILITY INTERVALS:'
   write(o,'(A,I5)')'Npdf2D: ',Npdf2D
   write(o,'(A,2I5)')'Nbin2Dx,Nbin2Dy: ',Nbin2Dx,Nbin2Dy
@@ -917,7 +917,7 @@ subroutine save_cbc_wiki_data(ic)
   
   write(pnstr,'(F3.1)')pnOrder
   
-  !Print output for CBC Wiki:
+  ! Write output for CBC Wiki to file:
   o = 20
   write(wikifilename,'(A)')trim(outputname)//'__wiki.txt'
   open(unit=o,form='formatted',status='replace',action='write',position='rewind',file=trim(outputdir)//'/'//trim(wikifilename), &
@@ -1124,7 +1124,7 @@ subroutine save_cbc_wiki_data(ic)
   end do
   write(o,'(A10)',advance="no")'       ||'
   
-  !Print log L:
+  ! Write log L to file:
   write(xs11,'(F11.4)')logLmax
   write(o,'(A11,A5)',advance="no")xs11,'   ||'
   

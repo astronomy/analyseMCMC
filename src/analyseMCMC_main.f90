@@ -20,8 +20,8 @@
 
  
 !> \mainpage Documentation <a href="http://analysemcmc.sourceforge.net/">AnalyseMCMC</a>
-!! <a href="http://analysemcmc.sourceforge.net/">AnalyseMCMC</a> is a Fortran code that can be used to analyse and present the output of 
-!! <a href="http://spinspiral.sourceforge.net/">SPINspiral</a>.
+!! <a href="http://analysemcmc.sourceforge.net/">AnalyseMCMC</a> is a Fortran code that can be used to analyse and present the
+!! output of <a href="http://spinspiral.sourceforge.net/">SPINspiral</a>.
 !!
 !! 
 !! 
