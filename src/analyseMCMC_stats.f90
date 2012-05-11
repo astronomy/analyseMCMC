@@ -1516,10 +1516,10 @@ subroutine compute_mixing()
            if(lowVar(p).eq.1) ch = '*'
            if(highVar(p).eq.1) ch = '#'
            if(prvarStdev.eq.1) then
-              !write(stdOut,'(F8.4,A1)',advance="no") min(max(chVar1(ic,p),-999.9999d0),999.9999d0),ch             ! Variance
+              !write(stdOut,'(F8.4,A1)',advance="no") min(max(chVar1(ic,p),-999.9999d0),999.9999d0),ch             ! Variance + lbl
               write(stdOut,'(1p,G9.2)',advance="no") min(max(chVar1(ic,p),-999.9999d0),999.9999d0)                 ! Variance
            else
-              !write(stdOut,'(F8.4,A1)',advance="no") min(max(sqrt(abs(chVar1(ic,p))),-999.9999d0),999.9999d0),ch  ! Std.dev
+              !write(stdOut,'(F8.4,A1)',advance="no") min(max(sqrt(abs(chVar1(ic,p))),-999.9999d0),999.9999d0),ch  ! Std.dev + lbl
               write(stdOut,'(1p,G9.2)',advance="no") min(max(sqrt(abs(chVar1(ic,p))),-999.9999d0),999.9999d0)      ! Std.dev
            end if
         end do
@@ -1538,7 +1538,7 @@ subroutine compute_mixing()
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  ! Varying parameters only
         if(prvarStdev.eq.1) then
-           write(stdOut,'(1p,G9.2)',advance="no") min(max(chVar(p),-999.9999d0),999.9999d0)          ! Variance
+           write(stdOut,'(1p,G9.2)',advance="no") min(max(chVar(p),-999.9999d0),999.9999d0)             ! Variance
         else
            write(stdOut,'(1p,G9.2)',advance="no") min(max(sqrt(abs(chVar(p))),-999.9999d0),999.9999d0)  ! Std.dev
         end if
@@ -1569,9 +1569,9 @@ subroutine compute_mixing()
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  ! Varying parameters only
         if(prvarStdev.eq.1) then
-           write(stdOut,'(ES9.2)',advance="no") meanVar(p)  ! Variance
+           write(stdOut,'(ES9.2)',advance="no") meanVar(p)             ! Variance
         else
-           write(stdOut,'(ES9.2)',advance="no") meanVar(p)  ! Std.dev
+           write(stdOut,'(ES9.2)',advance="no") sqrt(abs(meanVar(p)))  ! Std.dev
         end if
      end do
      write(stdOut,*)
