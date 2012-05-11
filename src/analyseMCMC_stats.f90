@@ -51,12 +51,12 @@ subroutine statistics(exitcode)
   real :: x1,x2,y1,y2
   real :: range1,minrange,ival,wrapival,centre,maxlogl,minlogl,shift,shIval,shIval2
   real :: medians(maxMCMCpar),mean(maxMCMCpar),var1(maxMCMCpar),var2(maxMCMCpar),corr,corr1,corr2
-  real(kind=realkindmax) :: var,total,total2,total3,deltab  !Need extra accuracy to compute Bayes factor
+  real(kind=realkindmax) :: var,total,total2,total3,deltab  ! Need extra accuracy to compute Bayes factor
   
   exitcode = 0
   
   
-  !Convert MCMC parameters/PDFs (cos/sin->ang, rad->deg, etc):
+  ! Convert MCMC parameters/PDFs (cos/sin->ang, rad->deg, etc):
   if(changeVar.ge.1) then
      if(outputVersion.lt.2.1) then
         do ic=1,nChains0  !selDat consists of nChains chains, allDat of nChains0 chains;  nChains <= nChains0
@@ -244,12 +244,12 @@ subroutine statistics(exitcode)
         ! Variances, etc:
         var1(p)=0.; var2(p)=0.; absVar1(p)=0.; absVar2(p)=0.; stdev1(p)=0.; stdev2(p)=0.
         do i=1,n(ic)
-           var1(p) = var1(p) + (selDat(ic,p,i) - medians(p))**2       !Based on median
-           var2(p) = var2(p) + (selDat(ic,p,i) - mean(p))**2          !Based on mean
-           absVar1(p) = absVar1(p) + abs(selDat(ic,p,i) - medians(p)) !Based on median
-           absVar2(p) = absVar2(p) + abs(selDat(ic,p,i) - mean(p))    !Based on mean
-           stdev1(p) = stdev1(p) + (selDat(ic,p,i) - medians(p))**2   !Based on median
-           stdev2(p) = stdev2(p) + (selDat(ic,p,i) - mean(p))**2      !Based on mean
+           var1(p) = var1(p) + (selDat(ic,p,i) - medians(p))**2        ! Based on median
+           var2(p) = var2(p) + (selDat(ic,p,i) - mean(p))**2           ! Based on mean
+           absVar1(p) = absVar1(p) + abs(selDat(ic,p,i) - medians(p))  ! Based on median
+           absVar2(p) = absVar2(p) + abs(selDat(ic,p,i) - mean(p))     ! Based on mean
+           stdev1(p) = stdev1(p) + (selDat(ic,p,i) - medians(p))**2    ! Based on median
+           stdev2(p) = stdev2(p) + (selDat(ic,p,i) - mean(p))**2       ! Based on mean
         end do
         
         absVar1(p) = absVar1(p)/real(n(ic))
@@ -260,10 +260,10 @@ subroutine statistics(exitcode)
         ! Save statistics:
         stats(ic,p,1) = medians(p)
         stats(ic,p,2) = mean(p)
-        stats(ic,p,3) = absVar1(p)  !Based on median
-        stats(ic,p,4) = absVar2(p)  !Based on mean
-        stats(ic,p,5) = stdev1(p)   !Based on median
-        stats(ic,p,6) = stdev2(p)   !Based on mean
+        stats(ic,p,3) = absVar1(p)  ! Based on median
+        stats(ic,p,4) = absVar2(p)  ! Based on mean
+        stats(ic,p,5) = stdev1(p)   ! Based on median
+        stats(ic,p,6) = stdev2(p)   ! Based on mean
      end do
      
      
@@ -656,8 +656,8 @@ subroutine statistics(exitcode)
   ! Compute autocorrelations:
   if(prAcorr.gt.0.or.plAcorr.gt.0) call compute_autocorrelations()
   
-  ! Compute and print convergence:
-  if(nChains0.gt.1 .and. (prConv.ge.1.or.saveStats.ge.1)) call compute_convergence()  !Need unwrapped data for this (?)
+  ! Compute and print mixing:
+  if(nChains0.gt.1 .and. (prConv.ge.1.or.saveStats.ge.1)) call compute_mixing()  ! Need unwrapped data for this (?)
   
   
   ! Change the original chain data:
@@ -1331,7 +1331,7 @@ end subroutine save_cbc_wiki_data
 
 
 !***********************************************************************************************************************************
-!> \brief  Check convergence for multiple chains. 
+!> \brief  Check mixing for multiple chains. 
 !!
 !! - This works only for fixed chain length, so take the min N
 !! - This is probably taken from (at least equal to):
@@ -1343,21 +1343,23 @@ end subroutine save_cbc_wiki_data
 !! 
 !! \todo  do we need unwrapped data for this? - probably not, since the different chains are wrapped in the same way
 
-subroutine compute_convergence()
+subroutine compute_mixing()
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdOut
   use SUFR_statistics, only: compute_median
   
   use analysemcmc_settings, only: prConv,Nburn,maxChs,maxMCMCpar
   use general_data, only: Rhat,contrChains,contrChain,nChains0,Ntot,allDat,fixedpar,parNames
-  use mcmcrun_data, only: parID,revID,nMCMCpar
+  use mcmcrun_data, only: parID,revID,nMCMCpar,nMCMCpar0
   
   implicit none
-  integer :: i,ic,p,nn,nn1
-  integer :: lowVar(maxMCMCpar),nLowVar,highVar(maxMCMCpar),nHighVar,nmeanRelVar,nRhat,IDs(maxMCMCpar),nUsedPar
+  integer :: i,ic,p,nn,nn1, prVarStdev
+  integer :: lowVar(maxMCMCpar),nLowVar,highVar(maxMCMCpar),nHighVar,nmeanRelVar,nRhat,IDs(maxMCMCpar),nUsedPar, RhatArr(maxMCMCpar)
   real(double) :: chMean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar), dx
-  real(double) :: meanRelVar  !, totRhat
+  real(double) :: meanRelVar !, totRhat
   character :: ch
+  
+  prVarStdev = 1  ! Print 1-Variances, 2-Standard deviations in detailed mixing output
   
   if(contrChains.le.1) then
      if(prConv.ge.1) write(stdOut,'(A)')'  At least two chains are needed to compute R-hat...'
@@ -1367,38 +1369,38 @@ subroutine compute_convergence()
   !> Determine the number of points to use for the computation of R-hat
   !!  Since we need a fixed number of points for all chains, take 
   !! nn = the minimum of (the length of each chain after the burn-in) and use the last nn data points of each chain
-  !<
-  nn = nint(1e9)
+  nn = huge(nn)
   do ic=1,nChains0
-     if(contrChain(ic).eq.0) cycle  !Contributing chains only
+     if(contrChain(ic).eq.0) cycle  ! Contributing chains only
      nn1 = Ntot(ic)-Nburn(ic)
      if(nn1.lt.nn) nn = nn1
   end do
   
-  if(prConv.ge.2) write(stdOut,'(A,I8,A)')'  Convergence parameters for',nn,' data points in each chain:'
+  if(prConv.ge.2) write(stdOut,'(A,I8,A)')'  Mixing parameters for',nn,' data points in each chain:'
   
   
   ! Compute the means for each chain and for all chains:
-  chMean = 1.d-30
-  avgMean = 1.d-30
+  chMean  = tiny(chMean)
+  avgMean = tiny(avgMean)
   do p=1,nMCMCpar
      do ic=1,nChains0
-        if(contrChain(ic).eq.0) cycle  ! Contributing chains only
-        do i=Ntot(ic)-nn+1,Ntot(ic)
+        if(contrChain(ic).eq.0) cycle                    ! Contributing chains only
+        do i=Ntot(ic)-nn+1,Ntot(ic)                      ! Last nn data points
            chMean(ic,p) = chMean(ic,p) + allDat(ic,p,i)
         end do
         avgMean(p) = avgMean(p) + chMean(ic,p)
-     end do
-  end do
+     end do  ! ic
+  end do  ! p
   chMean = chMean/dble(nn)
   avgMean = avgMean/dble(nn*contrChains)
   
   
   ! Compute variances per chain, for all chains:
-  chVar = 1.d-30
-  chVar1 = 1.d-30
-  meanVar = 1.d-30
+  chVar = tiny(chVar)
+  chVar1 = tiny(chVar1)
+  meanVar = tiny(meanVar)
   do p=1,nMCMCpar
+     
      do ic=1,nChains0
         if(contrChain(ic).eq.0) cycle  ! Contributing chains only
         do i=Ntot(ic)-nn+1,Ntot(ic)
@@ -1409,13 +1411,15 @@ subroutine compute_convergence()
         meanVar(p) = meanVar(p) + (chMean(ic,p) - avgMean(p))**2
         chVar1(ic,p) = chVar1(ic,p)/dble(nn-1)
         !if(p.eq.1) print*,chVar1(ic,p)
-     end do
-     chVar(p) = chVar(p)/dble(contrChains*(nn-1))
+     end do  ! ic
+     
+     chVar(p) = chVar(p)/dble(contrChains*nn-1)
      meanVar(p) = meanVar(p)/dble(contrChains-1)
      
      ! Compute Rhat:
-     Rhat(p) = min( dble(nn-1)/dble(nn)  +  meanVar(p)/chVar(p) * (1.d0 + 1.d0/dble(contrChains)), 99.d0)
-  end do
+     Rhat(p) = min( dble(nn-1)/dble(nn)  +  meanVar(p)/chVar(p) * (1.d0 + 1.d0/dble(contrChains)), 99.d0 )
+     
+  end do  ! p
   
   
   
@@ -1425,7 +1429,7 @@ subroutine compute_convergence()
      write(stdOut,'(A14)',advance="no")''
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  ! Varying parameters only
-        write(stdOut,'(A9)',advance="no")trim(parNames(parID(p)))
+        write(stdOut,'(A9)',advance="no") trim(parNames(parID(p)))
      end do
      write(stdOut,'(A9)')'Mean'
      
@@ -1434,13 +1438,13 @@ subroutine compute_convergence()
         write(stdOut,'(A)')'  Means:'
         do ic=1,nChains0
            if(contrChain(ic).eq.0) cycle  ! Contributing chains only
-           write(stdOut,'(I12,A2)',advance="no")ic,': '
+           write(stdOut,'(I12,A2)',advance="no") ic,': '
            do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle  ! Varying parameters only
               if(abs(chMean(ic,p)).lt.10.d0) then
-                 write(stdOut,'(F9.5)',advance="no")min(max(chMean(ic,p),-999.9999d0),999.9999d0)
+                 write(stdOut,'(F9.5)',advance="no") min(max(chMean(ic,p),-999.9999d0),999.9999d0)
               else
-                 write(stdOut,'(F9.4)',advance="no")min(max(chMean(ic,p),-999.9999d0),999.9999d0)
+                 write(stdOut,'(F9.4)',advance="no") min(max(chMean(ic,p),-999.9999d0),999.9999d0)
               end if
            end do
            write(stdOut,*)
@@ -1462,8 +1466,11 @@ subroutine compute_convergence()
   
   
   ! Flag and print variances:
-  !if(prConv.ge.3) write(stdOut,'(/,A)')'  Variances:'
-  if(prConv.ge.3) write(stdOut,'(/,A)')'  Std.devs:'
+  if(prvarStdev.eq.1) then
+     if(prConv.ge.3) write(stdOut,'(/,A)')'  Variances:'
+  else
+     if(prConv.ge.3) write(stdOut,'(/,A)')'  Std.devs:'
+  end if
   do ic=1,nChains0
      if(contrChain(ic).eq.0) cycle  ! Contributing chains only
      lowVar = 0
@@ -1508,8 +1515,13 @@ subroutine compute_convergence()
            ch = ' '
            if(lowVar(p).eq.1) ch = '*'
            if(highVar(p).eq.1) ch = '#'
-           !write(stdOut,'(F8.4,A1)',advance="no") min(max(chVar1(ic,p),-999.9999d0),999.9999d0),ch             ! Variance
-           write(stdOut,'(F8.4,A1)',advance="no") min(max(sqrt(abs(chVar1(ic,p))),-999.9999d0),999.9999d0),ch  ! Std.dev
+           if(prvarStdev.eq.1) then
+              !write(stdOut,'(F8.4,A1)',advance="no") min(max(chVar1(ic,p),-999.9999d0),999.9999d0),ch             ! Variance
+              write(stdOut,'(1p,G9.2)',advance="no") min(max(chVar1(ic,p),-999.9999d0),999.9999d0)                 ! Variance
+           else
+              !write(stdOut,'(F8.4,A1)',advance="no") min(max(sqrt(abs(chVar1(ic,p))),-999.9999d0),999.9999d0),ch  ! Std.dev
+              write(stdOut,'(1p,G9.2)',advance="no") min(max(sqrt(abs(chVar1(ic,p))),-999.9999d0),999.9999d0)      ! Std.dev
+           end if
         end do
         ch = ' '
         if(meanRelVar.lt.0.5) ch = '*'
@@ -1522,32 +1534,45 @@ subroutine compute_convergence()
   
   ! Print mean variance for all parameters :
   if(prConv.ge.3) then
-     write(stdOut,'(A13)',advance="no")'   Mean:'
+     write(stdOut,'(A14)',advance="no") 'Mean: '
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  ! Varying parameters only
-        !write(stdOut,'(F9.4)',advance="no") min(max(chVar(p),-999.9999d0),999.9999d0)             ! Variance
-        write(stdOut,'(F9.4)',advance="no") min(max(sqrt(abs(chVar(p))),-999.9999d0),999.9999d0)  ! Std.dev
+        if(prvarStdev.eq.1) then
+           write(stdOut,'(1p,G9.2)',advance="no") min(max(chVar(p),-999.9999d0),999.9999d0)          ! Variance
+        else
+           write(stdOut,'(1p,G9.2)',advance="no") min(max(sqrt(abs(chVar(p))),-999.9999d0),999.9999d0)  ! Std.dev
+        end if
      end do
      write(stdOut,*)
      write(stdOut,*)
   end if !if(prConv.ge.3)
   
+  
   ! Print the variances within chains and between chains:
   if(prConv.ge.2) then
-     !write(stdOut,'(A)')'  Variances:'
-     write(stdOut,'(A)')'  Standard deviations:'
+     if(prvarStdev.eq.1) then
+        write(stdOut,'(A)')'  Variances:'
+     else
+        write(stdOut,'(A)')'  Standard deviations:'
+     end if
      write(stdOut,'(A14)',advance="no")'      In chs: '
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  ! Varying parameters only
-        !write(stdOut,'(ES9.1)',advance="no") chVar(p)             ! Variance
-        write(stdOut,'(ES9.1)',advance="no") sqrt(abs(chVar(p)))  ! Std.dev
+        if(prvarStdev.eq.1) then
+           write(stdOut,'(ES9.2)',advance="no") chVar(p)             ! Variance
+        else
+           write(stdOut,'(ES9.2)',advance="no") sqrt(abs(chVar(p)))  ! Std.dev
+        end if
      end do
      write(stdOut,*)
      write(stdOut,'(A14)',advance="no")'   Betw. chs: '
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  ! Varying parameters only
-        !write(stdOut,'(ES9.1)',advance="no") meanVar(p)  ! Variance
-        write(stdOut,'(ES9.1)',advance="no") meanVar(p)  ! Std.dev
+        if(prvarStdev.eq.1) then
+           write(stdOut,'(ES9.2)',advance="no") meanVar(p)  ! Variance
+        else
+           write(stdOut,'(ES9.2)',advance="no") meanVar(p)  ! Std.dev
+        end if
      end do
      write(stdOut,*)
   end if
@@ -1556,24 +1581,27 @@ subroutine compute_convergence()
   ! Print R-hat:
   if(prConv.ge.1) then
      write(stdOut,'(A14)',advance="no")'       R-hat: '
+     !totRhat = 0.d0
      !totRhat = 1.d0
      nRhat = 0
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  ! Varying parameters only
         write(stdOut,'(F9.4)',advance="no") Rhat(p)
         !print*,parID(p)
-        if(parID(p).ne.63.and.parID(p).ne.64) then  ! If not one of M1,M2
+        !if(parID(p).ne.63.and.parID(p).ne.64) then  ! If not one of M1,M2
+        if(p.le.nMCMCpar0) then  ! If not one of the secondary variables
            !totRhat = totRhat + Rhat(p)   ! Arithmetic mean
            !totRhat = totRhat * Rhat(p)   ! Geometric mean
            nRhat = nRhat + 1
+           RhatArr(nRhat) = p
         end if
      end do
-     !write(stdOut,'(F9.4)')totRhat/dble(nRhat)          ! Arithmetic mean
-     !write(stdOut,'(F9.4)')totRhat**(1.d0/dble(nRhat))  ! Geometric mean
-     write(stdOut,'(F9.4,A)')compute_median(Rhat(1:nMCMCpar)),' (med)'  ! Median
+     !write(stdOut,'(F9.4)') totRhat/dble(nRhat)          ! Arithmetic mean
+     !write(stdOut,'(F9.4)') totRhat**(1.d0/dble(nRhat))  ! Geometric mean
+     write(stdOut,'(F9.4,A)') compute_median(Rhat(RhatArr(1:nRhat))),' (med)'
   end if
   
-end subroutine compute_convergence
+end subroutine compute_mixing
 !***********************************************************************************************************************************
 
 
