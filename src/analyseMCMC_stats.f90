@@ -56,6 +56,13 @@ subroutine statistics(exitcode)
   exitcode = 0
   
   
+  ! Compute autocorrelations:
+  if(prAcorr.gt.0.or.plAcorr.gt.0) call compute_autocorrelations()
+  
+  ! Compute and print mixing:
+  if(nChains0.gt.1 .and. (prConv.ge.1.or.saveStats.ge.1)) call compute_mixing()  ! Need unwrapped data for this
+  
+  
   ! Convert MCMC parameters/PDFs (cos/sin->ang, rad->deg, etc):
   if(changeVar.ge.1) then
      if(outputVersion.lt.2.1) then
@@ -131,17 +138,17 @@ subroutine statistics(exitcode)
              then  !Not RA, phi_c, psi, phi_Jo, phi_1,2
            call sorted_index_list(dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
-           if(parID(p).eq.31) raCentre = rpi                      !Plot 0-24h when not wrapping -> centre = 12h = pi
-           cycle !No wrapping necessary
+           if(parID(p).eq.31) raCentre = rpi                      ! Plot 0-24h when not wrapping -> centre = 12h = pi
+           cycle  ! No wrapping necessary
         end if
         
         
-        !Determine 'wraptype':
-        wraptype = 1                                !0-2pi (e.g. phases)
-        if(parID(p).eq.52) wraptype = 2             !0-pi (polarisation angle)
+        ! Determine 'wraptype':
+        wraptype = 1                                ! 0-2pi (e.g. phases)
+        if(parID(p).eq.52) wraptype = 2             ! 0-pi (polarisation angle)
         if(changeVar.ge.1) then
-           if(parID(p).eq.31) wraptype = 3          !0-24h (RA)
-           wraptype = wraptype+10                   !11,12,13 iso 1,2
+           if(parID(p).eq.31) wraptype = 3          ! 0-24h (RA)
+           wraptype = wraptype+10                   ! 11,12,13 iso 1,2
         end if
         
         
@@ -196,31 +203,31 @@ subroutine statistics(exitcode)
         
         
         
-        !Wrap around anticentre:
+        ! Wrap around anticentre:
         shift = 0.
         
-        !For the general case of shIval (= pi or 2pi; 180, 360 or 24)
+        ! For the general case of shIval (= pi or 2pi; 180, 360 or 24)
         if(wrap(ic,p).gt.0) shift = shIval - mod(centre + shIval2, shIval)
         shifts(ic,p) = shift
-        if(parID(p).eq.31.and.ic.eq.1) raShift = shift                                     !Save RA shift to plot sky map
+        if(parID(p).eq.31.and.ic.eq.1) raShift = shift                                     ! Save RA shift to plot sky map
         
-        !write(0,'(2I6,9ES10.2)')p,wraptype,shIval,centre,shift
+        !write(0,'(2I6,9ES10.2)') p,wraptype,shIval,centre,shift
         
-        !Do the actual wrapping:
-        allDat(ic,p,1:Ntot(ic))  = mod(allDat(ic,p,1:Ntot(ic))  + shift, shIval) - shift   !Original data
+        ! Do the actual wrapping:
+        allDat(ic,p,1:Ntot(ic))  = mod(allDat(ic,p,1:Ntot(ic))  + shift, shIval) - shift   ! Original data
         selDat(ic,p,1:n(ic))     = mod(selDat(ic,p,1:n(ic))     + shift, shIval) - shift
-        startval(ic,p,1:3)       = mod(startval(ic,p,1:3)       + shift, shIval) - shift   !Injection, starting and Lmax values
+        startval(ic,p,1:3)       = mod(startval(ic,p,1:3)       + shift, shIval) - shift   ! Injection, starting and Lmax values
         y1 = mod(y1 + shift, shIval) - shift
         y2 = mod(y2 + shift, shIval) - shift
         
         centre = mod(centre + shift, shIval) - shift
-        if(parID(p).eq.31.and.ic.eq.1) raCentre = centre                                   !Save RA centre to plot sky map
+        if(parID(p).eq.31.and.ic.eq.1) raCentre = centre                                   ! Save RA centre to plot sky map
         
         minrange = y2-y1
-        call sorted_index_list(dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))         ! Re-sort
+        call sorted_index_list(dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))                ! Re-sort
         indexx(p,1:n(ic)) = index1(1:n(ic))
         
-        !If centre is around shIval2, still needs to be flagged 'wrap' to plot PDF:
+        ! If centre is around shIval2, still needs to be flagged 'wrap' to plot PDF:
         if(abs( abs( minval(selDat(ic,p,1:n(ic))) - maxval(selDat(ic,p,1:n(ic))) ) - shIval) .lt. 1.e-3)  wrap(ic,p) = 1   
      end do !p
      ! End wrapping data
@@ -293,7 +300,7 @@ subroutine statistics(exitcode)
      
      
      
-     !Determine interval ranges:
+     ! Determine interval ranges:
      if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A)',advance="no")' prob.ivals: '
      c0 = 0
      do c=1,Nival
@@ -322,16 +329,16 @@ subroutine statistics(exitcode)
            centre = (y1+y2)/2.
            !write(stdOut,'(A8,4x,4F10.5,I4)')parNames(parID(p)),y1,y2,minrange,centre,wrap(ic,p)
            
-           !Save ranges:
+           ! Save ranges:
            ranges(ic,c,p,1) = y1
            ranges(ic,c,p,2) = y2
            ranges(ic,c,p,3) = centre
            ranges(ic,c,p,4) = y2-y1
            ranges(ic,c,p,5) = ranges(ic,c,p,4)
            if(parID(p).eq.21.or.parID(p).eq.22 .or. parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) &
-                ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  !Distance or mass
-        end do !p
-     end do !c
+                ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  ! Distance or mass
+        end do  ! p
+     end do  ! c
      !if(prProgress.ge.2) write(stdOut,'(A34,F8.4)')'.  Standard probability interval: ',ivals(ival0)
      !if(prProgress.ge.2) write(stdOut,'(A,F8.4)',advance="no")', default ival:',ivals(ival0)
      
@@ -339,7 +346,7 @@ subroutine statistics(exitcode)
      
      
      
-     !Compute Bayes factor:
+     ! Compute Bayes factor:
      !if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A)',advance="no")'  Bayes factor,'
      total = 0
      total2 = 0
@@ -347,7 +354,7 @@ subroutine statistics(exitcode)
      maxlogl = -1.e30
      minlogl =  1.e30
      do i = Nburn(ic),Ntot(ic)
-        var = post(ic,i)          !Use highest precision available
+        var = post(ic,i)          ! Use highest precision available
         total = total + exp(-var)**(1/Tchain(ic))
         total2 = total2 + exp(var)**(1-(1/Tchain(ic)))
         total3 = total3 + var
@@ -375,17 +382,9 @@ subroutine statistics(exitcode)
      
      
      
-     !Change MCMC parameters
-     !(moved to beginning of routine)
-     
-     
-     
-     
-     
-     
-     !Find 100% probability range
+     ! Find 100% probability range:
      do c = 1,Nival
-        if(abs(ivals(c)-1.).lt.1.e-4) then !Then treat it as a 100% interval to prevent numerical problems
+        if(abs(ivals(c)-1.).lt.1.e-4) then  ! Then treat it as a 100% interval to prevent numerical problems
            if(prProgress.ge.1) write(stdOut,'(A,F9.4,A)')'  Treating probability interval',ivals(c)*100,'% as 100%'
            do p=1,nMCMCpar
               ranges(ic,c,p,1) = minval(selDat(ic,p,1:n(ic)))
@@ -394,7 +393,7 @@ subroutine statistics(exitcode)
               ranges(ic,c,p,4) = ranges(ic,c,p,2) - ranges(ic,c,p,1)
               ranges(ic,c,p,5) = ranges(ic,c,p,4)
               if(parID(p).eq.21.or.parID(p).eq.22 .or. parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) &
-                   ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  !Distance or mass
+                   ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  ! Distance or mass
            end do
         end if
      end do
@@ -436,7 +435,7 @@ subroutine statistics(exitcode)
      end if
      
      
-     !Print statistics to screen
+     ! Print statistics to screen:
      if(prStat.gt.0) then
         write(stdOut,'(/,A)')'  Main statistics:'
         do c=1,Nival
@@ -446,23 +445,23 @@ subroutine statistics(exitcode)
                 'stdev1','stdev2','abvar1','abvar2',  &
                 'rng_c','rng1','rng2','drng','d/drng','delta','ok?','result (',ivals(c)*100,'%)'
            do p=1,nMCMCpar
-              if(fixedpar(p).eq.1) cycle  !Varying parameters only
+              if(fixedpar(p).eq.1) cycle  ! Varying parameters only
               write(stdOut,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4)',advance="no")parNames(parID(p)),startval(ic,p,1), &
                    stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absVar1(p),  &
                    absVar2(p),ranges(ic,c,p,3),ranges(ic,c,p,1),ranges(ic,c,p,2),ranges(ic,c,p,4),  &
-                   min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),99.9999),ranges(ic,c,p,5)  !d/drange wrt ctr of rng
+                   min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),99.9999),ranges(ic,c,p,5)  ! d/drnge wrt ctr of rng
               if(startval(ic,p,1).ge.ranges(ic,c,p,1).and.startval(ic,p,1).le.ranges(ic,c,p,2)) then
                  write(stdOut,'(A4)',advance="no")'y '
               else
                  write(stdOut,'(A4)',advance="no")'*N*'
               end if
               write(stdOut,'(F10.4,A3,F9.4)')ranges(ic,c,p,3),'+-',0.5*ranges(ic,c,p,4)
-           end do !p
-        end do !c
+           end do  ! p
+        end do  ! c
      end if
      
      
-     !Print intervals as: centre, delta, in range:
+     ! Print intervals as: centre, delta, in range:
      if(prIval.eq.1.or.prIval.eq.3) then
         write(stdOut,'(/,A)')'  Probability intervals:'
         write(stdOut,'(A22,A8)',advance="no")'Interval:',''
@@ -479,25 +478,25 @@ subroutine statistics(exitcode)
         write(stdOut,*)
         do p=1,nMCMCpar
            !if(stdev1(p).lt.1.d-20) cycle
-           if(fixedpar(p).eq.1) cycle  !Varying parameters only
+           if(fixedpar(p).eq.1) cycle  ! Varying parameters only
            write(stdOut,'(A10,2x,2F9.4)',advance="no")parNames(parID(p)),startval(ic,p,1),stats(ic,p,1)
            do c=1,Nival
               if(mergeChains.eq.0) then
-                 !Defined with centre of prob. range, need some extra security to print correctly:
+                 ! Defined with centre of prob. range, need some extra security to print correctly:
                  write(stdOut,'(2x,2F9.4,F6.3)',advance="no")ranges(ic,c,p,3),ranges(ic,c,p,4), &
                       min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),9.999) 
               else
                  write(stdOut,'(2x,2F9.4,F6.3)',advance="no")ranges(ic,c,p,3),ranges(ic,c,p,4), &
-                      min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),99.999) !Defined with centre of prob. range
+                      min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),99.999) ! Defined with centre of prob. range
               end if
               if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
                  write(stdOut,'(A3)',advance="no")'y '
               else
                  write(stdOut,'(A3)',advance="no")'N*'
               end if
-           end do !c
+           end do  ! c
            write(stdOut,*)
-        end do !p
+        end do  ! p
         write(stdOut,*)
      end if
      
@@ -505,7 +504,7 @@ subroutine statistics(exitcode)
      if(prIval.ge.2) then
         write(stdOut,'(/,A)')'  Statistics and probability intervals:'
         
-        !Print intervals as x +- dx:
+        ! Print intervals as x +- dx:
         write(stdOut,'(A61)',advance="no")'Interval:'
         do c=1,Nival
            write(stdOut,'(F14.3,A1,A9)',advance="no")ivals(c)*100,'%',''
@@ -518,7 +517,7 @@ subroutine statistics(exitcode)
         end do
         write(stdOut,*)
         do p=1,nMCMCpar
-           if(fixedpar(p).eq.1) cycle  !Varying parameters only
+           if(fixedpar(p).eq.1) cycle  ! Varying parameters only
            write(stdOut,'(A10,2x,4F10.3)',advance="no")parNames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            do c=1,Nival
               write(stdOut,'(5x,F8.3,A4,F7.3)',advance="no")ranges(ic,c,p,3),' +- ',0.5d0*ranges(ic,c,p,4)
@@ -527,7 +526,7 @@ subroutine statistics(exitcode)
         end do
         write(stdOut,*)
         
-        !Print intervals as low-high:
+        ! Print intervals as low-high:
         write(stdOut,'(A61)',advance="no")'Interval:'
         do c=1,Nival
            write(stdOut,'(F14.3,A1,A9)',advance="no")ivals(c)*100,'%',''
@@ -540,7 +539,7 @@ subroutine statistics(exitcode)
         end do
         write(stdOut,*)
         do p=1,nMCMCpar
-           if(fixedpar(p).eq.1) cycle  !Varying parameters only
+           if(fixedpar(p).eq.1) cycle  ! Varying parameters only
            write(stdOut,'(A10,2x,4F10.3)',advance="no")parNames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
            do c=1,Nival
               write(stdOut,'(6x,F8.3,A3,F7.3)',advance="no")ranges(ic,c,p,1),' - ',ranges(ic,c,p,2)
@@ -550,7 +549,7 @@ subroutine statistics(exitcode)
         write(stdOut,*)
         
         
-        !Print intervals as x -dx1 +dx2 in LaTeX format:
+        ! Print intervals as x -dx1 +dx2 in LaTeX format:
         if(1.eq.2) then
            write(stdOut,'(A19)',advance="no")'Interval:   '
            do c=1,Nival
@@ -559,7 +558,7 @@ subroutine statistics(exitcode)
            write(stdOut,*)
            
            do p=1,nMCMCpar
-              if(fixedpar(p).eq.1) cycle  !Varying parameters only
+              if(fixedpar(p).eq.1) cycle  ! Varying parameters only
               write(stdOut,'(A10,2x)',advance="no")parNames(parID(p))
               do c=1,Nival
                  write(stdOut,'(5x,A1,F8.3,2(A,F7.3),A)',advance="no")'$',stats(ic,p,1), &
@@ -581,7 +580,7 @@ subroutine statistics(exitcode)
      
      
      
-     !Print correlations:
+     ! Print correlations:
      if(prCorr.gt.0) then
         corr1 = 0.1
         corr2 = 0.5
@@ -594,16 +593,16 @@ subroutine statistics(exitcode)
         end do
         write(stdOut,*)
         do p1=1,nMCMCpar
-           if(fixedpar(p1).eq.1) cycle  !Varying parameters only
+           if(fixedpar(p1).eq.1) cycle  ! Varying parameters only
            write(stdOut,'(A8)',advance="no")trim(parNames(parID(p1)))
            do p2=1,nMCMCpar
               corr = corrs(p1,p2)
-              if(fixedpar(p2).eq.1) cycle  !Varying parameters only
-              if( (abs(corr).ge.corr2.and.p2.gt.p1) ) then  !Print in the upper triangle
+              if(fixedpar(p2).eq.1) cycle  ! Varying parameters only
+              if( (abs(corr).ge.corr2.and.p2.gt.p1) ) then  ! Print in the upper triangle
                  write(stdOut,'(F7.2)',advance="no")corr
-              else if( (abs(corr).ge.corr1.and.abs(corr).lt.corr2.and.p1.gt.p2) ) then   !Print in the lower triangle
+              else if( (abs(corr).ge.corr1.and.abs(corr).lt.corr2.and.p1.gt.p2) ) then   ! Print in the lower triangle
                  write(stdOut,'(F7.2)',advance="no")corr
-              else if(p1.eq.p2) then !Print on the diagonal
+              else if(p1.eq.p2) then  ! Print on the diagonal
                  write(stdOut,'(A7)',advance="no")' ######' !'
               else
                  write(stdOut,'(A7)',advance="no")''
@@ -615,11 +614,11 @@ subroutine statistics(exitcode)
      
      
      
-     !Print output for CBC Wiki:
+     ! Print output for CBC Wiki:
      if(ic.eq.1.and.wikioutput.eq.1) call save_cbc_wiki_data(ic)
      
      
-  end do !ic
+  end do  ! ic
   
   
   
@@ -652,17 +651,6 @@ subroutine statistics(exitcode)
   
   !write(6,'(A,F10.3)')'ln Bayes Total',logebayesfactortotal
   
-  
-  ! Compute autocorrelations:
-  if(prAcorr.gt.0.or.plAcorr.gt.0) call compute_autocorrelations()
-  
-  ! Compute and print mixing:
-  if(nChains0.gt.1 .and. (prConv.ge.1.or.saveStats.ge.1)) call compute_mixing()  ! Need unwrapped data for this (?)
-  
-  
-  ! Change the original chain data:
-  !moved to top of the routine
-  
 end subroutine statistics
 !***********************************************************************************************************************************
 
@@ -691,8 +679,8 @@ subroutine save_stats(exitcode)
   integer :: c,i,ic,o,p,p1,p2,status,system
   
   exitcode = 0
-  ic = 1 !Use chain 1
-  o = 20 !Output port
+  ic = 1  ! Use chain 1
+  o = 20  ! Output port
   open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__statistics.txt')
   write(o,'(A)')trim(outputname)
   
@@ -824,7 +812,7 @@ subroutine save_stats(exitcode)
   
   
   
-  close(o) !Statistics output file
+  close(o)  ! Statistics output file
   if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.txt -o '// &
        trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
   status = status  ! Remove 'set but never used' warning
@@ -857,8 +845,8 @@ subroutine save_bayes(exitcode)
   integer :: ic,o,status,system
   
   exitcode = 0
-  !ic = 1 !Use chain 1
-  o = 20 !Output port
+  !ic = 1  ! Use chain 1
+  o = 20  ! Output port
   open(unit=o, form='formatted', status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__bayes.txt')
   write(o,'(A)')trim(outputname)
   
@@ -875,7 +863,7 @@ subroutine save_bayes(exitcode)
      write(o,'(6x,5I12,F22.3,F22.5)')ic,totiter,totlines,totpts,totlines-totpts,Tchain(ic),logebayesfactor(ic)
   end do
   
-  close(o) !Bayes output file
+  close(o)  ! Bayes output file
   
   if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__bayes.txt -o '// &
        trim(outputdir)//'/'//trim(outputname)//'__bayes.ps')
@@ -935,7 +923,7 @@ subroutine save_cbc_wiki_data(ic)
   
   
   
-  !Injection values:
+  ! Injection values:
   write(o,'(///,A)')'== Injection values =='
   write(o,'(A)')"|| '''Detectors'''  || '''M1'''     || '''M2'''     || '''Mc'''     || '''&eta;'''  || '''time'''      ||"// &
        " '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   ||"// &
@@ -980,7 +968,7 @@ subroutine save_cbc_wiki_data(ic)
   
   
   
-  !Bayes factor:
+  ! Bayes factor:
   write(o,'(///,A)')'== Bayes Factors =='
   write(o,'(A)')"|| '''Code'''                                     ||"// &
        " '''Model'''                                                || '''Detectors'''  || '''log_e Bayes Factor'''    ||"// &
@@ -1009,7 +997,7 @@ subroutine save_cbc_wiki_data(ic)
   
   
   
-  !Medians:
+  ! Medians:
   write(o,'(///,A)')'== Medians =='
   write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 ||"// &
        " '''Detectors'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||"// &
@@ -1055,7 +1043,7 @@ subroutine save_cbc_wiki_data(ic)
   
   
   
-  !Means:
+  ! Means:
   write(o,'(///,A)')'== Means =='
   write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 ||"// &
        " '''Detectors'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||"// &
@@ -1100,7 +1088,7 @@ subroutine save_cbc_wiki_data(ic)
   
   
   
-  !Lmax:
+  ! Lmax:
   write(o,'(///,A)')'== Maximum-likelihood points =='
   write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 ||"// &
        " '''Detectors'''  ||'''log(L)'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''||"// &
@@ -1150,7 +1138,7 @@ subroutine save_cbc_wiki_data(ic)
   
   
   
-  !Stdev:
+  ! Stdev:
   write(o,'(///,A)')'== Standard deviations =='
   write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 ||"// &
        " '''Detectors'''  || '''Mc'''     || '''&eta;'''  || '''time'''   || '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||"// &
@@ -1194,7 +1182,7 @@ subroutine save_cbc_wiki_data(ic)
   
   
   
-  !2-sigma range:
+  ! 2-sigma range:
   write(o,'(///,A)')'== 2-sigma probability ranges =='
   write(o,'(A)')"|| '''Code'''                                     || '''Waveform'''                                 ||"// &
        " '''Detectors'''  || '''Mc'''              || '''&eta;'''           || '''time'''            ||"// &
@@ -1269,7 +1257,7 @@ subroutine save_cbc_wiki_data(ic)
   
   
   
-  !Injection values:
+  ! Injection values:
   write(o,'(///,A)')'== Injection values =='
   write(o,'(A)')"|| '''Detectors'''  || '''M1'''     || '''M2'''     || '''Mc'''     || '''&eta;'''  || '''time'''      ||"// &
        " '''spin1'''  ||'''&theta;1'''|| '''spin2'''  ||'''&theta;2'''|| '''Dist'''   || '''R.A.'''   || '''Dec.'''   ||"// &
@@ -1319,7 +1307,7 @@ subroutine save_cbc_wiki_data(ic)
   write(o,'(///,A)')'----'
   write(o,'(A)')'Back to [:JointS5/BayesianFollowUpOfE14Events:Bayesian follow-up in E14]'
   
-  close(o)  !Wiki output file
+  close(o)  ! Wiki output file
   
 end subroutine save_cbc_wiki_data
 !***********************************************************************************************************************************
@@ -1331,7 +1319,7 @@ end subroutine save_cbc_wiki_data
 
 
 !***********************************************************************************************************************************
-!> \brief  Check mixing for multiple chains. 
+!> \brief  Check mixing for multiple chains.  Use unwrapped data
 !!
 !! - This works only for fixed chain length, so take the min N
 !! - This is probably taken from (at least equal to):
@@ -1340,8 +1328,6 @@ end subroutine save_cbc_wiki_data
 !!   - http://www.jstor.org/pss/1390675 (for purchase)
 !!   - http://www.stat.columbia.edu/~gelman/research/published/brooksgelman.pdf (Author's website)
 !!   - See Eq.1.1,  where:  B/n := meanVar  and  W := chVar
-!! 
-!! \todo  do we need unwrapped data for this? - probably not, since the different chains are wrapped in the same way
 
 subroutine compute_mixing()
   use SUFR_kinds, only: double
@@ -1635,18 +1621,18 @@ subroutine compute_autocorrelations()
      if(prAcorr.ge.2) write(stdOut,'(A)')' Autocorrelations:'
      write(stdOut,'(A14)',advance="no")''
      do p=1,nMCMCpar
-        if(fixedpar(p).eq.1) cycle  !Varying parameters only
+        if(fixedpar(p).eq.1) cycle  ! Varying parameters only
         write(stdOut,'(A9)',advance="no")trim(parNames(parID(p)))
      end do
      write(stdOut,'(A11)')'Median'
   end if
   
   
-  do ic=1,nChains0  !Use original data
+  do ic=1,nChains0  ! Use original data
      acorrs(ic,:,:) = 0.
      lAcorrs(ic,:) = 0.
      
-     j1 = Ntot(ic)/nAcorr   !Step size to get nAcorr autocorrelations per parameter - don't waste any CPU
+     j1 = Ntot(ic)/nAcorr   ! Step size to get nAcorr autocorrelations per parameter - don't waste any CPU
      if(j1.lt.1) then
         write(stdErr,'(A)')"  *** WARNING:  nAcorr too small or nAcorr too large to compute autocorrelations properly."// &
              " I can't use all data points and the results may not be what you expect ***"
@@ -1655,10 +1641,10 @@ subroutine compute_autocorrelations()
      
      if(prAcorr.ge.2) write(stdOut,'(A,I3,A)',advance="no")'  Chain',ic,':   '
      do p=1,nMCMCpar
-        if(fixedpar(p).eq.1) cycle  !Varying parameters only
+        if(fixedpar(p).eq.1) cycle  ! Varying parameters only
         
         median = compute_median_sp(allDat(ic,p,1:Ntot(ic)))
-        !median = sum(selDat(ic,p,1:Ntot(ic)))/real(Ntot(ic))  !Replace median with mean
+        !median = sum(selDat(ic,p,1:Ntot(ic)))/real(Ntot(ic))  ! Replace median with mean
         stdev  = compute_stdev_sp(allDat(ic,p,1:Ntot(ic)), median)
         
         do j=0,min(nAcorr,Ntot(ic)-1)
@@ -1668,14 +1654,14 @@ subroutine compute_autocorrelations()
            acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev*stdev*real(Ntot(ic)-j*j1))
            
            if(lAcorrs(ic,p).lt.1. .and. acorrs(ic,p,j).lt.0) lAcorrs(ic,p) = real(j*j1*totthin(ic))
-           if(p.eq.1) acorrs(ic,0,j) = real(j*j1*totthin(ic))  !Make sure you get the iteration number, not the data-point number
-        end do !j
+           if(p.eq.1) acorrs(ic,0,j) = real(j*j1*totthin(ic))  ! Make sure you get the iteration number, not the data-point number
+        end do  ! j
         
-        if(prAcorr.ge.2) write(stdOut,'(ES9.1)',advance="no")lAcorrs(ic,p)
-     end do !p
+        if(prAcorr.ge.2) write(stdOut,'(ES9.2)',advance="no")lAcorrs(ic,p)
+     end do  ! p
      
-     if(prAcorr.ge.2) write(stdOut,'(ES11.1)') compute_median_sp(lAcorrs(ic,1:nMCMCpar))
-  end do !ic
+     if(prAcorr.ge.2) write(stdOut,'(ES11.2)') compute_median_sp(lAcorrs(ic,1:nMCMCpar))
+  end do  ! ic
   
   
   if(prAcorr.ge.1) then
@@ -1683,12 +1669,12 @@ subroutine compute_autocorrelations()
      if(prAcorr.ge.2) write(stdOut,'(/,A)',advance="no")'    Median:   '
      np = 0
      do p=1,nMCMCpar
-        if(fixedpar(p).eq.1) cycle  !Varying parameters only
+        if(fixedpar(p).eq.1) cycle  ! Varying parameters only
         np = np+1
         medians(np) = compute_median_sp(lAcorrs(1:nChains0,p))
-        write(stdOut,'(ES9.1)',advance="no")medians(np)
+        write(stdOut,'(ES9.2)',advance="no")medians(np)
      end do
-     write(stdOut,'(ES11.1)') compute_median_sp(medians(1:np))
+     write(stdOut,'(ES11.2)') compute_median_sp(medians(1:np))
   end if
   
 end subroutine compute_autocorrelations

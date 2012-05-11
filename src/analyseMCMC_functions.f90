@@ -769,7 +769,7 @@ end subroutine parNames2IDs
 !! \retval exitcode  Exit status code (0=ok)
 !! 
 !!  \par
-!!  print MCMC run info:
+!!  Print MCMC run info:
 !!  - determine Lmax, burn-in,  
 !!  - print chain info,  
 !!  - determine thinning for chains plots,  
@@ -777,7 +777,7 @@ end subroutine parNames2IDs
 !!  - determine injection, start, Lmax values of chains,  
 !!  - compute jumps,  
 !!  - construct output file name,  
-!!  - store data in selDat (from dat)
+!!  - store data in selDat (from allDat)
 
 subroutine mcmcruninfo(exitcode)  
   use SUFR_kinds, only: double
