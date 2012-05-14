@@ -29,13 +29,14 @@ subroutine pdfs2d(exitcode)
   use SUFR_constants, only: cursorup, pi,rpi,rh2r
   use SUFR_system, only: warn
   use SUFR_statistics, only: bin_data_2d
+  use SUFR_text, only: replace_substring
   
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: plLmax,fontsize2d,map_projection,maxChs
   use analysemcmc_settings, only: plInject,mergeChains,Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky,wrapData
   use analysemcmc_settings, only: savePDF,plot,ivals,Nival,normPDF2D,plPDF1D,plPDF2D,plMedian,plRange,prIval
-  use general_data, only: allDat,outputname,outputdir,startval,icloglmax,iloglmax,parNames,pgParNs,nfixedpar
+  use general_data, only: allDat,outputname,outputdir,startval,icloglmax,iloglmax,parNames,pgParNs,pgUnits, nfixedpar
   use general_data, only: selDat,stats,ranges,c0,n,maxIter,wrap,fixedpar,shifts,shIvals,raCentre,raShift
   use mcmcrun_data, only: totpts,revID,parID, nMCMCpar
   use plot_data, only: psclr,bmpsz,bmprat,bmpxpix,unSharppdf2d,pltsz,pltrat
@@ -49,14 +50,15 @@ subroutine pdfs2d(exitcode)
   real :: a,rat,cont(11),tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
-  character :: string*(99),str*(99),tempfile*(99),ivalstr*(99),delta*(19),outputbasefile*(199), convopts*(99)
+  character :: string*(99),str*(99),tempfile*(99),ivalstr*(99),delta*(19),outputbasefile*(199), convopts*(99), areaunit*(19)
+  character :: tmpStr1*(19),tmpStr2*(19)
   logical :: project_map,sky_position,binary_orientation, ex
   !real :: xmin1,xmax1,ymin1,ymax1
   
   
   exitcode = 0
   countplots = 0
-  ic = 1 !Can only do one chain
+  ic = 1  ! Can only do one chain
   
   j1 = 1
   j2 = nMCMCpar
@@ -125,7 +127,7 @@ subroutine pdfs2d(exitcode)
   ! Allocate memory:
   allocate(z(Nbin2Dx+1,Nbin2Dy+1),zs(maxChs,Nbin2Dx+1,Nbin2Dy+1))
   
-  
+  sch = fontsize2d
   if(plot.eq.1) then
      if(file.eq.0) then
         lw = 1
@@ -135,7 +137,7 @@ subroutine pdfs2d(exitcode)
      if(file.ge.1) then
         !if(file.ge.2.and.multipagefile) io = pgopen(trim(outputdir)//'/pdf2d.eps'//trim(psclr))
         lw = 3
-        flw = nint(2*fontsize2d)  ! Font lw
+        flw = ceiling(3.*fontsize2d)  ! Font lw
         if(quality.eq.91) flw = nint(3*fontsize2d)  ! NINJA
         sch = 1.5*fontsize2d
         if(quality.eq.3) then  ! Poster
@@ -154,7 +156,6 @@ subroutine pdfs2d(exitcode)
      !   call pgscf(fonttype)
      !   call pginitl(colour,file,whiteBG)
      !end if
-     
   end if !if(plot.eq.1)
   
   
@@ -408,7 +409,7 @@ subroutine pdfs2d(exitcode)
            if(project_map .and. plotSky.ge.2) then
               call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.05*sch)   ! Make room for title and +90deg label
            else
-              call pgsvp(0.05*sch,0.98,0.07*sch,1.0-0.033*sch)  ! Make room for title.  
+              call pgsvp(0.08*sch,0.98,0.07*sch,1.0-0.033*sch)  ! Make room for title.
               ! Since sch is typically ~1.5*fontsize2d: 0.95 -> 1-0.05*fontsize ~ 1-0.03*sch
            end if
            
@@ -620,7 +621,7 @@ subroutine pdfs2d(exitcode)
                  
                  ! CHECK The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 
                  ! (but they have for the starting values, why?)
-                 if(mergeChains.ne.1.or.ic.le.1) then 
+                 if(mergeChains.ne.1.or.ic.le.1) then
                     
                     call pgsls(3)  ! Dash-dotted line for injection value
                     call pgsci(1)
@@ -726,64 +727,73 @@ subroutine pdfs2d(exitcode)
               call pgmtxt('L',5.0,0.5,0.5,trim(pgParNs(parID(p2))))
            else
               call pgmtxt('B',2.2,0.5,0.5,trim(pgParNs(parID(p1))))
-              call pgmtxt('L',1.7,0.5,0.5,trim(pgParNs(parID(p2))))
+              call pgmtxt('L',2.2,0.5,0.5,trim(pgParNs(parID(p2))))
            end if
            
            
            ! Print 2D probability ranges in plot title:
-           ! For sky position and orientation only:
-           if(prIval.ge.1.and.normPDF2D.eq.4.and. (sky_position .or. binary_orientation)) then  
+           if(prIval.ge.1.and.normPDF2D.eq.4) then
               string = ' '
               do c = 1,Nival
-                 write(ivalstr,'(F5.1,A1)')ivals(c)*100,'%'
+                 write(ivalstr,'(F5.1,A1)') ivals(c)*100,'%'
                  if(fonttype.eq.2) then
-                    if(abs(ivals(c)-0.6827).lt.0.001) write(ivalstr,'(A)')'1\(2144)'
-                    if(abs(ivals(c)-0.9545).lt.0.001) write(ivalstr,'(A)')'2\(2144)'
-                    if(abs(ivals(c)-0.9973).lt.0.001) write(ivalstr,'(A)')'3\(2144)'
+                    if(abs(ivals(c)-0.6827).lt.0.001) write(ivalstr,'(A)') '1\(2144)'
+                    if(abs(ivals(c)-0.9545).lt.0.001) write(ivalstr,'(A)') '2\(2144)'
+                    if(abs(ivals(c)-0.9973).lt.0.001) write(ivalstr,'(A)') '3\(2144)'
                  else
-                    if(abs(ivals(c)-0.6827).lt.0.001) write(ivalstr,'(A)')'1\(0644)'
-                    if(abs(ivals(c)-0.9545).lt.0.001) write(ivalstr,'(A)')'2\(0644)'
-                    if(abs(ivals(c)-0.9973).lt.0.001) write(ivalstr,'(A)')'3\(0644)'
+                    if(abs(ivals(c)-0.6827).lt.0.001) write(ivalstr,'(A)') '1\(0644)'
+                    if(abs(ivals(c)-0.9545).lt.0.001) write(ivalstr,'(A)') '2\(0644)'
+                    if(abs(ivals(c)-0.9973).lt.0.001) write(ivalstr,'(A)') '3\(0644)'
                  end if
                  
-                 i = 3  ! 2-use degrees, 3-square degrees
-                 a = probAreas(p1,p2,c,i)
-                 if(i.eq.2) then
-                    if(a.lt.1.) then
-                       write(string,'(A,F5.2,A7)')trim(ivalstr)//':',a,'\(2218)'
-                    else if(a.lt.10.) then
-                       write(string,'(A,F4.1,A7)')trim(ivalstr)//':',a,'\(2218)'
-                    else if(a.lt.100.) then
-                       write(string,'(A,F5.1,A7)')trim(ivalstr)//':',a,'\(2218)'
-                    else
-                       write(string,'(A,I4,A7)')trim(ivalstr)//':',nint(a),'\(2218)'
-                    end if
+                 areaunit = trim(pgUnits(parID(p1)))//' '//trim(pgUnits(parID(p2)))
+                 if(trim(pgUnits(parID(p1))) .eq. trim(pgUnits(parID(p2)))) areaunit = trim(pgUnits(parID(p1)))//'\u2\d'  ! mm->m^2
+                 if(trim(areaunit).eq.'\(2218)\u2\d') areaunit = 'deg\u2\d'  ! Square degrees
+                 areaunit = ' '//trim(areaunit)  ! Add space between value and unit
+                 
+                 
+                 a = probAreas(p1,p2,c,3)
+                 
+                 if(a.lt.1.) then
+                    write(string,'(A,F5.2,A)') trim(ivalstr)//':',a,trim(areaunit)
+                 else if(a.lt.10.) then
+                    write(string,'(A,F4.1,A)') trim(ivalstr)//':',a,trim(areaunit)
+                 else if(a.lt.100.) then
+                    write(string,'(A,F5.1,A)') trim(ivalstr)//':',a,trim(areaunit)
+                 else if(a.lt.1000.) then
+                    write(string,'(A,I4,A)') trim(ivalstr)//':',nint(a),trim(areaunit)
+                 else if(a.lt.10000.) then
+                    write(string,'(A,I5,A)') trim(ivalstr)//':',nint(a),trim(areaunit)
+                 else
+                    write(string,'(A,I6,A)') trim(ivalstr)//':',nint(a),trim(areaunit)
                  end if
-                 if(i.eq.3) then
-                    call pgsch(sch*0.85)  ! Needed to fit the square-degree sign in
-                    if(quality.eq.3) call pgsch(sch*0.6)  ! Poster
-                    if(a.lt.1.) then
-                       write(string,'(A,F5.2,A9)')trim(ivalstr)//':',a,'deg\u2\d'
-                    else if(a.lt.10.) then
-                       write(string,'(A,F4.1,A9)')trim(ivalstr)//':',a,'deg\u2\d'
-                    else if(a.lt.100.) then
-                       write(string,'(A,F5.1,A9)')trim(ivalstr)//':',a,'deg\u2\d'
-                    else if(a.lt.1000.) then
-                       write(string,'(A,I4,A9)')trim(ivalstr)//':',nint(a),'deg\u2\d'
-                    else if(a.lt.10000.) then
-                       write(string,'(A,I5,A9)')trim(ivalstr)//':',nint(a),'deg\u2\d'
-                    else
-                       write(string,'(A,I6,A9)')trim(ivalstr)//':',nint(a),'deg\u2\d'
-                    end if
-                 end if
+                 
+                 if(a.lt.0.09.or.a.ge.1.e5) write(string,'(A,1p,G8.1,A)') trim(ivalstr)//':',abs(a),trim(areaunit)
+                 
+                 ! Replace exponentials by x10^:
+                 do i=-99,99
+                    write(tmpStr1,'(A,I3.2)') 'E',i
+                    call replace_substring(tmpStr1, 'E ', 'E+')
+                    write(tmpStr2,'(A,I3.2,A)') '\(727)10\u',i,'\d'
+                    call replace_substring(string, trim(tmpStr1), trim(tmpStr2))
+                 end do
+                 call replace_substring(string, '\(727)10\u-0', '\(727)10\u-')
+                 call replace_substring(string, '\(727)10\u-', '\(727)10\u\(240)')
+                 call replace_substring(string, '\(727)10\u 0', '\(727)10\u')
+                 call replace_substring(string, '\(727)10\u ', '\(727)10\u')
+                 
+                 
+                 call pgsch(sch*0.8)  ! Needed to fit three sigma values in
+                 if(quality.eq.3) call pgsch(sch*0.6)  ! Poster
                  if(quality.eq.91) then  ! NINJA
                     call pgsch(sch)
                     if(fonttype.eq.2) then
-                       write(string,'(I2,A7,A10)')c,'\(2144)',''
+                       write(string,'(I2,A7,A10)') c,'\(2144)',''
                     else
-                       write(string,'(I2,A7,A10)')c,'\(0644)',''
+                       write(string,'(I2,A7,A10)') c,'\(0644)',''
                     end if
                  end if
+                 
                  a = (real(c-1)/real(Nival-1) - 0.5)*0.7 + 0.5
                  call pgsci(30+Nival+1-c)
                  if(project_map .and. plotSky.ge.2) then
@@ -803,7 +813,7 @@ subroutine pdfs2d(exitcode)
               end do
               call pgsci(1)
            end if
-        end if  !if(plot.eq.1)
+        end if  ! if(plot.eq.1)
         
         
         
@@ -817,7 +827,7 @@ subroutine pdfs2d(exitcode)
               inquire(file=trim(tempfile)//'.ppm', exist=ex)
               if(ex) then
                  convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)
-                 if(countplots.eq.Npdf2D) then 
+                 if(countplots.eq.Npdf2D) then
                     
                     ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
                     status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm '//trim(outputbasefile)//'.png')
@@ -913,7 +923,7 @@ subroutine pdfs2d(exitcode)
                  if(ex) then
                     
                     ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
-                    if(countplots.eq.Npdf2D) then 
+                    if(countplots.eq.Npdf2D) then
                        status = system('convert -resize 200x200 '//trim(tempfile)//'.png '//trim(tempfile)//'_thumb.png')
                     else
                        status = system('convert -resize 200x200 '//trim(tempfile)//'.png '//trim(tempfile)//'_thumb.png &')
