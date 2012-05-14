@@ -390,10 +390,12 @@ subroutine chains(exitcode)
               end if
            end if
         end if
-        if(file.ge.2.and.PSrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+        if(file.ge.2.and.PSrat.gt.1.35) & 
+             !call pgsvp(0.08,0.95,0.1,0.94)
+             call pgsvp(0.08*sqrt(fontsize1D),1.0-0.04-0.04*sqrt(fontsize1D),0.07*fontsize1D**1.5,1.0-0.05-0.03*fontsize1D**1.5)
         if(file.ge.2.and.PSrat.le.1.35.and.nPlPar.eq.1) &
              !call pgsvp(0.08,0.92,0.07,0.94)  ! Same as logP plot
-             call pgsvp(0.08*fontsize1D,1.-0.08*fontsize1D,0.07*fontsize1D,1.-0.06*fontsize1D)
+             call pgsvp(0.08*fontsize1D,1.0-0.08*fontsize1D,0.07*fontsize1D,1.0-0.06*fontsize1D)
 
         if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87)  ! To make room for title
         if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
@@ -622,18 +624,21 @@ subroutine chains(exitcode)
         ! Print labels:
         call pgsci(1)
         call pgsls(1)
+        write(title,'(F6.3)') rhat(p)
         if(nPlPar.eq.1) then
            call pgmtxt('L',2.0,0.5,0.5,' '//trim(pgParNs(parID(p))))
            if(quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
+           if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',2.0,1.,1.,'R-hat: '//trim(title))
         else
            if(use_PLplot) then
               call pgmtxt('T',2.4,0.,0.,' '//trim(pgParNs(parID(p))))
+              if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',2.4,1.,1.,'R-hat: '//trim(title))
            else
-              call pgmtxt('T',1.,0.,0.,' '//trim(pgParNs(parID(p))))
+              call pgmtxt('T',0.6,0.,0.,' '//trim(pgParNs(parID(p))))
+              if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',0.6,1.,1.,'R-hat: '//trim(title))
            end if
         end if
-        write(title,'(F6.3)') rhat(p)
-        if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',1.,1.,1.,'R-hat: '//trim(title))
+
         
      end do !do j=1,nPlPar
      
@@ -644,7 +649,7 @@ subroutine chains(exitcode)
         call pgswin(-1.,1.,-1.,1.)
         
         call pgsch(sch*0.8)
-        call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  !Print title
+        call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  ! Print titel
         call pgsch(sch)
      end if
      
