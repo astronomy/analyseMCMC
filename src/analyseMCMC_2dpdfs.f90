@@ -352,10 +352,20 @@ subroutine pdfs2d(exitcode)
               do i=1,Nival
                  if(prIval.ge.1.and.prProgress.ge.2 .and. (sky_position .or. binary_orientation)) then  
                     ! For sky position and orientation only:
-                    if(i.eq.1) write(stdOut,'(/,1x,A10,A13,3A23)')'Nr.','Ival frac.','Area (sq.deg) ', &
+                    if(i.eq.1) write(stdOut,'(/,1x,A10,A13,3A23)') 'Nr.','Ival frac.','Area (sq.deg) ', &
                          'Circ. area rad. (deg) ','Fraction of sky '
-                    write(stdOut,'(I10,F13.2,3(2x,F21.5))')i,ivals(i),probArea(i),sqrt(probArea(i)/pi)*2, &
+                    write(stdOut,'(I10,F13.2,3(2x,F21.5))') i,ivals(i),probArea(i),sqrt(probArea(i)/pi)*2, &
                          probArea(i)*(pi/180.)**2/(4*pi)  ! 4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
+                 else
+                    areaunit = trim(pgUnits(parID(p1)))//' '//trim(pgUnits(parID(p2)))
+                    if(trim(pgUnits(parID(p1))) .eq. trim(pgUnits(parID(p2)))) areaunit = trim(pgUnits(parID(p1)))//'^2'  ! mm->m^2
+                    call replace_substring(areaunit, '\(2218)', 'deg')    ! degrees
+                    call replace_substring(areaunit, '\d\(2281)\u', 'o')  ! Mo
+                    call replace_substring(areaunit, '\dh\u', 'hr')       ! hr
+                    areaunit = ' '//trim(areaunit)  ! Add space between value and unit
+                    
+                    if(i.eq.1) write(stdOut,'(/,1x,A10,A13,A23)') 'Nr.','Ival frac.','Area'
+                    write(stdOut,'(I10,F13.2,2x,1p,G21.3,1x,A)') i,ivals(i),probArea(i),trim(areaunit)
                  end if
                  probAreas(p1,p2,i,1) = probArea(i)*(rpi/180.)**2/(4*rpi)  ! Fraction of the sky
                  probAreas(p1,p2,i,2) = sqrt(probArea(i)/rpi)*2            ! Equivalent diameter
