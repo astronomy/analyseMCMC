@@ -594,7 +594,8 @@ subroutine pdfs2d(exitcode)
               
               ! Plot max likelihood in 2D PDF:
               if(plLmax.ge.1) then
-                 call pgsci(1); call pgsls(5)
+                 call pgsci(1)
+                 call pgsls(5)
                  
                  plx = allDat(icloglmax,p1,iloglmax)
                  if(wrap(ic,p1).ne.0) plx = mod(plx + shifts(ic,p1), shIvals(ic,p1)) - shifts(ic,p1)
@@ -614,31 +615,25 @@ subroutine pdfs2d(exitcode)
               ! Plot injection value in 2D PDF:
               if((plInject.eq.1.or.plInject.eq.3).and.(.not.project_map) .or. &
                    ((plInject.eq.2.or.plInject.eq.4) .and.  &
-                   (parID(p1).eq.61.and.parID(p2).eq.62).or.(parID(p1).eq.63 &
-                   .and.parID(p2).eq.64.or.parID(p2).eq.61.and.parID(p2).eq.67 &
-                   .or.parID(p2).eq.61.and.parID(p2).eq.68)) ) then
+                   (parID(p1).eq.61.and.parID(p2).eq.62 .or. parID(p1).eq.63.and.parID(p2).eq.64 .or. &
+                   parID(p2).eq.61.and.parID(p2).eq.67  .or. parID(p2).eq.61.and.parID(p2).eq.68)) ) then
                  
                  ! CHECK The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 
                  ! (but they have for the starting values, why?)
                  if(mergeChains.ne.1.or.ic.le.1) then 
                     
-                    ! x:
-                    call pgsls(2); call pgsci(1)
+                    call pgsls(3)  ! Dash-dotted line for injection value
+                    call pgsci(1)
                     
-                    ! Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?):
-                    if(plLmax.eq.0) call pgsls(3)  
+                    ! x:
                     plx = startval(ic,p1,1)
                     if(wrap(ic,p1).ne.0) plx = mod(plx + shifts(ic,p1), shIvals(ic,p1)) - shifts(ic,p1)
-                    call pgline(2,(/plx,plx/),(/ymin,ymax/)) !Injection value
+                    call pgline(2,(/plx,plx/),(/ymin,ymax/))  ! Injection value
                     
                     ! y:
-                    call pgsls(2); call pgsci(1)
-                    
-                    ! Dash-dotted line for injection value when Lmax line isn't plotted (should we do this always?):
-                    if(plLmax.eq.0) call pgsls(3)  
                     ply = startval(ic,p2,1)
                     if(wrap(ic,p2).ne.0) ply = mod(ply + shifts(ic,p2), shIvals(ic,p2)) - shifts(ic,p2)
-                    call pgline(2,(/xmin,xmax/),(/ply,ply/)) !Injection value
+                    call pgline(2,(/xmin,xmax/),(/ply,ply/))  ! Injection value
                     
                     call pgpoint(1,plx,ply,18)
                  end if
