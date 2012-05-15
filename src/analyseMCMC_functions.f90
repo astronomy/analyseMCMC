@@ -1071,10 +1071,16 @@ subroutine mcmcruninfo(exitcode)
      if(revID(62).eq.0 .and. revID(68).eq.0 .and. revID(67).ne.0) then
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing eta and log(q) from q'
         parID(nMCMCpar+1) = 62    ! Eta
-        parID(nMCMCpar+2) = 68    ! logq
+        parID(nMCMCpar+1) = 63    ! M1
+        parID(nMCMCpar+2) = 64    ! M2
+        parID(nMCMCpar+3) = 66    ! Mtot
+        parID(nMCMCpar+2) = 68    ! logq 
         revID(62) = nMCMCpar + 1  ! Eta
-        revID(68) = nMCMCpar + 2  ! logq
-        nMCMCpar = nMCMCpar + 2
+        revID(63) = nMCMCpar + 2  ! M1
+        revID(64) = nMCMCpar + 3  ! M2
+        revID(66) = nMCMCpar + 4  ! Mtot
+        revID(68) = nMCMCpar + 5  ! logq
+        nMCMCpar = nMCMCpar + 5
         if(nMCMCpar.gt.maxMCMCpar) then
            write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
                 ' to at least',nMCMCpar,' in order to continue.  Aborting...'
@@ -1093,6 +1099,10 @@ subroutine mcmcruninfo(exitcode)
            allDat(ic,revID(62),1:ntot(ic)) =  &
                 allDat(ic,revID(67),1:ntot(ic)) / (allDat(ic,revID(67),1:ntot(ic)) + 1.0)**2                ! eta = q/(1+q)^2
            allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                         ! log_q = log(q)
+           do i=1,ntot(ic)
+              call mc_q_2_m1_m2r(allDat(ic,revID(61),i),allDat(ic,revID(67),i), allDat(ic,revID(63),i),allDat(ic,revID(64),i))
+           end do
+           allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! Mtot = m1 + m2
         end do
      end if
      
@@ -1943,6 +1953,7 @@ end function veclen
 !***********************************************************************************************************************************
 
 
+
 !***********************************************************************************************************************************
 !> \brief  Create a unit vector from a 3D cartesian vector
 !!
@@ -1959,6 +1970,57 @@ subroutine normvec(vec)
 end subroutine normvec
 !***********************************************************************************************************************************
 
+
+
+!***********************************************************************************************************************************                                   
+!> \brief  Convert chirp mass and q to m1 and m2 - double precision
+!!                                                                                                                     
+!! \param  mc   Chirp mass (Mo)                                                               
+!! \param  q    Q                                                                                                              
+!!                                                                                                                                                                   
+!! \retval m1   M1 (Mo)                                                                                                                                                
+!! \retval m2   M2 (Mo)                                                                                                                                             
+subroutine mc_q_2_m1_m2(mc,q, m1,m2)
+  use SUFR_kinds, only: double
+  implicit none
+  real(double), intent(in) :: mc,q
+  real(double), intent(out) :: m1,m2
+  real(double) :: factor
+
+  factor = mc*(1.d0 + q)**(0.2d0)
+  !! mtot = mc*eta**(-0.6d0)
+  m1 = factor*q**(-0.d60)
+  m2 = factor*q**(0.4d0)
+  !mtot = m1+m2
+end subroutine mc_q_2_m1_m2
+!*********************************************************************************************************************************** 
+
+
+!***********************************************************************************************************************************              
+!> \brief  Convert chirp mass and eta to m1 and m2 - single precision                                                               
+!!                                                                                                                                               
+!! \param  mcr   Chirp mass (Mo)                                                                                                            
+!! \param  qr    Q                                                                                                                                     
+!!                                                                                                                                                           
+!! \retval m1r   M1 (Mo)                                                                                                                                                      
+!! \retval m2r   M2 (Mo)                                                                                                                          
+
+subroutine mc_q_2_m1_m2r(mcr,qr,m1r,m2r)
+  use SUFR_kinds, only: double
+  implicit none
+  real, intent(in) :: mcr,qr
+  real, intent(out) :: m1r,m2r
+
+  real(double) :: mc,q,m1,m2
+
+  mc = dble(mcr)
+  q = dble(qr)
+  call mc_q_2_m1_m2(mc,q,m1,m2)
+  m1r = real(m1)
+  m2r = real(m2)
+
+end subroutine mc_q_2_m1_m2r
+!***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
