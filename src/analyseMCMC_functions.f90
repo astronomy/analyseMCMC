@@ -1071,10 +1071,10 @@ subroutine mcmcruninfo(exitcode)
      if(revID(62).eq.0 .and. revID(68).eq.0 .and. revID(67).ne.0) then
         if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing eta and log(q) from q'
         parID(nMCMCpar+1) = 62    ! Eta
-        parID(nMCMCpar+1) = 63    ! M1
-        parID(nMCMCpar+2) = 64    ! M2
-        parID(nMCMCpar+3) = 66    ! Mtot
-        parID(nMCMCpar+2) = 68    ! logq 
+        parID(nMCMCpar+2) = 63    ! M1
+        parID(nMCMCpar+3) = 64    ! M2
+        parID(nMCMCpar+4) = 66    ! Mtot
+        parID(nMCMCpar+5) = 68    ! logq 
         revID(62) = nMCMCpar + 1  ! Eta
         revID(63) = nMCMCpar + 2  ! M1
         revID(64) = nMCMCpar + 3  ! M2
