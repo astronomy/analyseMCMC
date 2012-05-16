@@ -1976,7 +1976,7 @@ end subroutine normvec
 !> \brief  Convert chirp mass and q to m1 and m2 - double precision
 !!
 !! \param  mc   Chirp mass (Mo)
-!! \param  q    Q
+!! \param  q    Mass ratio q
 !! 
 !! \retval m1   M1 (Mo)
 !! \retval m2   M2 (Mo)
