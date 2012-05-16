@@ -1989,7 +1989,7 @@ subroutine mc_q_2_m1_m2(mc,q, m1,m2)
   real(double) :: factor
 
   factor = mc*(1.d0 + q)**(0.2d0)
-  m1 = factor*q**(-0.d60)
+  m1 = factor*q**(-0.6d0)
   m2 = factor*q**(0.4d0)
   
 end subroutine mc_q_2_m1_m2
