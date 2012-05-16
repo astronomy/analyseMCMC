@@ -2000,7 +2000,7 @@ end subroutine mc_q_2_m1_m2
 !> \brief  Convert chirp mass and eta to m1 and m2 - single precision
 !! 
 !! \param  mcr   Chirp mass (Mo)
-!! \param  qr    Q
+!! \param  qr    Mass ratio q
 !! 
 !! \retval m1r   M1 (Mo)
 !! \retval m2r   M2 (Mo)
