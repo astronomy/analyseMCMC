@@ -1972,14 +1972,15 @@ end subroutine normvec
 
 
 
-!***********************************************************************************************************************************                                   
+!***********************************************************************************************************************************
 !> \brief  Convert chirp mass and q to m1 and m2 - double precision
-!!                                                                                                                     
-!! \param  mc   Chirp mass (Mo)                                                               
-!! \param  q    Q                                                                                                              
-!!                                                                                                                                                                   
-!! \retval m1   M1 (Mo)                                                                                                                                                
-!! \retval m2   M2 (Mo)                                                                                                                                             
+!!
+!! \param  mc   Chirp mass (Mo)
+!! \param  q    Q
+!! 
+!! \retval m1   M1 (Mo)
+!! \retval m2   M2 (Mo)
+
 subroutine mc_q_2_m1_m2(mc,q, m1,m2)
   use SUFR_kinds, only: double
   implicit none
@@ -1988,22 +1989,21 @@ subroutine mc_q_2_m1_m2(mc,q, m1,m2)
   real(double) :: factor
 
   factor = mc*(1.d0 + q)**(0.2d0)
-  !! mtot = mc*eta**(-0.6d0)
   m1 = factor*q**(-0.d60)
   m2 = factor*q**(0.4d0)
-  !mtot = m1+m2
+  
 end subroutine mc_q_2_m1_m2
-!*********************************************************************************************************************************** 
+!***********************************************************************************************************************************
 
 
-!***********************************************************************************************************************************              
-!> \brief  Convert chirp mass and eta to m1 and m2 - single precision                                                               
-!!                                                                                                                                               
-!! \param  mcr   Chirp mass (Mo)                                                                                                            
-!! \param  qr    Q                                                                                                                                     
-!!                                                                                                                                                           
-!! \retval m1r   M1 (Mo)                                                                                                                                                      
-!! \retval m2r   M2 (Mo)                                                                                                                          
+!***********************************************************************************************************************************
+!> \brief  Convert chirp mass and eta to m1 and m2 - single precision
+!! 
+!! \param  mcr   Chirp mass (Mo)
+!! \param  qr    Q
+!! 
+!! \retval m1r   M1 (Mo)
+!! \retval m2r   M2 (Mo)
 
 subroutine mc_q_2_m1_m2r(mcr,qr,m1r,m2r)
   use SUFR_kinds, only: double
