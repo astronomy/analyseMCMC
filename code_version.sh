@@ -2,7 +2,10 @@
 
 ##  code_version.sh:
 ##  Write the bzr-revision or release-version number of the code and the compiler name to a Fortran source file
-##  MvdS, 24/07/2010
+##  24/07/2010, AF: initial version for AnalyseMCMC, svn
+##  06/10/2011, AF: svn -> bzr
+##  09/11/2011, AF: generate 2 files: PG/PLplot; use bzr rev.no or release version
+##  11/05/2012, AF: bzr -> git
 
 
 if [[ ${#} -ne 4 && ${#} -ne 5 ]]; then

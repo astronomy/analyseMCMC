@@ -20,112 +20,6 @@
 
 
 !***********************************************************************************************************************************
-!> \brief  Bin data 2D by counting the number of points in each bin - old routine
-!! 
-!! \param n      Number of data points
-!! \param x      Data to be binned (n points), parameter 1
-!! \param y      Data to be binned (n points), parameter 2
-!! \param norm   Normalise histogram (1) or not (0)
-!! \param nxbin  Desired number of bins, parameter 1
-!! \param nybin  Desired number of bins, parameter 2
-!!
-!! \param xmin1  Minimum value of the binning range, parameter 1.  Set xmin=xmax to auto-determine (I/O)
-!! \param xmax1  Maximum value of the binning range, parameter 1.  Set xmin=xmax to auto-determine (I/O)
-!! \param ymin1  Minimum value of the binning range, parameter 2.  Set ymin=ymax to auto-determine (I/O)
-!! \param ymax1  Maximum value of the binning range, parameter 2.  Set ymin=ymax to auto-determine (I/O)
-!!
-!! \retval z     Binned data, height of the bins
-!! \retval tr    Transformation elements for pgplot; determines ranges of the output matrix z
-
-subroutine bindata2dold(n,x,y,norm,nxbin,nybin, xmin1,xmax1,ymin1,ymax1, z,tr)
-  
-  implicit none
-  integer, intent(in) :: n, nxbin,nybin, norm
-  real, intent(in) :: x(n),y(n)
-  real, intent(inout) :: xmin1,xmax1,ymin1,ymax1
-  real, intent(out) :: z(nxbin+1,nybin+1),tr(6)
-  
-  integer :: i,bx,by
-  real :: xbin(nxbin+1),ybin(nybin+1)
-  real :: xmin,xmax,ymin,ymax,dx,dy
-  
-  !write(stdOut,'(A4,5I8)')'n:',norm,nxbin,nybin
-  !write(stdOut,'(A4,2F8.3)')'x:',xmin1,xmax1
-  !write(stdOut,'(A4,2F8.3)')'y:',ymin1,ymax1
-  
-  xmin = xmin1
-  xmax = xmax1
-  ymin = ymin1
-  ymax = ymax1
-  
-  if(abs((xmin-xmax)/(xmax+1.e-30)).lt.1.e-20) then  ! Autodetermine
-     xmin = minval(x(1:n))
-     xmax = maxval(x(1:n))
-  end if
-  dx = abs(xmax - xmin)/real(nxbin)
-  if(abs((ymin-ymax)/(ymax+1.e-30)).lt.1.e-20) then  ! Autodetermine
-     ymin = minval(y(1:n))
-     ymax = maxval(y(1:n))
-  end if
-  dy = abs(ymax - ymin)/real(nybin)
-  do bx=1,nxbin+1
-     !xbin(bx) = xmin + (real(bx)-0.5)*dx  ! x is the centre of the bin
-     xbin(bx) = xmin + real(bx-1)*dx           ! x is the left of the bin
-  end do
-  do by=1,nybin+1
-     !ybin(by) = ymin + (real(by)-0.5)*dy  ! y is the centre of the bin
-     ybin(by) = ymin + real(by-1)*dy           ! y is the left of the bin
-  end do
-  
-  !write(stdOut,'(50F5.2)'),x(1:50)
-  !write(stdOut,'(50F5.2)'),y(1:50)
-  !write(stdOut,'(20F8.5)'),xbin
-  !write(stdOut,'(20F8.5)'),ybin
-  
-  z = 0.
-  !ztot = 0.
-  do i=1,n
-     bxl: do bx=1,nxbin
-        do by=1,nybin
-           if(x(i).ge.xbin(bx)) then
-              if(x(i).lt.xbin(bx+1)) then
-                 if(y(i).ge.ybin(by)) then
-                    if(y(i).lt.ybin(by+1)) then
-                       z(bx,by) = z(bx,by) + 1.
-                       exit bxl    ! Exit bx loop; if point i fits this bin, don't try other bins. Speeds things up ~2x
-                    end if
-                 end if
-              end if
-           end if
-           
-        end do !by
-     end do bxl !bx
-  end do !i
-  !if(norm.eq.1) z = z/(ztot+1.e-30)
-  if(norm.eq.1) z = z/maxval(z+1.e-30)
-  
-  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  ! Autodetermine
-     xmin1 = xmin
-     xmax1 = xmax
-  end if
-  if(abs((ymin1-ymax1)/(ymax1+1.e-30)).lt.1.e-20) then  ! Autodetermine
-     ymin1 = ymin
-     ymax1 = ymax
-  end if
-  
-  ! Determine transformation elements for pgplot (pggray, pgcont, pgimag):
-  tr(1) = xmin - dx/2.
-  tr(2) = dx
-  tr(3) = 0.
-  tr(4) = ymin - dy/2.
-  tr(5) = 0.
-  tr(6) = dy
-  
-end subroutine bindata2dold
-!***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
 !> \brief 'Bin data' in 2 dimensions  -  Measure the amount of likelihood in each bin
 !! 
 !! \param xdat   Input data: x values (real)
@@ -263,7 +157,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   real, intent(inout) :: z(nx,ny)
   real, intent(in) :: tr(6)
   
-  integer :: nn,indx(nx*ny),i,b,ib,full(ni),iy
+  integer :: nn,indx(nx*ny),i,b,ib,full(ni),ix,iy, zxy,dix,diy,same,same0,iso, nonzero
   real :: x1(nx*ny),x2(nx*ny),tot,np,y
   
   
@@ -271,7 +165,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   do iy = 1,ny
      if(changeVar.ge.1) then
         if((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) then  
-           !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
+           ! Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
            y = tr(4) + tr(6)*real(iy)
            if(parID(p1).eq.31) then
               if(abs(y).le.90.) then
@@ -289,8 +183,8 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
               end if
            end if
         end if
-     end if !if(changeVar.ge.1)
-  end do !iy
+     end if  ! if(changeVar.ge.1)
+  end do  ! iy
   
   
   nn = nx*ny
@@ -300,19 +194,19 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   np = sum(z)
   tot = 0.
   full = 0
-  do b=1,nn !Loop over bins in 1D array
+  do b=1,nn  ! Loop over bins in 1D array
      ib = indx(b)
      x2(ib) = 0.
      if(x1(ib).eq.0.) cycle
      tot = tot + x1(ib)
-     do i=ni,1,-1 !Loop over intervals
+     do i=ni,1,-1  ! Loop over intervals
         if(tot.le.np*ivals(i)) then
-           x2(ib) = real(ni-i+1)  !e.g. x2(b) = ni if within 68%, ni-1 if within 95%, etc, and 1 if within 99.7%
+           x2(ib) = real(ni-i+1)  ! e.g. x2(b) = ni if within 68%, ni-1 if within 95%, etc, and 1 if within 99.7%
         else
-           if(prProgress.ge.3.and.full(i).eq.0) then !Report the number of points in the lastly selected bin
-              if(i.eq.1) write(stdOut,'(A)',advance="no")'Last bin:'
-              !write(stdOut,'(F6.3,I5)',advance="no")ivals(i),nint(x1(ib))
-              write(stdOut,'(I5)',advance="no")nint(x1(ib))
+           if(prProgress.ge.3.and.full(i).eq.0) then  ! Report the number of points in the lastly selected bin
+              if(i.eq.1) write(stdOut,'(A)',advance="no") 'Last bin:'
+              !write(stdOut,'(F6.3,I5)',advance="no") ivals(i),nint(x1(ib))
+              write(stdOut,'(I5)',advance="no") nint(x1(ib))
               full(i) = 1
            end if
         end if
@@ -321,6 +215,46 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   end do
   
   z = reshape(x2, (/nx,ny/))  ! z lies between 1 and ni
+  
+  ! Print the matrix:
+  !do b=ny,1,-1
+  !   print*,nint(z(:,b))
+  !end do
+  
+  ! Count isolated pixels (surrounded by pixels that are all of a different value than it):
+  if(prProgress.ge.3) then
+     write(*,*)
+     do same0=1,8
+        iso = 0
+        nonzero = 0
+        do iy=ny-1,2,-1
+           do ix=2,nx-1
+              
+              zxy = nint(z(ix,iy))
+              if(zxy.eq.0) cycle  ! Consider coloured pixels only
+              
+              same = 0
+              do diy = -1,1
+                 do dix = -1,1
+                    if(dix.eq.0.and.diy.eq.0) cycle
+                    !if( zxy.eq.nint(z(ix+dix,iy+diy)) ) same = same+1
+                    if( nint(z(ix+dix,iy+diy)) .ne. 0 ) same = same+1  ! white pixels only
+                 end do
+              end do
+              
+              if(same.lt.same0) iso = iso+1
+              
+              if(zxy.gt.0) nonzero = nonzero + 1
+           end do
+        end do
+        
+        write(*,'(A,I2,A,I6,A1,F7.2,A1)') '  Isolated pixels (fewer than',same0,' identical pixels around it):',iso,',', &
+             real(iso)/real(nn)*100,'%'
+     end do
+     write(*,'(A,I6,A1,F7.2,A1)') '  Non-zero pixels :',nonzero,',', &
+          real(nonzero)/real(nn)*100,'%'
+     
+  end if  ! if(prProgress.ge.3)
   
 end subroutine identify_2d_ranges
 !***********************************************************************************************************************************
