@@ -902,3 +902,135 @@ end subroutine plot_values_in_2D_PDF
 
 
 
+!***********************************************************************************************************************************
+!> \brief  Print 2D PDF plot axes, axis labels and plot title
+
+
+subroutine plot_2D_PDF_axes_labels_titles(p1,p2, sch,flw, project_map)
+  use SUFR_text, only: replace_substring
+  
+  use aM_constants, only: use_PLplot
+  use analysemcmc_settings, only: prIval, normPDF2D, nIval,ivals, fonttype, quality, plotSky
+  use general_data, only: pgParNs,pgUnits
+  use mcmcrun_data, only: parID
+  use stats_data, only: probAreas
+  
+  implicit none
+  
+  integer, intent(in) :: p1,p2, flw
+  real, intent(in) :: sch
+  logical, intent(in) :: project_map
+  
+  integer :: c, i
+  real :: area, just
+  character :: string*(99), ivalstr*(99), areaunit*(19), tmpStr1*(19),tmpStr2*(19)
+  
+  
+  ! Plot coordinate axes and axis labels in 2D PDF:
+  call pgsls(1)
+  call pgslw(flw)
+  call pgsci(1)
+  
+  if(.not.project_map) call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
+  
+  !if(plotSky.eq.1) then
+  !   call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0) !Box, ticks, etc in white
+  !   call pgsci(1)
+  !   call pgbox('N',0.0,0,'N',0.0,0) !Number labels in black
+  !end if
+  
+  if(use_PLplot) then
+     call pgmtxt('B',5.0,0.5,0.5,trim(pgParNs(parID(p1))))
+     call pgmtxt('L',5.0,0.5,0.5,trim(pgParNs(parID(p2))))
+  else
+     call pgmtxt('B',2.2,0.5,0.5,trim(pgParNs(parID(p1))))
+     call pgmtxt('L',2.2,0.5,0.5,trim(pgParNs(parID(p2))))
+  end if
+  
+  
+  ! Print 2D probability ranges in plot title:
+  if(prIval.ge.1.and.normPDF2D.eq.4) then
+     string = ' '
+     do c = 1,Nival
+        write(ivalstr,'(F5.1,A1)') ivals(c)*100,'%'
+        if(fonttype.eq.2) then
+           if(abs(ivals(c)-0.6827).lt.0.001) write(ivalstr,'(A)') '1\(2144)'
+           if(abs(ivals(c)-0.9545).lt.0.001) write(ivalstr,'(A)') '2\(2144)'
+           if(abs(ivals(c)-0.9973).lt.0.001) write(ivalstr,'(A)') '3\(2144)'
+        else
+           if(abs(ivals(c)-0.6827).lt.0.001) write(ivalstr,'(A)') '1\(0644)'
+           if(abs(ivals(c)-0.9545).lt.0.001) write(ivalstr,'(A)') '2\(0644)'
+           if(abs(ivals(c)-0.9973).lt.0.001) write(ivalstr,'(A)') '3\(0644)'
+        end if
+        
+        areaunit = trim(pgUnits(parID(p1)))//' '//trim(pgUnits(parID(p2)))
+        if(trim(pgUnits(parID(p1))) .eq. trim(pgUnits(parID(p2)))) areaunit = trim(pgUnits(parID(p1)))//'\u2\d'  ! mm->m^2
+        if(trim(areaunit).eq.'\(2218)\u2\d') areaunit = 'deg\u2\d'  ! Square degrees
+        areaunit = ' '//trim(areaunit)  ! Add space between value and unit
+        
+        
+        area = probAreas(p1,p2,c,3)
+        
+        if(area.lt.1.) then
+           write(string,'(A,F5.2,A)') trim(ivalstr)//':',area,trim(areaunit)
+        else if(area.lt.10.) then
+           write(string,'(A,F4.1,A)') trim(ivalstr)//':',area,trim(areaunit)
+        else if(area.lt.100.) then
+           write(string,'(A,F5.1,A)') trim(ivalstr)//':',area,trim(areaunit)
+        else if(area.lt.1000.) then
+           write(string,'(A,I4,A)') trim(ivalstr)//':',nint(area),trim(areaunit)
+        else if(area.lt.10000.) then
+           write(string,'(A,I5,A)') trim(ivalstr)//':',nint(area),trim(areaunit)
+        else
+           write(string,'(A,I6,A)') trim(ivalstr)//':',nint(area),trim(areaunit)
+        end if
+        
+        if(area.lt.0.09.or.area.ge.1.e5) write(string,'(A,1p,G8.1,A)') trim(ivalstr)//':',abs(area),trim(areaunit)
+        
+        ! Replace exponentials by x10^:
+        do i=-99,99
+           write(tmpStr1,'(A,I3.2)') 'E',i
+           call replace_substring(tmpStr1, 'E ', 'E+')
+           write(tmpStr2,'(A,I3.2,A)') '\(727)10\u',i,'\d'
+           call replace_substring(string, trim(tmpStr1), trim(tmpStr2))
+        end do
+        call replace_substring(string, '\(727)10\u-0', '\(727)10\u-')
+        call replace_substring(string, '\(727)10\u-', '\(727)10\u\(240)')
+        call replace_substring(string, '\(727)10\u 0', '\(727)10\u')
+        call replace_substring(string, '\(727)10\u ', '\(727)10\u')
+        
+        
+        call pgsch(sch*0.8)  ! Needed to fit three sigma values in
+        if(quality.eq.3) call pgsch(sch*0.6)  ! Poster
+        if(quality.eq.91) then  ! NINJA
+           call pgsch(sch)
+           if(fonttype.eq.2) then
+              write(string,'(I2,A7,A10)') c,'\(2144)',''
+           else
+              write(string,'(I2,A7,A10)') c,'\(0644)',''
+           end if
+        end if
+        
+        just = (real(c-1)/real(Nival-1) - 0.5)*0.7 + 0.5
+        call pgsci(30+Nival+1-c)
+        if(project_map .and. plotSky.ge.2) then
+           if(use_PLplot) then
+              call pgmtxt('T',3.0,just,0.5,trim(string))  ! Print title
+           else
+              call pgmtxt('T',1.0,just,0.5,trim(string))  ! Print title
+           end if
+        else
+           if(use_PLplot) then
+              call pgmtxt('T',2.0,just,0.5,trim(string))  ! Print title
+           else
+              call pgmtxt('T',0.5,just,0.5,trim(string))  ! Print title
+           end if
+        end if
+        call pgsch(sch)
+     end do
+     call pgsci(1)
+  end if  ! if(prIval.ge.1.and.normPDF2D.eq.4)
+  
+end subroutine plot_2D_PDF_axes_labels_titles
+!***********************************************************************************************************************************
+
