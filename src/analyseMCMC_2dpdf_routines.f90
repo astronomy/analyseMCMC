@@ -20,45 +20,148 @@
 
 
 !***********************************************************************************************************************************
+!> \brief  Bin data and 'normalise' 2D PDF
+!!
+
+subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_position,binary_orientation)
+  use SUFR_constants, only: stdOut, pi,rpi
+  use SUFR_statistics, only: bin_data_2d
+  use SUFR_text, only: replace_substring
+  
+  use analysemcmc_settings, only: normPDF2D, maxChs, Nbin2Dx,Nbin2Dy, prProgress, Nival,prIval,ivals
+  use general_data, only: selDat, n, maxIter, startval, pgUnits
+  use stats_data, only: probArea,probAreas, injectionranges2d
+  use mcmcrun_data, only: parID
+  
+  implicit none
+  integer, intent(in) :: ic, p1,p2
+  real, intent(inout) :: xmin,xmax, ymin,ymax, z(Nbin2Dx+1,Nbin2Dy+1), tr(6)
+  logical, intent(in) :: sky_position,binary_orientation
+  
+  integer :: i, injectionrange2d
+  real :: xx(maxChs*maxIter), yy(maxChs*maxIter), zz(maxChs*maxIter)
+  character :: areaunit*(19)
+  
+  
+  xx(1:n(ic)) = selDat(ic,p1,1:n(ic))  ! Parameter 1
+  yy(1:n(ic)) = selDat(ic,p2,1:n(ic))  ! Parameter 2
+  zz(1:n(ic)) = selDat(ic,1,1:n(ic))   ! Likelihood
+  
+  
+  if(normPDF2D.le.2.or.normPDF2D.eq.4) then
+     
+     
+     ! Bin data in 2D:
+     call bin_data_2d( xx(1:n(ic)), yy(1:n(ic)), 0, Nbin2Dx,Nbin2Dy, xmin,xmax, ymin,ymax, z, tr )
+     
+     
+     !Test:
+     !call check_binned_data(Nbin2Dx,Nbin2Dy,z)
+     
+     !do Nbin2Dx = 10,200,10
+     !   Nbin2Dy = Nbin2Dx
+     !   xmin1 = xmin
+     !   xmax1 = xmax
+     !   ymin1 = ymin
+     !   ymax1 = ymax
+     !   
+     !   !Bin data:  compute bin number rather than find it, ~10x faster:
+     !   call bin_data_2d(xx(1:n(ic)),yy(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin1,xmax1,ymin1,ymax1,z,tr)
+     !   
+     !   !Test!
+     !   call check_binned_data(Nbin2Dx,Nbin2Dy,z)
+     !   
+     !end do
+     !stop
+     
+     
+     
+     if(normPDF2D.eq.1) z = max(0.,log10(z + 1.e-30))
+     if(normPDF2D.eq.2) z = max(0.,sqrt(z + 1.e-30))
+     
+     if(normPDF2D.eq.4) then
+        
+        ! Get 2D probability ranges; identify to which range each bin belongs:
+        if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  identifying 2D ranges...'
+        call identify_2d_ranges(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr)
+        
+        ! Compute 2D probability areas; sum the areas of all bins:
+        if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  computing 2D areas...'
+        call calc_2d_areas(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr,probArea)
+        injectionranges2d(p1,p2) = injectionrange2d(z,Nbin2Dx+1,Nbin2Dy+1,startval(1,p1,1),startval(1,p2,1),tr)
+        
+        do i=1,Nival
+           if(prIval.ge.1.and.prProgress.ge.2 .and. (sky_position .or. binary_orientation)) then  
+              ! For sky position and orientation only:
+              if(i.eq.1) write(stdOut,'(/,1x,A10,A13,3A23)') 'Nr.','Ival frac.','Area (sq.deg) ', &
+                   'Circ. area rad. (deg) ','Fraction of sky '
+              write(stdOut,'(I10,F13.2,3(2x,F21.5))') i,ivals(i),probArea(i),sqrt(probArea(i)/pi)*2, &
+                   probArea(i)*(pi/180.)**2/(4*pi)  ! 4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
+           else
+              areaunit = trim(pgUnits(parID(p1)))//' '//trim(pgUnits(parID(p2)))
+              if(trim(pgUnits(parID(p1))) .eq. trim(pgUnits(parID(p2)))) areaunit = trim(pgUnits(parID(p1)))//'^2'  ! mm->m^2
+              call replace_substring(areaunit, '\(2218)', 'deg')    ! degrees
+              call replace_substring(areaunit, '\d\(2281)\u', 'o')  ! Mo
+              call replace_substring(areaunit, '\dh\u', 'hr')       ! hr
+              areaunit = ' '//trim(areaunit)  ! Add space between value and unit
+              
+              if(i.eq.1) write(stdOut,'(/,1x,A10,A13,A23)') 'Nr.','Ival frac.','Area'
+              write(stdOut,'(I10,F13.2,2x,1p,G21.3,1x,A)') i,ivals(i),probArea(i),trim(areaunit)
+           end if
+           probAreas(p1,p2,i,1) = probArea(i)*(rpi/180.)**2/(4*rpi)  ! Fraction of the sky
+           probAreas(p1,p2,i,2) = sqrt(probArea(i)/rpi)*2            ! Equivalent diameter
+           probAreas(p1,p2,i,3) = probArea(i)                        ! Square degrees
+        end do
+     end if
+  end if  ! if(normPDF2D.le.2.or.normPDF2D.eq.4)
+  
+  
+  ! 'Bin' the data by weighing by likelihood value:
+  if(normPDF2D.eq.3) then
+     if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  binning 2D data...'
+     ! Measure amount of likelihood in each bin:
+     call bin_data_2d_a( n(ic), xx(1:n(ic)), yy(1:n(ic)), zz(1:n(ic)), Nbin2Dx,Nbin2Dy, xmin,xmax,ymin,ymax, z, tr )
+  end if
+  
+  
+  ! Normalise the binned data:
+  z = z/(maxval(z)+1.e-30)
+  
+end subroutine bin_and_normalise_2D_data
+!***********************************************************************************************************************************
+
+
+
+!***********************************************************************************************************************************
 !> \brief 'Bin data' in 2 dimensions  -  Measure the amount of likelihood in each bin
 !! 
-!! \param xdat   Input data: x values (real)
-!! \param ydat   Input data: y values (real)
+!! \param ndat   Input data: array size
+!! \param xdat   Input data: x values
+!! \param ydat   Input data: y values
 !! \param zdat   Input data: likelihood values
 !!
-!! \param norm   Normalise the bins (1) or not (0) (integer)
 !! \param nxbin  Desired number of bins in the x direction
 !! \param nybin  Desired number of bins in the y direction
 !!
-!! \param xmin1  Lower limit for the binning range in the x direction - autodetermine if xmin1=xmax1 (real)
-!! \param xmax1  Upper limit for the binning range in the x direction - autodetermine if xmin1=xmax1 (real)
-!! \param ymin1  Lower limit for the binning range in the y direction - autodetermine if ymin1=ymax1 (real)
-!! \param ymax1  Upper limit for the binning range in the y direction - autodetermine if ymin1=ymax1 (real)
+!! \param xmin1  Lower limit for the binning range in the x direction - autodetermine if xmin1=xmax1
+!! \param xmax1  Upper limit for the binning range in the x direction - autodetermine if xmin1=xmax1
+!! \param ymin1  Lower limit for the binning range in the y direction - autodetermine if ymin1=ymax1
+!! \param ymax1  Upper limit for the binning range in the y direction - autodetermine if ymin1=ymax1
 !!
 !! \retval zz    'Binned' data set z(nxbin,nybin) (real)
 !! \retval tr    Transformation elements for pgplot tr(6) (real)
 !!
 !! \todo  Should z be replaced?
 
-subroutine bin_data_2d_a(xdat,ydat, zdat, norm, nxbin,nybin, xmin1,xmax1,ymin1,ymax1, zz, tr)
-  use SUFR_system, only: quit_program_error
+subroutine bin_data_2d_a(ndat, xdat,ydat, zdat, nxbin,nybin, xmin1,xmax1,ymin1,ymax1, zz, tr)
   implicit none
-  integer, intent(in) :: norm, nxbin,nybin
+  integer, intent(in) :: ndat, nxbin,nybin
   integer :: i,bx,by
-  real, intent(in) :: xdat(:),ydat(:)
-  real, intent(inout) :: zdat(:), xmin1,xmax1,ymin1,ymax1
+  real, intent(in) :: xdat(ndat),ydat(ndat),zdat(ndat)
+  real, intent(inout) :: xmin1,xmax1,ymin1,ymax1
   real, intent(out) :: zz(nxbin+1,nybin+1), tr(6)
   
-  integer :: ndat
   real :: xbin(nxbin+1),ybin(nybin+1), zztot, xmin,xmax,ymin,ymax, dx,dy ,zmin
-  
-  ndat = size(xdat)
-  if(size(ydat).ne.ndat) call quit_program_error('bin_data_2d(): data arrays xdat and ydat should have the same size',1)
-  if(size(zdat).ne.ndat) call quit_program_error('bin_data_2d(): data arrays xdat and zdat should have the same size',1)
-  
-  !write(stdOut,'(A4,5I8)')'n:',norm,nxbin,nybin
-  !write(stdOut,'(A4,2F8.3)')'x:',xmin1,xmax1
-  !write(stdOut,'(A4,2F8.3)')'y:',ymin1,ymax1
   
   xmin = xmin1
   xmax = xmax1
@@ -107,14 +210,12 @@ subroutine bin_data_2d_a(xdat,ydat, zdat, norm, nxbin,nybin, xmin1,xmax1,ymin1,y
      end do
      !write(stdOut,'(I4,5x,2F6.3,5x,10I8)')bx,xbin(bx),xbin(bx+1),nint(zz(bx,1:nybin))
   end do
-  !if(norm.eq.1) zdat = zdat/(zztot+1.e-30)
-  if(norm.eq.1) zdat = zdat/maxval(zdat+1.e-30)
   
-  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  !Autodetermine
+  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  ! Autodetermine
      xmin1 = xmin
      xmax1 = xmax
   end if
-  if(abs((ymin1-ymax1)/(ymax1+1.e-30)).lt.1.e-20) then  !Autodetermine
+  if(abs((ymin1-ymax1)/(ymax1+1.e-30)).lt.1.e-20) then  ! Autodetermine
      ymin1 = ymin
      ymax1 = ymax
   end if
@@ -420,7 +521,7 @@ subroutine prepare_skymap_binning(xmin,xmax, ymin,ymax)
   
   implicit none
   real, intent(inout) :: xmin,xmax, ymin,ymax
-  real :: rat, a, dx,dy
+  real :: rat, avg, dx,dy
   
   rat = 0.5  ! scrRat
   
@@ -429,17 +530,17 @@ subroutine prepare_skymap_binning(xmin,xmax, ymin,ymax)
   
   if(abs(dx)*15.lt.dy/rat) then  ! Expand x
      dx = dy/(15*rat)
-     a = (xmin+xmax)*0.5
-     xmin = a - 0.5*dx
-     xmax = a + 0.5*dx
+     avg = (xmin+xmax)*0.5
+     xmin = avg - 0.5*dx
+     xmax = avg + 0.5*dx
      if(prProgress.ge.3) write(stdOut,'(2(A,F6.1),A)',advance='no')'  Changing RA binning range to ',xmin,' - ',xmax,' h.'
   end if
   
   if(abs(dx)*15.gt.dy/rat) then  ! Expand y
      dy = abs(dx)*rat*15
-     a = (ymin+ymax)*0.5
-     ymin = a - 0.5*dy
-     ymax = a + 0.5*dy
+     avg = (ymin+ymax)*0.5
+     ymin = avg - 0.5*dy
+     ymax = avg + 0.5*dy
      if(prProgress.ge.3) write(stdOut,'(2(A,F6.1),A)',advance='no')'  Changing Dec. binning range to ',ymin,' - ',ymax,' deg.'
   end if
   
@@ -597,6 +698,7 @@ end subroutine plot_2D_contours
 !! \param lw           Default line width
 !! \param project_map  Use map projection?
 
+
 subroutine plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw, project_map)
   use analysemcmc_settings, only: plotSky, plLmax,plInject,plRange,plMedian, mergeChains, ivals, normPDF2D, map_projection
   use general_data, only: allDat,startval, c0, ranges,stats, icloglmax,iloglmax, wrap,shifts,shIvals,raCentre
@@ -614,6 +716,7 @@ subroutine plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw,
   if(.not.project_map.or.plotSky.eq.1) then
      
      call pgsci(1)
+     
      
      ! Plot max likelihood in 2D PDF:
      if(plLmax.ge.1) then
@@ -634,6 +737,7 @@ subroutine plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw,
      
      if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) call pgsci(0)
      call pgsls(2)
+     
      
      ! Plot injection value in 2D PDF:
      if((plInject.eq.1.or.plInject.eq.3).and.(.not.project_map) .or. &
@@ -661,6 +765,7 @@ subroutine plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw,
            call pgpoint(1,plx,ply,18)
         end if
      end if  !If plotting injection values in 2D plot
+     
      call pgsci(1)
      call pgsls(4)
      
@@ -672,7 +777,7 @@ subroutine plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw,
      call pgsci(2)
      
      
-     ! Plot interval ranges in 2D PDF:
+     ! Plot probability ranges in 2D PDF:
      if(plRange.eq.2.or.plRange.eq.3.or.plRange.eq.5.or.plRange.eq.6) then
         write(delta,'(A,I3.3,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
         if(nint(ivals(c0)*100).lt.100) write(delta,'(A,I2.2,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
@@ -713,10 +818,13 @@ subroutine plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw,
      call pgslw(lw*2)
      call pgsci(9)
      if(normPDF2D.eq.4) call pgsci(1)  ! Black
+     
      plx = startval(ic,p1,1)
      ply = startval(ic,p2,1)
+     
      if(plotSky.eq.2.or.plotSky.eq.4) call project_skymap(plx,ply,raCentre,map_projection)
      call pgpoint(1,plx,ply,8)
+     
      call pgsch(sch)
      call pgslw(lw)
      call pgsci(1)
@@ -725,5 +833,6 @@ subroutine plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw,
   
 end subroutine plot_values_in_2D_PDF
 !***********************************************************************************************************************************
+
 
 
