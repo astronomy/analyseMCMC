@@ -402,3 +402,80 @@ subroutine check_binned_data(nxbin,nybin,z)
 end subroutine check_binned_data
 !***********************************************************************************************************************************
 
+
+
+!***********************************************************************************************************************************
+!> \brief  Define the colours for the 2D probability areas
+!!
+!! \retval clr1  First colour of colour-index range for pgimag
+!! \retval clr2  Second colour of colour-index range for pgimag
+
+subroutine set_2D_probability_colours(clr1,clr2)
+  use analysemcmc_settings, only: colour, Nival, file
+  
+  implicit none
+  integer, intent(out) :: clr1,clr2
+  
+  
+  if(colour.eq.0) then
+     call pgscr(30,1.,1.,1.)  ! BG colour
+     if(Nival.eq.2) then
+        call pgscr(31,0.5,0.5,0.5)  ! Grey
+        call pgscr(32,0.,0.,0.)     ! Black
+     end if
+     if(Nival.eq.3) then
+        call pgscr(31,0.7,0.7,0.7)  ! Light grey
+        call pgscr(32,0.4,0.4,0.4)  ! Dark grey
+        call pgscr(33,0.0,0.0,0.0)  ! Black
+     end if
+     if(Nival.eq.4) then
+        call pgscr(31,0.75,0.75,0.75)  ! Light grey
+        call pgscr(32,0.50,0.50,0.50)  ! 
+        call pgscr(33,0.25,0.25,0.25)  ! Dark grey
+        call pgscr(34,0.00,0.00,0.00)  ! Black
+     end if
+     if(Nival.eq.5) then
+        call pgscr(31,0.8,0.8,0.8)  ! Light grey
+        call pgscr(32,0.6,0.6,0.6)  ! 
+        call pgscr(33,0.4,0.4,0.4)  ! 
+        call pgscr(34,0.2,0.2,0.2)  ! Dark grey
+        call pgscr(35,0.0,0.0,0.0)  ! Black
+     end if
+  end if
+  
+  if(colour.ge.1) then
+     call pgscr(30,1.,1.,1.)  ! BG colour
+     if(Nival.eq.2) then
+        call pgscr(31,1.,1.,0.)  ! Yellow
+        if(file.ge.2) call pgscr(31,0.8,0.7,0.)  ! Dark yellow
+        call pgscr(32,1.,0.,0.)  ! Red
+     end if
+     if(Nival.eq.3) then
+        call pgscr(31,0.,0.,1.)  ! Blue
+        call pgscr(32,1.,1.,0.)  ! Yellow
+        if(file.ge.2) call pgscr(32,0.8,0.7,0.)  ! Dark yellow
+        call pgscr(33,1.,0.,0.)  ! Red
+     end if
+     if(Nival.eq.4) then
+        call pgscr(31,0.,0.,1.)  ! Blue
+        call pgscr(32,0.,1.,0.)  ! Green
+        call pgscr(33,1.,1.,0.)  ! Yellow
+        if(file.ge.2) call pgscr(33,0.8,0.7,0.)  ! Dark yellow
+        call pgscr(34,1.,0.,0.)  ! Red
+     end if
+     if(Nival.eq.5) then
+        call pgscr(31,0.,0.,1.)  ! Blue
+        call pgscr(32,0.,1.,0.)  ! Green
+        call pgscr(33,1.,1.,0.)  ! Yellow
+        if(file.ge.2) call pgscr(33,0.8,0.7,0.)  ! Dark yellow
+        call pgscr(34,1.,0.5,0.)  ! Orange
+        call pgscr(35,1.,0.,0.)  ! Red
+     end if
+  end if
+  
+  clr1 = 30
+  clr2 = 30+Nival
+  call pgscir(clr1,clr2)  ! Set colour-index range for pgimag
+
+end subroutine set_2D_probability_colours
+!***********************************************************************************************************************************
