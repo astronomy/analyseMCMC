@@ -404,6 +404,51 @@ end subroutine check_binned_data
 
 
 
+
+!***********************************************************************************************************************************
+
+!> \brief  Prepare binning for a cute sky map in 2D PDF
+!!
+!! \param xmin  Minimum value of x (RA) range
+!! \param xmax  Maximum value of x (RA) range
+!! \param ymin  Minimum value of y (Dec) range
+!! \param ymax  Maximum value of y (Dec) range
+
+subroutine prepare_skymap_binning(xmin,xmax, ymin,ymax)
+  use SUFR_constants, only: stdOut
+  use analysemcmc_settings, only: prProgress
+  
+  implicit none
+  real, intent(inout) :: xmin,xmax, ymin,ymax
+  real :: rat, a, dx,dy
+  
+  rat = 0.5  ! scrRat
+  
+  dx = xmax - xmin
+  dy = ymax - ymin
+  
+  if(abs(dx)*15.lt.dy/rat) then  ! Expand x
+     dx = dy/(15*rat)
+     a = (xmin+xmax)*0.5
+     xmin = a - 0.5*dx
+     xmax = a + 0.5*dx
+     if(prProgress.ge.3) write(stdOut,'(2(A,F6.1),A)',advance='no')'  Changing RA binning range to ',xmin,' - ',xmax,' h.'
+  end if
+  
+  if(abs(dx)*15.gt.dy/rat) then  ! Expand y
+     dy = abs(dx)*rat*15
+     a = (ymin+ymax)*0.5
+     ymin = a - 0.5*dy
+     ymax = a + 0.5*dy
+     if(prProgress.ge.3) write(stdOut,'(2(A,F6.1),A)',advance='no')'  Changing Dec. binning range to ',ymin,' - ',ymax,' deg.'
+  end if
+  
+end subroutine prepare_skymap_binning
+!***********************************************************************************************************************************
+
+
+
+
 !***********************************************************************************************************************************
 !> \brief  Define the colours for the 2D probability areas
 !!
@@ -531,3 +576,4 @@ subroutine plot_2D_contours(z, tr, project_map, lw)
   
 end subroutine plot_2D_contours
 !***********************************************************************************************************************************
+

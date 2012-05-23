@@ -27,7 +27,7 @@
 subroutine pdfs2d(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   use SUFR_constants, only: cursorup, pi,rpi,rh2r
-  use SUFR_system, only: warn
+  use SUFR_system, only: warn, swapreal
   use SUFR_statistics, only: bin_data_2d
   use SUFR_text, only: replace_substring
   
@@ -47,8 +47,8 @@ subroutine pdfs2d(exitcode)
   
   integer :: i,j,j1,j2,p1,p2,ic,lw,io,c,status,system,pgopen,clr,maxclr
   integer :: npdf,flw,plotthis,injectionrange2d,countplots,totplots, clr1,clr2
-  real :: a,rat,tr(6),sch,plx,ply
-  real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)
+  real :: tr(6), sch, plx,ply, just
+  real :: x,xmin,xmax, ymin,ymax, dx,dy, xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter), area
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
   character :: string*(99),str*(99),tempfile*(99),ivalstr*(99),delta*(19),outputbasefile*(199), convopts*(99), areaunit*(19)
   character :: tmpStr1*(19),tmpStr2*(19)
@@ -201,8 +201,9 @@ subroutine pdfs2d(exitcode)
         
         
         
-        !*** Open the plot file:
         if(plot.eq.1) then
+           
+           !*** Open the plot file:
            write(outputbasefile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'// &
                 trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
            
@@ -279,29 +280,9 @@ subroutine pdfs2d(exitcode)
         
         
         
-        !*** Prepare binning for a cute sky map in 2D PDF:
         if(plot.eq.1 .and. project_map) then
-           rat = 0.5 !scrRat !0.75
-           !call pgpap(11.,rat)
-           !call pgpap(scrSz,scrRat)  ! This causes a 'pgpage' when pggray is called...
-           dx = xmax - xmin
-           dy = ymax - ymin
-           if(abs(dx)*15.lt.dy/rat) then  ! Expand x
-              dx = dy/(15*rat)
-              a = (xmin+xmax)*0.5
-              xmin = a - 0.5*dx
-              xmax = a + 0.5*dx
-              if(prProgress.ge.3) write(stdOut,'(A,F6.1,A3,F6.1,A)',advance="no")'  Changing RA binning range to ' &
-                   ,xmin,' - ',xmax,' h.'
-           end if
-           if(abs(dx)*15.gt.dy/rat) then  ! Expand y
-              dy = abs(dx)*rat*15
-              a = (ymin+ymax)*0.5
-              ymin = a - 0.5*dy
-              ymax = a + 0.5*dy
-              if(prProgress.ge.3) write(stdOut,'(A,F6.1,A3,F6.1,A)',advance="no")'  Changing declination binning range to ' &
-                   ,ymin,' - ',ymax,' deg.'
-           end if
+           !*** Prepare binning for a cute sky map in 2D PDF:
+           call prepare_skymap_binning()
         end if !if(plot.eq.1 .and. project_map)
         
         
@@ -380,9 +361,7 @@ subroutine pdfs2d(exitcode)
         
         ! Swap RA boundaries for RA-Dec plot in 2D PDF:
         if(sky_position) then
-           a = xmin
-           xmin = xmax
-           xmax = a
+           call swapreal(xmin, xmax)
            dx = -dx
         end if
         
@@ -580,19 +559,18 @@ subroutine pdfs2d(exitcode)
               if(plRange.eq.2.or.plRange.eq.3.or.plRange.eq.5.or.plRange.eq.6) then
                  write(delta,'(A,I3.3,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
                  if(nint(ivals(c0)*100).lt.100) write(delta,'(A,I2.2,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
+                 
                  call pgsls(1)
                  call pgsch(sch*0.6)
                  call pgsah(1,45.,0.1)
-                 a = 0.0166667*sch
-                 call pgarro(ranges(ic,c0,p1,3),ymin+dy*a,ranges(ic,c0,p1,1),ymin+dy*a)
-                 call pgarro(ranges(ic,c0,p1,3),ymin+dy*a,ranges(ic,c0,p1,2),ymin+dy*a)
-                 a = 0.0333333*sch
-                 call pgptxt(ranges(ic,c0,p1,3),ymin+dy*a,0.,0.5,trim(delta))
-                 a = 0.0233333*sch
-                 call pgarro(xmin+dx*a,ranges(ic,c0,p2,3),xmin+dx*a,ranges(ic,c0,p2,1))
-                 call pgarro(xmin+dx*a,ranges(ic,c0,p2,3),xmin+dx*a,ranges(ic,c0,p2,2))
-                 a = 0.01*sch
-                 call pgptxt(xmin+dx*a,ranges(ic,c0,p2,3),90.,0.5,trim(delta))
+                 
+                 call pgarro( ranges(ic,c0,p1,3), ymin+dy*0.017*sch, ranges(ic,c0,p1,1), ymin+dy*0.017*sch)
+                 call pgarro( ranges(ic,c0,p1,3), ymin+dy*0.017*sch, ranges(ic,c0,p1,2), ymin+dy*0.017*sch)
+                 call pgptxt( ranges(ic,c0,p1,3), ymin+dy*0.033*sch, 0., 0.5, trim(delta) )
+                 
+                 call pgarro( xmin+dx*0.023*sch, ranges(ic,c0,p2,3), xmin+dx*0.023*sch, ranges(ic,c0,p2,1) )
+                 call pgarro( xmin+dx*0.023*sch, ranges(ic,c0,p2,3), xmin+dx*0.023*sch, ranges(ic,c0,p2,2) )
+                 call pgptxt( xmin+dx*0.01*sch, ranges(ic,c0,p2,3), 90., 0.5, trim(delta) )
               end if
               
               call pgsch(sch)
@@ -676,23 +654,23 @@ subroutine pdfs2d(exitcode)
                  areaunit = ' '//trim(areaunit)  ! Add space between value and unit
                  
                  
-                 a = probAreas(p1,p2,c,3)
+                 area = probAreas(p1,p2,c,3)
                  
-                 if(a.lt.1.) then
-                    write(string,'(A,F5.2,A)') trim(ivalstr)//':',a,trim(areaunit)
-                 else if(a.lt.10.) then
-                    write(string,'(A,F4.1,A)') trim(ivalstr)//':',a,trim(areaunit)
-                 else if(a.lt.100.) then
-                    write(string,'(A,F5.1,A)') trim(ivalstr)//':',a,trim(areaunit)
-                 else if(a.lt.1000.) then
-                    write(string,'(A,I4,A)') trim(ivalstr)//':',nint(a),trim(areaunit)
-                 else if(a.lt.10000.) then
-                    write(string,'(A,I5,A)') trim(ivalstr)//':',nint(a),trim(areaunit)
+                 if(area.lt.1.) then
+                    write(string,'(A,F5.2,A)') trim(ivalstr)//':',area,trim(areaunit)
+                 else if(area.lt.10.) then
+                    write(string,'(A,F4.1,A)') trim(ivalstr)//':',area,trim(areaunit)
+                 else if(area.lt.100.) then
+                    write(string,'(A,F5.1,A)') trim(ivalstr)//':',area,trim(areaunit)
+                 else if(area.lt.1000.) then
+                    write(string,'(A,I4,A)') trim(ivalstr)//':',nint(area),trim(areaunit)
+                 else if(area.lt.10000.) then
+                    write(string,'(A,I5,A)') trim(ivalstr)//':',nint(area),trim(areaunit)
                  else
-                    write(string,'(A,I6,A)') trim(ivalstr)//':',nint(a),trim(areaunit)
+                    write(string,'(A,I6,A)') trim(ivalstr)//':',nint(area),trim(areaunit)
                  end if
                  
-                 if(a.lt.0.09.or.a.ge.1.e5) write(string,'(A,1p,G8.1,A)') trim(ivalstr)//':',abs(a),trim(areaunit)
+                 if(area.lt.0.09.or.area.ge.1.e5) write(string,'(A,1p,G8.1,A)') trim(ivalstr)//':',abs(area),trim(areaunit)
                  
                  ! Replace exponentials by x10^:
                  do i=-99,99
@@ -718,25 +696,25 @@ subroutine pdfs2d(exitcode)
                     end if
                  end if
                  
-                 a = (real(c-1)/real(Nival-1) - 0.5)*0.7 + 0.5
+                 just = (real(c-1)/real(Nival-1) - 0.5)*0.7 + 0.5
                  call pgsci(30+Nival+1-c)
                  if(project_map .and. plotSky.ge.2) then
                     if(use_PLplot) then
-                       call pgmtxt('T',3.0,a,0.5,trim(string))  ! Print title
+                       call pgmtxt('T',3.0,just,0.5,trim(string))  ! Print title
                     else
-                       call pgmtxt('T',1.0,a,0.5,trim(string))  ! Print title
+                       call pgmtxt('T',1.0,just,0.5,trim(string))  ! Print title
                     end if
                  else
                     if(use_PLplot) then
-                       call pgmtxt('T',2.0,a,0.5,trim(string))  ! Print title
+                       call pgmtxt('T',2.0,just,0.5,trim(string))  ! Print title
                     else
-                       call pgmtxt('T',0.5,a,0.5,trim(string))  ! Print title
+                       call pgmtxt('T',0.5,just,0.5,trim(string))  ! Print title
                     end if
                  end if
                  call pgsch(sch)
               end do
               call pgsci(1)
-           end if
+           end if  ! if(prIval.ge.1.and.normPDF2D.eq.4)
            
            
            
