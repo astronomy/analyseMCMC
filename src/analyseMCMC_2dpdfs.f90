@@ -376,25 +376,19 @@ subroutine pdfs2d(exitcode)
         
         if(plot.eq.1) then
            
-           ! Plot injection value, median, ranges, etc. in 2D PDF:
+           !*** Plot injection value, median, ranges, etc. in 2D PDF:
            call plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw, project_map)
            
            
-           
-           
-           
-           
-           
-           
            !*** Print axes, axis labels and plot title:
-           
            call plot_2D_PDF_axes_labels_titles(p1,p2, sch,flw, project_map)
            
            
            !*** Finish the current plot:
            countplots = countplots + 1  ! The current plot is number countplots
            
-           ! Convert plot:
+           
+           !*** Convert plot:
            if(file.eq.1) then
               call pgend
               
@@ -417,7 +411,7 @@ subroutine pdfs2d(exitcode)
               end if
            end if
            
-           !if(file.ge.2.and.multipagefile) call pgpage
+           
            if(file.ge.2) then
               call pgend
               if(file.eq.3) then
@@ -426,11 +420,12 @@ subroutine pdfs2d(exitcode)
                       trim(parNames(parID(p2)))
               end if
            end if
-        end if !if(plot.eq.1)
+           
+        end if  ! if(plot.eq.1)
         
         
-     end do !p2
-  end do !p1
+     end do  ! p2
+  end do  ! p1
   
   
   

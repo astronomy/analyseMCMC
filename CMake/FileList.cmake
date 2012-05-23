@@ -1,6 +1,7 @@
 set( AnalyseMCMC_SRC_FILES
   src/analyseMCMC_1dpdfs.f90
-  src/analyseMCMC_2dpdf_routines.f90
+  src/analyseMCMC_2dpdf_binning.f90
+  src/analyseMCMC_2dpdf_plotting.f90
   src/analyseMCMC_2dpdf_skymap.f90
   src/analyseMCMC_2dpdfs.f90
   src/analyseMCMC_animation.f90
