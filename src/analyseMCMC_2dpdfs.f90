@@ -495,7 +495,8 @@ subroutine pdfs2d(exitcode)
         
         if(plot.eq.1) then
            
-           call plot_values_in_2D_PDF()  ! Plot injection value, median, ranges, etc. in 2D PDF
+           ! Plot injection value, median, ranges, etc. in 2D PDF:
+           call plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw, project_map)
            
            
            
