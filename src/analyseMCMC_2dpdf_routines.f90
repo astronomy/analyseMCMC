@@ -154,8 +154,6 @@ end subroutine bin_and_normalise_2D_data
 !! \todo  Should z be replaced?
 
 subroutine bin_data_2d_a(ndat, xdat,ydat, zdat, nxbin,nybin, xmin1,xmax1,ymin1,ymax1, zz, tr)
-  !use SUFR_system, only: quit_program_error
-  
   implicit none
   integer, intent(in) :: ndat, nxbin,nybin
   integer :: i,bx,by
@@ -163,16 +161,7 @@ subroutine bin_data_2d_a(ndat, xdat,ydat, zdat, nxbin,nybin, xmin1,xmax1,ymin1,y
   real, intent(inout) :: xmin1,xmax1,ymin1,ymax1
   real, intent(out) :: zz(nxbin+1,nybin+1), tr(6)
   
-  !integer :: ndat
   real :: xbin(nxbin+1),ybin(nybin+1), zztot, xmin,xmax,ymin,ymax, dx,dy ,zmin
-  
-  !ndat = size(xdat)
-  !if(size(ydat).ne.ndat) call quit_program_error('bin_data_2d(): data arrays xdat and ydat should have the same size',1)
-  !if(size(zdat).ne.ndat) call quit_program_error('bin_data_2d(): data arrays xdat and zdat should have the same size',1)
-  
-  !write(stdOut,'(A4,5I8)')'n:',norm,nxbin,nybin
-  !write(stdOut,'(A4,2F8.3)')'x:',xmin1,xmax1
-  !write(stdOut,'(A4,2F8.3)')'y:',ymin1,ymax1
   
   xmin = xmin1
   xmax = xmax1
@@ -221,14 +210,12 @@ subroutine bin_data_2d_a(ndat, xdat,ydat, zdat, nxbin,nybin, xmin1,xmax1,ymin1,y
      end do
      !write(stdOut,'(I4,5x,2F6.3,5x,10I8)')bx,xbin(bx),xbin(bx+1),nint(zz(bx,1:nybin))
   end do
-  !if(norm.eq.1) zdat = zdat/(zztot+1.e-30)       ! CHECK: Do you mean zz iso zdat?
-  !if(norm.eq.1) zdat = zdat/maxval(zdat+1.e-30)  ! CHECK: Do you mean zz iso zdat?
   
-  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  !Autodetermine
+  if(abs((xmin1-xmax1)/(xmax1+1.e-30)).lt.1.e-20) then  ! Autodetermine
      xmin1 = xmin
      xmax1 = xmax
   end if
-  if(abs((ymin1-ymax1)/(ymax1+1.e-30)).lt.1.e-20) then  !Autodetermine
+  if(abs((ymin1-ymax1)/(ymax1+1.e-30)).lt.1.e-20) then  ! Autodetermine
      ymin1 = ymin
      ymax1 = ymax
   end if
