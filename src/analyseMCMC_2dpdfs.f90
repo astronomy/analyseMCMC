@@ -46,8 +46,8 @@ subroutine pdfs2d(exitcode)
   integer, intent(out) :: exitcode
   
   integer :: i,j,j1,j2,p1,p2,ic,lw,io,c,status,system,pgopen,clr,maxclr
-  integer :: npdf,ncont,flw,plotthis,injectionrange2d,countplots,totplots, clr1,clr2
-  real :: a,rat,cont(11),tr(6),sch,plx,ply
+  integer :: npdf,flw,plotthis,injectionrange2d,countplots,totplots, clr1,clr2
+  real :: a,rat,tr(6),sch,plx,ply
   real :: x,xmin,xmax,ymin,ymax,dx,dy,xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter)
   real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
   character :: string*(99),str*(99),tempfile*(99),ivalstr*(99),delta*(19),outputbasefile*(199), convopts*(99), areaunit*(19)
@@ -113,14 +113,14 @@ subroutine pdfs2d(exitcode)
   ! Report number of bins used:
   if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0.and.Npdf2D.ge.0) then
      if(Nbin2Dx.lt.100) then
-        write(stdOut,'(A1,I2,A1)',advance="no")'(',Nbin2Dx,'x'
+        write(stdOut,'(A1,I2,A1)',advance="no") '(',Nbin2Dx,'x'
      else
-        write(stdOut,'(A1,I3,A1)',advance="no")'(',Nbin2Dx,'x'
+        write(stdOut,'(A1,I3,A1)',advance="no") '(',Nbin2Dx,'x'
      end if
      if(Nbin2Dy.lt.100) then
-        write(stdOut,'(I2,A7)',advance="no")Nbin2Dy,' bins) '
+        write(stdOut,'(I2,A7)',advance="no") Nbin2Dy,' bins) '
      else
-        write(stdOut,'(I3,A7)',advance="no")Nbin2Dy,' bins) '
+        write(stdOut,'(I3,A7)',advance="no") Nbin2Dy,' bins) '
      end if
   end if
   
@@ -476,34 +476,8 @@ subroutine pdfs2d(exitcode)
            
            
            !*** Plot contours in 2D PDF:
-           if((plPDF2D.eq.1.or.plPDF2D.eq.3) .and. (.not.project_map .or. plotSky.eq.1.or.plotSky.eq.3)) then
-              if(normPDF2D.lt.4) then
-                 ncont = 11
-                 do i=1,ncont
-                    cont(i) = 0.01 + 2*real(i-1)/real(ncont-1)
-                    if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) cont(i) = 1.-cont(i)
-                 end do
-                 ncont = min(4,ncont)  ! Only use the first 4
-              end if
-              if(normPDF2D.eq.4) then
-                 ncont = Nival
-                 do i=1,ncont
-                    cont(i) = max(1. - real(i-1)/real(ncont-1),0.001)
-                    !if(project_map) cont(i) = 1.-cont(i)
-                 end do
-              end if
-              
-              call pgsls(1)
-              if((.not.project_map .or. plotSky.ne.1.or.plotSky.ne.3) .and. normPDF2D.ne.4) then  ! First in bg colour
-                 call pgslw(2*lw)
-                 call pgsci(0)
-                 call pgcont(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,cont(1:ncont),ncont,tr)
-              end if
-              call pgslw(lw)
-              call pgsci(1)
-              if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) call pgsci(7)
-              call pgcont(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,cont(1:ncont),ncont,tr)
-           end if
+           if((plPDF2D.eq.1.or.plPDF2D.eq.3) .and. (.not.project_map .or. plotSky.eq.1.or.plotSky.eq.3)) &
+                call plot_2D_contours(z, tr, project_map, lw)
            
         end if  ! if(plot.eq.1)
         
@@ -530,7 +504,7 @@ subroutine pdfs2d(exitcode)
            write(30,'(A)')'  2D bins:'
            do i=1,Nbin2Dx+1
               do j=1,Nbin2Dy+1
-                 write(30,'(ES15.7)',advance="no")z(i,j)
+                 write(30,'(ES15.7)',advance="no") z(i,j)
               end do
               write(30,'(1x)')
            end do

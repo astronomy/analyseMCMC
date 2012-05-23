@@ -479,3 +479,55 @@ subroutine set_2D_probability_colours(clr1,clr2)
 
 end subroutine set_2D_probability_colours
 !***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Plot contours in a 2D PDF
+!!
+!! \param z            2D binned data
+!! \param tr           Transformation elements used by PGPlot
+!! \param project_map  Use map projection?
+!! \param lw           Default line width
+
+subroutine plot_2D_contours(z, tr, project_map, lw)
+  use analysemcmc_settings, only: normPDF2D, plotSky, Nival, Nbin2Dx,Nbin2Dy
+  
+  implicit none
+  real, intent(in) :: z(Nbin2Dx+1,Nbin2Dy+1), tr(6)
+  logical, intent(in) :: project_map
+  integer, intent(in) :: lw
+  
+  integer :: i, Ncont
+  real :: cont(11)
+  
+  
+  if(normPDF2D.lt.4) then
+     Ncont = 11
+     do i=1,Ncont
+        cont(i) = 0.01 + 2*real(i-1)/real(Ncont-1)
+        if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) cont(i) = 1.-cont(i)
+     end do
+     Ncont = min(4,Ncont)  ! Only use the first 4
+  else if(normPDF2D.eq.4) then
+     Ncont = Nival
+     do i=1,Ncont
+        cont(i) = max(1. - real(i-1)/real(Ncont-1),0.001)
+        !if(project_map) cont(i) = 1.-cont(i)
+     end do
+  end if
+  
+  call pgsls(1)
+  if((.not.project_map .or. plotSky.ne.1.or.plotSky.ne.3) .and. normPDF2D.ne.4) then  ! First in bg colour
+     call pgslw(2*lw)
+     call pgsci(0)
+     call pgcont(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,cont(1:Ncont),Ncont,tr)
+  end if
+  
+  call pgslw(lw)
+  call pgsci(1)
+  if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) call pgsci(7)
+  
+  call pgcont(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,cont(1:Ncont),Ncont,tr)  ! Plot contours
+  
+end subroutine plot_2D_contours
+!***********************************************************************************************************************************
