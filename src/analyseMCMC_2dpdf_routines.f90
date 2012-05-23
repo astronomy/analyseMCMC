@@ -577,3 +577,153 @@ subroutine plot_2D_contours(z, tr, project_map, lw)
 end subroutine plot_2D_contours
 !***********************************************************************************************************************************
 
+
+
+!***********************************************************************************************************************************
+!> \brief Plot injection value, median, ranges, etc. in 2D PDF
+!!
+!! \param ic           Chain ID
+!! \param p1           ID of parameter 1
+!! \param p2           ID of parameter 2
+!!
+!! \param xmin         Lower limit of horizontal plot range
+!! \param xmax         Upper limit of horizontal plot range
+!! \param ymin         Lower limit of vertical plot range
+!! \param ymax         Upper limit of vertical plot range
+!! \param dx           Width of horizontal plot range
+!! \param dy           Width of vertical plot range
+!!
+!! \param sch          Default (character) scaling
+!! \param lw           Default line width
+!! \param project_map  Use map projection?
+
+subroutine plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw, project_map)
+  use analysemcmc_settings, only: plotSky, plLmax,plInject,plRange,plMedian, mergeChains, ivals, normPDF2D, map_projection
+  use general_data, only: allDat,startval, c0, ranges,stats, icloglmax,iloglmax, wrap,shifts,shIvals,raCentre
+  use mcmcrun_data, only: parID
+  
+  implicit none
+  integer, intent(in) :: ic, p1,p2, lw
+  real, intent(in) :: xmin,xmax, ymin,ymax, dx,dy, sch
+  logical, intent(in) :: project_map
+  
+  real :: plx,ply
+  character :: delta*(19)
+  
+  
+  if(.not.project_map.or.plotSky.eq.1) then
+     
+     call pgsci(1)
+     
+     ! Plot max likelihood in 2D PDF:
+     if(plLmax.ge.1) then
+        call pgsci(1)
+        call pgsls(5)
+        
+        plx = allDat(icloglmax,p1,iloglmax)
+        if(wrap(ic,p1).ne.0) plx = mod(plx + shifts(ic,p1), shIvals(ic,p1)) - shifts(ic,p1)
+        call pgline(2,(/plx,plx/),(/ymin,ymax/))  ! Max logL
+        
+        ply = allDat(icloglmax,p2,iloglmax)
+        if(wrap(ic,p2).ne.0) ply = mod(ply + shifts(ic,p2), shIvals(ic,p2)) - shifts(ic,p2)
+        call pgline(2,(/xmin,xmax/),(/ply,ply/))  ! Max logL
+        
+        call pgpoint(1,plx,ply,18)
+     end if
+     
+     
+     if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) call pgsci(0)
+     call pgsls(2)
+     
+     ! Plot injection value in 2D PDF:
+     if((plInject.eq.1.or.plInject.eq.3).and.(.not.project_map) .or. &
+          ((plInject.eq.2.or.plInject.eq.4) .and.  &
+          (parID(p1).eq.61.and.parID(p2).eq.62 .or. parID(p1).eq.63.and.parID(p2).eq.64 .or. &
+          parID(p2).eq.61.and.parID(p2).eq.67  .or. parID(p2).eq.61.and.parID(p2).eq.68)) ) then
+        
+        ! CHECK The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 
+        ! (but they have for the starting values, why?)
+        if(mergeChains.ne.1.or.ic.le.1) then
+           
+           call pgsls(3)  ! Dash-dotted line for injection value
+           call pgsci(1)
+           
+           ! x:
+           plx = startval(ic,p1,1)
+           if(wrap(ic,p1).ne.0) plx = mod(plx + shifts(ic,p1), shIvals(ic,p1)) - shifts(ic,p1)
+           call pgline(2,(/plx,plx/),(/ymin,ymax/))  ! Injection value
+           
+           ! y:
+           ply = startval(ic,p2,1)
+           if(wrap(ic,p2).ne.0) ply = mod(ply + shifts(ic,p2), shIvals(ic,p2)) - shifts(ic,p2)
+           call pgline(2,(/xmin,xmax/),(/ply,ply/))  ! Injection value
+           
+           call pgpoint(1,plx,ply,18)
+        end if
+     end if  !If plotting injection values in 2D plot
+     call pgsci(1)
+     call pgsls(4)
+     
+     
+     ! Plot starting values in 2D PDF:
+     !call pgline(2,(/startval(ic,p1,2),startval(ic,p1,2)/),(/ymin,ymax/))
+     !call pgline(2,(/xmin,xmax/),(/startval(ic,p2,2),startval(ic,p2,2)/))
+     
+     call pgsci(2)
+     
+     
+     ! Plot interval ranges in 2D PDF:
+     if(plRange.eq.2.or.plRange.eq.3.or.plRange.eq.5.or.plRange.eq.6) then
+        write(delta,'(A,I3.3,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
+        if(nint(ivals(c0)*100).lt.100) write(delta,'(A,I2.2,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
+        
+        call pgsls(1)
+        call pgsch(sch*0.6)
+        call pgsah(1,45.,0.1)
+        
+        call pgarro( ranges(ic,c0,p1,3), ymin+dy*0.017*sch, ranges(ic,c0,p1,1), ymin+dy*0.017*sch)
+        call pgarro( ranges(ic,c0,p1,3), ymin+dy*0.017*sch, ranges(ic,c0,p1,2), ymin+dy*0.017*sch)
+        call pgptxt( ranges(ic,c0,p1,3), ymin+dy*0.033*sch, 0., 0.5, trim(delta) )
+        
+        call pgarro( xmin+dx*0.023*sch, ranges(ic,c0,p2,3), xmin+dx*0.023*sch, ranges(ic,c0,p2,1) )
+        call pgarro( xmin+dx*0.023*sch, ranges(ic,c0,p2,3), xmin+dx*0.023*sch, ranges(ic,c0,p2,2) )
+        call pgptxt( xmin+dx*0.01*sch, ranges(ic,c0,p2,3), 90., 0.5, trim(delta) )
+     end if
+     
+     call pgsch(sch)
+     call pgsls(2)
+     
+     
+     ! Plot medians in 2D PDF:
+     if(plMedian.eq.2.or.plMedian.eq.3.or.plMedian.eq.5.or.plMedian.eq.6) then
+        call pgline(2,(/stats(ic,p1,1),stats(ic,p1,1)/),(/ymin,ymax/))
+        call pgline(2,(/xmin,xmax/),(/stats(ic,p2,1),stats(ic,p2,1)/))
+        call pgpoint(1,stats(ic,p1,1),stats(ic,p2,1),18)
+     end if
+     
+     call pgsls(1)
+     
+  end if  ! if(.not.project_map.or.plotSky.eq.1)
+  
+  
+  
+  ! Plot big symbol at injection position in sky map:
+  if(project_map .and. (plInject.eq.1.or.plInject.eq.3)) then
+     call pgsch(sch*1.5)               ! Use 1.5 for plsym=8, 2 for plsym=18
+     call pgslw(lw*2)
+     call pgsci(9)
+     if(normPDF2D.eq.4) call pgsci(1)  ! Black
+     plx = startval(ic,p1,1)
+     ply = startval(ic,p2,1)
+     if(plotSky.eq.2.or.plotSky.eq.4) call project_skymap(plx,ply,raCentre,map_projection)
+     call pgpoint(1,plx,ply,8)
+     call pgsch(sch)
+     call pgslw(lw)
+     call pgsci(1)
+  end if
+  
+  
+end subroutine plot_values_in_2D_PDF
+!***********************************************************************************************************************************
+
+

@@ -33,11 +33,11 @@ subroutine pdfs2d(exitcode)
   
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
-  use analysemcmc_settings, only: plLmax,fontsize2d,map_projection,maxChs
-  use analysemcmc_settings, only: plInject,mergeChains,Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky
-  use analysemcmc_settings, only: savePDF,plot,ivals,Nival,normPDF2D,plPDF1D,plPDF2D,plMedian,plRange,prIval
-  use general_data, only: allDat,outputname,outputdir,startval,icloglmax,iloglmax,parNames,pgParNs,pgUnits, nfixedpar
-  use general_data, only: selDat,stats,ranges,c0,n,maxIter,wrap,fixedpar,shifts,shIvals,raCentre,raShift
+  use analysemcmc_settings, only: fontsize2d,map_projection,maxChs
+  use analysemcmc_settings, only: Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky
+  use analysemcmc_settings, only: savePDF,plot,ivals,Nival,normPDF2D,plPDF1D,plPDF2D,prIval
+  use general_data, only: outputname,outputdir,startval,parNames,pgParNs,pgUnits, nfixedpar
+  use general_data, only: selDat,stats,ranges,c0,n,maxIter,fixedpar, raCentre,raShift
   use mcmcrun_data, only: totpts,revID,parID, nMCMCpar
   use plot_data, only: psclr,bmpsz,bmprat,bmpxpix,unSharppdf2d,pltsz,pltrat
   use stats_data, only: probArea,probAreas,injectionranges2d
@@ -45,12 +45,13 @@ subroutine pdfs2d(exitcode)
   implicit none
   integer, intent(out) :: exitcode
   
+  real,allocatable :: z(:,:),zs(:,:,:)  ! These depend on nbin2d, allocate after reading input file
+  
   integer :: i,j,j1,j2,p1,p2,ic,lw,io,c,status,system,pgopen,clr,maxclr
   integer :: npdf,flw,plotthis,injectionrange2d,countplots,totplots, clr1,clr2
-  real :: tr(6), sch, plx,ply, just
+  real :: tr(6), sch, just
   real :: x,xmin,xmax, ymin,ymax, dx,dy, xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter), area
-  real,allocatable :: z(:,:),zs(:,:,:)  !These depend on nbin2d, allocate after reading input file
-  character :: string*(99),str*(99),tempfile*(99),ivalstr*(99),delta*(19),outputbasefile*(199), convopts*(99), areaunit*(19)
+  character :: string*(99),str*(99),tempfile*(99),ivalstr*(99), outputbasefile*(199), convopts*(99), areaunit*(19)
   character :: tmpStr1*(19),tmpStr2*(19)
   logical :: project_map,sky_position,binary_orientation, ex
   !real :: xmin1,xmax1,ymin1,ymax1
@@ -494,116 +495,8 @@ subroutine pdfs2d(exitcode)
         
         if(plot.eq.1) then
            
-           !*** Plot injection value, median, ranges, etc. in 2D PDF:
-           if(.not.project_map.or.plotSky.eq.1) then
-              call pgsci(1)
-              
-              ! Plot max likelihood in 2D PDF:
-              if(plLmax.ge.1) then
-                 call pgsci(1)
-                 call pgsls(5)
-                 
-                 plx = allDat(icloglmax,p1,iloglmax)
-                 if(wrap(ic,p1).ne.0) plx = mod(plx + shifts(ic,p1), shIvals(ic,p1)) - shifts(ic,p1)
-                 call pgline(2,(/plx,plx/),(/ymin,ymax/))  ! Max logL
-                 
-                 ply = allDat(icloglmax,p2,iloglmax)
-                 if(wrap(ic,p2).ne.0) ply = mod(ply + shifts(ic,p2), shIvals(ic,p2)) - shifts(ic,p2)
-                 call pgline(2,(/xmin,xmax/),(/ply,ply/))  ! Max logL
-                 
-                 call pgpoint(1,plx,ply,18)
-              end if
-              
-              
-              if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) call pgsci(0)
-              call pgsls(2)
-              
-              ! Plot injection value in 2D PDF:
-              if((plInject.eq.1.or.plInject.eq.3).and.(.not.project_map) .or. &
-                   ((plInject.eq.2.or.plInject.eq.4) .and.  &
-                   (parID(p1).eq.61.and.parID(p2).eq.62 .or. parID(p1).eq.63.and.parID(p2).eq.64 .or. &
-                   parID(p2).eq.61.and.parID(p2).eq.67  .or. parID(p2).eq.61.and.parID(p2).eq.68)) ) then
-                 
-                 ! CHECK The units of the injection values haven't changed (e.g. from rad to deg) for ic>1 
-                 ! (but they have for the starting values, why?)
-                 if(mergeChains.ne.1.or.ic.le.1) then
-                    
-                    call pgsls(3)  ! Dash-dotted line for injection value
-                    call pgsci(1)
-                    
-                    ! x:
-                    plx = startval(ic,p1,1)
-                    if(wrap(ic,p1).ne.0) plx = mod(plx + shifts(ic,p1), shIvals(ic,p1)) - shifts(ic,p1)
-                    call pgline(2,(/plx,plx/),(/ymin,ymax/))  ! Injection value
-                    
-                    ! y:
-                    ply = startval(ic,p2,1)
-                    if(wrap(ic,p2).ne.0) ply = mod(ply + shifts(ic,p2), shIvals(ic,p2)) - shifts(ic,p2)
-                    call pgline(2,(/xmin,xmax/),(/ply,ply/))  ! Injection value
-                    
-                    call pgpoint(1,plx,ply,18)
-                 end if
-              end if  !If plotting injection values in 2D plot
-              call pgsci(1)
-              call pgsls(4)
-              
-              
-              ! Plot starting values in 2D PDF:
-              !call pgline(2,(/startval(ic,p1,2),startval(ic,p1,2)/),(/ymin,ymax/))
-              !call pgline(2,(/xmin,xmax/),(/startval(ic,p2,2),startval(ic,p2,2)/))
-              
-              call pgsci(2)
-              
-              
-              ! Plot interval ranges in 2D PDF:
-              if(plRange.eq.2.or.plRange.eq.3.or.plRange.eq.5.or.plRange.eq.6) then
-                 write(delta,'(A,I3.3,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
-                 if(nint(ivals(c0)*100).lt.100) write(delta,'(A,I2.2,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
-                 
-                 call pgsls(1)
-                 call pgsch(sch*0.6)
-                 call pgsah(1,45.,0.1)
-                 
-                 call pgarro( ranges(ic,c0,p1,3), ymin+dy*0.017*sch, ranges(ic,c0,p1,1), ymin+dy*0.017*sch)
-                 call pgarro( ranges(ic,c0,p1,3), ymin+dy*0.017*sch, ranges(ic,c0,p1,2), ymin+dy*0.017*sch)
-                 call pgptxt( ranges(ic,c0,p1,3), ymin+dy*0.033*sch, 0., 0.5, trim(delta) )
-                 
-                 call pgarro( xmin+dx*0.023*sch, ranges(ic,c0,p2,3), xmin+dx*0.023*sch, ranges(ic,c0,p2,1) )
-                 call pgarro( xmin+dx*0.023*sch, ranges(ic,c0,p2,3), xmin+dx*0.023*sch, ranges(ic,c0,p2,2) )
-                 call pgptxt( xmin+dx*0.01*sch, ranges(ic,c0,p2,3), 90., 0.5, trim(delta) )
-              end if
-              
-              call pgsch(sch)
-              call pgsls(2)
-              
-              
-              ! Plot medians in 2D PDF:
-              if(plMedian.eq.2.or.plMedian.eq.3.or.plMedian.eq.5.or.plMedian.eq.6) then
-                 call pgline(2,(/stats(ic,p1,1),stats(ic,p1,1)/),(/ymin,ymax/))
-                 call pgline(2,(/xmin,xmax/),(/stats(ic,p2,1),stats(ic,p2,1)/))
-                 call pgpoint(1,stats(ic,p1,1),stats(ic,p2,1),18)
-              end if
-              
-              call pgsls(1)
-              
-              
-           end if  !if(.not.project_map.or.plotSky.eq.1)
+           call plot_values_in_2D_PDF()  ! Plot injection value, median, ranges, etc. in 2D PDF
            
-           
-           ! Plot big symbol at injection position in sky map:
-           if(project_map .and. (plInject.eq.1.or.plInject.eq.3)) then
-              call pgsch(sch*1.5)               ! Use 1.5 for plsym=8, 2 for plsym=18
-              call pgslw(lw*2)
-              call pgsci(9)
-              if(normPDF2D.eq.4) call pgsci(1)  ! Black
-              plx = startval(ic,p1,1)
-              ply = startval(ic,p2,1)
-              if(plotSky.eq.2.or.plotSky.eq.4) call project_skymap(plx,ply,raCentre,map_projection)
-              call pgpoint(1,plx,ply,8)
-              call pgsch(sch)
-              call pgslw(lw)
-              call pgsci(1)
-           end if
            
            
            
