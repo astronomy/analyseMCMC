@@ -26,12 +26,12 @@
 
 subroutine pdfs2d(exitcode)
   use SUFR_constants, only: stdOut,stdErr, cursorup, rh2r
-  use SUFR_system, only: warn, swapreal
+  use SUFR_system, only: swapreal
   use SUFR_text, only: replace_substring
   
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
-  use analysemcmc_settings, only: fontsize2d,map_projection,maxChs
+  use analysemcmc_settings, only: fontsize2d,maxChs
   use analysemcmc_settings, only: Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky
   use analysemcmc_settings, only: savePDF,plot,ivals,Nival,normPDF2D,plPDF1D,plPDF2D,prIval
   use general_data, only: outputname,outputdir,startval,parNames,pgParNs,pgUnits, nfixedpar
@@ -45,14 +45,13 @@ subroutine pdfs2d(exitcode)
   
   real,allocatable :: z(:,:),zs(:,:,:)  ! These depend on nbin2d, allocate after reading input file
   
-  integer :: i,j,j1,j2,p1,p2,ic,lw,io,c,status,system,pgopen,clr,maxclr
-  integer :: npdf,flw,plotthis,countplots,totplots, clr1,clr2
+  integer :: i,j,j1,j2,p1,p2,ic,lw,io,c,status,system,pgopen
+  integer :: npdf,flw,plotthis,countplots,totplots
   real :: tr(6), sch, just
-  real :: x,xmin,xmax, ymin,ymax, dx,dy, area
+  real :: xmin,xmax, ymin,ymax, dx,dy, area
   character :: string*(99),str*(99),tempfile*(99),ivalstr*(99), outputbasefile*(199), convopts*(99), areaunit*(19)
   character :: tmpStr1*(19),tmpStr2*(19)
   logical :: project_map,sky_position,binary_orientation, ex
-  !real :: xmin1,xmax1,ymin1,ymax1
   
   
   exitcode = 0
@@ -308,16 +307,7 @@ subroutine pdfs2d(exitcode)
            end if
            
            
-           ! Force plotting boundaries (not binning boundaries):
-           if(1.eq.2.and.sky_position) then
-              xmin = 24.
-              xmax = 0.
-              ymin = -90.
-              ymax = 90.
-           end if
-           
            call pgsch(sch)
-           
            if(project_map .and. plotSky.ge.2) then
               call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.05*sch)   ! Make room for title and +90deg label
            else
@@ -333,40 +323,8 @@ subroutine pdfs2d(exitcode)
            end if
            
            
-           !*** Plot the actual 2D PDF (grey scales or colour):
-           if(plPDF2D.eq.1.or.plPDF2D.eq.2) then
-              
-              ! Set the colour schemes:
-              if(normPDF2D.lt.4) then  ! Grey scales
-                 call pgscir(0,nint(1e9))
-                 call pgqcir(clr,maxclr)  ! Maxclr is device-dependent
-                 if(maxclr.lt.30) call warn('Not enough colours on device for 2D plot!',0)
-                 do i=0,maxclr-30  ! Colour indices typically run 0-255, but this is device-dependent. 
-                    ! Reserve ~0-29 for other purposes -> (maxclr-30) for these grey scales:
-                    x = real((maxclr-30) - i)/real(maxclr-30)          ! White background
-                    call pgscr(30+i,x,x,x)
-                 end do
-                 call pgscir(30,maxclr)  ! Set colour-index range for pgimag
-              else if(normPDF2D.eq.4) then
-                 call set_2D_probability_colours(clr1, clr2)  ! Define the colours for the 2D probability areas
-              end if
-              
-              
-              ! Plot the PDF:
-              if(project_map .and. plotSky.ge.2) then
-                 if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  plotting map projection...'
-                 call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, map_projection)
-              else
-                 if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  plotting 2D PDF...'
-                 
-                 ! Plot 2D image - 0: no projection:
-                 !call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, 0)
-                 
-                 ! Plot 2D image - produces ~2.5x smaller plots - used to give segfaults:
-                 call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr)
-              end if
-              
-           end if  !if(plPDF2D.eq.1.or.plPDF2D.eq.2)
+           !*** Plot the actual 2D PDF (grey-scale or colour pixels):
+           if(plPDF2D.eq.1.or.plPDF2D.eq.2) call plot_2D_PDF(z, tr, project_map)
            
            
            

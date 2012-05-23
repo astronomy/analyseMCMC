@@ -40,6 +40,7 @@ subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_p
   
   integer :: i, injectionrange2d
   real :: xx(maxChs*maxIter), yy(maxChs*maxIter), zz(maxChs*maxIter)
+  !real :: xmin1,xmax1,ymin1,ymax1
   character :: areaunit*(19)
   
   
@@ -547,6 +548,64 @@ subroutine prepare_skymap_binning(xmin,xmax, ymin,ymax)
 end subroutine prepare_skymap_binning
 !***********************************************************************************************************************************
 
+
+
+
+!***********************************************************************************************************************************
+!> \brief  Plot the actual 2D PDF (grey-scale or colour pixels)
+
+
+subroutine plot_2D_PDF(z, tr, project_map)
+  use SUFR_constants, only: stdOut
+  use SUFR_system, only: warn
+  use analysemcmc_settings, only: normPDF2D, Nbin2Dx,Nbin2Dy, prProgress, plotSky,map_projection
+  
+  implicit none
+  real, intent(in) :: z(Nbin2Dx+1,Nbin2Dy+1), tr(6)
+  logical, intent(in) :: project_map
+  
+  integer :: i, clr,maxclr, clr1,clr2
+  real :: x
+  
+  ! Set the colour schemes:
+  if(normPDF2D.lt.4) then  ! Grey scales
+     call pgscir(0,nint(1e9))
+     call pgqcir(clr,maxclr)  ! Maxclr is device-dependent
+     if(maxclr.lt.30) call warn('Not enough colours on device for 2D plot!',0)
+     
+     do i=0,maxclr-30  ! Colour indices typically run 0-255, but this is device-dependent. 
+        ! Reserve ~0-29 for other purposes -> (maxclr-30) for these grey scales:
+        x = real((maxclr-30) - i)/real(maxclr-30)          ! White background
+        call pgscr(30+i,x,x,x)
+     end do
+     
+     call pgscir(30,maxclr)  ! Set colour-index range for pgimag
+     
+  else if(normPDF2D.eq.4) then
+     
+     call set_2D_probability_colours(clr1, clr2)  ! Define the colours for the 2D probability areas
+     
+  end if
+  
+  
+  ! Plot the PDF:
+  if(project_map .and. plotSky.ge.2) then
+     if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  plotting map projection...'
+     call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, map_projection)
+     
+  else
+     
+     if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  plotting 2D PDF...'
+     
+     ! Plot 2D image - 0: no projection:
+     !call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, 0)
+     
+     ! Plot 2D image - produces ~2.5x smaller plots - used to give segfaults:
+     call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr)
+  end if
+  
+end subroutine plot_2D_PDF
+!***********************************************************************************************************************************
 
 
 
