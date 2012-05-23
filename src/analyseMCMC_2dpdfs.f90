@@ -34,7 +34,7 @@ subroutine pdfs2d(exitcode)
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: plLmax,fontsize2d,map_projection,maxChs
-  use analysemcmc_settings, only: plInject,mergeChains,Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky,wrapData
+  use analysemcmc_settings, only: plInject,mergeChains,Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky
   use analysemcmc_settings, only: savePDF,plot,ivals,Nival,normPDF2D,plPDF1D,plPDF2D,plMedian,plRange,prIval
   use general_data, only: allDat,outputname,outputdir,startval,icloglmax,iloglmax,parNames,pgParNs,pgUnits, nfixedpar
   use general_data, only: selDat,stats,ranges,c0,n,maxIter,wrap,fixedpar,shifts,shIvals,raCentre,raShift
@@ -453,10 +453,11 @@ subroutine pdfs2d(exitcode)
               else
                  if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  plotting 2D PDF...'
                  
-                 ! CHECK Gives seg.fault (on amd64) - but why? - need more memory?
-                 !call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr)
+                 ! Plot 2D image - 0: no projection:
+                 !call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, 0)
                  
-                 call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, 0)  ! 0-no projection
+                 ! Plot 2D image - produces ~2.5x smaller plots - used to give segfaults:
+                 call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr)
               end if
               
            end if  !if(plPDF2D.eq.1.or.plPDF2D.eq.2)
