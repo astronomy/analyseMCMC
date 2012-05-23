@@ -25,10 +25,8 @@
 !! \retval exitcode  Exit code: 0=ok
 
 subroutine pdfs2d(exitcode)
-  use SUFR_constants, only: stdOut,stdErr
-  use SUFR_constants, only: cursorup, pi,rpi,rh2r
+  use SUFR_constants, only: stdOut,stdErr, cursorup, rh2r
   use SUFR_system, only: warn, swapreal
-  use SUFR_statistics, only: bin_data_2d
   use SUFR_text, only: replace_substring
   
   use aM_constants, only: use_PLplot
@@ -40,7 +38,7 @@ subroutine pdfs2d(exitcode)
   use general_data, only: selDat,stats,ranges,c0,n,maxIter,fixedpar, raCentre,raShift
   use mcmcrun_data, only: totpts,revID,parID, nMCMCpar
   use plot_data, only: psclr,bmpsz,bmprat,bmpxpix,unSharppdf2d,pltsz,pltrat
-  use stats_data, only: probArea,probAreas,injectionranges2d
+  use stats_data, only: probAreas
   
   implicit none
   integer, intent(out) :: exitcode
@@ -48,9 +46,9 @@ subroutine pdfs2d(exitcode)
   real,allocatable :: z(:,:),zs(:,:,:)  ! These depend on nbin2d, allocate after reading input file
   
   integer :: i,j,j1,j2,p1,p2,ic,lw,io,c,status,system,pgopen,clr,maxclr
-  integer :: npdf,flw,plotthis,injectionrange2d,countplots,totplots, clr1,clr2
+  integer :: npdf,flw,plotthis,countplots,totplots, clr1,clr2
   real :: tr(6), sch, just
-  real :: x,xmin,xmax, ymin,ymax, dx,dy, xx(maxChs*maxIter),yy(maxChs*maxIter),zz(maxChs*maxIter), area
+  real :: x,xmin,xmax, ymin,ymax, dx,dy, area
   character :: string*(99),str*(99),tempfile*(99),ivalstr*(99), outputbasefile*(199), convopts*(99), areaunit*(19)
   character :: tmpStr1*(19),tmpStr2*(19)
   logical :: project_map,sky_position,binary_orientation, ex
@@ -111,6 +109,7 @@ subroutine pdfs2d(exitcode)
   if(Nbin2Dy.eq.0) Nbin2Dy = Nbin2Dx
   if(Nbin2Dy.le.-1) Nbin2Dy = nint(real(Nbin2Dx)*pltrat)
   
+  
   ! Report number of bins used:
   if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0.and.Npdf2D.ge.0) then
      if(Nbin2Dx.lt.100) then
@@ -125,8 +124,10 @@ subroutine pdfs2d(exitcode)
      end if
   end if
   
+  
   ! Allocate memory:
   allocate(z(Nbin2Dx+1,Nbin2Dy+1),zs(maxChs,Nbin2Dx+1,Nbin2Dy+1))
+  
   
   sch = fontsize2d
   if(plot.eq.1) then
@@ -266,10 +267,6 @@ subroutine pdfs2d(exitcode)
         !write(stdOut,'(A,2F10.5)')'  Xmin,Xmax: ',xmin,xmax
         !write(stdOut,'(A,2F10.5)')'  Ymin,Ymax: ',ymin,ymax
         
-        xx(1:n(ic)) = selDat(ic,p1,1:n(ic))  ! Parameter 1
-        yy(1:n(ic)) = selDat(ic,p2,1:n(ic))  ! Parameter 2
-        zz(1:n(ic)) = selDat(ic,1,1:n(ic))   ! Likelihood
-        
         if(.not.project_map) then
            xmin = xmin - 0.05*dx
            xmax = xmax + 0.05*dx
@@ -281,83 +278,13 @@ subroutine pdfs2d(exitcode)
         
         
         
-        if(plot.eq.1 .and. project_map) then
-           !*** Prepare binning for a cute sky map in 2D PDF:
-           call prepare_skymap_binning()
-        end if !if(plot.eq.1 .and. project_map)
+        
+        if(plot.eq.1 .and. project_map) call prepare_skymap_binning()  ! Prepare binning for a cute sky map in 2D PDF
+        
         
         
         !*** Bin data and 'normalise' 2D PDF:
-        if(normPDF2D.le.2.or.normPDF2D.eq.4) then
-           
-           ! Bin data:  compute bin number rather than find it, ~10x faster:
-           call bin_data_2d( xx(1:n(ic)),yy(1:n(ic)), 0, Nbin2Dx,Nbin2Dy, xmin,xmax,ymin,ymax, z, tr )
-           
-           !Test
-           !call check_binned_data(Nbin2Dx,Nbin2Dy,z)
-           
-           !do Nbin2Dx = 10,200,10
-           !   Nbin2Dy = Nbin2Dx
-           !   xmin1 = xmin
-           !   xmax1 = xmax
-           !   ymin1 = ymin
-           !   ymax1 = ymax
-           !   
-           !   !Bin data:  compute bin number rather than find it, ~10x faster:
-           !   call bin_data_2d(xx(1:n(ic)),yy(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin1,xmax1,ymin1,ymax1,z,tr)
-           !   
-           !   !Test!
-           !   call check_binned_data(Nbin2Dx,Nbin2Dy,z)
-           !   
-           !end do
-           !stop
-           
-           
-           if(normPDF2D.eq.1) z = max(0.,log10(z + 1.e-30))
-           if(normPDF2D.eq.2) z = max(0.,sqrt(z + 1.e-30))
-           
-           if(normPDF2D.eq.4) then
-              
-              ! Get 2D probability ranges; identify to which range each bin belongs:
-              if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  identifying 2D ranges...'
-              call identify_2d_ranges(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr)
-              
-              ! Compute 2D probability areas; sum the areas of all bins:
-              if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  computing 2D areas...'
-              call calc_2d_areas(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr,probArea)
-              injectionranges2d(p1,p2) = injectionrange2d(z,Nbin2Dx+1,Nbin2Dy+1,startval(1,p1,1),startval(1,p2,1),tr)
-              
-              do i=1,Nival
-                 if(prIval.ge.1.and.prProgress.ge.2 .and. (sky_position .or. binary_orientation)) then  
-                    ! For sky position and orientation only:
-                    if(i.eq.1) write(stdOut,'(/,1x,A10,A13,3A23)') 'Nr.','Ival frac.','Area (sq.deg) ', &
-                         'Circ. area rad. (deg) ','Fraction of sky '
-                    write(stdOut,'(I10,F13.2,3(2x,F21.5))') i,ivals(i),probArea(i),sqrt(probArea(i)/pi)*2, &
-                         probArea(i)*(pi/180.)**2/(4*pi)  ! 4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
-                 else
-                    areaunit = trim(pgUnits(parID(p1)))//' '//trim(pgUnits(parID(p2)))
-                    if(trim(pgUnits(parID(p1))) .eq. trim(pgUnits(parID(p2)))) areaunit = trim(pgUnits(parID(p1)))//'^2'  ! mm->m^2
-                    call replace_substring(areaunit, '\(2218)', 'deg')    ! degrees
-                    call replace_substring(areaunit, '\d\(2281)\u', 'o')  ! Mo
-                    call replace_substring(areaunit, '\dh\u', 'hr')       ! hr
-                    areaunit = ' '//trim(areaunit)  ! Add space between value and unit
-                    
-                    if(i.eq.1) write(stdOut,'(/,1x,A10,A13,A23)') 'Nr.','Ival frac.','Area'
-                    write(stdOut,'(I10,F13.2,2x,1p,G21.3,1x,A)') i,ivals(i),probArea(i),trim(areaunit)
-                 end if
-                 probAreas(p1,p2,i,1) = probArea(i)*(rpi/180.)**2/(4*rpi)  ! Fraction of the sky
-                 probAreas(p1,p2,i,2) = sqrt(probArea(i)/rpi)*2            ! Equivalent diameter
-                 probAreas(p1,p2,i,3) = probArea(i)                        ! Square degrees
-              end do
-           end if
-        end if
-        if(normPDF2D.eq.3) then  ! Weigh by likelihood value
-           if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  binning 2D data...'
-           ! Measure amount of likelihood in each bin:
-           call bin_data_2d_a( xx(1:n(ic)),yy(1:n(ic)), zz(1:n(ic)), 0, Nbin2Dx,Nbin2Dy, xmin,xmax,ymin,ymax, z, tr )
-        end if
-        
-        
+        call bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_position,binary_orientation)
         
         
         ! Swap RA boundaries for RA-Dec plot in 2D PDF:
@@ -366,7 +293,6 @@ subroutine pdfs2d(exitcode)
            dx = -dx
         end if
         
-        z = z/(maxval(z)+1.e-30)
         
         
         ! Plot 2D PDF:
