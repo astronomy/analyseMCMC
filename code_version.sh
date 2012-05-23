@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ##  code_version.sh:
-##  Write the bzr-revision or release-version number of the code and the compiler name to a Fortran source file
+##  Write the git hash or release-version number of the code and the compiler name to a Fortran source file
 ##  24/07/2010, AF: initial version for AnalyseMCMC, svn
 ##  06/10/2011, AF: svn -> bzr
 ##  09/11/2011, AF: generate 2 files: PG/PLplot; use bzr rev.no or release version
@@ -30,7 +30,7 @@ else
     
     cd ${BASEDIR}
     
-    if [[ ! -e .bzr/  && -e ${F90FILE} ]]
+    if [[ ! -e .git/  && -e ${F90FILE} ]]
     then
 	echo "${F90FILE} already exists, no need to create it"
 	exit 0

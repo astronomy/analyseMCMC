@@ -358,6 +358,7 @@ end function injectionrange2d
 
 !***********************************************************************************************************************************
 !> \brief Find the fraction of non-zero bins for which more than frac*8 of their neighbours are smaller
+!!
 !! \param nxbin  Desired number of bins in the x direction
 !! \param nybin  Desired number of bins in the y direction
 !! \param z     Binned data set z(nxbin,nybin) (real)

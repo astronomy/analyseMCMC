@@ -200,6 +200,8 @@ subroutine pdfs2d(exitcode)
         if(sky_position .and. plotSky.ge.1) project_map = .true.
         
         
+        
+        !*** Open the plot file:
         if(plot.eq.1) then
            write(outputbasefile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'// &
                 trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
@@ -249,10 +251,14 @@ subroutine pdfs2d(exitcode)
            call pgsch(sch)
         end if
         
+        
+        
+        ! Determine plot/binning ranges:
         xmin = minval(selDat(ic,p1,1:n(ic)))
         xmax = maxval(selDat(ic,p1,1:n(ic)))
         ymin = minval(selDat(ic,p2,1:n(ic)))
         ymax = maxval(selDat(ic,p2,1:n(ic)))
+        
         dx = xmax - xmin
         dy = ymax - ymin
         !write(stdOut,'(A,2F10.5)')'  Xmin,Xmax: ',xmin,xmax
@@ -273,7 +279,7 @@ subroutine pdfs2d(exitcode)
         
         
         
-        ! Prepare binning for a cute sky map in 2D PDF:
+        !*** Prepare binning for a cute sky map in 2D PDF:
         if(plot.eq.1 .and. project_map) then
            rat = 0.5 !scrRat !0.75
            !call pgpap(11.,rat)
@@ -298,18 +304,8 @@ subroutine pdfs2d(exitcode)
            end if
         end if !if(plot.eq.1 .and. project_map)
         
-        ! Force plotting and binning boundaries:
-        ! CHECK: lose this? - yes: these are the binning ranges, not the plotting ranges; 
-        ! Don't necessarily want to bin the whole sky when plotting it.
-        if(1.eq.2.and.wrapData.eq.0.and.sky_position) then
-           xmin = 0.
-           xmax = 24.
-           ymin = -90.
-           ymax = 90.
-        end if
         
-        
-        ! Bin data and 'normalise' 2D PDF:
+        !*** Bin data and 'normalise' 2D PDF:
         if(normPDF2D.le.2.or.normPDF2D.eq.4) then
            
            ! Bin data:  compute bin number rather than find it, ~10x faster:
@@ -534,42 +530,44 @@ subroutine pdfs2d(exitcode)
            end if
            call pgsci(1)
            
-        end if !if(plot.eq.1)
-        
-        
-        
-        ! Plot contours in 2D PDF:
-        if(plot.eq.1 .and. (plPDF2D.eq.1.or.plPDF2D.eq.3) .and. (.not.project_map .or. plotSky.eq.1.or.plotSky.eq.3)) then
-           if(normPDF2D.lt.4) then
-              ncont = 11
-              do i=1,ncont
-                 cont(i) = 0.01 + 2*real(i-1)/real(ncont-1)
-                 if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) cont(i) = 1.-cont(i)
-              end do
-              ncont = min(4,ncont)  ! Only use the first 4
-           end if
-           if(normPDF2D.eq.4) then
-              ncont = Nival
-              do i=1,ncont
-                 cont(i) = max(1. - real(i-1)/real(ncont-1),0.001)
-                 !if(project_map) cont(i) = 1.-cont(i)
-              end do
-           end if
            
-           call pgsls(1)
-           if((.not.project_map .or. plotSky.ne.1.or.plotSky.ne.3) .and. normPDF2D.ne.4) then  ! First in bg colour
-              call pgslw(2*lw)
-              call pgsci(0)
+           
+           
+           !*** Plot contours in 2D PDF:
+           if((plPDF2D.eq.1.or.plPDF2D.eq.3) .and. (.not.project_map .or. plotSky.eq.1.or.plotSky.eq.3)) then
+              if(normPDF2D.lt.4) then
+                 ncont = 11
+                 do i=1,ncont
+                    cont(i) = 0.01 + 2*real(i-1)/real(ncont-1)
+                    if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) cont(i) = 1.-cont(i)
+                 end do
+                 ncont = min(4,ncont)  ! Only use the first 4
+              end if
+              if(normPDF2D.eq.4) then
+                 ncont = Nival
+                 do i=1,ncont
+                    cont(i) = max(1. - real(i-1)/real(ncont-1),0.001)
+                    !if(project_map) cont(i) = 1.-cont(i)
+                 end do
+              end if
+              
+              call pgsls(1)
+              if((.not.project_map .or. plotSky.ne.1.or.plotSky.ne.3) .and. normPDF2D.ne.4) then  ! First in bg colour
+                 call pgslw(2*lw)
+                 call pgsci(0)
+                 call pgcont(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,cont(1:ncont),ncont,tr)
+              end if
+              call pgslw(lw)
+              call pgsci(1)
+              if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) call pgsci(7)
               call pgcont(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,cont(1:ncont),ncont,tr)
            end if
-           call pgslw(lw)
-           call pgsci(1)
-           if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) call pgsci(7)
-           call pgcont(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,cont(1:ncont),ncont,tr)
-        end if
+           
+        end if  ! if(plot.eq.1)
         
         
-        ! Save binned 2D PDF data:
+        
+        !*** Save binned 2D PDF data:
         if(savePDF.eq.1) then
            write(30,'(A)')'--------------------------------------------------------------------------------------------------'// &
                 '------------------------------------------------------------------------------------------------------'
@@ -598,8 +596,10 @@ subroutine pdfs2d(exitcode)
         
         
         
-        ! Plot injection value, median, ranges, etc. in 2D PDF:
+        
         if(plot.eq.1) then
+           
+           !*** Plot injection value, median, ranges, etc. in 2D PDF:
            if(.not.project_map.or.plotSky.eq.1) then
               call pgsci(1)
               
@@ -711,15 +711,13 @@ subroutine pdfs2d(exitcode)
               call pgsci(1)
            end if
            
-        end if  !if(plot.eq.1)
-        
-        
-        
-        
-        
-        
-        ! Print axes, axis labels and plot title:
-        if(plot.eq.1) then
+           
+           
+           
+           
+           
+           
+           !*** Print axes, axis labels and plot title:
            
            ! Plot coordinate axes and axis labels in 2D PDF:
            call pgsls(1)
@@ -823,11 +821,10 @@ subroutine pdfs2d(exitcode)
               end do
               call pgsci(1)
            end if
-        end if  ! if(plot.eq.1)
-        
-        
-        
-        if(plot.eq.1) then
+           
+           
+           
+           !*** Finish the current plot:
            countplots = countplots + 1  ! The current plot is number countplots
            
            ! Convert plot:
@@ -862,11 +859,13 @@ subroutine pdfs2d(exitcode)
                       trim(parNames(parID(p2)))
               end if
            end if
-           
         end if !if(plot.eq.1)
+        
         
      end do !p2
   end do !p1
+  
+  
   
   
   if(savePDF.eq.1) close(30)
