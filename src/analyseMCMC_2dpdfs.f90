@@ -32,8 +32,7 @@ subroutine pdfs2d(exitcode)
   use analysemcmc_settings, only: update,prProgress,file,pssz,quality,fontsize2d,maxChs
   use analysemcmc_settings, only: Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky
   use analysemcmc_settings, only: savePDF,plot,plPDF1D,plPDF2D, outputbasefile,outputtempfile
-  use general_data, only: outputname,outputdir,startval,parNames, nfixedpar
-  use general_data, only: stats,ranges,c0,maxIter,fixedpar, raCentre,raShift
+  use general_data, only: outputname,outputdir,parNames, nfixedpar,fixedpar, maxIter, raCentre,raShift
   use mcmcrun_data, only: totpts,revID,parID, nMCMCpar
   use plot_data, only: bmpsz,bmprat,bmpxpix,unSharppdf2d,pltsz,pltrat
   
@@ -165,12 +164,11 @@ subroutine pdfs2d(exitcode)
   do p1=j1,j2
      do p2=j1,j2
         
-        if(.not. create_this_2D_PDF(p1,p2, countplots,totplots)) cycle  ! Create a 2D PDF for this combination of j1/j2 or p1/p2?
-        
+        ! Create a 2D PDF for this combination of j1/j2 or p1/p2?
+        if(.not. create_this_2D_PDF(p1,p2, countplots,totplots)) cycle
         
         ! Identify special combinations of parameters:
         call identify_special_combinations_of_parameters(p1,p2, sky_position, binary_orientation, project_map)
-        
         
         
         ! Open the plot file:
@@ -179,17 +177,14 @@ subroutine pdfs2d(exitcode)
         if(exitcode.ne.0) return
         
         
-        !*** Determine plot/binning ranges:
+        ! Determine plot/binning ranges:
         call determine_2D_PDF_binning_plot_ranges(ic,p1,p2, project_map, xmin,xmax, ymin,ymax, dx,dy)
         
+        ! Prepare binning for a 2D sky map:
+        if(plot.eq.1 .and. project_map) call prepare_skymap_binning(xmin,xmax, ymin,ymax)
         
         
-        
-        if(plot.eq.1 .and. project_map) call prepare_skymap_binning(xmin,xmax, ymin,ymax)  ! Prepare binning for a 2D sky map
-        
-        
-        
-        !*** Bin data and 'normalise' 2D PDF:
+        ! Bin data and 'normalise' 2D PDF:
         call bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_position,binary_orientation)
         
         
@@ -214,6 +209,7 @@ subroutine pdfs2d(exitcode)
            end if
            
            
+           ! Set viewport on page:
            call pgsch(sch)
            if(project_map .and. plotSky.ge.2) then
               call pgsvp(0.08*sch,0.95,0.08*sch,1.0-0.05*sch)   ! Make room for title and +90deg label
@@ -222,7 +218,7 @@ subroutine pdfs2d(exitcode)
               ! Since sch is typically ~1.5*fontsize2d: 0.95 -> 1-0.05*fontsize ~ 1-0.03*sch
            end if
            
-           
+           ! Setup plot window:
            call pgswin(xmin,xmax,ymin,ymax)
            if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3).and.file.ge.2) then  ! Need dark background
               call pgsci(1)
@@ -230,10 +226,8 @@ subroutine pdfs2d(exitcode)
            end if
            
            
-           !*** Plot the actual 2D PDF (grey-scale or colour pixels):
+           ! Plot the actual 2D PDF (grey-scale or colour pixels):
            if(plPDF2D.eq.1.or.plPDF2D.eq.2) call plot_2D_PDF(z, tr, project_map)
-           
-           
            
            ! Plot stars in 2D PDF (over the grey scales, but underneath contours, lines, etc):
            if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3)) then
@@ -243,10 +237,7 @@ subroutine pdfs2d(exitcode)
            end if
            call pgsci(1)
            
-           
-           
-           
-           !*** Plot contours in 2D PDF:
+           ! Plot contours in 2D PDF:
            if((plPDF2D.eq.1.or.plPDF2D.eq.3) .and. (.not.project_map .or. plotSky.eq.1.or.plotSky.eq.3)) &
                 call plot_2D_contours(z, tr, project_map, lw)
            
@@ -254,33 +245,8 @@ subroutine pdfs2d(exitcode)
         
         
         
-        !*** Save binned 2D PDF data:
-        if(savePDF.eq.1) then
-           write(30,'(A)')'--------------------------------------------------------------------------------------------------'// &
-                '------------------------------------------------------------------------------------------------------'
-           write(30,'(3I6,T26,2A15,T101,A)')ic,parID(p1),parID(p2),parNames(parID(p1)),parNames(parID(p2)), &
-                'Chain number, parameter ID 1,2 and parameter names  (ic,parID(1:2),parNames(1:2))'
-           write(30,'(2ES15.7,T101,A)')startval(ic,p1,1:2),'Injection and starting value p1  (startval(1,1:2))'
-           write(30,'(2ES15.7,T101,A)')startval(ic,p2,1:2),'Injection and starting value p2  (startval(2,1:2))'
-           write(30,'(6ES15.7,T101,A)')stats(ic,p1,1:6), &
-                'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p1  (stats(1,1:6))'
-           write(30,'(6ES15.7,T101,A)')stats(ic,p2,1:6), &
-                'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p2  (stats(2,1:6))'
-           write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p1,1:5), &
-                'Ranges: lower,upper limit, centre, width, relative width for p1  (ranges(1,1:5))'
-           write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p2,1:5), &
-                'Ranges: lower,upper limit, centre, width, relative width for p2  (ranges(1,1:5))'
-           write(30,'(4ES15.7,T101,A)')xmin,xmax,ymin,ymax,'Xmin,Xmax,Ymin,Ymax of PDF  (xmin,xmax,ymin,ymax)'
-           write(30,'(6ES15.7,T101,A)')tr,'Tr; transformation matrix used by PGPlot to project data  (tr)'
-           write(30,'(A)')'  2D bins:'
-           do i=1,Nbin2Dx+1
-              do j=1,Nbin2Dy+1
-                 write(30,'(ES15.7)',advance="no") z(i,j)
-              end do
-              write(30,'(1x)')
-           end do
-        end if
-        
+        ! Save binned 2D PDF data:
+        if(savePDF.eq.1) call save_binned_2D_PDF_data(ic,p1,p2, xmin,xmax,ymin,ymax, z,tr, 30)  ! output unit: 30
         
         
         

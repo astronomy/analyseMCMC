@@ -706,3 +706,69 @@ end subroutine prepare_skymap_binning
 
 
 
+!***********************************************************************************************************************************
+!> \brief  Save binned 2D PDF data for the given combination of parameters
+!!
+!! \param ic    Chain ID
+!! \param p1    ID of parameter 1
+!! \param p2    ID of parameter 2
+!!
+!! \param xmin  Lower limit of horizontal plot range (I/O)
+!! \param xmax  Upper limit of horizontal plot range (I/O)
+!! \param ymin  Lower limit of vertical plot range (I/O)
+!! \param ymax  Upper limit of vertical plot range (I/O)
+!!
+!! \param z     2D binned data (I/O)
+!! \param tr    Transformation elements used by PGPlot (I/O)
+!! 
+!! \param op    Output unit
+
+subroutine save_binned_2D_PDF_data(ic,p1,p2, xmin,xmax,ymin,ymax, z,tr, op)
+  use analysemcmc_settings, only: Nbin2Dx,Nbin2Dy
+  use general_data, only: parNames, startval,stats,ranges,c0
+  use mcmcrun_data, only: parID
+  
+  implicit none
+  integer, intent(in) :: ic,p1,p2, op
+  real, intent(in) :: xmin,xmax, ymin,ymax, z(Nbin2Dx+1,Nbin2Dy+1), tr(6)
+  
+  integer :: i,j
+  
+  
+  write(op,'(A)')'--------------------------------------------------------------------------------------------------'// &
+       '------------------------------------------------------------------------------------------------------'
+  
+  write(op,'(3I6,T26,2A15,T101,A)') ic,parID(p1),parID(p2),parNames(parID(p1)),parNames(parID(p2)), &
+       'Chain number, parameter ID 1,2 and parameter names  (ic,parID(1:2),parNames(1:2))'
+  
+  write(op,'(2ES15.7,T101,A)') startval(ic,p1,1:2),'Injection and starting value p1  (startval(1,1:2))'
+  
+  write(op,'(2ES15.7,T101,A)') startval(ic,p2,1:2),'Injection and starting value p2  (startval(2,1:2))'
+  
+  write(op,'(6ES15.7,T101,A)') stats(ic,p1,1:6), &
+       'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p1  (stats(1,1:6))'
+  
+  write(op,'(6ES15.7,T101,A)') stats(ic,p2,1:6), &
+       'Stats: median, mean, absVar1, absVar2, stdev1, stdev2 for p2  (stats(2,1:6))'
+  
+  write(op,'(5ES15.7,T101,A)') ranges(ic,c0,p1,1:5), &
+       'Ranges: lower,upper limit, centre, width, relative width for p1  (ranges(1,1:5))'
+  
+  write(op,'(5ES15.7,T101,A)') ranges(ic,c0,p2,1:5), &
+       'Ranges: lower,upper limit, centre, width, relative width for p2  (ranges(1,1:5))'
+  
+  write(op,'(4ES15.7,T101,A)') xmin,xmax,ymin,ymax,'Xmin,Xmax,Ymin,Ymax of PDF  (xmin,xmax,ymin,ymax)'
+  
+  write(op,'(6ES15.7,T101,A)') tr,'Tr; transformation matrix used by PGPlot to project data  (tr)'
+  
+  
+  write(op,'(A)')'  2D bins:'
+  do i=1,Nbin2Dx+1
+     do j=1,Nbin2Dy+1
+        write(op,'(ES15.7)',advance='no') z(i,j)
+     end do
+     write(op,'(1x)')
+  end do
+  
+end subroutine save_binned_2D_PDF_data
+!***********************************************************************************************************************************
