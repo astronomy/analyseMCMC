@@ -29,12 +29,11 @@ subroutine pdfs2d(exitcode)
   use SUFR_system, only: swapreal
   use SUFR_text, only: replace_substring
   
-  use analysemcmc_settings, only: update,prProgress,file,pssz,quality
-  use analysemcmc_settings, only: fontsize2d,maxChs
+  use analysemcmc_settings, only: update,prProgress,file,pssz,quality,fontsize2d,maxChs
   use analysemcmc_settings, only: Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky
   use analysemcmc_settings, only: savePDF,plot,plPDF1D,plPDF2D, outputbasefile,outputtempfile
   use general_data, only: outputname,outputdir,startval,parNames, nfixedpar
-  use general_data, only: selDat,stats,ranges,c0,n,maxIter,fixedpar, raCentre,raShift
+  use general_data, only: stats,ranges,c0,maxIter,fixedpar, raCentre,raShift
   use mcmcrun_data, only: totpts,revID,parID, nMCMCpar
   use plot_data, only: bmpsz,bmprat,bmpxpix,unSharppdf2d,pltsz,pltrat
   
@@ -180,26 +179,8 @@ subroutine pdfs2d(exitcode)
         if(exitcode.ne.0) return
         
         
-        
         !*** Determine plot/binning ranges:
-        xmin = minval(selDat(ic,p1,1:n(ic)))
-        xmax = maxval(selDat(ic,p1,1:n(ic)))
-        ymin = minval(selDat(ic,p2,1:n(ic)))
-        ymax = maxval(selDat(ic,p2,1:n(ic)))
-        
-        dx = xmax - xmin
-        dy = ymax - ymin
-        !write(stdOut,'(A,2F10.5)')'  Xmin,Xmax: ',xmin,xmax
-        !write(stdOut,'(A,2F10.5)')'  Ymin,Ymax: ',ymin,ymax
-        
-        if(.not.project_map) then
-           xmin = xmin - 0.05*dx
-           xmax = xmax + 0.05*dx
-           ymin = ymin - 0.05*dy
-           ymax = ymax + 0.05*dy
-        end if
-        
-        
+        call determine_2D_PDF_binning_plot_ranges(ic,p1,p2, project_map, xmin,xmax, ymin,ymax, dx,dy)
         
         
         

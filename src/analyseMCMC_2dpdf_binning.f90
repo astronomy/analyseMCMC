@@ -18,6 +18,15 @@
 ! 
 
 
+
+
+
+
+
+
+
+
+
   
 !***********************************************************************************************************************************
 !> \brief  Determine whether to create a 2D PDF for this combination of j1/j2 or p1/p2
@@ -70,6 +79,8 @@ function create_this_2D_PDF(p1,p2, countplots,totplots)
 end function create_this_2D_PDF
 !***********************************************************************************************************************************
 
+
+
 !***********************************************************************************************************************************
 !> \brief Identify special combinations of parameters
 !! 
@@ -100,6 +111,51 @@ subroutine identify_special_combinations_of_parameters(p1,p2, sky_position, bina
   if(sky_position .and. plotSky.ge.1) project_map = .true.
   
 end subroutine identify_special_combinations_of_parameters
+!***********************************************************************************************************************************
+
+
+
+!***********************************************************************************************************************************
+!> \brief  Determine binning/plot ranges for 2D PDFs
+!!
+!! \param ic           Chain ID
+!! \param p1           ID of parameter 1
+!! \param p2           ID of parameter 2
+!! \param project_map  Use map projection?
+!!
+!! \retval xmin        Lower limit of horizontal plot range
+!! \retval xmax        Upper limit of horizontal plot range
+!! \retval ymin        Lower limit of vertical plot range
+!! \retval ymax        Upper limit of vertical plot range
+!! \retval dx          Width of horizontal plot range
+!! \retval dy          Width of vertical plot range
+
+
+subroutine determine_2D_PDF_binning_plot_ranges(ic,p1,p2, project_map, xmin,xmax, ymin,ymax, dx,dy)
+  use general_data, only: selDat,n
+  implicit none
+  integer, intent(in) :: ic, p1,p2
+  logical, intent(in) :: project_map
+  real, intent(out) :: xmin,xmax, ymin,ymax, dx,dy
+  
+  xmin = minval(selDat(ic,p1,1:n(ic)))
+  xmax = maxval(selDat(ic,p1,1:n(ic)))
+  ymin = minval(selDat(ic,p2,1:n(ic)))
+  ymax = maxval(selDat(ic,p2,1:n(ic)))
+  
+  dx = xmax - xmin
+  dy = ymax - ymin
+  !write(stdOut,'(A,2F10.5)')'  Xmin,Xmax: ',xmin,xmax
+  !write(stdOut,'(A,2F10.5)')'  Ymin,Ymax: ',ymin,ymax
+  
+  if(.not.project_map) then
+     xmin = xmin - 0.05*dx
+     xmax = xmax + 0.05*dx
+     ymin = ymin - 0.05*dy
+     ymax = ymax + 0.05*dy
+  end if
+  
+end subroutine determine_2D_PDF_binning_plot_ranges
 !***********************************************************************************************************************************
 
 
