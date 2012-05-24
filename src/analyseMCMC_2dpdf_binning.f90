@@ -18,6 +18,57 @@
 ! 
 
 
+  
+!***********************************************************************************************************************************
+!> \brief  Determine whether to create a 2D PDF for this combination of j1/j2 or p1/p2
+!!
+!! \param p1          ID of parameter 1
+!! \param p2          ID of parameter 2
+!! \param countplots  Count of the current plot
+!! \param totplots    Total number of plots to make
+
+function create_this_2D_PDF(p1,p2, countplots,totplots)
+  use SUFR_constants, only: stdOut, cursorup
+  use analysemcmc_settings, only: Npdf2D, PDF2Dpairs, prProgress, update
+  use general_data, only: parNames, fixedpar
+  use mcmcrun_data, only: revID,parID
+  
+  implicit none
+  integer, intent(in) :: p1,p2, countplots,totplots
+  logical :: create_this_2D_PDF
+  
+  integer :: i
+  
+  create_this_2D_PDF = .false.
+  
+  if(Npdf2D.ge.0) then
+     
+     do i=1,Npdf2D
+        if( p1.eq.revID(PDF2Dpairs(i,1)) .and. p2.eq.revID(PDF2Dpairs(i,2)) )  create_this_2D_PDF = .true.
+     end do
+     
+     if(.not.create_this_2D_PDF) return
+     
+     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no") trim(parNames(parID(p1)))//'-'// &
+          trim(parNames(parID(p2)))//' '
+     
+  else  ! Npdf2D.lt.0 - all combinations of non-fixed parameters
+     
+     if(p2.le.p1) return
+     if(fixedpar(p1)+fixedpar(p2).ge.1) return
+     
+     create_this_2D_PDF = .true.
+     
+     if(stdOut.lt.10) then
+        write(stdOut,*) cursorup  ! Move cursor up 1 line
+        if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(F7.1,A)') real(countplots+1)/real(totplots)*100, &
+             '%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                      '
+     end if
+     
+  end if
+  
+end function create_this_2D_PDF
+!***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
 !> \brief Identify special combinations of parameters

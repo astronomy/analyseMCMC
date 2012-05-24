@@ -25,7 +25,7 @@
 !! \retval exitcode  Exit code: 0=ok
 
 subroutine pdfs2d(exitcode)
-  use SUFR_constants, only: stdOut,stdErr, cursorup, rh2r
+  use SUFR_constants, only: stdOut,stdErr, rh2r
   use SUFR_system, only: swapreal
   use SUFR_text, only: replace_substring
   
@@ -48,7 +48,7 @@ subroutine pdfs2d(exitcode)
   integer :: npdf,plotthis,countplots,totplots
   real :: tr(6), sch, xmin,xmax, ymin,ymax, dx,dy
   character :: str*(99),tempfile*(99), outputbasefile*(199), convopts*(99)
-  logical :: project_map,sky_position,binary_orientation, ex
+  logical :: project_map,sky_position,binary_orientation, ex, create_this_2D_PDF
   
   
   exitcode = 0
@@ -167,25 +167,7 @@ subroutine pdfs2d(exitcode)
   do p1=j1,j2
      do p2=j1,j2
         
-        if(Npdf2D.ge.0) then
-           plotthis = 0  ! Determine to plot or save this combination of j1/j2 or p1/p2
-           do i=1,Npdf2D
-              if(p1.eq.revID(PDF2Dpairs(i,1)).and.p2.eq.revID(PDF2Dpairs(i,2))) plotthis = 1  ! Use PDF2Dpairs from the input file
-           end do
-           if(plotthis.eq.0) cycle
-           if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")trim(parNames(parID(p1)))//'-'// &
-                trim(parNames(parID(p2)))//' '
-           
-        else  ! Npdf2D.lt.0 - all combinations of non-fixed parameters
-           
-           if(p2.le.p1) cycle
-           if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
-           if(stdOut.lt.10) then
-              write(stdOut,*)cursorup  ! Move cursor up 1 line
-              if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(F7.1,A)') real(countplots+1)/real(totplots)*100, &
-                   '%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                      '
-           end if
-        end if
+        if(.not. create_this_2D_PDF(p1,p2, countplots,totplots)) cycle  ! Create a 2D PDF for this combination of j1/j2 or p1/p2?
         
         
         ! Identify special combinations of parameters:
