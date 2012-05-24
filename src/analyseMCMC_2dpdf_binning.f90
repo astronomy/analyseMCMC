@@ -19,15 +19,6 @@
 
 
 
-
-
-
-
-
-
-
-
-  
 !***********************************************************************************************************************************
 !> \brief  Determine whether to create a 2D PDF for this combination of j1/j2 or p1/p2
 !!
@@ -61,7 +52,7 @@ function create_this_2D_PDF(p1,p2, countplots,totplots)
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no") trim(parNames(parID(p1)))//'-'// &
           trim(parNames(parID(p2)))//' '
      
-  else  ! Npdf2D.lt.0 - all combinations of non-fixed parameters
+  else if(Npdf2D.eq.-1) then  ! all combinations of non-fixed parameters
      
      if(p2.le.p1) return
      if(fixedpar(p1)+fixedpar(p2).ge.1) return
@@ -69,9 +60,19 @@ function create_this_2D_PDF(p1,p2, countplots,totplots)
      create_this_2D_PDF = .true.
      
      if(stdOut.lt.10) then
-        write(stdOut,*) cursorup  ! Move cursor up 1 line
-        if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(F7.1,A)') real(countplots+1)/real(totplots)*100, &
-             '%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                      '
+        if(prProgress.ge.1.and.update.eq.0) then
+           write(*,*) cursorup  ! Move cursor up 1 line
+           write(*,'(A)', advance='no') '  Progress: ['
+           do i=1,100
+              if(i.le.nint(real(countplots+1)/real(totplots)*100)) then
+                 write(*,'(A)', advance='no') '#'
+              else
+                 write(*,'(A)', advance='no') ' '
+              end if
+           end do
+           write(*,'(A,F7.1,A)') '] ',real(countplots+1)/real(totplots)*100, &
+                '%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                           '
+        end if
      end if
      
   end if

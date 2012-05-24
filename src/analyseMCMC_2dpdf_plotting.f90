@@ -139,10 +139,10 @@ subroutine plot_2D_PDF(z, tr, project_map)
      if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  plotting 2D PDF...'
      
      ! Plot 2D image - 0: no projection:
-     !call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, 0)
+     call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, 0)
      
-     ! Plot 2D image - produces ~2.5x smaller plots - used to give segfaults:
-     call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr)
+     ! Plot 2D image - produces ~2.5x smaller plots - used to give segfaults (still does in some cases?):
+     !call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr)
      
   end if
   

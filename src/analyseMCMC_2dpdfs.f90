@@ -56,7 +56,8 @@ subroutine pdfs2d(exitcode)
   
   if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1.and.plPDF1D.eq.0) write(stdOut,'(A)',advance="no")'  Saving'
   if(prProgress.ge.1.and.update.eq.0.and.Npdf2D.ge.0) write(stdOut,'(A)',advance="no")'  2D pdfs: '
-  if(Npdf2D.lt.0) then
+  
+  if(Npdf2D.lt.0) then  ! Plot all 2D PDFs
      totplots = 0
      do j=j1,j2-nfixedpar
         totplots = totplots + j - j1
@@ -80,7 +81,7 @@ subroutine pdfs2d(exitcode)
      bmpYSz = 700
      
      call compBitmapSize(bmpXSz,bmpYSz, scFac, bmpsz,bmprat)  ! Determine plot size and ratio
-     write(bmpxpix,'(I4)') bmpXSz                              ! Used as a text string by convert
+     write(bmpxpix,'(I4)') bmpXSz                             ! Used as a text string by convert
      pltsz = bmpsz
      pltrat = bmprat
   end if
@@ -187,6 +188,7 @@ subroutine pdfs2d(exitcode)
         call bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_position,binary_orientation)
         
         
+        
         ! Swap RA boundaries for RA-Dec plot in 2D PDF:
         if(sky_position) then
            call swapreal(xmin, xmax)
@@ -240,16 +242,6 @@ subroutine pdfs2d(exitcode)
            if((plPDF2D.eq.1.or.plPDF2D.eq.3) .and. (.not.project_map .or. plotSky.eq.1.or.plotSky.eq.3)) &
                 call plot_2D_contours(z, tr, project_map, lw)
            
-        end if  ! if(plot.eq.1)
-        
-        
-        
-        ! Save binned 2D PDF data:
-        if(savePDF.eq.1) call save_binned_2D_PDF_data(ic,p1,p2, xmin,xmax,ymin,ymax, z,tr, 30)  ! output unit: 30
-        
-        
-        
-        if(plot.eq.1) then
            
            ! Plot injection value, median, ranges, etc. in 2D PDF:
            call plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw, project_map)
@@ -259,14 +251,17 @@ subroutine pdfs2d(exitcode)
            call plot_2D_PDF_axes_labels_titles(p1,p2, sch,flw, project_map)
            
            
-           ! Finish the current plot:
            countplots = countplots + 1  ! The current plot is number countplots
-           
            
            ! Convert plot:
            call convert_2D_PDF_plot(p1,p2, countplots)
            
         end if  ! if(plot.eq.1)
+        
+        
+        ! Save binned 2D PDF data:
+        if(savePDF.eq.1) call save_binned_2D_PDF_data(ic,p1,p2, xmin,xmax,ymin,ymax, z,tr, 30)  ! output unit: 30
+        
         
         
      end do  ! p2
@@ -275,24 +270,29 @@ subroutine pdfs2d(exitcode)
   
   
   
+  
+  
+  
   if(savePDF.eq.1) close(30)
   
+  if(plot.eq.1.and.file.ne.1) call pgend
+  
+  !if(plot.eq.1.and.file.ge.2.and.multipagefile) then
+  !   if(abs(j2-j1).le.1) then
+  !      if(file.eq.3) status = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'// &
+  !trim(parNames(parID(j1)))//'-'//trim(parNames(parID(j2)))//'.pdf  &> /dev/null')
+  !      status = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'// &
+  !trim(parNames(parID(j1)))//'-'//trim(parNames(parID(j2)))//'.eps')
+  !   else
+  !      if(file.eq.3) status = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)// &
+  !'__pdf2d.pdf  &> /dev/null')
+  !      status = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.eps')
+  !   end if
+  !end if
+  
+  
   if(plot.eq.1) then
-     if(file.ne.1) call pgend
-     !if(file.ge.2.and.multipagefile) then
-     !   if(abs(j2-j1).le.1) then
-     !      if(file.eq.3) status = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'// &
-     !trim(parNames(parID(j1)))//'-'//trim(parNames(parID(j2)))//'.pdf  &> /dev/null')
-     !      status = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d_'// &
-     !trim(parNames(parID(j1)))//'-'//trim(parNames(parID(j2)))//'.eps')
-     !   else
-     !      if(file.eq.3) status = system('eps2pdf pdf2d.eps  -o '//trim(outputdir)//'/'//trim(outputname)// &
-     !'__pdf2d.pdf  &> /dev/null')
-     !      status = system('mv -f pdf2d.eps '//trim(outputdir)//'/'//trim(outputname)//'__pdf2d.eps')
-     !   end if
-     !end if
-     
-     ! Remove all the .ppm files:
+     ! Remove all the .ppm files, create thumbnails and create the index.html:
      if(file.eq.1) then
         countplots = 0
         if(html.ge.1) write(51,'(A)')'<table>'
@@ -308,7 +308,7 @@ subroutine pdfs2d(exitcode)
                     if(p1.eq.revID(PDF2Dpairs(i,1)).and.p2.eq.revID(PDF2Dpairs(i,2))) plotthis = 1  
                  end do
                  if(plotthis.eq.0) cycle
-              else
+              else if(Npdf2D.eq.-1) then
                  if(p2.le.p1) then
                     if(html.ge.1) then
                        if(p1.eq.p2) then
@@ -357,11 +357,14 @@ subroutine pdfs2d(exitcode)
                  write(51,'(A)')'</td>'
               end if
               
-           end do
+           end do  ! p2=j1,j2
            if(html.ge.1) write(51,'(A)')'</tr>'
-        end do
+           
+        end do  ! p1=j1,j2
         if(html.ge.1) write(51,'(A)')'</table>'
-     end if
+        
+     end if  ! if(file.eq.1)
+     
      
      if(html.eq.1) then
         bmpXSz = 1000
@@ -373,7 +376,7 @@ subroutine pdfs2d(exitcode)
         pltrat = bmprat
      end if
      
-  end if !plot.eq.1
+  end if  ! plot.eq.1
   
   
   
