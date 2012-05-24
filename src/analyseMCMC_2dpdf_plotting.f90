@@ -649,3 +649,112 @@ subroutine convert_2D_PDF_plot(p1,p2, countplots)
   
 end subroutine convert_2D_PDF_plot
 !***********************************************************************************************************************************
+
+
+
+!***********************************************************************************************************************************
+!> \brief Remove all the .ppm files, create thumbnails and create the index.html
+!!
+!! \param j1  First parameter to plot
+!! \param j2  Last parameter to plot
+
+subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
+  use SUFR_constants, only: stdErr
+  use analysemcmc_settings, only: file, html, Npdf2D,PDF2Dpairs, bmpXSz,bmpYSz, scFac
+  use mcmcrun_data, only: revID,parID
+  use general_data, only: outputname,outputdir,parNames, fixedpar
+  use plot_data, only: bmpsz,bmprat,bmpxpix,pltsz,pltrat
+  
+  implicit none
+  
+  integer, intent(in) :: j1,j2
+  integer :: i, p1,p2, countplots,plotthis, status,system
+  character :: basefile*(199),tempfile*(99)
+  logical :: ex
+  
+  if(file.eq.1) then
+     countplots = 0
+     if(html.ge.1) write(51,'(A)')'<table>'
+     do p1=j1,j2
+        if(html.ge.1) write(51,'(2x,A)')'<tr>'
+        do p2=j1,j2
+           
+           
+           if(Npdf2D.ge.0) then
+              plotthis = 0  ! Determine to plot or save this combination of j1/j2 or p1/p2
+              do i=1,Npdf2D
+                 ! Use PDF2Dpairs from the input file:
+                 if(p1.eq.revID(PDF2Dpairs(i,1)).and.p2.eq.revID(PDF2Dpairs(i,2))) plotthis = 1  
+              end do
+              if(plotthis.eq.0) cycle
+           else if(Npdf2D.eq.-1) then
+              if(p2.le.p1) then
+                 if(html.ge.1) then
+                    if(p1.eq.p2) then
+                       write(51,'(4x,A)')'<td></td>'
+                    else
+                       write(basefile,'(A)') trim(outputname)//'__pdf2d__'// &
+                            trim(parNames(parID(p2)))//'-'//trim(parNames(parID(p1)))
+                       write(51,'(4x,A)')'<td>'
+                       write(51,'(4x,A)')'  <a href="'//trim(basefile)//'.png">'
+                       write(51,'(4x,A)')'    <img src="'//trim(basefile)//'_thumb.png">'
+                       write(51,'(4x,A)')'  </a>'
+                       write(51,'(4x,A)')'</td>'
+                    end if
+                 end if
+                 cycle
+              end if
+              if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
+           end if
+           
+           countplots = countplots + 1  ! The current plot is number countplots
+           write(basefile,'(A)') trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
+           write(tempfile,'(A)') trim(outputdir)//'/'//trim(basefile)
+           status = system('rm -f '//trim(tempfile)//'.ppm')
+           
+           if(html.ge.1) then
+              
+              inquire(file=trim(tempfile)//'.png', exist=ex)
+              if(ex) then
+                 
+                 ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
+                 if(countplots.eq.Npdf2D) then
+                    status = system('convert -resize 200x200 '//trim(tempfile)//'.png '// &
+                         trim(tempfile)//'_thumb.png')
+                 else
+                    status = system('convert -resize 200x200 '//trim(tempfile)//'.png '// &
+                         trim(tempfile)//'_thumb.png &')
+                 end if
+                 if(status.ne.0) write(stdErr,'(A)')'  Error creating thumbnail for '//trim(parNames(parID(p1)))//'-'// &
+                      trim(parNames(parID(p2)))
+              end if
+              
+              write(51,'(4x,A)')'<td>'
+              write(51,'(4x,A)')'  <a href="'//trim(basefile)//'.png">'
+              write(51,'(4x,A)')'    <img src="'//trim(basefile)//'_thumb.png">'
+              write(51,'(4x,A)')'  </a>'
+              write(51,'(4x,A)')'</td>'
+           end if
+           
+        end do  ! p2=j1,j2
+        if(html.ge.1) write(51,'(2x,A)')'</tr>'
+        
+     end do  ! p1=j1,j2
+     if(html.ge.1) write(51,'(A)')'</table>'
+     
+  end if  ! if(file.eq.1)
+  
+  
+  if(html.eq.1) then
+     bmpXSz = 1000
+     bmpYSz =  700
+     
+     call compBitmapSize(bmpXSz,bmpYSz, scFac, bmpsz,bmprat)  ! Determine plot size and ratio
+     write(bmpxpix,'(I4)') bmpXSz  ! Used as a text string by convert
+     pltsz = bmpsz
+     pltrat = bmprat
+  end if
+  
+end subroutine removeppm_createthumbnails_createhtml_2D_PDF
+!***********************************************************************************************************************************
+

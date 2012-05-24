@@ -31,9 +31,9 @@ subroutine pdfs2d(exitcode)
   
   use analysemcmc_settings, only: update,prProgress,file,pssz,quality,fontsize2d,maxChs
   use analysemcmc_settings, only: Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky
-  use analysemcmc_settings, only: savePDF,plot,plPDF1D,plPDF2D, outputbasefile,outputtempfile
-  use general_data, only: outputname,outputdir,parNames, nfixedpar,fixedpar, maxIter, raCentre,raShift
-  use mcmcrun_data, only: totpts,revID,parID, nMCMCpar
+  use analysemcmc_settings, only: savePDF,plot,plPDF1D,plPDF2D
+  use general_data, only: outputname,outputdir,parNames, nfixedpar, maxIter, raCentre,raShift
+  use mcmcrun_data, only: totpts,revID, nMCMCpar
   use plot_data, only: bmpsz,bmprat,bmpxpix,pltsz,pltrat
   
   implicit none
@@ -41,10 +41,10 @@ subroutine pdfs2d(exitcode)
   
   real,allocatable :: z(:,:),zs(:,:,:)  ! These depend on nbin2d, allocate after reading input file
   
-  integer :: i,j,j1,j2,p1,p2,ic,lw,flw,status,system
-  integer :: npdf,plotthis,countplots,totplots
+  integer :: i,j,j1,j2,p1,p2,ic,lw,flw
+  integer :: npdf,countplots,totplots
   real :: tr(6), sch, xmin,xmax, ymin,ymax, dx,dy
-  logical :: project_map,sky_position,binary_orientation, ex, create_this_2D_PDF
+  logical :: project_map,sky_position,binary_orientation, create_this_2D_PDF
   
   
   exitcode = 0
@@ -291,92 +291,8 @@ subroutine pdfs2d(exitcode)
   !end if
   
   
-  if(plot.eq.1) then
-     ! Remove all the .ppm files, create thumbnails and create the index.html:
-     if(file.eq.1) then
-        countplots = 0
-        if(html.ge.1) write(51,'(A)')'<table>'
-        do p1=j1,j2
-           if(html.ge.1) write(51,'(A)')'<tr>'
-           do p2=j1,j2
-              
-              
-              if(Npdf2D.ge.0) then
-                 plotthis = 0  ! Determine to plot or save this combination of j1/j2 or p1/p2
-                 do i=1,Npdf2D
-                    ! Use PDF2Dpairs from the input file:
-                    if(p1.eq.revID(PDF2Dpairs(i,1)).and.p2.eq.revID(PDF2Dpairs(i,2))) plotthis = 1  
-                 end do
-                 if(plotthis.eq.0) cycle
-              else if(Npdf2D.eq.-1) then
-                 if(p2.le.p1) then
-                    if(html.ge.1) then
-                       if(p1.eq.p2) then
-                          write(51,'(A)')'<td></td>'
-                       else
-                          write(outputbasefile,'(A)') trim(outputname)//'__pdf2d__'// &
-                               trim(parNames(parID(p2)))//'-'//trim(parNames(parID(p1)))
-                          write(51,'(A)')'<td>'
-                          write(51,'(A)')'  <a href="'//trim(outputbasefile)//'.png">'
-                          write(51,'(A)')'    <img src="'//trim(outputbasefile)//'_thumb.png">'
-                          write(51,'(A)')'  </a>'
-                          write(51,'(A)')'</td>'
-                       end if
-                    end if
-                    cycle
-                 end if
-                 if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
-              end if
-              
-              countplots = countplots + 1  ! The current plot is number countplots
-              write(outputbasefile,'(A)') trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
-              write(outputtempfile,'(A)') trim(outputdir)//'/'//trim(outputbasefile)
-              status = system('rm -f '//trim(outputtempfile)//'.ppm')
-              
-              if(html.ge.1) then
-                 
-                 inquire(file=trim(outputtempfile)//'.png', exist=ex)
-                 if(ex) then
-                    
-                    ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
-                    if(countplots.eq.Npdf2D) then
-                       status = system('convert -resize 200x200 '//trim(outputtempfile)//'.png '// &
-                            trim(outputtempfile)//'_thumb.png')
-                    else
-                       status = system('convert -resize 200x200 '//trim(outputtempfile)//'.png '// &
-                            trim(outputtempfile)//'_thumb.png &')
-                    end if
-                    if(status.ne.0) write(stdErr,'(A)')'  Error creating thumbnail for '//trim(parNames(parID(p1)))//'-'// &
-                         trim(parNames(parID(p2)))
-                 end if
-                 
-                 write(51,'(A)')'<td>'
-                 write(51,'(A)')'  <a href="'//trim(outputbasefile)//'.png">'
-                 write(51,'(A)')'    <img src="'//trim(outputbasefile)//'_thumb.png">'
-                 write(51,'(A)')'  </a>'
-                 write(51,'(A)')'</td>'
-              end if
-              
-           end do  ! p2=j1,j2
-           if(html.ge.1) write(51,'(A)')'</tr>'
-           
-        end do  ! p1=j1,j2
-        if(html.ge.1) write(51,'(A)')'</table>'
-        
-     end if  ! if(file.eq.1)
-     
-     
-     if(html.eq.1) then
-        bmpXSz = 1000
-        bmpYSz =  700
-        
-        call compBitmapSize(bmpXSz,bmpYSz, scFac, bmpsz,bmprat)  ! Determine plot size and ratio
-        write(bmpxpix,'(I4)') bmpXSz  ! Used as a text string by convert
-        pltsz = bmpsz
-        pltrat = bmprat
-     end if
-     
-  end if  ! plot.eq.1
+  ! Remove all the .ppm files, create thumbnails and create the index.html:
+  if(plot.eq.1) call removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
   
   
   
