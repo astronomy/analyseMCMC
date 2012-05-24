@@ -90,6 +90,7 @@ module general_data
   
   character :: parNames(nParDB)*(8),infiles(maxChs)*(99),outputname*(99),outputdir*(99)
   character :: pgunits(nParDB)*(99),pgParNs(nParDB)*(99),pgParNss(nParDB)*(99),pgOrigParns(nParDB)*(99)
+  character :: htParNs(nParDB)*(99)
   
   integer :: wrap(maxChs,maxMCMCpar)
   real :: raShift,raCentre,shifts(maxChs,maxMCMCpar),shIvals(maxChs,maxMCMCpar)

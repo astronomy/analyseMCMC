@@ -24,7 +24,7 @@
 
 subroutine set_originalParameterNames()
   use analysemcmc_settings, only: fonttype
-  use general_data, only: parNames,pgParNs,pgParNss,pgUnits, pgOrigParns
+  use general_data, only: parNames,pgParNs,pgParNss,pgUnits, pgOrigParns, htParNs
   implicit none
   
   parNames = ''
@@ -33,17 +33,31 @@ subroutine set_originalParameterNames()
   pgUnits = ''
   
   ! Short ASCII names for text output:
-  parNames(11:19)   = (/'tc      ','t40     ','        ','        ','        ','        ','        ','        ','        '/)
-  parNames(21:29)   = (/'dl^3    ','log_dl  ','dl      ','        ','        ','        ','        ','        ','        '/)
-  parNames(31:39)   = (/'RA      ','sin_dec ','dec     ','        ','        ','        ','        ','        ','        '/)
-  parNames(41:49)   = (/'phase   ','        ','        ','        ','        ','        ','        ','        ','        '/)
-  parNames(51:59)   = (/'cos_i   ','psi     ','sin_thJo','ph_Jo   ','i       ','        ','        ','        ','        '/)
-  parNames(61:69)   = (/'Mc      ','eta     ','M1      ','M2      ','Mc_16   ','Mtot    ','q       ','log_q   ','        '/)
-  parNames(71:79)   = (/'spin1   ','cos_th1 ','phi1    ','theta1  ','        ','        ','        ','        ','        '/)
-  parNames(81:89)   = (/'spin2   ','cos_th2 ','phi2    ','theta2  ','        ','        ','        ','        ','        '/)
-  parNames(185:190) = (/'x1      ','x2      ','x3      ','x4      ','x5      ','x6      '/)
-  parNames(191:199) = (/'x7      ','x8      ','x9      ','x10     ','x11     ','x12     ','x13     ','x14     ','x15     '/)
-  !parNames(1:9) = (/'','','','','','','','',''/)
+  parNames(11:12)   = [character(len=99) :: 'tc','t40']
+  parNames(21:23)   = [character(len=99) :: 'dl^3','log_dl','dl']
+  parNames(31:33)   = [character(len=99) :: 'RA','sin_dec','dec']
+  parNames(41:41)   = [character(len=99) :: 'phase']
+  parNames(51:55)   = [character(len=99) :: 'cos_i','psi','sin_thJo','ph_Jo','i']
+  parNames(61:68)   = [character(len=99) :: 'Mc','eta','M1','M2','Mc_16','Mtot','q','log_q']
+  parNames(71:74)   = [character(len=99) :: 'spin1','cos_th1','phi1','theta1']
+  parNames(81:84)   = [character(len=99) :: 'spin2','cos_th2','phi2','theta2']
+  parNames(185:190) = [character(len=99) :: 'x1','x2','x3','x4','x5','x6']
+  parNames(191:199) = [character(len=99) :: 'x7','x8','x9','x10','x11','x12','x13','x14','x15']
+  
+  
+  ! Short HTML names:
+  htParNs(11:12)   = [character(len=99) :: 't<sub>c</sub>','t<sub>40</sub>']
+  htParNs(21:23)   = [character(len=99) :: 'd<sub>l</sub>','d<sub>l</sub>','d<sub>l</sub>']
+  htParNs(31:33)   = [character(len=99) :: 'RA','dec','dec']
+  htParNs(41:41)   = [character(len=99) :: '&phi;']
+  htParNs(51:55)   = [character(len=99) :: '&iota;','&psi;','&theta;<sub>J0</sub>','&phi;<sub>J0</sub>','&iota;']
+  htParNs(61:68)   = [character(len=99) :: 'M<sub>c</sub>','&eta;','M<sub>1</sub>','M<sub>2</sub>','M<sub>c</sub>', &
+       'M<sub>tot</sub>','q','log q']
+  htParNs(71:74)   = [character(len=99) :: 'a<sub>1</sub>','&theta;<sub>1</sub>','&phi;<sub>1</sub>','&theta<sub>1</sub>']
+  htParNs(81:84)   = [character(len=99) :: 'a<sub>2</sub>','&theta;<sub>2</sub>','&phi;<sub>2</sub>','&theta<sub>2</sub>']
+  htParNs(185:190) = [character(len=99) :: 'x1','x2','x3','x4','x5','x6']
+  htParNs(191:199) = [character(len=99) :: 'x7','x8','x9','x10','x11','x12','x13','x14','x15']
+  
   
   
   if(fonttype.eq.2) then  ! Use 'roman-like' Greek font in PGPlot
@@ -329,7 +343,7 @@ end subroutine set_originalParameterNames
 
 subroutine set_derivedParameterNames()
   use analysemcmc_settings, only: fonttype
-  use general_data, only: parNames,pgParNs,pgParNss,pgUnits
+  use general_data, only: parNames,pgParNs,pgParNss,pgUnits, htParNs
   
   implicit none
   
@@ -340,17 +354,30 @@ subroutine set_derivedParameterNames()
   pgUnits = ''
   
   ! Short ASCII names for text output:
-  parNames(11:19)   = (/'tc      ','t40     ','        ','        ','        ','        ','        ','        ','        '/)
-  parNames(21:29)   = (/'dl      ','dl      ','dl      ','        ','        ','        ','        ','        ','        '/)
-  parNames(31:39)   = (/'RA      ','dec     ','dec     ','        ','        ','        ','        ','        ','        '/)
-  parNames(41:49)   = (/'phase   ','        ','        ','        ','        ','        ','        ','        ','        '/)
-  parNames(51:59)   = (/'incl    ','psi     ','th_Jo   ','ph_Jo   ','incl    ','        ','        ','        ','        '/)
-  parNames(61:69)   = (/'Mc      ','eta     ','M1      ','M2      ','Mc      ','Mtot    ','q       ','log_q   ','        '/)
-  parNames(71:79)   = (/'spin1   ','th1     ','phi1    ','theta1  ','        ','        ','        ','        ','        '/)
-  parNames(81:89)   = (/'spin2   ','th2     ','phi2    ','theta2  ','        ','        ','        ','        ','        '/)
-  parNames(185:190) = (/'x1      ','x2      ','x3      ','x4      ','x5      ','x6      '/)
-  parNames(191:199) = (/'x7      ','x8      ','x9      ','x10     ','x11     ','x12     ','x13     ','x14     ','x15     '/)
-  !parNames(1:9) = (/'','','','','','','','',''/)
+  parNames(11:12)   = [character(len=99) :: 'tc','t40']
+  parNames(21:23)   = [character(len=99) :: 'dl','dl','dl']
+  parNames(31:33)   = [character(len=99) :: 'RA','dec','dec']
+  parNames(41:41)   = [character(len=99) :: 'phase']
+  parNames(51:55)   = [character(len=99) :: 'incl','psi','th_Jo','ph_Jo','incl']
+  parNames(61:68)   = [character(len=99) :: 'Mc','eta','M1','M2','Mc','Mtot','q','log_q']
+  parNames(71:74)   = [character(len=99) :: 'spin1','th1','phi1','theta1']
+  parNames(81:84)   = [character(len=99) :: 'spin2','th2','phi2','theta2']
+  parNames(185:190) = [character(len=99) :: 'x1','x2','x3','x4','x5','x6']
+  parNames(191:199) = [character(len=99) :: 'x7','x8','x9','x10','x11','x12','x13','x14','x15']
+  
+  
+  ! Short HTML names:
+  htParNs(11:12)   = [character(len=99) :: 't<sub>c</sub>','t<sub>40</sub>']
+  htParNs(21:23)   = [character(len=99) :: 'd<sub>l</sub>','d<sub>l</sub>','d<sub>l</sub>']
+  htParNs(31:33)   = [character(len=99) :: 'RA','dec','dec']
+  htParNs(41:41)   = [character(len=99) :: '&phi;']
+  htParNs(51:55)   = [character(len=99) :: '&iota;','&psi;','&theta;<sub>J0</sub>','&phi;<sub>J0</sub>','&iota;']
+  htParNs(61:68)   = [character(len=99) :: 'M<sub>c</sub>','&eta;','M<sub>1</sub>','M<sub>2</sub>','M<sub>c</sub>', &
+       'M<sub>tot</sub>','q','log q']
+  htParNs(71:74)   = [character(len=99) :: 'a<sub>1</sub>','&theta;<sub>1</sub>','&phi;<sub>1</sub>','&theta<sub>1</sub>']
+  htParNs(81:84)   = [character(len=99) :: 'a<sub>2</sub>','&theta;<sub>2</sub>','&phi;<sub>2</sub>','&theta<sub>2</sub>']
+  htParNs(185:190) = [character(len=99) :: 'x1','x2','x3','x4','x5','x6']
+  htParNs(191:199) = [character(len=99) :: 'x7','x8','x9','x10','x11','x12','x13','x14','x15']
   
   
   if(fonttype.eq.2) then  ! Use 'roman-like' Greek font in PGPlot

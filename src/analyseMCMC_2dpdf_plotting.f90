@@ -662,7 +662,7 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
   use SUFR_constants, only: stdErr
   use analysemcmc_settings, only: file, html, Npdf2D,PDF2Dpairs, bmpXSz,bmpYSz, scFac
   use mcmcrun_data, only: revID,parID
-  use general_data, only: outputname,outputdir,parNames, fixedpar
+  use general_data, only: outputname,outputdir,parNames,htParNs, fixedpar
   use plot_data, only: bmpsz,bmprat,bmpxpix,pltsz,pltrat
   
   implicit none
@@ -672,13 +672,37 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
   character :: basefile*(199),tempfile*(99)
   logical :: ex
   
+  
   if(file.eq.1) then
      countplots = 0
+     
      if(html.ge.1) write(51,'(A)')'<table>'
+     
      do p1=j1,j2
-        if(html.ge.1) write(51,'(2x,A)')'<tr>'
+        
+        if(fixedpar(p1).ge.1) cycle
+        
+        if(html.ge.1) then
+           if(p1.eq.j1) then
+              write(51,'(2x,A)')'<tr>'
+              write(51,'(4x,A)')'<td></td>'
+              do p2=j1,j2
+                 if(fixedpar(p2).ge.1) cycle
+                 write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p2)))//'</h1></td>'
+              end do
+              write(51,'(4x,A)')'<td></td>'
+              write(51,'(2x,A)')'</tr>'
+           end if
+           
+           write(51,'(2x,A)')'<tr>'
+           write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
+        end if
+        
+        
+        
         do p2=j1,j2
            
+           if(fixedpar(p2).ge.1) cycle
            
            if(Npdf2D.ge.0) then
               plotthis = 0  ! Determine to plot or save this combination of j1/j2 or p1/p2
@@ -691,7 +715,7 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
               if(p2.le.p1) then
                  if(html.ge.1) then
                     if(p1.eq.p2) then
-                       write(51,'(4x,A)')'<td></td>'
+                       write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
                     else
                        write(basefile,'(A)') trim(outputname)//'__pdf2d__'// &
                             trim(parNames(parID(p2)))//'-'//trim(parNames(parID(p1)))
@@ -704,7 +728,6 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
                  end if
                  cycle
               end if
-              if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
            end if
            
            countplots = countplots + 1  ! The current plot is number countplots
@@ -737,9 +760,26 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
            end if
            
         end do  ! p2=j1,j2
-        if(html.ge.1) write(51,'(2x,A)')'</tr>'
+        
+        
+        if(html.ge.1) then
+           write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
+           write(51,'(2x,A)')'</tr>'
+           
+           if(p1.eq.j2) then
+              write(51,'(2x,A)')'<tr>'
+              write(51,'(4x,A)')'<td></td>'
+              do p2=j1,j2
+                 if(fixedpar(p2).ge.1) cycle
+                 write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p2)))//'</h1></td>'
+              end do
+              write(51,'(4x,A)')'<td></td>'
+              write(51,'(2x,A)')'</tr>'
+           end if
+        end if
         
      end do  ! p1=j1,j2
+     
      if(html.ge.1) write(51,'(A)')'</table>'
      
   end if  ! if(file.eq.1)
