@@ -29,25 +29,24 @@ subroutine pdfs2d(exitcode)
   use SUFR_system, only: swapreal
   use SUFR_text, only: replace_substring
   
-  use aM_constants, only: use_PLplot
-  use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
+  use analysemcmc_settings, only: update,prProgress,file,pssz,quality
   use analysemcmc_settings, only: fontsize2d,maxChs
   use analysemcmc_settings, only: Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky
-  use analysemcmc_settings, only: savePDF,plot,plPDF1D,plPDF2D
+  use analysemcmc_settings, only: savePDF,plot,plPDF1D,plPDF2D, outputbasefile,outputtempfile
   use general_data, only: outputname,outputdir,startval,parNames, nfixedpar
   use general_data, only: selDat,stats,ranges,c0,n,maxIter,fixedpar, raCentre,raShift
   use mcmcrun_data, only: totpts,revID,parID, nMCMCpar
-  use plot_data, only: psclr,bmpsz,bmprat,bmpxpix,unSharppdf2d,pltsz,pltrat
+  use plot_data, only: bmpsz,bmprat,bmpxpix,unSharppdf2d,pltsz,pltrat
   
   implicit none
   integer, intent(out) :: exitcode
   
   real,allocatable :: z(:,:),zs(:,:,:)  ! These depend on nbin2d, allocate after reading input file
   
-  integer :: i,j,j1,j2,p1,p2,ic,lw,flw,io,status,system,pgopen
+  integer :: i,j,j1,j2,p1,p2,ic,lw,flw,status,system
   integer :: npdf,plotthis,countplots,totplots
   real :: tr(6), sch, xmin,xmax, ymin,ymax, dx,dy
-  character :: str*(99),tempfile*(99), outputbasefile*(199), convopts*(99)
+  character :: convopts*(99)
   logical :: project_map,sky_position,binary_orientation, ex, create_this_2D_PDF
   
   
@@ -174,56 +173,11 @@ subroutine pdfs2d(exitcode)
         call identify_special_combinations_of_parameters(p1,p2, sky_position, binary_orientation, project_map)
         
         
-        if(plot.eq.1) then
-           
-           !*** Open the plot file:
-           write(outputbasefile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'// &
-                trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
-           
-           if(file.eq.0) then
-              npdf=npdf+1
-              write(str,'(I3,A3)')200+npdf,'/xs'
-              if(.not.use_PLplot) io = pgopen(trim(str))
-              if(project_map) then
-                 call pgpap(scrSz/0.5*scrRat,0.5)
-              else
-                 call pgpap(scrSz,scrRat)
-              end if
-              if(use_PLplot) io = pgopen(trim(str))
-              call pginitl(colour,file,whiteBG)
-           end if
-           if(file.eq.1) then
-              write(tempfile,'(A)') trim(outputbasefile)
-              if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
-              if(project_map) then
-                 call pgpap(bmpsz/0.5*bmprat,0.5)
-              else
-                 call pgpap(bmpsz,bmprat)
-              end if
-              if(use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
-              call pginitl(colour,file,whiteBG)
-           end if
-           if(file.ge.2) then
-              write(tempfile,'(A)') trim(outputbasefile)
-              if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
-              if(project_map) then
-                 call pgpap(PSsz/0.5*PSrat,0.5)
-              else
-                 call pgpap(PSsz,PSrat)
-              end if
-              if(use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
-              call pginitl(colour,file,whiteBG)
-              call pgscf(fonttype)
-           end if
-           if(io.le.0) then
-              write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
-              exitcode = 1
-              return
-           end if
-           
-           !call pgscr(3,0.,0.5,0.)
-           call pgsch(sch)
-        end if
+        
+        ! Open the plot file:
+        exitcode = 0
+        if(plot.eq.1) call open_2D_PDF_plot_file(p1,p2, npdf, sch, project_map, exitcode)
+        if(exitcode.ne.0) return
         
         
         
@@ -367,17 +321,17 @@ subroutine pdfs2d(exitcode)
            if(file.eq.1) then
               call pgend
               
-              inquire(file=trim(tempfile)//'.ppm', exist=ex)
+              inquire(file=trim(outputtempfile)//'.ppm', exist=ex)
               if(ex) then
                  convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)
                  if(countplots.eq.Npdf2D) then
                     
                     ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
-                    status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm '//trim(outputbasefile)//'.png')
+                    status = system('convert '//trim(convopts)//' '//trim(outputtempfile)//'.ppm '//trim(outputbasefile)//'.png')
                     
                  else  ! in the background
                     
-                    status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm '//trim(outputbasefile)//'.png &')
+                    status = system('convert '//trim(convopts)//' '//trim(outputtempfile)//'.ppm '//trim(outputbasefile)//'.png &')
                     
                  end if
                  
@@ -390,7 +344,7 @@ subroutine pdfs2d(exitcode)
            if(file.ge.2) then
               call pgend
               if(file.eq.3) then
-                 status = system('eps2pdf '//trim(tempfile)//'.eps &> /dev/null')
+                 status = system('eps2pdf '//trim(outputtempfile)//'.eps &> /dev/null')
                  if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'// &
                       trim(parNames(parID(p2)))
               end if
@@ -460,19 +414,21 @@ subroutine pdfs2d(exitcode)
               
               countplots = countplots + 1  ! The current plot is number countplots
               write(outputbasefile,'(A)') trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
-              write(tempfile,'(A)') trim(outputdir)//'/'//trim(outputbasefile)
-              status = system('rm -f '//trim(tempfile)//'.ppm')
+              write(outputtempfile,'(A)') trim(outputdir)//'/'//trim(outputbasefile)
+              status = system('rm -f '//trim(outputtempfile)//'.ppm')
               
               if(html.ge.1) then
                  
-                 inquire(file=trim(tempfile)//'.png', exist=ex)
+                 inquire(file=trim(outputtempfile)//'.png', exist=ex)
                  if(ex) then
                     
                     ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
                     if(countplots.eq.Npdf2D) then
-                       status = system('convert -resize 200x200 '//trim(tempfile)//'.png '//trim(tempfile)//'_thumb.png')
+                       status = system('convert -resize 200x200 '//trim(outputtempfile)//'.png '// &
+                            trim(outputtempfile)//'_thumb.png')
                     else
-                       status = system('convert -resize 200x200 '//trim(tempfile)//'.png '//trim(tempfile)//'_thumb.png &')
+                       status = system('convert -resize 200x200 '//trim(outputtempfile)//'.png '// &
+                            trim(outputtempfile)//'_thumb.png &')
                     end if
                     if(status.ne.0) write(stdErr,'(A)')'  Error creating thumbnail for '//trim(parNames(parID(p1)))//'-'// &
                          trim(parNames(parID(p2)))

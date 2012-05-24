@@ -20,6 +20,85 @@
 
 
 !***********************************************************************************************************************************
+!> \brief  Open the plot file
+
+subroutine open_2D_PDF_plot_file(p1,p2, npdf, sch, project_map, exitcode)
+  use SUFR_constants, only: stdErr
+  use aM_constants, only: use_PLplot
+  use analysemcmc_settings, only: outputbasefile,outputtempfile, file
+  use analysemcmc_settings, only: scrsz,scrrat,pssz,psrat, colour,whitebg,fonttype
+  use general_data, only: outputname,outputdir, parNames
+  use mcmcrun_data, only: parID
+  use plot_data, only: bmpsz,bmprat,psclr
+  
+  implicit none
+  integer, intent(in) :: p1,p2
+  integer, intent(inout) :: npdf
+  real, intent(in) :: sch
+  logical, intent(in) :: project_map
+  integer, intent(out) :: exitcode
+  
+  integer :: io, pgopen
+  character :: str*(99)
+  
+  exitcode = 0
+  
+  write(outputbasefile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'// &
+       trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
+  
+  if(file.eq.0) then
+     npdf=npdf+1
+     write(str,'(I3,A3)')200+npdf,'/xs'
+     if(.not.use_PLplot) io = pgopen(trim(str))
+     if(project_map) then
+        call pgpap(scrSz/0.5*scrRat,0.5)
+     else
+        call pgpap(scrSz,scrRat)
+     end if
+     if(use_PLplot) io = pgopen(trim(str))
+     call pginitl(colour,file,whiteBG)
+  end if
+  
+  if(file.eq.1) then
+     write(outputtempfile,'(A)') trim(outputbasefile)
+     if(.not.use_PLplot) io = pgopen(trim(outputtempfile)//'.ppm/ppm')
+     if(project_map) then
+        call pgpap(bmpsz/0.5*bmprat,0.5)
+     else
+        call pgpap(bmpsz,bmprat)
+     end if
+     if(use_PLplot) io = pgopen(trim(outputtempfile)//'.ppm/ppm')
+     call pginitl(colour,file,whiteBG)
+  end if
+  
+  if(file.ge.2) then
+     write(outputtempfile,'(A)') trim(outputbasefile)
+     if(.not.use_PLplot) io = pgopen(trim(outputtempfile)//'.eps'//trim(psclr))
+     if(project_map) then
+        call pgpap(PSsz/0.5*PSrat,0.5)
+     else
+        call pgpap(PSsz,PSrat)
+     end if
+     if(use_PLplot) io = pgopen(trim(outputtempfile)//'.eps'//trim(psclr))
+     call pginitl(colour,file,whiteBG)
+     call pgscf(fonttype)
+  end if
+  
+  if(io.le.0) then
+     write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
+     exitcode = 1
+     return
+  end if
+  
+  !call pgscr(3,0.,0.5,0.)
+  call pgsch(sch)
+  
+end subroutine open_2D_PDF_plot_file
+!***********************************************************************************************************************************
+
+
+
+!***********************************************************************************************************************************
 !> \brief  Plot the actual 2D PDF (grey-scale or colour pixels)
 !!
 !! \param z            2D binned data
