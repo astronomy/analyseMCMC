@@ -481,7 +481,7 @@ subroutine plot_2D_PDF_axes_labels_titles(p1,p2, sch,flw, project_map)
   
   integer :: c, i
   real :: area, just
-  character :: string*(99), ivalstr*(99), areaunit*(19), tmpStr1*(19),tmpStr2*(19)
+  character :: string*(99), ivalstr*(99), areaunit*(99), tmpStr1*(19),tmpStr2*(19)
   
   
   ! Plot coordinate axes and axis labels in 2D PDF:
@@ -553,7 +553,6 @@ subroutine plot_2D_PDF_axes_labels_titles(p1,p2, sch,flw, project_map)
            call replace_substring(string, trim(tmpStr1), trim(tmpStr2))
         end do
         call replace_substring(string, '\(727)10\u-0', '\(727)10\u-')
-        call replace_substring(string, '\(727)10\u-', '\(727)10\u\(240)')
         call replace_substring(string, '\(727)10\u 0', '\(727)10\u')
         call replace_substring(string, '\(727)10\u ', '\(727)10\u')
         
@@ -585,7 +584,9 @@ subroutine plot_2D_PDF_axes_labels_titles(p1,p2, sch,flw, project_map)
            end if
         end if
         call pgsch(sch)
-     end do
+        
+     end do  ! c=1,Nival
+     
      call pgsci(1)
   end if  ! if(prIval.ge.1.and.normPDF2D.eq.4)
   
@@ -707,27 +708,16 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
            if(Npdf2D.ge.0) then
               plotthis = 0  ! Determine to plot or save this combination of j1/j2 or p1/p2
               do i=1,Npdf2D
-                 ! Use PDF2Dpairs from the input file:
                  if(p1.eq.revID(PDF2Dpairs(i,1)).and.p2.eq.revID(PDF2Dpairs(i,2))) plotthis = 1  
               end do
               if(plotthis.eq.0) cycle
-           else if(Npdf2D.eq.-1) then
-              if(p2.le.p1) then
-                 if(html.ge.1) then
-                    if(p1.eq.p2) then
-                       write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
-                    else
-                       write(basefile,'(A)') trim(outputname)//'__pdf2d__'// &
-                            trim(parNames(parID(p2)))//'-'//trim(parNames(parID(p1)))
-                       write(51,'(4x,A)')'<td>'
-                       write(51,'(4x,A)')'  <a href="'//trim(basefile)//'.png">'
-                       write(51,'(4x,A)')'    <img src="'//trim(basefile)//'_thumb.png">'
-                       write(51,'(4x,A)')'  </a>'
-                       write(51,'(4x,A)')'</td>'
-                    end if
-                 end if
-                 cycle
+           end if
+           
+           if(p1.eq.p2) then
+              if(html.ge.1) then
+                 write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
               end if
+              cycle
            end if
            
            countplots = countplots + 1  ! The current plot is number countplots

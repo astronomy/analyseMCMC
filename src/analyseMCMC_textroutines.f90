@@ -28,6 +28,7 @@ subroutine set_originalParameterNames()
   implicit none
   
   parNames = ''
+  htParNS = ''
   pgParNs = ''
   pgParNss = ''
   pgUnits = ''
@@ -45,7 +46,7 @@ subroutine set_originalParameterNames()
   parNames(191:199) = [character(len=99) :: 'x7','x8','x9','x10','x11','x12','x13','x14','x15']
   
   
-  ! Short HTML names:
+  ! Short HTML names - actually, these are the names of the derived parameters:
   htParNs(11:12)   = [character(len=99) :: 't<sub>c</sub>','t<sub>40</sub>']
   htParNs(21:23)   = [character(len=99) :: 'd<sub>l</sub>','d<sub>l</sub>','d<sub>l</sub>']
   htParNs(31:33)   = [character(len=99) :: 'RA','dec','dec']
@@ -349,6 +350,7 @@ subroutine set_derivedParameterNames()
   
   
   parNames = ''
+  htParNS = ''
   pgParNs = ''
   pgParNss = ''
   pgUnits = ''

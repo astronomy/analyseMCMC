@@ -88,7 +88,7 @@ module general_data
   real :: logebayesfactortotalarith,logebayesfactortotal,logebayestempfactor(maxChs)
   real(double) :: rhat(maxMCMCpar)
   
-  character :: parNames(nParDB)*(8),infiles(maxChs)*(99),outputname*(99),outputdir*(99)
+  character :: parNames(nParDB)*(99),infiles(maxChs)*(99),outputname*(99),outputdir*(99)
   character :: pgunits(nParDB)*(99),pgParNs(nParDB)*(99),pgParNss(nParDB)*(99),pgOrigParns(nParDB)*(99)
   character :: htParNs(nParDB)*(99)
   
