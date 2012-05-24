@@ -20,8 +20,56 @@
 
 
 !***********************************************************************************************************************************
+!> \brief Identify special combinations of parameters
+!! 
+!! \param p1                   ID of parameter 1
+!! \param p2                   ID of parameter 2
+!! 
+!! \retval sky_position        Binning/plotting sky position?
+!! \retval binary_orientation  Binning/plotting binary orientation?
+!! \retval project_map         Using a map projection?
+
+subroutine identify_special_combinations_of_parameters(p1,p2, sky_position, binary_orientation, project_map)
+  use analysemcmc_settings, only: plotSky
+  use mcmcrun_data, only: parID
+  
+  implicit none
+  integer, intent(in) :: p1,p2
+  logical, intent(out) :: sky_position, binary_orientation, project_map
+  
+  sky_position = .false.
+  binary_orientation = .false.
+  project_map = .false.
+  
+  if(parID(p1).eq.31.and.parID(p2).eq.32) sky_position = .true.
+  if(parID(p1).eq.31.and.parID(p2).eq.33) sky_position = .true.
+  if(parID(p1).eq.52.and.parID(p2).eq.51) binary_orientation = .true.
+  
+  ! Make a special sky plot (i.e., plot stars or use projection) if plotSky>0 and RA,Dec are plotted:
+  if(sky_position .and. plotSky.ge.1) project_map = .true.
+  
+end subroutine identify_special_combinations_of_parameters
+!***********************************************************************************************************************************
+
+
+
+!***********************************************************************************************************************************
 !> \brief  Bin data and 'normalise' 2D PDF
 !!
+!! \param ic                  Chain ID
+!! \param p1                  ID of parameter 1
+!! \param p2                  ID of parameter 2
+!!
+!! \param xmin                Lower limit of horizontal plot range (I/O)
+!! \param xmax                Upper limit of horizontal plot range (I/O)
+!! \param ymin                Lower limit of vertical plot range (I/O)
+!! \param ymax                Upper limit of vertical plot range (I/O)
+!!
+!! \param z                   2D binned data (I/O)
+!! \param tr                  Transformation elements used by PGPlot (I/O)
+!!
+!! \param sky_position        Binning/plotting sky position?
+!! \param binary_orientation  Binning/plotting binary orientation?
 
 subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_position,binary_orientation)
   use SUFR_constants, only: stdOut, pi,rpi

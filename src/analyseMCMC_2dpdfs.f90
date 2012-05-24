@@ -175,28 +175,21 @@ subroutine pdfs2d(exitcode)
            if(plotthis.eq.0) cycle
            if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")trim(parNames(parID(p1)))//'-'// &
                 trim(parNames(parID(p2)))//' '
-        else
+           
+        else  ! Npdf2D.lt.0 - all combinations of non-fixed parameters
+           
            if(p2.le.p1) cycle
            if(fixedpar(p1)+fixedpar(p2).ge.1) cycle
            if(stdOut.lt.10) then
               write(stdOut,*)cursorup  ! Move cursor up 1 line
-              if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(F7.1,A)')real(countplots+1)/real(totplots)*100, &
+              if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(F7.1,A)') real(countplots+1)/real(totplots)*100, &
                    '%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                      '
            end if
         end if
         
         
         ! Identify special combinations of parameters:
-        sky_position = .false.
-        binary_orientation = .false.
-        project_map = .false.
-        if(parID(p1).eq.31.and.parID(p2).eq.32) sky_position = .true.
-        if(parID(p1).eq.31.and.parID(p2).eq.33) sky_position = .true.
-        if(parID(p1).eq.52.and.parID(p2).eq.51) binary_orientation = .true.
-        
-        ! Make a special sky plot (i.e., plot stars or use projection) if plotSky>0 and RA,Dec are plotted:
-        if(sky_position .and. plotSky.ge.1) project_map = .true.
-        
+        call identify_special_combinations_of_parameters(p1,p2, sky_position, binary_orientation, project_map)
         
         
         if(plot.eq.1) then
@@ -275,7 +268,7 @@ subroutine pdfs2d(exitcode)
         
         
         
-        if(plot.eq.1 .and. project_map) call prepare_skymap_binning()  ! Prepare binning for a cute sky map in 2D PDF
+        if(plot.eq.1 .and. project_map) call prepare_skymap_binning(xmin,xmax, ymin,ymax)  ! Prepare binning for a 2D sky map
         
         
         
