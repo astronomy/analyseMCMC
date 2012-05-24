@@ -34,7 +34,7 @@ subroutine pdfs2d(exitcode)
   use analysemcmc_settings, only: savePDF,plot,plPDF1D,plPDF2D, outputbasefile,outputtempfile
   use general_data, only: outputname,outputdir,parNames, nfixedpar,fixedpar, maxIter, raCentre,raShift
   use mcmcrun_data, only: totpts,revID,parID, nMCMCpar
-  use plot_data, only: bmpsz,bmprat,bmpxpix,unSharppdf2d,pltsz,pltrat
+  use plot_data, only: bmpsz,bmprat,bmpxpix,pltsz,pltrat
   
   implicit none
   integer, intent(out) :: exitcode
@@ -44,7 +44,6 @@ subroutine pdfs2d(exitcode)
   integer :: i,j,j1,j2,p1,p2,ic,lw,flw,status,system
   integer :: npdf,plotthis,countplots,totplots
   real :: tr(6), sch, xmin,xmax, ymin,ymax, dx,dy
-  character :: convopts*(99)
   logical :: project_map,sky_position,binary_orientation, ex, create_this_2D_PDF
   
   
@@ -81,7 +80,7 @@ subroutine pdfs2d(exitcode)
      bmpYSz = 700
      
      call compBitmapSize(bmpXSz,bmpYSz, scFac, bmpsz,bmprat)  ! Determine plot size and ratio
-     write(bmpxpix,'(I4)')bmpXSz                              ! Used as a text string by convert
+     write(bmpxpix,'(I4)') bmpXSz                              ! Used as a text string by convert
      pltsz = bmpsz
      pltrat = bmprat
   end if
@@ -252,50 +251,20 @@ subroutine pdfs2d(exitcode)
         
         if(plot.eq.1) then
            
-           !*** Plot injection value, median, ranges, etc. in 2D PDF:
+           ! Plot injection value, median, ranges, etc. in 2D PDF:
            call plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw, project_map)
            
            
-           !*** Print axes, axis labels and plot title:
+           ! Print axes, axis labels and plot title:
            call plot_2D_PDF_axes_labels_titles(p1,p2, sch,flw, project_map)
            
            
-           !*** Finish the current plot:
+           ! Finish the current plot:
            countplots = countplots + 1  ! The current plot is number countplots
            
            
-           !*** Convert plot:
-           if(file.eq.1) then
-              call pgend
-              
-              inquire(file=trim(outputtempfile)//'.ppm', exist=ex)
-              if(ex) then
-                 convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)
-                 if(countplots.eq.Npdf2D) then
-                    
-                    ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
-                    status = system('convert '//trim(convopts)//' '//trim(outputtempfile)//'.ppm '//trim(outputbasefile)//'.png')
-                    
-                 else  ! in the background
-                    
-                    status = system('convert '//trim(convopts)//' '//trim(outputtempfile)//'.ppm '//trim(outputbasefile)//'.png &')
-                    
-                 end if
-                 
-                 if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'// &
-                      trim(parNames(parID(p2)))
-              end if
-           end if
-           
-           
-           if(file.ge.2) then
-              call pgend
-              if(file.eq.3) then
-                 status = system('eps2pdf '//trim(outputtempfile)//'.eps &> /dev/null')
-                 if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'// &
-                      trim(parNames(parID(p2)))
-              end if
-           end if
+           ! Convert plot:
+           call convert_2D_PDF_plot(p1,p2, countplots)
            
         end if  ! if(plot.eq.1)
         
@@ -399,7 +368,7 @@ subroutine pdfs2d(exitcode)
         bmpYSz =  700
         
         call compBitmapSize(bmpXSz,bmpYSz, scFac, bmpsz,bmprat)  ! Determine plot size and ratio
-        write(bmpxpix,'(I4)')bmpXSz  ! Used as a text string by convert
+        write(bmpxpix,'(I4)') bmpXSz  ! Used as a text string by convert
         pltsz = bmpsz
         pltrat = bmprat
      end if

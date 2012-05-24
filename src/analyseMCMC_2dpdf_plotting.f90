@@ -592,3 +592,60 @@ subroutine plot_2D_PDF_axes_labels_titles(p1,p2, sch,flw, project_map)
 end subroutine plot_2D_PDF_axes_labels_titles
 !***********************************************************************************************************************************
 
+
+!***********************************************************************************************************************************
+!> \brief  Convert 2D PDF plot
+!!
+!! \param p1          ID of parameter 1
+!! \param p2          ID of parameter 2
+!! \param countplots  Count of the current plot
+
+subroutine convert_2D_PDF_plot(p1,p2, countplots)
+  use SUFR_constants, only: stdErr
+  use analysemcmc_settings, only: file,outputtempfile,outputbasefile, Npdf2D
+  use general_data, only: parNames
+  use mcmcrun_data, only: parID
+  use plot_data, only: bmpxpix, unSharppdf2d
+  implicit none
+  
+  integer, intent(in) :: p1,p2, countplots
+  
+  integer :: status,system
+  character :: convopts*(99)
+  logical :: ex
+  
+  
+  if(file.eq.1) then
+     call pgend
+     
+     inquire(file=trim(outputtempfile)//'.ppm', exist=ex)
+     if(ex) then
+        convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)
+        if(countplots.eq.Npdf2D) then
+           
+           ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
+           status = system('convert '//trim(convopts)//' '//trim(outputtempfile)//'.ppm '//trim(outputbasefile)//'.png')
+           
+        else  ! in the background
+           
+           status = system('convert '//trim(convopts)//' '//trim(outputtempfile)//'.ppm '//trim(outputbasefile)//'.png &')
+           
+        end if
+        
+        if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'// &
+             trim(parNames(parID(p2)))
+     end if
+  end if
+  
+  
+  if(file.ge.2) then
+     call pgend
+     if(file.eq.3) then
+        status = system('eps2pdf '//trim(outputtempfile)//'.eps &> /dev/null')
+        if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'// &
+             trim(parNames(parID(p2)))
+     end if
+  end if
+  
+end subroutine convert_2D_PDF_plot
+!***********************************************************************************************************************************
