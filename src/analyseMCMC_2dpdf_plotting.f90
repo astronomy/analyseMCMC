@@ -20,7 +20,15 @@
 
 
 !***********************************************************************************************************************************
-!> \brief  Open the plot file
+!> \brief  Open a screen or plot file for the 2D PDF plot
+!!
+!! \param  p1           ID of parameter 1
+!! \param  p2           ID of parameter 2
+!! \param  npdf         Number of the current PDF (I/O)
+!! \param  sch          Default (character) scaling
+!! \param  project_map  Use map projection?
+!!
+!! \retval exitcode     Exit code: 0=ok
 
 subroutine open_2D_PDF_plot_file(p1,p2, npdf, sch, project_map, exitcode)
   use SUFR_constants, only: stdErr
@@ -48,7 +56,7 @@ subroutine open_2D_PDF_plot_file(p1,p2, npdf, sch, project_map, exitcode)
   
   if(file.eq.0) then
      npdf=npdf+1
-     write(str,'(I3,A3)')200+npdf,'/xs'
+     write(str,'(I3,A3)') 200+npdf,'/xs'
      if(.not.use_PLplot) io = pgopen(trim(str))
      if(project_map) then
         call pgpap(scrSz/0.5*scrRat,0.5)
