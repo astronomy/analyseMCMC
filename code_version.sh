@@ -49,8 +49,8 @@ else
     echo "  integer, intent(in) :: unit" >> ${F90FILE}
     echo "  logical, intent(out) :: use_PLplot" >> ${F90FILE}
     if [ -e .git/ ]; then  # Prefer revision number over release number
-	#echo "  character :: code_version*(99) = 'revision "`git rev-list --abbrev-commit HEAD | wc -l`", hash "`git log --pretty="%h (%ad)" --date=short -n1`"'" >> ${F90FILE}
-	echo "  character :: code_version*(99) = 'rev."`git rev-list --abbrev-commit HEAD | wc -l`", "`git describe --tags`" "`git log --pretty="(%ad)" --date=short -n1`"'" >> ${F90FILE}
+	echo "  character :: code_version*(99) = 'rev."`git rev-list --abbrev-commit HEAD | wc -l`", hash "`git log --pretty="%h (%ad)" --date=short -n1`"'" >> ${F90FILE}
+	#echo "  character :: code_version*(99) = 'rev."`git rev-list --abbrev-commit HEAD | wc -l`", "`git describe --tags`" "`git log --pretty="(%ad)" --date=short -n1`"'" >> ${F90FILE}  # Doesn't work on Mac OS(?)
     elif [ -e .bzr/ ]; then  # Prefer bzr revision number over release number
 	echo "  character :: code_version*(99) = 'revision "`bzr revno`"'" >> ${F90FILE}
     elif [ -e VERSION ]; then
