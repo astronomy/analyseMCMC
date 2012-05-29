@@ -741,10 +741,10 @@ subroutine parNames2IDs(parNameStr,nMCMCpar, parID)
   
   integer, parameter :: npIDs = 17
   integer :: pr1,pr2,pIDs(npIDs)
-  character :: pnames(npIDs)*(20),pars(npIDs)*(20)
+  character :: pnames(npIDs)*(19),pars(npIDs)*(19)
   
   parID = 0
-  pnames(1:npIDs) = [character(len=20) :: 'iota','psi','dec','ra','dist','phi_orb','time','q','mc',  &
+  pnames(1:npIDs) = [character(len=19) :: 'iota','psi','dec','ra','dist','phi_orb','time','q','mc',  &
        'a1','theta1','phi1','a2','theta2','phi2','eta','logq']  ! CHECK: time = t40? tc?
   pIDs(1:npIDs) = (/                   51,    52,   32,   31,  22,    41,       11,    67, 61,  &
        71,72,73, 81,82,83,62,68/)
@@ -1177,9 +1177,6 @@ subroutine mcmcruninfo(exitcode)
            allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! Mtot = m1 + m2
            allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                                ! log_q = log(q)
         end do
-        
-     else
-        call warn('Not all of Mc, eta, M1 and M2 are defined', stdOut)
      end if !if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) 
      
      ! Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
