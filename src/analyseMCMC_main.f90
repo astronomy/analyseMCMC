@@ -72,7 +72,7 @@ program analyseMCMC
   use analysemcmc_settings, only: whiteBG,scFac,scrSz,scrRat,PSsz,PSrat,unSharp,orientation,chainSymbol,quality,plJump,savePDF
   use analysemcmc_settings, only: wrapData,update,nPlPar,mergeChains,tailoredOutput,plACorr, maxChs
   use analysemcmc_settings, only: phi_q_sorting
-  use general_data, only: infiles,allDat,selDat,post,prior,outputdir,nchains0,nchains,ntot,outputname
+  use general_data, only: infiles,allDat,selDat,post,prior,outputDir,nchains0,nchains,ntot,outputname
   use mcmcrun_data, only: nMCMCpar
   use plot_data, only: colours,symbols,colournames,maxdots,bmpsz,bmprat,bmpxpix,pltsz,pltrat,unSharplogl,unSharpchain,unSharppdf1d
   use plot_data, only: unSharppdf2d,psclr,ncolours,nsymbols,defcolour
@@ -91,6 +91,7 @@ program analyseMCMC
   
   call set_SUFR_constants()   ! Define constants in libSUFR
   call setconstants()         ! Define mathematical constants
+  
   os = getos()                ! 1-Linux, 2-MacOS
   timestamps = 0.0_dbl
   timestamps(1) = timestamp()

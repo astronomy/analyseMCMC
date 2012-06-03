@@ -48,9 +48,9 @@ end subroutine setconstants
 
 
 !***********************************************************************************************************************************
-!> \brief  Read the settings file (called analysemcmc.dat by default)
+!> \brief  Read the settings file (called analysemcmc.dat by default) - old version (< 2012-06)
 
-subroutine read_settingsfile()
+subroutine read_settingsfile_old()
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdErr
   use SUFR_system, only: quit_program
@@ -193,15 +193,14 @@ subroutine read_settingsfile()
      stop
   end if
   
-end subroutine read_settingsfile
+end subroutine read_settingsfile_old
 !***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
-!> \brief  Write a copy of the settings file (called analysemcmc.used by default)
+!> \brief  Read a copy of the settings file (called analysemcmc.dat by default)
 
-subroutine write_settingsfile()
-  use SUFR_kinds, only: double
+subroutine read_settingsfile()
   use SUFR_system, only: find_free_io_unit
   
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
@@ -215,8 +214,7 @@ subroutine write_settingsfile()
   use general_data, only: outputDir
   
   implicit none
-  integer :: op, NburnMax
-  real(double) :: DblMaxChLen
+  integer :: ip, NburnMax
   
   ! Basic options:
   namelist /basic_options/ thin, NburnMax, NburnFrac, autoBurnin, maxChLen, file, colour, quality, reverseRead, &
@@ -240,12 +238,79 @@ subroutine write_settingsfile()
   namelist /fonts_symbols/ orientation, fontType, fontSize1D, fontSize2D, chainSymbol
   
   ! Data settings:
-  namelist /plot_parameters_binning/ nPlPar, plPars, panels, Nbin1D, Nbin2Dx, Nbin2Dy, Npdf2D, &
-       PDF2Dpairs  ! was: plPars(1:nPlPar), panels(1:2), PDF2Dpairs(1:Npdf2D,1:2)
+  namelist /plot_parameters_binning/ nPlPar, plPars, panels, Nbin1D, Nbin2Dx, Nbin2Dy, Npdf2D, PDF2Dpairs
+  ! was: plPars(1:nPlPar), panels(1:2), PDF2Dpairs(1:Npdf2D,1:2)
+  
+  
+  
+  
+  call find_free_io_unit(ip)
+  open(unit=ip, status='old', action='read', file='analysemcmc.dat')
+  
+  read(ip, nml=basic_options)             ! Basic options
+  read(ip, nml=print_options)             ! Print options
+  read(ip, nml=plot_select)               ! Select which plots to select
+  read(ip, nml=plot_options)              ! Detailed plot settings
+  read(ip, nml=output_format)             ! Output format
+  read(ip, nml=fonts_symbols)             ! Fonts, symbols, etc.
+  read(ip, nml=plot_parameters_binning)   ! Select parameters to plot, binning, etc.
+  
+  close(ip)
+  
+  Nburn = NburnMax
+  
+end subroutine read_settingsfile
+!***********************************************************************************************************************************
+
+
+
+
+!***********************************************************************************************************************************
+!> \brief  Write a copy of the settings file (called analysemcmc.used by default)
+
+subroutine write_settingsfile()
+  use SUFR_system, only: find_free_io_unit
+  
+  use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
+  use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
+  use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
+  use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plotSky,plAnim,chainPlI,scLogLpl
+  use analysemcmc_settings, only: scChainsPl,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D
+  use analysemcmc_settings, only: normPDF2D,nAnimFrames,animScheme,Nival,ival0,scrSz,scrRat,bmpXSz,bmpYSz,PSsz,PSrat,scFac,unSharp
+  use analysemcmc_settings, only: orientation,fontType,fontSize1D,fontSize2D,chainSymbol,nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D
+  use analysemcmc_settings, only: mapProjection, wikiOutput
+  use general_data, only: outputDir
+  
+  implicit none
+  integer :: op, NburnMax
+  
+  ! Basic options:
+  namelist /basic_options/ thin, NburnMax, NburnFrac, autoBurnin, maxChLen, file, colour, quality, reverseRead, &
+       update, mergeChains, wrapData, changeVar, outputDir
+  
+  ! Select what output to print to screen and write to file:
+  namelist /print_options/ prStdOut, prProgress, prRunInfo, prChainInfo, prInitial, prStat, prCorr, prAcorr, nAcorr, prIval, &
+       prConv, saveStats, savePDF, wikiOutput, tailoredOutput
+  
+  ! Select which plots to make:
+  namelist /plot_select/ plot, plLogL, plChain, plParL, plJump, plPDF1D, plPDF2D, plAcorr, plotSky, mapProjection, plAnim
+  
+  ! Detailed plot settings:
+  namelist /plot_options/ chainPlI, scLogLpl, scChainsPl, plInject, plStart, plMedian, plRange, plBurn, plLmax, prValues, smooth, &
+       fillPDF, normPDF1D, normPDF2D, nAnimFrames, animScheme, Nival, ival0, ivals  ! was: ivals(1:Nival)
+  
+  ! Output format:
+  namelist /output_format/ scrSz, scrRat, bmpXSz, bmpYSz, PSsz, PSrat, scFac, unSharp
+  
+  ! Fonts, symbols, etc.:
+  namelist /fonts_symbols/ orientation, fontType, fontSize1D, fontSize2D, chainSymbol
+  
+  ! Data settings:
+  namelist /plot_parameters_binning/ nPlPar, plPars, panels, Nbin1D, Nbin2Dx, Nbin2Dy, Npdf2D, PDF2Dpairs
+  ! was: plPars(1:nPlPar), panels(1:2), PDF2Dpairs(1:Npdf2D,1:2)
   
   
   NburnMax = maxval(Nburn)
-  DblMaxChLen = dble(maxChLen)
   
   
   call find_free_io_unit(op)
