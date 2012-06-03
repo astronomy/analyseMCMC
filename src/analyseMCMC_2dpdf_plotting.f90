@@ -115,7 +115,7 @@ end subroutine open_2D_PDF_plot_file
 
 subroutine plot_2D_PDF(z, tr, project_map)
   use SUFR_constants, only: stdOut
-  use analysemcmc_settings, only: Nbin2Dx,Nbin2Dy, prProgress, plotSky,map_projection
+  use analysemcmc_settings, only: Nbin2Dx,Nbin2Dy, prProgress, plotSky,mapProjection
   
   implicit none
   real, intent(in) :: z(Nbin2Dx+1,Nbin2Dy+1), tr(6)
@@ -132,7 +132,7 @@ subroutine plot_2D_PDF(z, tr, project_map)
   if(project_map .and. plotSky.ge.2) then
      
      if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  plotting map projection...'
-     call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, map_projection)
+     call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, mapProjection)
      
   else
      
@@ -324,7 +324,7 @@ end subroutine plot_2D_contours
 
 
 subroutine plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw, project_map)
-  use analysemcmc_settings, only: plotSky, plLmax,plInject,plRange,plMedian, mergeChains, ivals, normPDF2D, map_projection
+  use analysemcmc_settings, only: plotSky, plLmax,plInject,plRange,plMedian, mergeChains, ivals, normPDF2D, mapProjection
   use general_data, only: allDat,startval, c0, ranges,stats, icloglmax,iloglmax, wrap,shifts,shIvals,raCentre
   use mcmcrun_data, only: parID
   
@@ -446,7 +446,7 @@ subroutine plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw,
      plx = startval(ic,p1,1)
      ply = startval(ic,p2,1)
      
-     if(plotSky.eq.2.or.plotSky.eq.4) call project_skymap(plx,ply,raCentre,map_projection)
+     if(plotSky.eq.2.or.plotSky.eq.4) call project_skymap(plx,ply,raCentre,mapProjection)
      call pgpoint(1,plx,ply,8)
      
      call pgsch(sch)
@@ -661,7 +661,7 @@ end subroutine convert_2D_PDF_plot
 
 subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
   use SUFR_constants, only: stdErr
-  use analysemcmc_settings, only: file, html, Npdf2D,PDF2Dpairs, bmpXSz,bmpYSz, scFac
+  use analysemcmc_settings, only: file, htmlOutput, Npdf2D,PDF2Dpairs, bmpXSz,bmpYSz, scFac
   use mcmcrun_data, only: revID,parID
   use general_data, only: outputname,outputdir,parNames,htParNs, fixedpar
   use plot_data, only: bmpsz,bmprat,bmpxpix,pltsz,pltrat
@@ -677,13 +677,13 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
   if(file.eq.1) then
      countplots = 0
      
-     if(html.ge.1) write(51,'(A)')'<table>'
+     if(htmlOutput.ge.1) write(51,'(A)')'<table>'
      
      do p1=j1,j2
         
         if(fixedpar(p1).ge.1) cycle
         
-        if(html.ge.1) then
+        if(htmlOutput.ge.1) then
            if(p1.eq.j1) then
               write(51,'(2x,A)')'<tr>'
               write(51,'(4x,A)')'<td></td>'
@@ -714,7 +714,7 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
            end if
            
            if(p1.eq.p2) then
-              if(html.ge.1) then
+              if(htmlOutput.ge.1) then
                  write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
               end if
               cycle
@@ -725,7 +725,7 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
            write(tempfile,'(A)') trim(outputdir)//'/'//trim(basefile)
            status = system('rm -f '//trim(tempfile)//'.ppm')
            
-           if(html.ge.1) then
+           if(htmlOutput.ge.1) then
               
               inquire(file=trim(tempfile)//'.png', exist=ex)
               if(ex) then
@@ -752,7 +752,7 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
         end do  ! p2=j1,j2
         
         
-        if(html.ge.1) then
+        if(htmlOutput.ge.1) then
            write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
            write(51,'(2x,A)')'</tr>'
            
@@ -770,12 +770,12 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
         
      end do  ! p1=j1,j2
      
-     if(html.ge.1) write(51,'(A)')'</table>'
+     if(htmlOutput.ge.1) write(51,'(A)')'</table>'
      
   end if  ! if(file.eq.1)
   
   
-  if(html.eq.1) then
+  if(htmlOutput.eq.1) then
      bmpXSz = 1000
      bmpYSz =  700
      

@@ -32,7 +32,6 @@
 !! -  6: StdOut
 !! -
 !! - 10: input (MCMC) file
-!! - 14: write settings file (analysemcmc.dat)
 !! - 15: read settings file (analysemcmc.dat)
 !! - 16: temp file in getos
 !! - 17: temp file in timestamp
@@ -67,7 +66,7 @@ program analyseMCMC
   use SUFR_system, only: quit_program_error
   
   use aM_constants, only: os, stdOutFile, use_PLplot
-  use analysemcmc_settings, only: panels,wikioutput,map_projection,html,prProgress,file,colour,prStdOut,prRunInfo,prChainInfo
+  use analysemcmc_settings, only: panels,wikioutput,mapProjection,htmlOutput,prProgress,file,colour,prStdOut,prRunInfo,prChainInfo
   use analysemcmc_settings, only: prInitial,prStat,prCorr,prIval,prConv,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D,plotSky
   use analysemcmc_settings, only: plAnim,plInject,plStart,plMedian,plRange,plBurn,plLmax,normPDF2D,bmpXSz,bmpYSz,Npdf2D,reverseRead
   use analysemcmc_settings, only: whiteBG,scFac,scrSz,scrRat,PSsz,PSrat,unSharp,orientation,chainSymbol,quality,plJump,savePDF
@@ -85,10 +84,10 @@ program analyseMCMC
   logical :: ex,timing
   
   
-  outputdir = '.'     ! Directory where output is saved (either relative or absolute path)
-  wikioutput = 1      ! Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
-  map_projection = 1  ! Choose map projection: 1-Mollweide
-  html = 0            ! Produce HTML output
+  outputDir = '.'     ! Directory where output is saved (either relative or absolute path)
+  wikiOutput = 1      ! Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
+  mapProjection = 1   ! Choose map projection: 1-Mollweide
+  htmlOutput = 0      ! Produce HTML output
   
   call set_SUFR_constants()   ! Define constants in libSUFR
   call setconstants()         ! Define mathematical constants
@@ -101,7 +100,7 @@ program analyseMCMC
   call set_plotsettings()     ! Set plot settings to 'default' values
   call read_settingsfile()    ! Read the plot settings (overwrite the defaults)
   if(prProgress.ge.3) call write_settingsfile()   ! Write the input file back to disc
-  !call write_settingsfile()   ! Write the input file back to disc
+  call write_settingsfile()   ! Write the input file back to disc
   
   ! New parameters that should go into the settings file(?):
   phi_q_sorting = 0  ! Do phase/mass-ratio sorting (if phi>pi, q -> 1/q; m1 <-> m2): 0-no, 1-yes
@@ -115,7 +114,7 @@ program analyseMCMC
      !write(stdOut,'(A)') '.'
   end if
   
-  if(html.ge.1) then
+  if(htmlOutput.ge.1) then
      outputdir = 'html'       ! Directory where output is saved (either relative or absolute path)
      
      file = 1
@@ -179,7 +178,7 @@ program analyseMCMC
   end if
   write(stdOut,*)
   
-  if(html.ge.1) then  ! Write standardised HTML output
+  if(htmlOutput.ge.1) then  ! Write standardised HTML output
      open(unit=51,action='write',form='formatted',status='replace',file=trim(outputdir)//'/index.html',iostat=io)
      if(io.ne.0) call quit_program_error('Error opening HTML output file '//trim(outputdir)//'/index.html',1)
   end if
@@ -558,7 +557,7 @@ program analyseMCMC
   end if
   
   
-  if(html.ge.1) close(51)
+  if(htmlOutput.ge.1) close(51)
   
   write(stdOut,*)
   

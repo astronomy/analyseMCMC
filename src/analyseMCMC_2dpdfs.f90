@@ -30,7 +30,7 @@ subroutine pdfs2d(exitcode)
   use SUFR_text, only: replace_substring
   
   use analysemcmc_settings, only: update,prProgress,file,pssz,quality,fontsize2d,maxChs
-  use analysemcmc_settings, only: Npdf2D,PDF2Dpairs,html,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky
+  use analysemcmc_settings, only: Npdf2D,PDF2Dpairs,htmlOutput,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky
   use analysemcmc_settings, only: savePDF,plot,plPDF1D,plPDF2D
   use general_data, only: outputname,outputdir,parNames, nfixedpar, maxIter, raCentre,raShift
   use mcmcrun_data, only: totpts,revID, nMCMCpar
@@ -76,7 +76,7 @@ subroutine pdfs2d(exitcode)
   end do
   
   
-  if(html.eq.1) then
+  if(htmlOutput.eq.1) then
      bmpXSz = 700
      bmpYSz = 700
      

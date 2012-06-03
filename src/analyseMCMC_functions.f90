@@ -201,6 +201,9 @@ end subroutine read_settingsfile
 !> \brief  Write a copy of the settings file (called analysemcmc.used by default)
 
 subroutine write_settingsfile()
+  use SUFR_kinds, only: double
+  use SUFR_system, only: find_free_io_unit
+  
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
@@ -208,162 +211,57 @@ subroutine write_settingsfile()
   use analysemcmc_settings, only: scChainsPl,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D
   use analysemcmc_settings, only: normPDF2D,nAnimFrames,animScheme,Nival,ival0,scrSz,scrRat,bmpXSz,bmpYSz,PSsz,PSrat,scFac,unSharp
   use analysemcmc_settings, only: orientation,fontType,fontSize1D,fontSize2D,chainSymbol,nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D
+  use analysemcmc_settings, only: mapProjection, wikiOutput
+  use general_data, only: outputDir
   
   implicit none
-  integer :: u,i
+  integer :: op, NburnMax
+  real(double) :: DblMaxChLen
   
-  u = 14
-  open(unit=u,form='formatted',status='replace',action='write',file='analysemcmc.used')
+  ! Basic options:
+  namelist /basic_options/ thin, NburnMax, NburnFrac, autoBurnin, maxChLen, file, colour, quality, reverseRead, &
+       update, mergeChains, wrapData, changeVar, outputDir
   
-11 format(I10,1x,A19,5x,A)
-12 format(2I5,1x,A19,5x,A)
-21 format(F10.5,1x,A19,5x,A)
-31 format(ES10.2,1x,A19,5x,A)
+  ! Select what output to print to screen and write to file:
+  namelist /print_options/ prStdOut, prProgress, prRunInfo, prChainInfo, prInitial, prStat, prCorr, prAcorr, nAcorr, prIval, &
+       prConv, saveStats, savePDF, wikiOutput, tailoredOutput
   
-  write(u,'(A,/)')' Input file for AnalyseMCMC'
+  ! Select which plots to make:
+  namelist /plot_select/ plot, plLogL, plChain, plParL, plJump, plPDF1D, plPDF2D, plAcorr, plotSky, mapProjection, plAnim
   
+  ! Detailed plot settings:
+  namelist /plot_options/ chainPlI, scLogLpl, scChainsPl, plInject, plStart, plMedian, plRange, plBurn, plLmax, prValues, smooth, &
+       fillPDF, normPDF1D, normPDF2D, nAnimFrames, animScheme, Nival, ival0, ivals  ! was: ivals(1:Nival)
   
-  write(u,'(/,A)')' Basic options:'
-  write(u,11)thin, 'thin',   'If >1, "thin" the output; read every thin-th line '
-  write(u,11)maxval(Nburn), 'Nburn',   'If >=0: override length of the burn-in phase, for all chains!'// &
-       ' This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain'
-  write(u,21)NburnFrac, 'NburnFrac',   'If !=0: override length of the burn-in phase, as a fraction of the length of each chain.'//&
-       ' This overrides Nburn above'
-  write(u,21)autoBurnin, 'autoBurnin',   'If !=0: Determine burn-in automatically as the first iteration where'// &
-       ' log(L_chain) > max(log(L_allchains)) - autoBurnin. If autoBurnin<0, use Npar/2. Overrides Nburn and NburnFrac above'
-  write(u,31)dble(maxChLen), 'maxChLen',   'Maximum chain length to read in (number of iterations, not number of lines)'
-  write(u,11)file, 'file',   'Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path for files'// &
-       ' in the parameter "outputdir" below'
-  write(u,11)colour, 'colour',   'Use colours: 0-no (grey scales), 1-yes'
-  write(u,11)quality, 'quality',   '"Quality" of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster'
-  write(u,11)reverseRead, 'reverseRead',   'Read files reversely (anti-alphabetically), to plot coolest chain last so that it'// &
-       ' becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too'
-  write(u,11)update, 'update',   'Update screen plot every 10 seconds: 0-no, 1-yes'
-  write(u,11)mergeChains, 'mergeChains',   'Merge the data from different files into one chain: 0-no (treat separately), 1-yes'// &
-       ' (default)'
-  write(u,11)wrapData, 'wrapData',   'Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is'// &
-       ' around 0)'
-  write(u,11)changeVar, 'changeVar',   'Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg): 0=no, 1=yes, 2=q->1/q'
+  ! Output format:
+  namelist /output_format/ scrSz, scrRat, bmpXSz, bmpYSz, PSsz, PSrat, scFac, unSharp
+  
+  ! Fonts, symbols, etc.:
+  namelist /fonts_symbols/ orientation, fontType, fontSize1D, fontSize2D, chainSymbol
+  
+  ! Data settings:
+  namelist /plot_parameters_binning/ nPlPar, plPars, panels, Nbin1D, Nbin2Dx, Nbin2Dy, Npdf2D, &
+       PDF2Dpairs  ! was: plPars(1:nPlPar), panels(1:2), PDF2Dpairs(1:Npdf2D,1:2)
   
   
-  write(u,'(/,A)')' Select what output to print to screen and write to file:'
-  write(u,11)prStdOut, 'prStdOut',   'Print standard output to 1: screen, 2: text file'
-  write(u,11)prProgress, 'prProgress',   'Print general messages about the progress of the program: 0-no, 1-some, 2-more,'// &
-       ' 3-debug output'
-  write(u,11)prRunInfo, 'prRunInfo',   'Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only'// &
-       ' for one file (eg. if all files similar), 2-for all files'
-  write(u,11)prChainInfo, 'prChainInfo',   'Print chain info: 1-summary (tot # data points, # contributing chains),'// &
-       '  2-details per chain (file name, plot colour, # iterations, burn-in, Lmax, # data points)'
-  write(u,11)prInitial, 'prInitial',   'Print starting values for each chain: 0-no, 1-yes, 2-add injection value,'// &
-       ' 3-add Lmax value, 4-add differences (~triples number of output lines for this part)'
-  write(u,11)prStat, 'prStat',   'Print statistics: 0-no, 1-yes, for default probability interval,'// &
-       ' 2-yes, for all probability intervals'
-  write(u,11)prCorr, 'prCorr',   'Print correlations: 0-no, 1-yes'
-  write(u,11)prAcorr, 'prAcorr',   'Print autocorrelations: 0-no, 1-some, 2-more'
-  write(u,11)nAcorr, 'nAcorr',   'Compute nAcorr steps of autocorrelations if prAcorr>0 or plAcorr>0 (default: 100)'
-  write(u,11)prIval, 'prIval',   'Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 3-both'
-  write(u,11)prConv, 'prConv',   'Print convergence information for multiple chains to screen and chains plot: 0-no,'// &
-       ' 1-one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain'
-  write(u,11)saveStats, 'saveStats',   'Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes,'// &
-       ' 2-yes + copy in PS'
-  write(u,11)savePDF, 'savePDF',   'Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).'// &
-       '  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying'
-  write(u,11)tailoredOutput, 'tailoredOutput',   'Save (ascii) output for a specific purpose, e.g. table in a paper:'// &
-       '  0-no, tO>0: use the hardcoded block tO in the subroutine tailored_output() in analyseMCMC_tailored.f90'
+  NburnMax = maxval(Nburn)
+  DblMaxChLen = dble(maxChLen)
   
   
-  write(u,'(/,A)')' Select which plots to make:'
-  write(u,11)plot, 'plot',   '0: plot nothing at all, 1: plot the items selected below'
-  write(u,11)plLogL, 'plLogL',   'Plot log L chains: 0-no, 1-yes'
-  write(u,11)plChain, 'plChain',   'Plot parameter chains: 0-no, 1-yes'
-  write(u,11)plParL, 'plParL',   'Plot L vs. parameter value: 0-no, 1-yes'
-  write(u,11)plJump, 'plJump',   'Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log'
-  write(u,11)plPDF1D, 'plPDF1D',   'Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram.'// &
-       ' If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.'
-  write(u,11)plPDF2D, 'plPDF2D',   'Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only,'// &
-       ' 3: contours only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) or not (=0).'
-  write(u,11)plAcorr, 'plAcorr',   'Plot autocorrelations: 0-no, 1-yes'
-  write(u,11)plotSky, 'plotSky',   'Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars,'// &
-       ' 3-full sky with stars'
-  write(u,11)plAnim, 'plAnim',   'Create movie frames'
+  call find_free_io_unit(op)
+  open(unit=op,form='formatted',status='replace',action='write',file='analysemcmc.used')
   
+  write(op,'(A,/)') '# Input file for AnalyseMCMC'
   
-  write(u,'(/,A)')' Detailed plot settings:'
-  write(u,11)chainPlI, 'chainPlI',   'Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine,'// &
-       ' chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf generation, etc.'
-  write(u,11)scLogLpl, 'scLogLpl',   'Scale logL plot ranges: 0: take everything into account, including burn-in'// &
-       ' and starting values;  1: take only post-burn-in and injection values into account'
-  write(u,11)scChainsPl, 'scChainsPl',   'Scale chains plot ranges: 0: take everything into account, including burn-in;'// &
-       '  1: take only post-burn-in and injection values into account'
-  write(u,11)plInject, 'plInject',   'Plot injection values in the chains and pdfs: 0: no,  1: yes (all pars),'// &
-       '  2: yes (selected pars), 3-4: as 1-2 + print value in PDF panel'
-  write(u,11)plStart, 'plStart',   'Plot starting values in the chains and pdfs'
-  write(u,11)plMedian, 'plMedian',   'Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs,'// &
-       ' 3-both. 4-6: as 1-3 + write value in PDF panel'
-  write(u,11)plRange, 'plRange',   'Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs,'// &
-       ' 3-both. 4-6: as 1-3 + write value in PDF panel'
-  write(u,11)plBurn, 'plBurn',   'Plot the burn-in in logL, the chains, etc.: 0-no, 1-vertical line, 2-colour shade, 3-both'
-  write(u,11)plLmax, 'plLmax',   'Plot the position of the max logL, in the chains and pdfs: 0-no, 1-yes, 2-yes + Lmax-Npar/2'
-  write(u,11)prValues, 'prValues',   'Print values (injection, median, range) in pdfs'
-  write(u,11)smooth, 'smooth',   'Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).'// &
-       '   This is 1D only for now, and can introduce artefacts on narrow peaks!'
-  write(u,11)fillPDF, 'fillPDF',   'Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched'
-  write(u,11)normPDF1D, 'normPDF1D',   'Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different'// &
-       ' bin sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. chains'
-  write(u,11)normPDF2D, 'normPDF2D',   "'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,"// &
-       "  1-logarithmically,  2-sqrt,  3-weigted with likelihood value,  4-2D probability intervals"
-  write(u,11)nAnimFrames, 'nAnimFrames',   'Number of frames for the movie'
-  write(u,11)animScheme, 'animScheme',   'AnimScheme (1-3): determines what panels to show in a movie frame; see source code'
-  write(u,12)Nival,ival0, 'Nival ival0',   'Number of probability intervals,  number of the default probability interval'// &
-       ' (ival0<=Nival)'
-  do i=1,Nival
-     write(u,'(F9.5)',advance="no")ivals(i)
-  end do
-  write(u,*)'       Probability intervals (ivals()). Values > 0.9999 will be treated as 100%'
+  write(op, nml=basic_options)             ! Basic options
+  write(op, nml=print_options)             ! Print options
+  write(op, nml=plot_select)               ! Select which plots to select
+  write(op, nml=plot_options)              ! Detailed plot settings
+  write(op, nml=output_format)             ! Output format
+  write(op, nml=fonts_symbols)             ! Fonts, symbols, etc.
+  write(op, nml=plot_parameters_binning)   ! Select parameters to plot, binning, etc.
   
-  write(u,'(/,A)')' Output format:'
-  write(u,21)scrSz, 'scrSz',   'Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8'
-  write(u,21)scrRat, 'scrRat',   'Screen ratio for X11 windows (PGPlot units), MacBook: 0.57'
-  write(u,11)bmpXSz, 'bmpXSz',   'X-size for bitmap (pixels):  1000  !!! Too large values give incomplete 2D PDFs somehow !!!'
-  write(u,11)bmpYSz, 'bmpYSz',   'Y-size for bitmap (pixels):  700'
-  write(u,21)PSsz,  'PSsz',    'Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap'
-  write(u,21)PSrat, 'PSrat',   'Ratio for PS/PDF (PGPlot units). Default: 0.742  /   '
-  write(u,21)scFac, 'scFac',   '!!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,y'// &
-       ' size indicated above to interpolate and smoothen the plot'
-  write(u,11)unSharp, 'unSharp',   'Apply unsharp mask when creating .png plots. Default: 10.'
-  
-  write(u,'(/,A)')' Fonts, symbols, etc.:'
-  write(u,11)orientation, 'orientation',   'Use portrait (1) or landscape (2) for eps/pdf; mainly useful'// &
-       ' when sending a plot to a printer'
-  write(u,11)fontType, 'fontType',   'Font type used for eps/pdf: 1-simple, 2-roman, 3-italic, 4-script'
-  write(u,21)fontSize1D, 'fontSize1D',   'Scale the font size for 1D plots (chains, 1D PDFs) with respect to default.'// &
-       '  Default: 1.0'
-  write(u,21)fontSize2D, 'fontSize2D',   'Scale the font size for 2D plots (2D PDFs) with respect to default.  Default: 1.0'
-  write(u,11)chainSymbol, 'chainSymbol',   'Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default),'// &
-       ' 2: plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle;'// &
-       ' -10/-11: use a selection of open/filled symbols'
-  
-  write(u,'(/,A)')' Data settings:'
-  write(u,'(A)')' Plot MCMC parameters (plPar()):  11-2:tc/t40, 21-2:d^3/logd, 31-2:RA/dec, 41:phase, 51-4:i/psi/thJo/phJo,'// &
-       ' 61-4:Mc/eta/M1/M2, 71-3:a/th/phi for spin1, 81-3: spin2'
-  write(u,11)nPlPar, 'nPlPar',   'Number of plot parameters for 1D PDFs (and chain, jump plots, max 15).'// &
-       '  This is ignored when savePDF=1. Put the MCMC parameters in the line below (plPars()):'
-  do i=1,nPlPar
-     write(u,'(I3)',advance="no")plPars(i)
-  end do
-  write(u,*)
-  write(u,12)panels(1:2), 'panels',   'Number of for 1D plots in x,y direction:  0: autodetermine'
-  write(u,11)Nbin1D, 'Nbin1D',   'Number of bins for 1D PDFs:  0: autodetermine'
-  write(u,11)Nbin2Dx, 'Nbin2Dx',   'Number of bins in x-direction for 2D PDFs and 2D probability ranges:'// &
-       '  0: autodetermine (for both x and y)'
-  write(u,11)Nbin2Dy, 'Nbin2Dy',   'Number of bins in y-direction for 2D PDFs and 2D probability ranges:'// &
-       '  0: use Nbin2Dx, -1: use Nbin2Dx*(scr/bmp/ps)rat'
-  write(u,11)Npdf2D, 'Npdf2D',     'Number of 2D-PDF plots to make:  -1: all plots (91 for 12+2 parameters),'// &
-       '  >0: read parameters from the lines below'
-  do i=1,Npdf2D
-     write(u,12)PDF2Dpairs(i,1:2), 'PDF2Dpairs', 'Pairs of parameters to plot a 2D PDF for'
-  end do
-  close(u)
+  close(op)
   
 end subroutine write_settingsfile
 !***********************************************************************************************************************************

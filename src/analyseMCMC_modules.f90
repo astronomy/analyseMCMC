@@ -31,15 +31,15 @@ module analysemcmc_settings
   integer, parameter :: maxMCMCpar=22  ! MaxMCMCpar: MCMCpar+secondary parameters, e.g. 12+2(M1M2) = 14 for 12 par; 17 for 15 par
   integer, parameter :: nParDB=199     ! nParDB: size of the parameter database
   
-  integer :: plPars(maxMCMCpar),nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D,PDF2Dpairs(250,2),panels(2)
+  integer :: plPars(maxMCMCpar),nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D,PDF2Dpairs(50,2),panels(2)
   integer :: thin,Nburn(maxChs),reverseRead,update,mergeChains,wrapData,changeVar,maxChLen
   integer :: file,colour,orientation,quality,fonttype
   integer :: prStdOut,prProgress,prRunInfo,prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv
   integer :: saveStats,savePDF,tailoredOutput
   integer :: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plACorr,plotSky,plAnim       
   integer :: chainSymbol,chainPlI,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D,normPDF2D
-  integer :: scLogLpl,scChainsPl,bmpXSz,bmpYSz,map_projection
-  integer :: nAnimFrames,animScheme,whiteBG,unSharp,Nival,ival0,wikioutput,html
+  integer :: scLogLpl,scChainsPl,bmpXSz,bmpYSz,mapProjection
+  integer :: nAnimFrames,animScheme,whiteBG,unSharp,Nival,ival0,wikioutput,htmlOutput
   integer :: phi_q_sorting
   real :: NburnFrac,autoBurnin,ivals(maxNival)
   real :: scrSz,scrRat,PSsz,PSrat,scFac,fontsize1d,fontsize2d
