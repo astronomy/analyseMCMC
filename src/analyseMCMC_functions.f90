@@ -823,7 +823,7 @@ subroutine mcmcruninfo(exitcode)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdOut,stdErr, rpi
   use SUFR_statistics, only: compute_median_sp
-  use SUFR_system, only: swapreal, warn, quit_program_error
+  use SUFR_system, only: swapreal, quit_program_error
   use aM_constants, only: waveforms,detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
