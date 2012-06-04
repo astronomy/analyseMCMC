@@ -32,7 +32,6 @@
 !! -  6: StdOut
 !! -
 !! - 10: input (MCMC) file
-!! - 15: read settings file (analysemcmc.dat)
 !! - 16: temp file in getos
 !! - 17: temp file in timestamp
 !! - 19: StdOut redirection (__output.txt)
@@ -66,12 +65,12 @@ program analyseMCMC
   use SUFR_system, only: quit_program_error
   
   use aM_constants, only: os, stdOutFile, use_PLplot
-  use analysemcmc_settings, only: panels,wikioutput,mapProjection,htmlOutput,prProgress,file,colour,prStdOut,prRunInfo,prChainInfo
+  use analysemcmc_settings, only: panels,htmlOutput,prProgress,file,colour,prStdOut,prRunInfo,prChainInfo
   use analysemcmc_settings, only: prInitial,prStat,prCorr,prIval,prConv,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D,plotSky
   use analysemcmc_settings, only: plAnim,plInject,plStart,plMedian,plRange,plBurn,plLmax,normPDF2D,bmpXSz,bmpYSz,Npdf2D,reverseRead
   use analysemcmc_settings, only: whiteBG,scFac,scrSz,scrRat,PSsz,PSrat,unSharp,orientation,chainSymbol,quality,plJump,savePDF
   use analysemcmc_settings, only: wrapData,update,nPlPar,mergeChains,tailoredOutput,plACorr, maxChs
-  use analysemcmc_settings, only: phi_q_sorting
+  !use analysemcmc_settings, only: phi_q_sorting
   use general_data, only: infiles,allDat,selDat,post,prior,outputDir,nchains0,nchains,ntot,outputname
   use mcmcrun_data, only: nMCMCpar
   use plot_data, only: colours,symbols,colournames,maxdots,bmpsz,bmprat,bmpxpix,pltsz,pltrat,unSharplogl,unSharpchain,unSharppdf1d
@@ -83,11 +82,6 @@ program analyseMCMC
   character :: infile*(99)
   logical :: ex,timing
   
-  
-  outputDir = '.'     ! Directory where output is saved (either relative or absolute path)
-  wikiOutput = 1      ! Produce output for CBC Wiki: 0-no, 1-yes (requires one of the probability intervals to be 2-sigma)
-  mapProjection = 1   ! Choose map projection: 1-Mollweide
-  htmlOutput = 0      ! Produce HTML output
   
   call set_SUFR_constants()   ! Define constants in libSUFR
   call setconstants()         ! Define mathematical constants
@@ -104,7 +98,7 @@ program analyseMCMC
   !call write_settingsfile()   ! Write the input file back to disc as analysemcmc.new
   
   ! New parameters that should go into the settings file(?):
-  phi_q_sorting = 0  ! Do phase/mass-ratio sorting (if phi>pi, q -> 1/q; m1 <-> m2): 0-no, 1-yes
+  !phi_q_sorting = 0  ! Do phase/mass-ratio sorting (if phi>pi, q -> 1/q; m1 <-> m2): 0-no, 1-yes - not implemented yet
   
   
   ! Print code version and set use_PLplot:

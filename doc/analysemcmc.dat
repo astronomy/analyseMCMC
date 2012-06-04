@@ -44,6 +44,7 @@
  SAVEPDF            =  0,                         ! Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
  WIKIOUTPUT         =  1,                         ! Save output for the CBC wiki
  TAILOREDOUTPUT     =  0,                         ! Save (ascii) output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the hardcoded block tO in the subroutine tailoredOutput() in analysemcmc_stats.f90
+ HTMLOUTPUT         =  0,                         ! Save HTML output - experimental, partly implemented.  Useful when plotting all 2D PDFs as png
  /
 
 ########################################################################################################################################################################################################

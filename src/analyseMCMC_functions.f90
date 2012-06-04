@@ -210,7 +210,7 @@ subroutine read_settingsfile()
   use analysemcmc_settings, only: scChainsPl,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D
   use analysemcmc_settings, only: normPDF2D,nAnimFrames,animScheme,Nival,ival0,scrSz,scrRat,bmpXSz,bmpYSz,PSsz,PSrat,scFac,unSharp
   use analysemcmc_settings, only: orientation,fontType,fontSize1D,fontSize2D,chainSymbol,nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D
-  use analysemcmc_settings, only: mapProjection, wikiOutput
+  use analysemcmc_settings, only: mapProjection, wikiOutput, htmlOutput
   use general_data, only: outputDir
   
   implicit none
@@ -223,7 +223,7 @@ subroutine read_settingsfile()
   
   ! Select what output to print to screen and write to file:
   namelist /print_options/ prStdOut, prProgress, prRunInfo, prChainInfo, prInitial, prStat, prCorr, prAcorr, nAcorr, prIval, &
-       prConv, saveStats, savePDF, wikiOutput, tailoredOutput
+       prConv, saveStats, savePDF, wikiOutput, tailoredOutput, htmlOutput
   
   ! Select which plots to make:
   namelist /plot_select/ plot, plLogL, plChain, plParL, plJump, plPDF1D, plPDF2D, plAcorr, plotSky, mapProjection, plAnim
@@ -321,7 +321,7 @@ subroutine write_settingsfile()
   use analysemcmc_settings, only: scChainsPl,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D
   use analysemcmc_settings, only: normPDF2D,nAnimFrames,animScheme,Nival,ival0,scrSz,scrRat,bmpXSz,bmpYSz,PSsz,PSrat,scFac,unSharp
   use analysemcmc_settings, only: orientation,fontType,fontSize1D,fontSize2D,chainSymbol,nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D
-  use analysemcmc_settings, only: mapProjection, wikiOutput
+  use analysemcmc_settings, only: mapProjection, wikiOutput, htmlOutput
   use general_data, only: outputDir
   
   implicit none
@@ -333,7 +333,7 @@ subroutine write_settingsfile()
   
   ! Select what output to print to screen and write to file:
   namelist /print_options/ prStdOut, prProgress, prRunInfo, prChainInfo, prInitial, prStat, prCorr, prAcorr, nAcorr, prIval, &
-       prConv, saveStats, savePDF, wikiOutput, tailoredOutput
+       prConv, saveStats, savePDF, wikiOutput, tailoredOutput, htmlOutput
   
   ! Select which plots to make:
   namelist /plot_select/ plot, plLogL, plChain, plParL, plJump, plPDF1D, plPDF2D, plAcorr, plotSky, mapProjection, plAnim
@@ -388,92 +388,126 @@ subroutine set_plotsettings()
   use analysemcmc_settings, only: scChainsPl,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D
   use analysemcmc_settings, only: normPDF2D,nAnimFrames,animScheme,Nival,ival0,scrSz,scrRat,bmpXSz,bmpYSz,PSsz,PSrat,scFac,unSharp
   use analysemcmc_settings, only: orientation,fontType,fontSize1D,fontSize2D,chainSymbol,nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D
+  use analysemcmc_settings, only: htmlOutput, mapProjection, wikiOutput
+  use general_data, only: outputDir
   
   implicit none
   
+  
+  ! Basic options:
   thin = 10         ! If >1, 'thin' the output; read every thin-th line 
   Nburn = nint(1.e5) ! If >=0: override length of the burn-in phase, for all chains
   NburnFrac = 0.5   ! If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
   autoBurnin = -1.  ! Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
   maxChLen = nint(1.e8) ! Maximum chain length
+  
   file = 1          ! Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.
   colour = 1        ! Use colours: 0-no (grey scales), 1-yes
   quality = 0       ! 'Quality' of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
+  
   reverseRead = 0   ! Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible
   update = 0        ! Update screen plot every 10 seconds: 0-no, 1-yes
   mergeChains = 1   ! Merge the data from different files into one chain: 0-no (treat separately), 1-yes (default)
   wrapData = 1      ! Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
   changeVar = 1     ! Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg), 2=yes + q->1/q, phi->phi-pi, m1<->m2
+  outputDir = "."   ! Save output files/plots in this directory - this may be a relative or absolute path
   
+  
+  ! Select what output to print to screen and write to file:
   prStdOut = 1      ! Print standard output to 1: screen, 2: text file
   prProgress = 2    ! Print general messages about the progress of the program: 0-no, 1-some, 2-more
   prRunInfo = 0     ! Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file
   prChainInfo = 1   ! Print chain info: 1-summary (#datpts, #contr.chns),  2-detls/chain (f.name, clr, #itr, b.in, Lmax, #datpts)
   prInitial = 0     ! Print injection values, starting values and their difference
+  
   prStat = 1        ! Print statistics: 0-no, 1-yes
   prCorr = 0        ! Print correlations: 0-no, 1-yes
   prAcorr = 0       ! Plot autocorrelations: 0-no, 1-some, 2: more
   nAcorr = 100      ! Compute prAcorr steps of autocorrelations if prAcorr>0 or plAcor>0 (default: 100)
   prIval = 0        ! Print interval info: 0-no, 1-yes
   prConv = 1        ! Print convergence information for multiple chains to screen and chains plot
+  
   saveStats = 0     ! Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
   savePDF = 0       ! Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).
-  tailoredOutput=0  ! Save output for a specific purpose, e.g. table in a paper
+  wikiOutput = 0    ! Save output for the CBC wiki
+  tailoredOutput = 0 ! Save output for a specific purpose, e.g. table in a paper
+  htmlOutput = 0    ! Save HTML output - experimental, partly implemented.  Useful when plotting all 2D PDFs as png
   
+  
+  ! Select which plots to make:
   plot = 1          ! 0: plot nothing at all, 1: plot the items selected below
-  scLogLpl = 1      ! Scale logL plot ranges: 0
-  scChainsPl = 1    ! Scale chains plot ranges
+  
   plLogL = 1        ! Plot log L chains: 0-no, 1-yes
   plChain = 1       ! Plot parameter chains: 0-no, 1-yes
   plParL = 1        ! Plot L vs. parameter value: 0-no, 1-yes
   plJump = 1        ! Plot actual jump sizes
+  plAcorr = 0       ! Plot autocorrelations: 0-no, 1-yes
+  
   plPDF1D = 1       ! Plot 1d posterior distributions
   plPDF2D = 2       ! Plot 2d posterior distributions
-  plAcorr = 0       ! Plot autocorrelations: 0-no, 1-yes
   plotSky = 0       ! Plot 2d pdf with stars, implies plPDF2D>0
+  mapProjection = 1 ! Choose map projection: 1-Mollweide
+  
   plAnim = 0        ! Plot movie frames
   
+  
+  ! Detailed plot settings:
   chainPlI = 0      ! Plot every chainPlI-th point in chains, logL, jump plots
+  scLogLpl = 1      ! Scale logL plot ranges: 0
+  scChainsPl = 1    ! Scale chains plot ranges
+  
   plInject = 1      ! Plot injection values in the chains and pdfs
   plStart = 1       ! Plot starting values in the chains and pdfs
   plMedian = 1      ! Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
   plRange = 1       ! Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
   plBurn = 3        ! Plot the burn-in in logL, the chains, etc.: 0-no, 1-vertical line, 2-colour shade, 3-both
   plLmax = 0        ! Plot the position of the max of logL in chains and pdfs
+  
   prValues = 1      ! Print values (injection, median, range) in pdfs
   smooth = 3        ! Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?)
   fillPDF = 1       ! Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
   normPDF1D = 1     ! Normalise 1D pdfs
   normPDF2D = 0     ! 'Normalise' 2D pdfs; greyscale value depends on bin height
+  
   nAnimFrames = 1   ! Number of frames for the movie
   animScheme = 3    ! Movie scheme: determines what panels to show in a movie frame 
+  
   Nival = 3         ! Number of probability intervals
   ival0 = 1         ! Standard probability interval, e.g. 1 or 2, < Nival
-  ivals(1:3) = (/0.6827,0.9545,0.9973/)  ! Probability intervals
+  ivals = (/0.6827, 0.9545, 0.9973, 0., 0./)  ! Probability intervals - 1,2,3 sigma
   
+  
+  ! Output format:
   scrSz  = 10.8     ! Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8
   scrRat = 0.57     ! Screen ratio for X11 windows (PGPlot units), MacBook: 0.57
   bmpXSz = 1000     ! X-size for bitmap (pixels):  1000
   bmpYSz = 700      ! Y-size for bitmap (pixels):  700
   PSsz   = 10.5     ! Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap
   PSrat  = 0.742    ! Ratio for PS/PDF (PGPlot units). Default: 0.742  /
+  
   scFac = 1.2       ! Scale .png plots up by this factor, then down to the x,y size indicated above
   unSharp = 10      ! Apply unsharp mask when creating .png plots. Default: 10
   
+  
+  ! Fonts, symbols, etc.:
   orientation = 1   ! Use portrait (1) or landscape (2) for eps/pdf; mainly useful when sending a plot to a printer
   fonttype = 1      ! Font type used for eps/pdf: 1-simple, 2-roman, 3-italic, 4-script
   fontsize1d = 1.   ! Set plot scale for 1D plots, needs to be implemented fully
   fontsize2d = 1.   ! Set plot scale for 2D plots, needs to be implemented fully. Typically, take ~1.2*fontsize1d
   chainSymbol = 1   ! Plot symbol for the chains
   
-  nPlPar = 15       ! Number of plot parameters for 1D plots
-  plPars(1:nPlPar) = (/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15/) ! The nPlPar plot parameters
+  
+  ! Select parameters to plot, binning, etc.:
+  nPlPar = 9        ! Number of plot parameters for 1D plots
+  plPars(1:nPlPar) = (/61,62, 22,11, 41, 31,32, 51,52/) ! The nPlPar plot parameters
   panels(1:2) = (/0,0/) ! Number of panels for 1D plots in x,y direction
+  
   Nbin1D = 100      ! Number of bins for 1D PDFs
   Nbin2Dx = 60      ! Number of bins in horizontal direction for 2D PDFs
   Nbin2Dy = 40      ! Number of bins in vertical direction for 2D PDFs
+  
   Npdf2D  = 1       ! Number of 2D PDFs to make
-  PDF2Dpairs(1,1:2) = (/8,9/)  ! 2D PDFs to plot: RA,Dec
+  PDF2Dpairs(1,1:2) = (/31,32/)  ! 2D PDFs to plot: RA,Dec
   
 end subroutine set_plotsettings
 !***********************************************************************************************************************************
