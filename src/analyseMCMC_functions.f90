@@ -396,14 +396,14 @@ subroutine set_plotsettings()
   
   ! Basic options:
   thin = 10         ! If >1, 'thin' the output; read every thin-th line 
-  Nburn = nint(1.e5) ! If >=0: override length of the burn-in phase, for all chains
+  Nburn = nint(5.e5) ! If >=0: override length of the burn-in phase, for all chains
   NburnFrac = 0.5   ! If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
   autoBurnin = -1.  ! Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
-  maxChLen = nint(1.e8) ! Maximum chain length
+  maxChLen = nint(1.e9) ! Maximum chain length
   
   file = 1          ! Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.
   colour = 1        ! Use colours: 0-no (grey scales), 1-yes
-  quality = 0       ! 'Quality' of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
+  quality = 2       ! 'Quality' of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
   
   reverseRead = 0   ! Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible
   update = 0        ! Update screen plot every 10 seconds: 0-no, 1-yes
@@ -416,18 +416,18 @@ subroutine set_plotsettings()
   ! Select what output to print to screen and write to file:
   prStdOut = 1      ! Print standard output to 1: screen, 2: text file
   prProgress = 2    ! Print general messages about the progress of the program: 0-no, 1-some, 2-more
-  prRunInfo = 0     ! Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file
+  prRunInfo = 1     ! Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file
   prChainInfo = 1   ! Print chain info: 1-summary (#datpts, #contr.chns),  2-detls/chain (f.name, clr, #itr, b.in, Lmax, #datpts)
-  prInitial = 0     ! Print injection values, starting values and their difference
+  prInitial = 3     ! Print injection values, starting values and their difference: 0-no, 1-yes, 2-+ injection, 3-+ Lmax, 4-+ diffs
   
   prStat = 1        ! Print statistics: 0-no, 1-yes
-  prCorr = 0        ! Print correlations: 0-no, 1-yes
+  prCorr = 1        ! Print correlations: 0-no, 1-yes
   prAcorr = 0       ! Plot autocorrelations: 0-no, 1-some, 2: more
   nAcorr = 100      ! Compute prAcorr steps of autocorrelations if prAcorr>0 or plAcor>0 (default: 100)
-  prIval = 0        ! Print interval info: 0-no, 1-yes
+  prIval = 1        ! Print interval info: 0-no, 1-yes
   prConv = 1        ! Print convergence information for multiple chains to screen and chains plot
   
-  saveStats = 0     ! Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
+  saveStats = 1     ! Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
   savePDF = 0       ! Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).
   wikiOutput = 0    ! Save output for the CBC wiki
   tailoredOutput = 0 ! Save output for a specific purpose, e.g. table in a paper
@@ -439,13 +439,13 @@ subroutine set_plotsettings()
   
   plLogL = 1        ! Plot log L chains: 0-no, 1-yes
   plChain = 1       ! Plot parameter chains: 0-no, 1-yes
-  plParL = 1        ! Plot L vs. parameter value: 0-no, 1-yes
-  plJump = 1        ! Plot actual jump sizes
+  plParL = 0        ! Plot L vs. parameter value: 0-no, 1-yes
+  plJump = 0        ! Plot actual jump sizes
   plAcorr = 0       ! Plot autocorrelations: 0-no, 1-yes
   
   plPDF1D = 1       ! Plot 1d posterior distributions
   plPDF2D = 2       ! Plot 2d posterior distributions
-  plotSky = 0       ! Plot 2d pdf with stars, implies plPDF2D>0
+  plotSky = 2       ! Plot 2d pdf with stars, implies plPDF2D>0
   mapProjection = 1 ! Choose map projection: 1-Mollweide
   
   plAnim = 0        ! Plot movie frames
@@ -456,25 +456,25 @@ subroutine set_plotsettings()
   scLogLpl = 1      ! Scale logL plot ranges: 0
   scChainsPl = 1    ! Scale chains plot ranges
   
-  plInject = 1      ! Plot injection values in the chains and pdfs
+  plInject = 0      ! Plot injection values in the chains and pdfs
   plStart = 1       ! Plot starting values in the chains and pdfs
   plMedian = 1      ! Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
-  plRange = 1       ! Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
-  plBurn = 3        ! Plot the burn-in in logL, the chains, etc.: 0-no, 1-vertical line, 2-colour shade, 3-both
-  plLmax = 0        ! Plot the position of the max of logL in chains and pdfs
+  plRange = 4       ! Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel
+  plBurn = 1        ! Plot the burn-in in logL, the chains, etc.: 0-no, 1-vertical line, 2-colour shade, 3-both
+  plLmax = 1        ! Plot the position of the max of logL in chains and pdfs
   
   prValues = 1      ! Print values (injection, median, range) in pdfs
   smooth = 3        ! Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?)
   fillPDF = 1       ! Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
   normPDF1D = 1     ! Normalise 1D pdfs
-  normPDF2D = 0     ! 'Normalise' 2D pdfs; greyscale value depends on bin height
+  normPDF2D = 4     ! 'Normalise' 2D pdfs: 0-linearly, 1-log, 2-sqrt, 3-weigted with likelihood value,  4-2D probability intervals
   
   nAnimFrames = 1   ! Number of frames for the movie
   animScheme = 3    ! Movie scheme: determines what panels to show in a movie frame 
   
   Nival = 3         ! Number of probability intervals
-  ival0 = 1         ! Standard probability interval, e.g. 1 or 2, < Nival
-  ivals = (/0.6827, 0.9545, 0.9973, 0., 0./)  ! Probability intervals - 1,2,3 sigma
+  ival0 = 2         ! Standard probability interval, e.g. 1 or 2, < Nival
+  ivals = (/0.68269, 0.9545, 0.9973, 0., 0./)  ! Probability intervals - 1,2,3 sigma
   
   
   ! Output format:

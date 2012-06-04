@@ -5,7 +5,7 @@
 
 &BASIC_OPTIONS                                    ! Basic options:
 
- THIN               =  1,                         ! If >1, "thin" the output; read every thin-th line
+ THIN               =  10,                        ! If >1, "thin" the output; read every thin-th line
  NBURNMAX           =  500000,                    ! If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain
  NBURNFRAC          =  0.5,                       ! If !=0: override length of the burn-in phase, as a fraction of the length of each chain. This overrides Nburn above
  AUTOBURNIN         =  -1.0,                      ! If !=0: Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin. If autoBurnin<0, use Npar/2. Overrides Nburn and NburnFrac above
@@ -42,7 +42,7 @@
  
  SAVESTATS          =  1,                         ! Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + copy in PS
  SAVEPDF            =  0,                         ! Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
- WIKIOUTPUT         =  1,                         ! Save output for the CBC wiki
+ WIKIOUTPUT         =  0,                         ! Save output for the CBC wiki
  TAILOREDOUTPUT     =  0,                         ! Save (ascii) output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the hardcoded block tO in the subroutine tailoredOutput() in analysemcmc_stats.f90
  HTMLOUTPUT         =  0,                         ! Save HTML output - experimental, partly implemented.  Useful when plotting all 2D PDFs as png
  /
