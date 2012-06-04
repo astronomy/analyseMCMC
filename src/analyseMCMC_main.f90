@@ -101,7 +101,7 @@ program analyseMCMC
   call set_plotsettings()     ! Set plot settings to 'default' values
   call read_settingsfile()    ! Read the plot settings (overwrite the defaults)
   if(prProgress.ge.3) call write_settingsfile()   ! Write the input file back to disc
-  call write_settingsfile()   ! Write the input file back to disc
+  !call write_settingsfile()   ! Write the input file back to disc as analysemcmc.new
   
   ! New parameters that should go into the settings file(?):
   phi_q_sorting = 0  ! Do phase/mass-ratio sorting (if phi>pi, q -> 1/q; m1 <-> m2): 0-no, 1-yes

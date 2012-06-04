@@ -53,7 +53,7 @@ end subroutine setconstants
 subroutine read_settingsfile_old()
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdErr
-  use SUFR_system, only: quit_program
+  use SUFR_system, only: quit_program, find_free_io_unit
   
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
@@ -64,129 +64,129 @@ subroutine read_settingsfile_old()
   use analysemcmc_settings, only: orientation,fontType,fontSize1D,fontSize2D,chainSymbol,nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D
   
   implicit none
-  integer :: i,u,io,io1
+  integer :: i,ip,io,io1
   character :: bla,filename*(99)
   real(double) :: dblvar
   filename = 'analysemcmc.dat'
   
   ! dblvar is used when a (possibly) large integer is expected; read it as double, then convert to integer
   
-  u = 15
-  open(unit=u,form='formatted',status='old',action='read',file=trim(filename),iostat=io)
+  call find_free_io_unit(ip)
+  open(unit=ip,form='formatted',status='old',action='read',file=trim(filename), iostat=io)
   if(io.ne.0) call quit_program('Error opening input file '//trim(filename))
   
   io = 0
   io1 = 0
   
-  read(u,*,iostat=io) bla
+  read(ip,*,iostat=io) bla
   bla = bla  ! Remove 'set but never used' warning
   
   
-  read(u,*,iostat=io) bla
-  read(u,*,iostat=io) thin
-  read(u,*,iostat=io) dblvar
+  read(ip,*,iostat=io) bla
+  read(ip,*,iostat=io) thin
+  read(ip,*,iostat=io) dblvar
   Nburn(1) = nint(dblvar)
   do i=2,maxChs
      Nburn(i) = Nburn(1)
   end do
-  read(u,*,iostat=io) NburnFrac
-  read(u,*,iostat=io) autoBurnin
-  read(u,*,iostat=io) dblvar
+  read(ip,*,iostat=io) NburnFrac
+  read(ip,*,iostat=io) autoBurnin
+  read(ip,*,iostat=io) dblvar
   maxChLen = nint(dblvar)
-  read(u,*,iostat=io) file
-  read(u,*,iostat=io) colour
-  read(u,*,iostat=io) quality
-  read(u,*,iostat=io) reverseRead
-  read(u,*,iostat=io) update
-  read(u,*,iostat=io) mergeChains
-  read(u,*,iostat=io) wrapData
-  read(u,*,iostat=io) changeVar
+  read(ip,*,iostat=io) file
+  read(ip,*,iostat=io) colour
+  read(ip,*,iostat=io) quality
+  read(ip,*,iostat=io) reverseRead
+  read(ip,*,iostat=io) update
+  read(ip,*,iostat=io) mergeChains
+  read(ip,*,iostat=io) wrapData
+  read(ip,*,iostat=io) changeVar
   
-  read(u,*,iostat=io) bla
-  read(u,*,iostat=io) prStdOut
-  read(u,*,iostat=io) prProgress
-  read(u,*,iostat=io) prRunInfo
-  read(u,*,iostat=io) prChainInfo
-  read(u,*,iostat=io) prInitial
-  read(u,*,iostat=io) prStat
-  read(u,*,iostat=io) prCorr
-  read(u,*,iostat=io) prAcorr
-  read(u,*,iostat=io) dblvar
+  read(ip,*,iostat=io) bla
+  read(ip,*,iostat=io) prStdOut
+  read(ip,*,iostat=io) prProgress
+  read(ip,*,iostat=io) prRunInfo
+  read(ip,*,iostat=io) prChainInfo
+  read(ip,*,iostat=io) prInitial
+  read(ip,*,iostat=io) prStat
+  read(ip,*,iostat=io) prCorr
+  read(ip,*,iostat=io) prAcorr
+  read(ip,*,iostat=io) dblvar
   nAcorr = nint(dblvar)
-  read(u,*,iostat=io) prIval
-  read(u,*,iostat=io) prConv
-  read(u,*,iostat=io) saveStats
-  read(u,*,iostat=io) savePDF
-  read(u,*,iostat=io) tailoredOutput
+  read(ip,*,iostat=io) prIval
+  read(ip,*,iostat=io) prConv
+  read(ip,*,iostat=io) saveStats
+  read(ip,*,iostat=io) savePDF
+  read(ip,*,iostat=io) tailoredOutput
   
   
-  read(u,*,iostat=io) bla
-  read(u,*,iostat=io) plot
-  read(u,*,iostat=io) plLogL
-  read(u,*,iostat=io) plChain
-  read(u,*,iostat=io) plParL
-  read(u,*,iostat=io) plJump
-  read(u,*,iostat=io) plPDF1D
-  read(u,*,iostat=io) plPDF2D
-  read(u,*,iostat=io) plAcorr
-  read(u,*,iostat=io) plotSky
-  read(u,*,iostat=io) plAnim
+  read(ip,*,iostat=io) bla
+  read(ip,*,iostat=io) plot
+  read(ip,*,iostat=io) plLogL
+  read(ip,*,iostat=io) plChain
+  read(ip,*,iostat=io) plParL
+  read(ip,*,iostat=io) plJump
+  read(ip,*,iostat=io) plPDF1D
+  read(ip,*,iostat=io) plPDF2D
+  read(ip,*,iostat=io) plAcorr
+  read(ip,*,iostat=io) plotSky
+  read(ip,*,iostat=io) plAnim
   
   
-  read(u,*,iostat=io) bla
-  read(u,*,iostat=io) chainPlI
-  read(u,*,iostat=io) scLogLpl
-  read(u,*,iostat=io) scChainsPl
-  read(u,*,iostat=io) plInject
-  read(u,*,iostat=io) plStart
-  read(u,*,iostat=io) plMedian
-  read(u,*,iostat=io) plRange
-  read(u,*,iostat=io) plBurn
-  read(u,*,iostat=io) plLmax
-  read(u,*,iostat=io) prValues
-  read(u,*,iostat=io) smooth
-  read(u,*,iostat=io) fillPDF
-  read(u,*,iostat=io) normPDF1D
-  read(u,*,iostat=io) normPDF2D
-  read(u,*,iostat=io) nAnimFrames
-  read(u,*,iostat=io) animScheme
-  read(u,*,iostat=io) Nival,ival0
-  read(u,*,iostat=io1)(ivals(i),i=1,Nival)
+  read(ip,*,iostat=io) bla
+  read(ip,*,iostat=io) chainPlI
+  read(ip,*,iostat=io) scLogLpl
+  read(ip,*,iostat=io) scChainsPl
+  read(ip,*,iostat=io) plInject
+  read(ip,*,iostat=io) plStart
+  read(ip,*,iostat=io) plMedian
+  read(ip,*,iostat=io) plRange
+  read(ip,*,iostat=io) plBurn
+  read(ip,*,iostat=io) plLmax
+  read(ip,*,iostat=io) prValues
+  read(ip,*,iostat=io) smooth
+  read(ip,*,iostat=io) fillPDF
+  read(ip,*,iostat=io) normPDF1D
+  read(ip,*,iostat=io) normPDF2D
+  read(ip,*,iostat=io) nAnimFrames
+  read(ip,*,iostat=io) animScheme
+  read(ip,*,iostat=io) Nival,ival0
+  read(ip,*,iostat=io1)(ivals(i),i=1,Nival)
   
-  read(u,*,iostat=io) bla
-  read(u,*,iostat=io) scrSz
-  read(u,*,iostat=io) scrRat
-  read(u,*,iostat=io) bmpXSz
-  read(u,*,iostat=io) bmpYSz
-  read(u,*,iostat=io) PSsz
-  read(u,*,iostat=io) PSrat
-  read(u,*,iostat=io) scFac
-  read(u,*,iostat=io) unSharp
+  read(ip,*,iostat=io) bla
+  read(ip,*,iostat=io) scrSz
+  read(ip,*,iostat=io) scrRat
+  read(ip,*,iostat=io) bmpXSz
+  read(ip,*,iostat=io) bmpYSz
+  read(ip,*,iostat=io) PSsz
+  read(ip,*,iostat=io) PSrat
+  read(ip,*,iostat=io) scFac
+  read(ip,*,iostat=io) unSharp
   
-  read(u,*,iostat=io) bla
-  read(u,*,iostat=io) orientation
-  read(u,*,iostat=io) fontType
-  read(u,*,iostat=io) fontSize1D
-  read(u,*,iostat=io) fontSize2D
-  read(u,*,iostat=io) chainSymbol
+  read(ip,*,iostat=io) bla
+  read(ip,*,iostat=io) orientation
+  read(ip,*,iostat=io) fontType
+  read(ip,*,iostat=io) fontSize1D
+  read(ip,*,iostat=io) fontSize2D
+  read(ip,*,iostat=io) chainSymbol
   
-  read(u,*,iostat=io) bla
-  read(u,*,iostat=io) bla
-  read(u,*,iostat=io) nPlPar
-  read(u,*,iostat=io1)(plPars(i),i=1,nPlPar)
+  read(ip,*,iostat=io) bla
+  read(ip,*,iostat=io) bla
+  read(ip,*,iostat=io) nPlPar
+  read(ip,*,iostat=io1)(plPars(i),i=1,nPlPar)
   if(io1.ne.0) nPlPar = i-1
   io1 = 0
-  read(u,*,iostat=io) panels(1:2)
-  read(u,*,iostat=io) Nbin1D
-  read(u,*,iostat=io) Nbin2Dx
-  read(u,*,iostat=io) Nbin2Dy
-  read(u,*,iostat=io) Npdf2D
+  read(ip,*,iostat=io) panels(1:2)
+  read(ip,*,iostat=io) Nbin1D
+  read(ip,*,iostat=io) Nbin2Dx
+  read(ip,*,iostat=io) Nbin2Dy
+  read(ip,*,iostat=io) Npdf2D
   do i=1,Npdf2D
-     read(u,*,iostat=io1)PDF2Dpairs(i,1:2)
+     read(ip,*,iostat=io1)PDF2Dpairs(i,1:2)
      if(io1.ne.0) exit
   end do
   if(io1.ne.0) Npdf2D = i-1
-  close(u)
+  close(ip)
   
   if(io.ne.0) then
      write(stdErr,'(/,A,I2,A,I3,A,/)')'  Error reading input file '//trim(filename)//', aborting...'
@@ -201,7 +201,7 @@ end subroutine read_settingsfile_old
 !> \brief  Read a copy of the settings file (called analysemcmc.dat by default)
 
 subroutine read_settingsfile()
-  use SUFR_system, only: find_free_io_unit
+  use SUFR_system, only: find_free_io_unit, quit_program_error
   
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
@@ -214,7 +214,8 @@ subroutine read_settingsfile()
   use general_data, only: outputDir
   
   implicit none
-  integer :: ip, NburnMax
+  integer :: ip, io, NburnMax
+  character :: fname*(99)
   
   ! Basic options:
   namelist /basic_options/ thin, NburnMax, NburnFrac, autoBurnin, maxChLen, file, colour, quality, reverseRead, &
@@ -245,15 +246,30 @@ subroutine read_settingsfile()
   
   
   call find_free_io_unit(ip)
-  open(unit=ip, status='old', action='read', file='analysemcmc.dat')
+  fname = 'analysemcmc.dat'
+  open(unit=ip, status='old', action='read', file=trim(fname), iostat=io)
+  if(io.ne.0) call quit_program_error('readsettingsfile(): error opening settings file '//trim(fname), 0)
   
-  read(ip, nml=basic_options)             ! Basic options
-  read(ip, nml=print_options)             ! Print options
-  read(ip, nml=plot_select)               ! Select which plots to select
-  read(ip, nml=plot_options)              ! Detailed plot settings
-  read(ip, nml=output_format)             ! Output format
-  read(ip, nml=fonts_symbols)             ! Fonts, symbols, etc.
-  read(ip, nml=plot_parameters_binning)   ! Select parameters to plot, binning, etc.
+  read(ip, nml=basic_options, iostat=io)             ! Basic options
+  if(io.ne.0) call try_old_settings_file(ip)
+  
+  read(ip, nml=print_options, iostat=io)             ! Print options
+  if(io.ne.0) call try_old_settings_file(ip)
+  
+  read(ip, nml=plot_select, iostat=io)               ! Select which plots to select
+  if(io.ne.0) call try_old_settings_file(ip)
+  
+  read(ip, nml=plot_options, iostat=io)              ! Detailed plot settings
+  if(io.ne.0) call try_old_settings_file(ip)
+  
+  read(ip, nml=output_format, iostat=io)             ! Output format
+  if(io.ne.0) call try_old_settings_file(ip)
+  
+  read(ip, nml=fonts_symbols, iostat=io)             ! Fonts, symbols, etc.
+  if(io.ne.0) call try_old_settings_file(ip)
+  
+  read(ip, nml=plot_parameters_binning, iostat=io)   ! Select parameters to plot, binning, etc.
+  if(io.ne.0) call try_old_settings_file(ip)
   
   close(ip)
   
@@ -263,10 +279,37 @@ end subroutine read_settingsfile
 !***********************************************************************************************************************************
 
 
+!***********************************************************************************************************************************
+!> \brief  Reading the settings file in the new (2012-06) namelist format didn't work, try the old format and save the data in the
+!!         new format
+!!
+!! \brief old_ip  Input unit currently open with the input file
+
+subroutine try_old_settings_file(old_ip)
+  use SUFR_constants, only: stdOut
+  implicit none
+  integer, intent(in) :: old_ip
+  
+  close(old_ip)
+  call read_settingsfile_old()
+  call write_settingsfile()
+  
+  write(stdOut,*) ''
+  write(stdOut,'(A)') '  Your input file could not be read using the current format.  I tried to read it using the old (< 2012-06)'
+  write(stdOut,'(A)') '  format and saved the input file in the new format, as analysemcmc.new.  Please consider comparing that'
+  write(stdOut,'(A)') '  file to the analysemcmc.dat file in the doc/ directory of AnalyseMCMC.  The latter has comments, which'
+  write(stdOut,'(A)') '  makes it much easier to use the file.  Then rename the file to analysemcmc.dat and try running the code'
+  write(stdOut,'(A)') '  again.'
+  write(stdOut,*) ''
+  
+  stop
+  
+end subroutine try_old_settings_file
+!***********************************************************************************************************************************
 
 
 !***********************************************************************************************************************************
-!> \brief  Write a copy of the settings file (called analysemcmc.used by default)
+!> \brief  Write a copy of the settings file (called analysemcmc.new by default)
 
 subroutine write_settingsfile()
   use SUFR_system, only: find_free_io_unit
@@ -314,7 +357,7 @@ subroutine write_settingsfile()
   
   
   call find_free_io_unit(op)
-  open(unit=op,form='formatted',status='replace',action='write',file='analysemcmc.used')
+  open(unit=op,form='formatted',status='replace',action='write',file='analysemcmc.new')
   
   write(op,'(A,/)') '# Input file for AnalyseMCMC'
   
