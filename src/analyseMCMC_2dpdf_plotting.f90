@@ -131,12 +131,12 @@ subroutine plot_2D_PDF(z, tr, project_map)
   ! Plot the PDF:
   if(project_map .and. plotSky.ge.2) then
      
-     if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  plotting map projection...'
+     if(prProgress.ge.4) write(stdOut,'(A)',advance="no")'  plotting map projection...'
      call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, mapProjection)
      
   else
      
-     if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  plotting 2D PDF...'
+     if(prProgress.ge.4) write(stdOut,'(A)',advance="no")'  plotting 2D PDF...'
      
      ! Plot 2D image - 0: no projection:
      call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, 0)

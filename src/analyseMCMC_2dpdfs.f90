@@ -62,6 +62,7 @@ subroutine pdfs2d(exitcode)
      do j=j1,j2-nfixedpar
         totplots = totplots + j - j1
      end do
+     totplots = totplots*2  ! Since we're plotting Mc-eta as well as eta
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,I3,A,I3,A,/)')'  *all* ',totplots, &
           ' 2D PDFs for the all combinations of the',j2-j1+1-nfixedpar,' non-fixed parameters: '
   end if

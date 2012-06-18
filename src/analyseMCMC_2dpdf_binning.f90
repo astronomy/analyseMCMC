@@ -29,7 +29,7 @@
 
 function create_this_2D_PDF(p1,p2, countplots,totplots)
   use SUFR_constants, only: stdOut, cursorup
-  use analysemcmc_settings, only: Npdf2D, PDF2Dpairs, prProgress, update
+  use analysemcmc_settings, only: Npdf2D, PDF2Dpairs, prProgress,prIval, update
   use general_data, only: parNames, fixedpar
   use mcmcrun_data, only: revID,parID
   
@@ -41,7 +41,10 @@ function create_this_2D_PDF(p1,p2, countplots,totplots)
   
   create_this_2D_PDF = .false.
   
-  if(Npdf2D.ge.0) then
+  if(Npdf2D.eq.0) return
+  
+  
+  if(Npdf2D.gt.0) then
      
      do i=1,Npdf2D
         if( p1.eq.revID(PDF2Dpairs(i,1)) .and. p2.eq.revID(PDF2Dpairs(i,2)) )  create_this_2D_PDF = .true.
@@ -60,19 +63,23 @@ function create_this_2D_PDF(p1,p2, countplots,totplots)
      
      create_this_2D_PDF = .true.
      
-     if(stdOut.lt.10) then
-        if(prProgress.ge.1.and.update.eq.0) then
-           write(*,*) cursorup  ! Move cursor up 1 line
-           write(*,'(A)', advance='no') '  Progress: ['
-           do i=1,100
-              if(i.le.nint(real(countplots+1)/real(totplots)*100)) then
-                 write(*,'(A)', advance='no') '#'
-              else
-                 write(*,'(A)', advance='no') ' '
-              end if
-           end do
-           write(*,'(A,F7.1,A)') '] ',real(countplots+1)/real(totplots)*100, &
-                '%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                           '
+     if(stdOut.lt.10) then  ! Writing to screen - print progress bar
+        if(prIval.lt.1.or.prProgress.lt.4) then  ! Then we're not printing probability areas
+           
+           if(prProgress.ge.1.and.update.eq.0) then
+              write(*,*) cursorup  ! Move cursor up 1 line
+              write(*,'(A)', advance='no') '  Progress: ['
+              do i=1,100
+                 if(i.le.nint(real(countplots+1)/real(totplots)*100)) then
+                    write(*,'(A)', advance='no') '#'
+                 else
+                    write(*,'(A)', advance='no') ' '
+                 end if
+              end do
+              write(*,'(A,F7.1,A)') '] ',real(countplots+1)/real(totplots)*100, &
+                   '%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                        '
+           end if
+           
         end if
      end if
      
@@ -240,11 +247,11 @@ subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_p
      if(normPDF2D.eq.4) then
         
         ! Get 2D probability ranges; identify to which range each bin belongs:
-        if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  identifying 2D ranges...'
+        if(prProgress.ge.4) write(stdOut,'(A)',advance="no")'  identifying 2D ranges...'
         call identify_2d_ranges(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr)
         
         ! Compute 2D probability areas; sum the areas of all bins:
-        if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  computing 2D areas...'
+        if(prProgress.ge.4) write(stdOut,'(A)',advance="no")'  computing 2D areas...'
         call calc_2d_areas(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr,probArea)
         injectionranges2d(p1,p2) = injectionrange2d(z,Nbin2Dx+1,Nbin2Dy+1,startval(1,p1,1),startval(1,p2,1),tr)
         
@@ -255,7 +262,9 @@ subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_p
                    'Circ. area rad. (deg) ','Fraction of sky '
               write(stdOut,'(I10,F13.2,3(2x,F21.5))') i,ivals(i),probArea(i),sqrt(probArea(i)/pi)*2, &
                    probArea(i)*(pi/180.)**2/(4*pi)  ! 4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
-           else
+              if(i.eq.Nival) write(stdOut,*) ''
+           else if(prIval.ge.1.and.prProgress.ge.4) then
+              
               areaunit = trim(pgUnits(parID(p1)))//' '//trim(pgUnits(parID(p2)))
               if(trim(pgUnits(parID(p1))) .eq. trim(pgUnits(parID(p2)))) areaunit = trim(pgUnits(parID(p1)))//'^2'  ! mm->m^2
               call replace_substring(areaunit, '\(2218)', 'deg')    ! degrees
@@ -276,7 +285,7 @@ subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_p
   
   ! 'Bin' the data by weighing by likelihood value:
   if(normPDF2D.eq.3) then
-     if(prProgress.ge.3) write(stdOut,'(A)',advance="no")'  binning 2D data...'
+     if(prProgress.ge.4) write(stdOut,'(A)',advance="no")'  binning 2D data...'
      ! Measure amount of likelihood in each bin:
      call bin_data_2d_a( n(ic), xx(1:n(ic)), yy(1:n(ic)), zz(1:n(ic)), Nbin2Dx,Nbin2Dy, xmin,xmax,ymin,ymax, z, tr )
   end if
@@ -462,7 +471,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
         if(tot.le.np*ivals(i)) then
            x2(ib) = real(ni-i+1)  ! e.g. x2(b) = ni if within 68%, ni-1 if within 95%, etc, and 1 if within 99.7%
         else
-           if(prProgress.ge.3.and.full(i).eq.0) then  ! Report the number of points in the lastly selected bin
+           if(prProgress.ge.4.and.full(i).eq.0) then  ! Report the number of points in the lastly selected bin
               if(i.eq.1) write(stdOut,'(A)',advance="no") 'Last bin:'
               !write(stdOut,'(F6.3,I5)',advance="no") ivals(i),nint(x1(ib))
               write(stdOut,'(I5)',advance="no") nint(x1(ib))
@@ -481,7 +490,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
   !end do
   
   ! Count isolated pixels (surrounded by pixels that are all of a different value than it):
-  if(prProgress.ge.3) then
+  if(prProgress.ge.4) then
      write(*,*)
      do same0=1,8
         iso = 0
@@ -513,7 +522,7 @@ subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
      write(*,'(A,I6,A1,F7.2,A1)') '  Non-zero pixels :',nonzero,',', &
           real(nonzero)/real(nn)*100,'%'
      
-  end if  ! if(prProgress.ge.3)
+  end if  ! if(prProgress.ge.4)
   
 end subroutine identify_2d_ranges
 !***********************************************************************************************************************************
@@ -691,7 +700,7 @@ subroutine prepare_skymap_binning(xmin,xmax, ymin,ymax)
      avg = (xmin+xmax)*0.5
      xmin = avg - 0.5*dx
      xmax = avg + 0.5*dx
-     if(prProgress.ge.3) write(stdOut,'(2(A,F6.1),A)',advance='no')'  Changing RA binning range to ',xmin,' - ',xmax,' h.'
+     if(prProgress.ge.4) write(stdOut,'(2(A,F6.1),A)',advance='no')'  Changing RA binning range to ',xmin,' - ',xmax,' h.'
   end if
   
   if(abs(dx)*15.gt.dy/rat) then  ! Expand y
@@ -699,7 +708,7 @@ subroutine prepare_skymap_binning(xmin,xmax, ymin,ymax)
      avg = (ymin+ymax)*0.5
      ymin = avg - 0.5*dy
      ymax = avg + 0.5*dy
-     if(prProgress.ge.3) write(stdOut,'(2(A,F6.1),A)',advance='no')'  Changing Dec. binning range to ',ymin,' - ',ymax,' deg.'
+     if(prProgress.ge.4) write(stdOut,'(2(A,F6.1),A)',advance='no')'  Changing Dec. binning range to ',ymin,' - ',ymax,' deg.'
   end if
   
 end subroutine prepare_skymap_binning

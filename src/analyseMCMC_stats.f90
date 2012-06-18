@@ -630,6 +630,7 @@ subroutine statistics(exitcode)
   var = 0.0
   total = 0.0
   total2 = 0.0
+  if(prProgress.gt.2) write(stdOut,*)
   do ic = 1,nchains0
      var = logebayesfactor(ic)
      !write(6,'(A,F10.3)')'ln Bayes',logebayesfactor(ic)

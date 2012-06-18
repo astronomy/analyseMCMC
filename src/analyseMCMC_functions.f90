@@ -336,7 +336,7 @@ subroutine write_settingsfile()
        prConv, saveStats, savePDF, wikiOutput, tailoredOutput, htmlOutput
   
   ! Select which plots to make:
-  namelist /plot_select/ plot, plLogL, plChain, plParL, plJump, plPDF1D, plPDF2D, plAcorr, plotSky, mapProjection, plAnim
+  namelist /plot_select/ plot, plLogL, plChain, plParL, plJump, plAcorr, plPDF1D, plPDF2D, plotSky, mapProjection, plAnim
   
   ! Detailed plot settings:
   namelist /plot_options/ chainPlI, scLogLpl, scChainsPl, plInject, plStart, plMedian, plRange, plBurn, plLmax, prValues, smooth, &
@@ -665,10 +665,12 @@ subroutine read_mcmcfiles(exitcode)
         call parNames2IDs(trim(parNameStr),nMCMCpar, parID)  ! Convert parameter names to integer IDs
      end if
      
+     if(prProgress.ge.3) write(stdOut,'(A,I3,A)', advance='no') '  Chain',ic, ':  parameters identified:  '
      do i=1,nMCMCpar
         revID(parID(i)) = i  ! Reverse ID
+        if(prProgress.ge.3) write(stdOut,'(A,1x)', advance='no') trim(parNames(parID(i)))
      end do
-     if(prProgress.ge.3) write(stdOut,'(99A)') 'Parameters identified: ',parNames(parID(1:nMCMCpar))
+     if(prProgress.ge.3) write(stdOut,*)
      
      i=1
      do while(i.le.maxIter)
