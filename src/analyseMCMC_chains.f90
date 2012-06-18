@@ -32,6 +32,7 @@ subroutine chains(exitcode)
   use analysemcmc_settings, only: plLogL,update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality,scLogLpl
   use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,plChain,fontsize1d,nPlPar,panels,plPars,scChainsPl,changeVar
   use analysemcmc_settings, only: chainSymbol,plInject,mergeChains,plStart,prConv,plParL,plJump,plAcorr,nAcorr, autoBurnin
+  use analysemcmc_settings, only: htmlOutput
   use general_data, only: post,allDat,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax,nChains,parNames,pgParNs,rhat
   use general_data, only: pgOrigParns,pgParNss
   use mcmcrun_data, only: revID,parID
@@ -54,7 +55,13 @@ subroutine chains(exitcode)
   !*********************************************************************************************************************************
   ! Plot posterior chain:
   if(plLogL.ge.1) then
-     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' posterior chain, '
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A)') '<h3>Posterior chain</h3>'
+        write(stdOut,'(A)') '<a href="'//trim(outputname)//'__posterior.png">'// &
+             '<img src="'//trim(outputname)//'__posterior.png" width="300" title="Click for a larger version"></a>'
+     else
+        if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' posterior chain, '
+     end if
      
      if(use_PLplot) then
         if(file.eq.0) then
@@ -270,7 +277,14 @@ subroutine chains(exitcode)
   !*********************************************************************************************************************************
   ! Plot chains for each parameter:
   if(plChain.eq.1) then
-     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter chains, '
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A)') '<h3>Parameter chains</h3>'
+        write(stdOut,'(A)') '<a href="'//trim(outputname)//'__chains.png">'// &
+             '<img src="'//trim(outputname)//'__chains.png" width="300" title="Click for a larger version"></a>'
+     else
+        if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter chains, '
+     end if
+     
      if(file.eq.0) then
         if(.not.use_PLplot) io = pgopen('13/xs')
         call pgpap(scrSz,scrRat)
@@ -695,8 +709,14 @@ subroutine chains(exitcode)
   !*********************************************************************************************************************************
   ! Plot L vs parameter value:
   if(plParL.eq.1) then
-     !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting parameter-L plot...'
-     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter-L, '
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A)') '<h3>Parameter-L</h3>'
+        write(stdOut,'(A)') '<a href="'//trim(outputname)//'__logl.png">'// &
+             '<img src="'//trim(outputname)//'__logl.png" width="300" title="Click for a larger version"></a>'
+     else
+        !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting parameter-L plot...'
+        if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter-L, '
+     end if
      
      if(file.eq.0) then
         if(.not.use_PLplot) io = pgopen('22/xs')
@@ -999,8 +1019,15 @@ subroutine chains(exitcode)
   !*********************************************************************************************************************************
   ! Plot jump sizes:
   if(plJump.ge.1) then
-     !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting jump sizes...'
-     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' jump sizes, '
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A)') '<h3>Jump sizes</h3>'
+        write(stdOut,'(A)') '<a href="'//trim(outputname)//'__jumps.png">'// &
+             '<img src="'//trim(outputname)//'__jumps.png" width="300" title="Click for a larger version"></a>'
+     else
+        !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting jump sizes...'
+        if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' jump sizes, '
+     end if
+     
      if(file.eq.0) then
         if(.not.use_PLplot) io = pgopen('18/xs')
         call pgpap(scrSz,scrRat)
@@ -1156,8 +1183,14 @@ subroutine chains(exitcode)
   !*********************************************************************************************************************************
   ! Plot autocorrelations for each parameter:
   if(plAcorr.gt.0) then
-     !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting autocorrelations...'
-     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' autocorrelations, '
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A)') '<h3>Autocorrelations</h3>'
+        write(stdOut,'(A)') '<a href="'//trim(outputname)//'__acorrs.png">'// &
+             '<img src="'//trim(outputname)//'__acorrs.png" width="300" title="Click for a larger version"></a>'
+     else
+        !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting autocorrelations...'
+        if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' autocorrelations, '
+     end if
      
      if(file.eq.0) then
         if(.not.use_Plplot) io = pgopen('19/xs')

@@ -29,7 +29,7 @@
 
 function create_this_2D_PDF(p1,p2, countplots,totplots)
   use SUFR_constants, only: stdOut, cursorup
-  use analysemcmc_settings, only: Npdf2D, PDF2Dpairs, prProgress,prIval, update
+  use analysemcmc_settings, only: Npdf2D, PDF2Dpairs, prProgress,prIval, update, htmlOutput
   use general_data, only: parNames, fixedpar
   use mcmcrun_data, only: revID,parID
   
@@ -52,7 +52,7 @@ function create_this_2D_PDF(p1,p2, countplots,totplots)
      
      if(.not.create_this_2D_PDF) return
      
-     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no") trim(parNames(parID(p1)))//'-'// &
+     if(htmlOutput.eq.0.and.prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no") trim(parNames(parID(p1)))//'-'// &
           trim(parNames(parID(p2)))//' '
      
   else if(Npdf2D.eq.-1) then  ! all combinations of non-fixed parameters

@@ -46,7 +46,7 @@
 !! - 30: Output: __pdf1/2d.dat
 !! - 40: Output: tailored output
 !!  
-!! - 51: Output: HTML main file
+!! - 51: Output: HTML PDF2D matrix
 !! 
 !! \par 
 !! This program replaces plotspins.
@@ -79,7 +79,7 @@ program analyseMCMC
   implicit none
   integer :: i,ic,io,exitcode,tempintarray(99),getos,status,system, tmpStdOut
   real(double) :: timestamp,timestamps(9)  ! Time the progress of the code.
-  character :: infile*(99)
+  character :: infile*(99), finalOutputName*(199)
   logical :: ex,timing
   
   
@@ -132,7 +132,7 @@ program analyseMCMC
      plChain = 1
      plPDF1D = 1
      plPDF2D = 2
-     plotSky = 2
+     !plotSky = 2
      plAnim = 0
      
      plInject = 0
@@ -148,7 +148,7 @@ program analyseMCMC
      
      !nPlPar = 
      !plPars = (//)
-     Npdf2D = -1
+     !Npdf2D = -1
   end if
   
   
@@ -161,10 +161,13 @@ program analyseMCMC
   
   ! Write at least the code version to file:
   tmpStdOut = 19
-  write(stdOutFile,'(A,I6.6,A)')trim(outputdir)//'/analysemcmc_tempstdout_',abs(get_ran_seed(0)),'.txt'
+  write(stdOutFile,'(A,I6.6,A)') trim(outputdir)//'/analysemcmc_tempstdout_',abs(get_ran_seed(0)),'.txt'
   open(unit=tmpStdOut,action='write',form='formatted',status='replace',file=trim(stdOutFile),iostat=io)
   if(io.ne.0) call quit_program_error('Error opening output file '//trim(stdOutFile),1)
+  
+  if(htmlOutput.ge.1) write(tmpStdOut,'(A)') '<html><body><pre><b>'
   call print_code_version(tmpStdOut, use_PLplot)
+  if(htmlOutput.ge.1) write(tmpStdOut,'(A)') '</b>'
   
   if(prStdOut.ge.2) then
      stdOut = tmpStdOut  ! Keep writing standard output to file rather than screen
@@ -174,8 +177,8 @@ program analyseMCMC
   write(stdOut,*)
   
   if(htmlOutput.ge.1) then  ! Write standardised HTML output
-     open(unit=51,action='write',form='formatted',status='replace',file=trim(outputdir)//'/index.html',iostat=io)
-     if(io.ne.0) call quit_program_error('Error opening HTML output file '//trim(outputdir)//'/index.html',1)
+     open(unit=51,action='write',form='formatted',status='replace',file=trim(outputdir)//'/2dpdfs.html',iostat=io)
+     if(io.ne.0) call quit_program_error('Error opening HTML output file '//trim(outputdir)//'/2dpdfs.html',1)
   end if
   
   
@@ -412,18 +415,21 @@ program analyseMCMC
   if(timing) timestamps(4) = timestamp()
   
   if(prProgress.ge.2) write(stdOut,*)
-  if(plot.eq.1.and.prProgress.ge.1.and.update.eq.0) then
-     write(stdOut,'(/,A)',advance="no")'  Plotting '
-     if(file.eq.0) write(stdOut,'(A)',advance="no")'to screen: '
-     if(file.eq.1) write(stdOut,'(A)',advance="no")'to png: '
-     if(file.eq.2) write(stdOut,'(A)',advance="no")'to eps: '
-     if(file.eq.3) write(stdOut,'(A)',advance="no")'to pdf: '
+  if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '<br><hr><a name="plots"></a><h2>Plots</h2>'
+  else
+     if(plot.eq.1.and.prProgress.ge.1.and.update.eq.0) then
+        write(stdOut,'(/,A)',advance="no")'  Plotting '
+        if(file.eq.0) write(stdOut,'(A)',advance="no")'to screen: '
+        if(file.eq.1) write(stdOut,'(A)',advance="no")'to png: '
+        if(file.eq.2) write(stdOut,'(A)',advance="no")'to eps: '
+        if(file.eq.3) write(stdOut,'(A)',advance="no")'to pdf: '
+     end if
   end if
   
   
-  
   !*********************************************************************************************************************************
-  !Plot (1d) chains: logL, parameter chains, jumps, etc.
+  ! Plot (1d) chains: logL, parameter chains, jumps, etc.
   if(plot.eq.1) then
      exitcode = 0
      call chains(exitcode)
@@ -435,7 +441,7 @@ program analyseMCMC
   
   
   !*********************************************************************************************************************************
-  !Plot pdfs (1d)
+  ! Plot pdfs (1d)
   if(plPDF1D.ge.1) then
      exitcode = 0
      call pdfs1d(exitcode)
@@ -480,7 +486,7 @@ program analyseMCMC
      if(exitcode.ne.0) goto 9999
   end if
   
-  !Write statistics to file:
+  ! Write statistics to file:
   if(saveStats.ge.1.and.nchains.eq.1) then
      exitcode = 0
      call save_stats(exitcode)
@@ -489,7 +495,7 @@ program analyseMCMC
   end if !if(saveStats.ge.1.and.nchains.eq.1) then
   
   
-  !Save tailored output to a file:
+  ! Save tailored output to a file:
   if(tailoredOutput.gt.0) then
      exitcode = 0
      call tailored_output(exitcode)
@@ -564,13 +570,18 @@ program analyseMCMC
      close(tmpStdOut)
   end if
   
-  status = system('mv -f '//trim(stdOutFile)//' '//trim(outputdir)//'/'//trim(outputname)//'__output.txt')
+  if(htmlOutput.ge.1) then
+     write(finalOutputName,'(A)') trim(outputdir)//'/index.html'
+  else
+     write(finalOutputName,'(A)') trim(outputdir)//'/'//trim(outputname)//'__output.txt'
+  end if
+  
+  status = system('mv -f '//trim(stdOutFile)//' '//trim(finalOutputName))
   if(status.eq.0) then
      if(prStdOut.ge.2) &  ! Should be 6, not stdOut:
-          write(6,'(/,A,/)')'  AnalyseMCMC:  saved standard output to '//trim(outputdir)//'/'//trim(outputname)//'__output.txt'
+          write(6,'(/,A,/)')'  AnalyseMCMC:  saved standard output to '//trim(finalOutputName)
   else
-     write(stdErr,'(/,A)')'  AnalyseMCMC:  Error saving standard output to '// &
-          trim(outputdir)//'/'//trim(outputname)//'__output.txt'
+     write(stdErr,'(/,A)')'  AnalyseMCMC:  Error saving standard output to '//trim(finalOutputName)
      status = system('rm -f '//trim(stdOutFile))
      write(stdErr,*)
   end if

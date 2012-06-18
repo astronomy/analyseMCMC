@@ -30,7 +30,7 @@ subroutine pdfs1d(exitcode)
   
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
-  use analysemcmc_settings, only: plLmax,fontsize1d,nPlPar,panels,plPars,changeVar
+  use analysemcmc_settings, only: plLmax,fontsize1d,nPlPar,panels,plPars,changeVar, htmlOutput
   use analysemcmc_settings, only: plInject,mergeChains,maxChs
   use analysemcmc_settings, only: savePDF,plot,ivals,Nbin1D,Nival,fillPDF,normPDF1D,smooth,plPDF1D,plMedian,plRange,prIval,prValues
   use general_data, only: allDat,outputname,outputdir,nChains0,startval,icloglmax,iloglmax,nChains,parNames,pgParNs
@@ -54,7 +54,15 @@ subroutine pdfs1d(exitcode)
   
   exitcode=0
   if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1) write(stdOut,'(A)',advance="no")'  Saving 1D pdfs'
-  if(prProgress.ge.1.and.plot.eq.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' 1D pdfs'
+  if(plot.eq.1) then
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A)') '<h3>1D PDFs</h3>'
+        write(stdOut,'(A)') '<a href="'//trim(outputname)//'__pdfs.png">'// &
+             '<img src="'//trim(outputname)//'__pdfs.png" width="300" title="Click for a larger version"></a>'
+     else
+        if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' 1D pdfs'
+     end if
+  end if
   
   write(delta,'(A,I3.3,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
   if(nint(ivals(c0)*100).lt.100) write(delta,'(A,I2.2,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'

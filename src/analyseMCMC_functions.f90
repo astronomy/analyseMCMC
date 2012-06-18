@@ -274,6 +274,7 @@ subroutine read_settingsfile()
   close(ip)
   
   Nburn = NburnMax
+  if(Npdf2D.lt.0) plotsky = 0  ! Do not plot a (full) sky for the RA-dec 2D PDF when plotting all 2D PDFs
   
 end subroutine read_settingsfile
 !***********************************************************************************************************************************
@@ -829,7 +830,7 @@ subroutine mcmcruninfo(exitcode)
   use aM_constants, only: waveforms,detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
-  use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar,plInject,plStart
+  use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar,plInject,plStart,htmlOutput
   
   use general_data, only: allDat,post,ntot,n,nchains,nchains0,infiles,contrChain,startval,fixedpar,selDat,iloglmax,icloglmax
   use general_data, only: contrChains,parNames,nfixedpar,outputname,maxIter
@@ -859,23 +860,33 @@ subroutine mcmcruninfo(exitcode)
   
   ! Print run info (detectors, SNR, amount of data, FFT, etc):
   if(prRunInfo.gt.0.and.update.eq.0) then
-     if(prRunInfo.eq.1) write(stdOut,'(/,A)')'  Run information for chain 1:'
-     if(prRunInfo.eq.2) write(stdOut,'(/,A)')'  Run information:'
+     write(stdOut,*)
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A)')'<br><hr><a name="runinfo"></a><h2>Run info</h2>'
+     else
+        if(prRunInfo.eq.1) write(stdOut,'(/,A)')'  Run information for chain 1:'
+        if(prRunInfo.eq.2) write(stdOut,'(/,A)')'  Run information:'
+     end if
+     
      do ic = 1,nchains0
         if((prRunInfo.eq.1.and.ic.eq.1) .or. prRunInfo.eq.2) then
            infile = infiles(ic)
            if(outputVersion.lt.0.5) then
-              write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
+              if(prRunInfo.le.2.and.ic.eq.1 .or. prRunInfo.eq.3) &
+                   write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
               write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(13:99)), &
                    trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
            else
-              write(stdOut,'(4x,A7,A12,A13,A10,A12,A11,A8,  2A8,2A8,  A8,  A10,  A8,  A8, 3x,A8)') 'Chain','file name','colour', &
-                   'Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','<d|d>','pN','Npar','WaveForm'
+              if(prRunInfo.le.2.and.ic.eq.1 .or. prRunInfo.eq.3) &
+                   write(stdOut,'(4x,A7,A12,A13,A10,A12,A11,A8,  2A8,2A8,  A8,  A10,  A8,  A8, 3x,A8)') 'Chain','file name', &
+                   'colour','Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','<d|d>','pN','Npar','WaveForm'
               write(stdOut,'(4x,I7,A12,  A13,I10,I12,I11,I8,  2I8,2F8.1,F8.3,F10.2,F8.1,I8, 3x,A)')ic,trim(infile(19:99)), &
                    trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic), &
                    nCorr(ic),nTemps(ic),real(Tmax(ic)),Tchain(ic),networkSNR(ic),DoverD,pnOrder,nMCMCpar,trim(waveforms(waveform))
            end if
-           
+        end if
+        
+        if((prRunInfo.le.2.and.ic.eq.nchains0) .or. prRunInfo.eq.3) then
            write(stdOut,*)
            write(stdOut,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc', &
                 'Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
@@ -1001,7 +1012,8 @@ subroutine mcmcruninfo(exitcode)
   
   
   !*** Print chain info to screen:
-  !Print info on number of iterations, burn-in, thinning, etc.
+  ! Print info on number of iterations, burn-in, thinning, etc.:
+  if(prChainInfo.ge.2.and.update.ne.1.and.htmlOutput.ge.1) write(stdOut,'(A)')'<br><hr><a name="chaininfo"></a><h2>Chain info</h2>'
   do ic=1,nchains0
      infile = infiles(ic)
      if(prChainInfo.ge.2.and.update.ne.1) then

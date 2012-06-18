@@ -33,7 +33,7 @@ subroutine statistics(exitcode)
   use SUFR_sorting, only: sorted_index_list
   
   use analysemcmc_settings, only: changeVar,prProgress,mergeChains,wrapData,saveStats,prCorr,ivals,ival0,prStat,prIval,Nival,Nburn
-  use analysemcmc_settings, only: prConv,wikioutput,plAcorr,prAcorr,maxMCMCpar,maxChs
+  use analysemcmc_settings, only: prConv,wikioutput,plAcorr,prAcorr,maxMCMCpar,maxChs, htmlOutput
   use general_data, only: allDat,selDat,startval,shIvals,wrap,shifts,stats,ranges,nChains0,Ntot,nChains,n,raShift,contrChain
   use general_data, only: raCentre,fixedpar,c0,post,parNames, maxIter
   use general_data, only: logebayesfactor,log10bayesfactor,logebayestempfactor,logebayesfactortotalgeom,logebayesfactortotalarith
@@ -437,7 +437,11 @@ subroutine statistics(exitcode)
      
      ! Print statistics to screen:
      if(prStat.gt.0) then
-        write(stdOut,'(/,A)')'  Main statistics:'
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(/,A)')'<br><hr><a name="stats"></a><h2>Main statistics</h2>'
+        else
+           write(stdOut,'(/,A)')'  Main statistics:'
+        end if
         do c=1,Nival
            if(c.ne.c0.and.prStat.lt.2) cycle
            if(c.gt.1.and.prStat.ge.2) write(stdOut,*)
@@ -463,7 +467,12 @@ subroutine statistics(exitcode)
      
      ! Print intervals as: centre, delta, in range:
      if(prIval.eq.1.or.prIval.eq.3) then
-        write(stdOut,'(/,A)')'  Probability intervals:'
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(/,A)')'<br><hr><a name="prob"></a><h2>Probability intervals</h2>'
+        else
+           write(stdOut,'(/,A)')'  Probability intervals:'
+        end if
+        
         write(stdOut,'(A22,A8)',advance="no")'Interval:',''
         do c=1,Nival
            write(stdOut,'(F20.4,A9)',advance="no")ivals(c),''
@@ -502,7 +511,11 @@ subroutine statistics(exitcode)
      
      
      if(prIval.ge.2) then
-        write(stdOut,'(/,A)')'  Statistics and probability intervals:'
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(/,A)')'<br><hr><a name="statsprob"></a><h2>Statistics and probability intervals</h2>'
+        else
+           write(stdOut,'(/,A)')'  Statistics and probability intervals:'
+        end if
         
         ! Print intervals as x +- dx:
         write(stdOut,'(A61)',advance="no")'Interval:'
@@ -584,6 +597,7 @@ subroutine statistics(exitcode)
      if(prCorr.gt.0) then
         corr1 = 0.1
         corr2 = 0.5
+        if(htmlOutput.ge.1) write(stdOut,'(/,A)')'<br><hr><a name="corr"></a><h2>Correlatons</h2>'
         write(stdOut,'(/,A)',advance="no")'  Correlations  '
         write(stdOut,'(A,3(F4.2,A))')'  (weak [',corr1,'<abs(cor)<',corr2,']: in lower triangle,  strong [abs(cor)>', &
              corr2,']: in upper triangle):'
@@ -1335,7 +1349,7 @@ subroutine compute_mixing()
   use SUFR_constants, only: stdOut
   use SUFR_statistics, only: compute_median
   
-  use analysemcmc_settings, only: prConv,Nburn,maxChs,maxMCMCpar
+  use analysemcmc_settings, only: prConv,Nburn,maxChs,maxMCMCpar, htmlOutput
   use general_data, only: Rhat,contrChains,contrChain,nChains0,Ntot,allDat,fixedpar,parNames
   use mcmcrun_data, only: parID,revID,nMCMCpar,nMCMCpar0
   
@@ -1363,7 +1377,11 @@ subroutine compute_mixing()
      if(nn1.lt.nn) nn = nn1
   end do
   
-  if(prConv.ge.2) write(stdOut,'(A,I8,A)')'  Mixing parameters for',nn,' data points in each chain:'
+  if(prConv.ge.2) then
+     write(stdOut,*)
+     if(htmlOutput.ge.1) write(stdOut,'(A)')'<br><hr><a name="mixing"></a><h2>Mixing</h2>'
+     write(stdOut,'(A,I8,A)')'  Mixing parameters for',nn,' data points in each chain:'
+  end if
   
   
   ! Compute the means for each chain and for all chains:

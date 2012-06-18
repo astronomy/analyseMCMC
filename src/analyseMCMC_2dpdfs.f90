@@ -54,8 +54,12 @@ subroutine pdfs2d(exitcode)
   j1 = 1
   j2 = nMCMCpar
   
-  if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1.and.plPDF1D.eq.0) write(stdOut,'(A)',advance="no")'  Saving'
-  if(prProgress.ge.1.and.update.eq.0.and.Npdf2D.ge.0) write(stdOut,'(A)',advance="no")'  2D pdfs: '
+  if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '<h3>2D PDFs:</h3>'
+  else
+     if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1.and.plPDF1D.eq.0) write(stdOut,'(A)',advance="no")'  Saving'
+     if(prProgress.ge.1.and.update.eq.0.and.Npdf2D.ge.0) write(stdOut,'(A)',advance="no")'  2D pdfs: '
+  end if
   
   if(Npdf2D.lt.0) then  ! Plot all 2D PDFs
      totplots = 0
@@ -63,8 +67,14 @@ subroutine pdfs2d(exitcode)
         totplots = totplots + j - j1
      end do
      totplots = totplots*2  ! Since we're plotting Mc-eta as well as eta
-     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A,I3,A,I3,A,/)')'  *all* ',totplots, &
-          ' 2D PDFs for the all combinations of the',j2-j1+1-nfixedpar,' non-fixed parameters: '
+     
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A,I3,A,I3,A)') '<a href="2dpdfs.html"><b>*all* ',totplots, ' 2D PDFs for all combinations of the', &
+             j2-j1+1-nfixedpar,' non-fixed parameters</b></a>'
+     else if(prProgress.ge.1.and.update.eq.0) then
+        write(stdOut,'(A,I3,A,I3,A,/)') '  *all* ',totplots,' 2D PDFs for all combinations of the', &
+             j2-j1+1-nfixedpar,' non-fixed parameters:'
+     end if
   end if
   
   
@@ -190,8 +200,8 @@ subroutine pdfs2d(exitcode)
         
         
         
-        ! Swap RA boundaries for RA-Dec plot in 2D PDF:
-        if(sky_position) then
+        ! Swap RA boundaries for RA-Dec plot in 2D PDF, when plotting a map:
+        if(sky_position .and. plotSky.ge.1) then
            call swapreal(xmin, xmax)
            dx = -dx
         end if

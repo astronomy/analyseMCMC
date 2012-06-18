@@ -31,11 +31,11 @@
 !! \retval exitcode     Exit code: 0=ok
 
 subroutine open_2D_PDF_plot_file(p1,p2, npdf, sch, project_map, exitcode)
-  use SUFR_constants, only: stdErr
+  use SUFR_constants, only: stdErr, stdOut
   use aM_constants, only: use_PLplot
-  use analysemcmc_settings, only: outputbasefile,outputtempfile, file
+  use analysemcmc_settings, only: outputbasefile,outputtempfile, file, Npdf2D, htmlOutput
   use analysemcmc_settings, only: scrsz,scrrat,pssz,psrat, colour,whitebg,fonttype
-  use general_data, only: outputname,outputdir, parNames
+  use general_data, only: outputname,outputdir, parNames, htParNs
   use mcmcrun_data, only: parID
   use plot_data, only: bmpsz,bmprat,psclr
   
@@ -51,8 +51,15 @@ subroutine open_2D_PDF_plot_file(p1,p2, npdf, sch, project_map, exitcode)
   
   exitcode = 0
   
-  write(outputbasefile,'(A)') trim(outputdir)//'/'//trim(outputname)//'__pdf2d__'// &
-       trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
+  write(outputbasefile,'(A)') trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
+  
+  if(htmlOutput.ge.1 .and. Npdf2D.gt.0) then
+     write(stdOut,'(A)') '<h4>'//trim(htParNs(parID(p1)))//'-'//trim(htParNs(parID(p2)))//':</h4>'
+     write(stdOut,'(A)') '<a href="'//trim(outputbasefile)//'.png">'// &
+          '<img src="'//trim(outputbasefile)//'.png" width="300" title="Click for a larger version"></a>'
+  end if
+  
+  write(outputbasefile,'(A)') trim(outputdir)//'/'//trim(outputbasefile)
   
   if(file.eq.0) then
      npdf=npdf+1
@@ -141,7 +148,7 @@ subroutine plot_2D_PDF(z, tr, project_map)
      ! Plot 2D image - 0: no projection:
      call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, 0)
      
-     ! Plot 2D image - produces ~2.5x smaller plots - used to give segfaults (still does in some cases?):
+     ! Plot 2D image - produces ~2.5x smaller plots - used to give segfaults (still does in some cases? was either png or eps):
      !call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr)
      
   end if
