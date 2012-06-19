@@ -686,7 +686,7 @@ end subroutine statistics
 
 subroutine save_stats(exitcode)
   use SUFR_constants, only: stdErr,stdOut
-  use analysemcmc_settings, only: Nival,ivals,Npdf2D,Nbin2Dx,Nbin2Dy,PDF2Dpairs,saveStats,prProgress
+  use analysemcmc_settings, only: Nival,ivals,Npdf2D,Nbin2Dx,Nbin2Dy,PDF2Dpairs,saveStats,prProgress, htmlOutput
   use general_data, only: outputname,outputdir,nChains0,contrChains,post,fixedpar,parNames,startval,stats,ranges
   use mcmcrun_data, only: totiter,totlines,totpts,seed,ndet,networkSNR,detnames,detnr,snr,flow,fhigh,t_before,t_after,FTstart
   use mcmcrun_data, only: deltaFT,samplerate,samplesize,FTsize,t0,nMCMCpar,parID,revID
@@ -837,8 +837,21 @@ subroutine save_stats(exitcode)
   status = status  ! Remove 'set but never used' warning
   !write(stdOut,*)
   if(prProgress.ge.1) then
-     if(saveStats.eq.1) write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.txt'
-     if(saveStats.eq.2) write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.txt,ps'
+     if(saveStats.eq.1) then
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(A)')'  Statistics saved in <a href="'//trim(outputname)//'__statistics.txt">'//trim(outputname)// &
+                '__statistics.txt</a>'
+        else
+           write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.txt'
+        end if
+     else if(saveStats.eq.2) then
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(A)')'  Statistics saved in <a href="'//trim(outputname)//'__statistics.txt">'//trim(outputname)// &
+                '__statistics.txt</a>, <a href="'//trim(outputname)//'__statistics.ps">ps</a>'
+        else
+           write(stdOut,'(A)')'  Statistics saved in '//trim(outputdir)//'/'//trim(outputname)//'__statistics.txt,ps'
+        end if
+     end if
   end if
   
 end subroutine save_stats

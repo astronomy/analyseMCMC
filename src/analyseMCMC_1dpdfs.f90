@@ -56,7 +56,7 @@ subroutine pdfs1d(exitcode)
   if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1) write(stdOut,'(A)',advance="no")'  Saving 1D pdfs'
   if(plot.eq.1) then
      if(htmlOutput.ge.1) then
-        write(stdOut,'(A)') '<h3>1D PDFs</h3>'
+        write(stdOut,'(A)') '<a name="1dpdfs"></a><h3>1D PDFs:</h3>'
         write(stdOut,'(A)') '<a href="'//trim(outputname)//'__pdfs.png">'// &
              '<img src="'//trim(outputname)//'__pdfs.png" width="500" title="Click for a larger version"></a>'
      else

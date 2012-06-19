@@ -55,7 +55,7 @@ subroutine pdfs2d(exitcode)
   j2 = nMCMCpar
   
   if(htmlOutput.ge.1) then
-     write(stdOut,'(A)') '<h3>2D PDFs:</h3>'
+     write(stdOut,'(A)') '<a name="2dpdfs"></a><h3>2D PDFs:</h3>'
   else
      if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1.and.plPDF1D.eq.0) write(stdOut,'(A)',advance="no")'  Saving'
      if(prProgress.ge.1.and.update.eq.0.and.Npdf2D.ge.0) write(stdOut,'(A)',advance="no")'  2D pdfs: '

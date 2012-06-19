@@ -56,7 +56,7 @@ subroutine chains(exitcode)
   ! Plot posterior chain:
   if(plLogL.ge.1) then
      if(htmlOutput.ge.1) then
-        write(stdOut,'(A)') '<h3>Posterior chain</h3>'
+        write(stdOut,'(A)') '<h3>Posterior chain:</h3>'
         write(stdOut,'(A)') '<a href="'//trim(outputname)//'__posterior.png">'// &
              '<img src="'//trim(outputname)//'__posterior.png" width="500" title="Click for a larger version"></a>'
      else
@@ -278,7 +278,7 @@ subroutine chains(exitcode)
   ! Plot chains for each parameter:
   if(plChain.eq.1) then
      if(htmlOutput.ge.1) then
-        write(stdOut,'(A)') '<h3>Parameter chains</h3>'
+        write(stdOut,'(A)') '<h3>Parameter chains:</h3>'
         write(stdOut,'(A)') '<a href="'//trim(outputname)//'__chains.png">'// &
              '<img src="'//trim(outputname)//'__chains.png" width="500" title="Click for a larger version"></a>'
      else
@@ -710,7 +710,7 @@ subroutine chains(exitcode)
   ! Plot L vs parameter value:
   if(plParL.eq.1) then
      if(htmlOutput.ge.1) then
-        write(stdOut,'(A)') '<h3>Parameter-L</h3>'
+        write(stdOut,'(A)') '<h3>Parameter-L:</h3>'
         write(stdOut,'(A)') '<a href="'//trim(outputname)//'__logl.png">'// &
              '<img src="'//trim(outputname)//'__logl.png" width="500" title="Click for a larger version"></a>'
      else
@@ -1020,7 +1020,7 @@ subroutine chains(exitcode)
   ! Plot jump sizes:
   if(plJump.ge.1) then
      if(htmlOutput.ge.1) then
-        write(stdOut,'(A)') '<h3>Jump sizes</h3>'
+        write(stdOut,'(A)') '<h3>Jump sizes:</h3>'
         write(stdOut,'(A)') '<a href="'//trim(outputname)//'__jumps.png">'// &
              '<img src="'//trim(outputname)//'__jumps.png" width="500" title="Click for a larger version"></a>'
      else
@@ -1184,7 +1184,7 @@ subroutine chains(exitcode)
   ! Plot autocorrelations for each parameter:
   if(plAcorr.gt.0) then
      if(htmlOutput.ge.1) then
-        write(stdOut,'(A)') '<h3>Autocorrelations</h3>'
+        write(stdOut,'(A)') '<h3>Autocorrelations:</h3>'
         write(stdOut,'(A)') '<a href="'//trim(outputname)//'__acorrs.png">'// &
              '<img src="'//trim(outputname)//'__acorrs.png" width="500" title="Click for a larger version"></a>'
      else

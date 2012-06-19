@@ -473,13 +473,15 @@ program analyseMCMC
   
   
   
+  if(htmlOutput.ge.1) write(stdOut,'(A)') '<br><hr><br>'
+  
   
   !*********************************************************************************************************************************
   
   if(saveStats.ge.1.and.nchains.gt.1) then
      write(stdErr,'(A)')' ******   Cannot write statistics if the number of chains is greater than one   ******'
      
-     !Write Bayes factors to file:
+     ! Write Bayes factors to file:
      exitcode = 0
      call save_bayes(exitcode)
      if(exitcode.ne.0) goto 9999
@@ -532,6 +534,7 @@ program analyseMCMC
      timestamps(9) = timestamp()
      
      if(prProgress.ge.1) then
+        if(htmlOutput.ge.1) write(stdOut,'(A)') '<font size="2"><b>'
         write(stdOut,'(A)',advance="no")'  Run time: '
         write(stdOut,'(A,F5.1,A)',advance="no")'   input:',min(abs(timestamps(2)-timestamps(1)),999.9_dbl),'s,'
         write(stdOut,'(A,F5.1,A)',advance="no")'   stats:',min(abs(timestamps(4)-timestamps(2)),999.9_dbl),'s,'
@@ -546,6 +549,7 @@ program analyseMCMC
         end if
         if(plAnim.ge.1) write(stdOut,'(A,F5.1,A)',advance="no")'   movie:',min(abs(timestamps(9)-timestamps(8)),999.9_dbl),'s,'
         write(stdOut,'(A,F6.1,A)')'   total:',min(abs(timestamps(9)-timestamps(1)),999.9_dbl),'s.'
+        if(htmlOutput.ge.1) write(stdOut,'(A)') '</b></font>'
      end if
   end if
   
