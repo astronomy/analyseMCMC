@@ -131,7 +131,7 @@ subroutine statistics(exitcode)
      wrapival = 0.999 !Always use a very large range (?)
      indexx = 0
      if(prProgress.ge.2.and.mergeChains.eq.0) write(stdOut,'(A,I2.2,A)',advance="no")' Ch',ic,' '
-     if(prProgress.ge.2.and.ic.eq.1.and.wrapData.ge.1) write(stdOut,'(A)',advance="no")'  Wrap data. '
+     if(htmlOutput.eq.0.and.prProgress.ge.2.and.ic.eq.1.and.wrapData.ge.1) write(stdOut,'(A)',advance="no")'  Wrap data. '
      do p=1,nMCMCpar
         if(wrapData.eq.0 .or. &
              (parID(p).ne.31.and.parID(p).ne.41.and.parID(p).ne.52.and.parID(p).ne.54.and.parID(p).ne.73.and.parID(p).ne.83) ) &
@@ -239,7 +239,7 @@ subroutine statistics(exitcode)
      
      
      ! Do statistics:
-     if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A)',advance="no")'  Calc: stats, '
+     if(htmlOutput.eq.0.and.prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A)',advance="no")'  Calc: stats, '
      do p=1,nMCMCpar
         ! Determine the median:
         if(mod(n(ic),2).eq.0) medians(p) = 0.5*(selDat(ic,p,indexx(p,n(ic)/2)) + selDat(ic,p,indexx(p,n(ic)/2+1)))
@@ -280,7 +280,7 @@ subroutine statistics(exitcode)
      ! Compute correlations:
      if(prCorr.gt.0.or.saveStats.gt.0) then
         !write(stdOut,'(A)')' Calculating correlations...   '
-        if(prProgress.ge.1) write(stdOut,'(A)',advance="no")' corrs, '
+        if(htmlOutput.eq.0.and.prProgress.ge.1) write(stdOut,'(A)',advance="no")' corrs, '
         do p1=1,nMCMCpar
            do p2=1,nMCMCpar
               !do p2=p1,nMCMCpar
@@ -301,14 +301,14 @@ subroutine statistics(exitcode)
      
      
      ! Determine interval ranges:
-     if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A)',advance="no")' prob.ivals: '
+     if(htmlOutput.eq.0.and.prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A)',advance="no") ' prob.ivals: '
      c0 = 0
      do c=1,Nival
         ival = ivals(c)
         c0 = ival0
         if(c.ne.c0 .and. prIval.eq.0 .and. prStat.lt.2 .and. saveStats.eq.0) cycle
         
-        if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(F6.3)',advance="no")ival
+        if(htmlOutput.eq.0.and.prProgress.ge.1.and.ic.eq.1) write(stdOut,'(F6.3)',advance="no") ival
         do p=1,nMCMCpar
            y1 = 0.
            y2 = 0.
@@ -339,15 +339,15 @@ subroutine statistics(exitcode)
                 ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  ! Distance or mass
         end do  ! p
      end do  ! c
-     !if(prProgress.ge.2) write(stdOut,'(A34,F8.4)')'.  Standard probability interval: ',ivals(ival0)
-     !if(prProgress.ge.2) write(stdOut,'(A,F8.4)',advance="no")', default ival:',ivals(ival0)
+     !if(htmlOutput.eq.0.and.prProgress.ge.2) write(stdOut,'(A34,F8.4)')'.  Standard probability interval: ',ivals(ival0)
+     !if(htmlOutput.eq.0.and.prProgress.ge.2) write(stdOut,'(A,F8.4)',advance="no")', default ival:',ivals(ival0)
      
      
      
      
      
      ! Compute Bayes factor:
-     !if(prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A)',advance="no")'  Bayes factor,'
+     !if(htmlOutput.eq.0.and.prProgress.ge.1.and.ic.eq.1) write(stdOut,'(A)',advance="no")'  Bayes factor,'
      total = 0
      total2 = 0
      total3 = 0
@@ -398,7 +398,7 @@ subroutine statistics(exitcode)
         end if
      end do
      
-     if(prProgress.ge.1) then
+     if(htmlOutput.eq.0.and.prProgress.ge.1) then
         if(ic.eq.nChains) then
            write(stdOut,*)
         else
@@ -426,12 +426,24 @@ subroutine statistics(exitcode)
      
      
      if(prProgress+prStat+prIval+prConv.gt.0.and.ic.eq.1) then
-        write(stdOut,'(/,A,2(A,F7.2))',advance="no")'  Bayes factor:   ','log_e(B_SN) =',logebayesfactor(ic), &
-             ',  log_10(B_SN) =',log10bayesfactor(ic)
-        !write(stdOut,'(8x,A,3(A,F7.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),', &
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(/,A,2(A,F7.2))',advance="no") '  <b>Bayes factor:</b>   ','log_e(B_SN) =',logebayesfactor(ic), &
+                ',  log_10(B_SN) =',log10bayesfactor(ic)
+        else
+           write(stdOut,'(/,A,2(A,F7.2))',advance="no") '  Bayes factor:   ','log_e(B_SN) =',logebayesfactor(ic), &
+                ',  log_10(B_SN) =',log10bayesfactor(ic)
+        end if
+        
+        !write(stdOut,'(8x,A,3(A,F7.2),A)') '  Maximum likelihood:   ','log_e(Lmax) =',startval(ic,1,3),', &
         !log_10(Lmax) =',startval(ic,1,3)/log(10.),',  -> SNR =',sqrt(2*startval(ic,1,3)),'.'
-        write(stdOut,'(8x,A,3(A,F7.2),A)')'  Maximum likelihood:   ','log_e(Lmax) =',loglmax, &
-             ',  log_10(Lmax) =',loglmax/log(10.),',  -> SNR =',sqrt(2*loglmax),'.'
+        
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(8x,A,3(A,F7.2),A)') '  <b>Maximum likelihood:</b>   ','log_e(Lmax) =',loglmax, &
+                ',  log_10(Lmax) =',loglmax/log(10.),',  -> SNR =',sqrt(2*loglmax),'.'
+        else
+           write(stdOut,'(8x,A,3(A,F7.2),A)') '  Maximum likelihood:   ','log_e(Lmax) =',loglmax, &
+                ',  log_10(Lmax) =',loglmax/log(10.),',  -> SNR =',sqrt(2*loglmax),'.'
+        end if
      end if
      
      
@@ -446,9 +458,17 @@ subroutine statistics(exitcode)
         do c=1,Nival
            if(c.ne.c0.and.prStat.lt.2) cycle
            if(c.gt.1.and.prStat.ge.2) write(stdOut,*)
-           write(stdOut,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)')'Param.  ','model','median','mean','Lmax', &
-                'stdev1','stdev2','abvar1','abvar2',  &
-                'rng_c','rng1','rng2','drng','d/drng','delta','ok?','result (',ivals(c)*100,'%)'
+           
+           if(htmlOutput.ge.1) then
+              write(stdOut,'(A3,A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2,A4)') '<b>','Param.  ','model','median', &
+                   'mean','Lmax','stdev1','stdev2','abvar1','abvar2', 'rng_c','rng1','rng2','drng','d/drng','delta','ok?', &
+                   'result (',ivals(c)*100,'%)','</b>'
+           else
+              write(stdOut,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)') 'Param.  ','model','median','mean','Lmax', &
+                   'stdev1','stdev2','abvar1','abvar2', 'rng_c','rng1','rng2','drng','d/drng','delta','ok?', &
+                   'result (',ivals(c)*100,'%)'
+           end if
+           
            do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle  ! Varying parameters only
               write(stdOut,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4)',advance="no")parNames(parID(p)),startval(ic,p,1), &
@@ -481,29 +501,38 @@ subroutine statistics(exitcode)
         end do
         write(stdOut,*)
         
-        write(stdOut,'(A10,2x,2A9)',advance="no")'Param.  ','model','median'
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(A3,A10,2x,2A9)',advance="no") '<b>','Param.  ','model','median'
+        else
+           write(stdOut,'(A10,2x,2A9)',advance="no") 'Param.  ','model','median'
+        end if
         do c=1,Nival
            !write(stdOut,'(2x,2A9,A8)',advance="no")'rng1','rng2','in rnge'
            write(stdOut,'(2x,3A9)',advance="no")'centre','delta','in rnge'
         end do
-        write(stdOut,*)
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(A)') '</b>'
+        else
+           write(stdOut,*)
+        end if
+        
         do p=1,nMCMCpar
            !if(stdev1(p).lt.1.d-20) cycle
            if(fixedpar(p).eq.1) cycle  ! Varying parameters only
-           write(stdOut,'(A10,2x,2F9.4)',advance="no")parNames(parID(p)),startval(ic,p,1),stats(ic,p,1)
+           write(stdOut,'(A10,2x,2F9.4)',advance="no") parNames(parID(p)),startval(ic,p,1),stats(ic,p,1)
            do c=1,Nival
               if(mergeChains.eq.0) then
                  ! Defined with centre of prob. range, need some extra security to print correctly:
-                 write(stdOut,'(2x,2F9.4,F6.3)',advance="no")ranges(ic,c,p,3),ranges(ic,c,p,4), &
+                 write(stdOut,'(2x,2F9.4,F6.3)',advance="no") ranges(ic,c,p,3),ranges(ic,c,p,4), &
                       min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),9.999) 
               else
-                 write(stdOut,'(2x,2F9.4,F6.3)',advance="no")ranges(ic,c,p,3),ranges(ic,c,p,4), &
+                 write(stdOut,'(2x,2F9.4,F6.3)',advance="no") ranges(ic,c,p,3),ranges(ic,c,p,4), &
                       min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),99.999) ! Defined with centre of prob. range
               end if
               if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
-                 write(stdOut,'(A3)',advance="no")'y '
+                 write(stdOut,'(A3)',advance="no") 'y '
               else
-                 write(stdOut,'(A3)',advance="no")'N*'
+                 write(stdOut,'(A3)',advance="no") 'N*'
               end if
            end do  ! c
            write(stdOut,*)
@@ -514,16 +543,20 @@ subroutine statistics(exitcode)
      
      if(prIval.ge.2) then
         if(htmlOutput.ge.1) then
-           write(stdOut,'(/,A)')'<br><hr><a name="statsprob"></a><font size="1">'// &
+           write(stdOut,'(/,A)') '<br><hr><a name="statsprob"></a><font size="1">'// &
                 '<a href="#top" title="Go to the top of the page">top</a></font><h2>Statistics and probability intervals</h2>'
         else
-           write(stdOut,'(/,A)')'  Statistics and probability intervals:'
+           write(stdOut,'(/,A)') '  Statistics and probability intervals:'
         end if
         
         ! Print intervals as x +- dx:
-        write(stdOut,'(A61)',advance="no")'Interval:'
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(A4,A61)',advance="no") '<b>','Interval:'
+        else
+           write(stdOut,'(A61)',advance="no") 'Interval:'
+        end if
         do c=1,Nival
-           write(stdOut,'(F14.3,A1,A9)',advance="no")ivals(c)*100,'%',''
+           write(stdOut,'(F14.3,A1,A9)',advance="no") ivals(c)*100,'%',''
         end do
         write(stdOut,*)
         
@@ -531,7 +564,12 @@ subroutine statistics(exitcode)
         do c=1,Nival
            write(stdOut,'(5x,A8,4x,A7)',advance="no")'x','dx'
         end do
-        write(stdOut,*)
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(A)') '</b>'
+        else
+           write(stdOut,*)
+        end if
+        
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle  ! Varying parameters only
            write(stdOut,'(A10,2x,4F10.3)',advance="no")parNames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
@@ -543,17 +581,26 @@ subroutine statistics(exitcode)
         write(stdOut,*)
         
         ! Print intervals as low-high:
-        write(stdOut,'(A61)',advance="no")'Interval:'
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(A4,A61)',advance="no") '<b>','Interval:'
+        else
+           write(stdOut,'(A61)',advance="no") 'Interval:'
+        end if
         do c=1,Nival
-           write(stdOut,'(F14.3,A1,A9)',advance="no")ivals(c)*100,'%',''
-        end do
+           write(stdOut,'(F14.3,A1,A9)',advance="no") ivals(c)*100,'%',''
+        end do 
         write(stdOut,*)
         
         write(stdOut,'(A11,1x,4A10)',advance="no")'Parameter','median','mean','Lmax','stdev'
         do c=1,Nival
            write(stdOut,'(6x,A8,3x,A7)',advance="no")'min','max'
         end do
-        write(stdOut,*)
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(A)') '</b>'
+        else
+           write(stdOut,*)
+        end if
+        
         do p=1,nMCMCpar
            if(fixedpar(p).eq.1) cycle  ! Varying parameters only
            write(stdOut,'(A10,2x,4F10.3)',advance="no")parNames(parID(p)),stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev2(p)
@@ -600,33 +647,48 @@ subroutine statistics(exitcode)
      if(prCorr.gt.0) then
         corr1 = 0.1
         corr2 = 0.5
-        if(htmlOutput.ge.1) write(stdOut,'(/,A)')'<br><hr><a name="corr"></a><font size="1">'// &
-             '<a href="#top" title="Go to the top of the page">top</a></font><h2>Correlations</h2>'
-        write(stdOut,'(/,A)',advance="no")'  Correlations  '
-        write(stdOut,'(A,3(F4.2,A))')'  (weak [',corr1,'<abs(cor)<',corr2,']: in lower triangle,  strong [abs(cor)>', &
-             corr2,']: in upper triangle):'
-        write(stdOut,'(A8)',advance="no")''
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(/,A)')'<br><hr><a name="corr"></a><font size="1">'// &
+                '<a href="#top" title="Go to the top of the page">top</a></font><h2>Correlations</h2>'
+           write(stdOut,'(/,A,3(F4.2,A),A)')'  <b>Correlations    (weak [',corr1,'<abs(cor)<',corr2, &
+                ']: in lower triangle,  strong [abs(cor)>', corr2,']: in upper triangle):','</b>'
+        else
+           write(stdOut,'(/,A,3(F4.2,A))')'  Correlations    (weak [',corr1,'<abs(cor)<',corr2, &
+                ']: in lower triangle,  strong [abs(cor)>', corr2,']: in upper triangle):'
+        end if
+        
+        write(stdOut,'(A8)',advance="no") ''
+        if(htmlOutput.ge.1) write(stdOut,'(A3)',advance="no") '<b>'
         do p=1,nMCMCpar
-           if(fixedpar(p).eq.0) write(stdOut,'(A7)',advance="no")trim(parNames(parID(p)))
+           if(fixedpar(p).eq.0) write(stdOut,'(A7)',advance="no") trim(parNames(parID(p)))
         end do
+        if(htmlOutput.ge.1) write(stdOut,'(A4)',advance="no") '</b>'
         write(stdOut,*)
+        
         do p1=1,nMCMCpar
            if(fixedpar(p1).eq.1) cycle  ! Varying parameters only
-           write(stdOut,'(A8)',advance="no")trim(parNames(parID(p1)))
+           if(htmlOutput.ge.1) write(stdOut,'(A3)',advance="no") '<b>'
+           write(stdOut,'(A8)', advance="no") trim(parNames(parID(p1)))
+           if(htmlOutput.ge.1) write(stdOut,'(A4)',advance="no") '</b>'
+           
            do p2=1,nMCMCpar
               corr = corrs(p1,p2)
               if(fixedpar(p2).eq.1) cycle  ! Varying parameters only
               if( (abs(corr).ge.corr2.and.p2.gt.p1) ) then  ! Print in the upper triangle
-                 write(stdOut,'(F7.2)',advance="no")corr
+                 write(stdOut,'(F7.2)',advance="no") corr
               else if( (abs(corr).ge.corr1.and.abs(corr).lt.corr2.and.p1.gt.p2) ) then   ! Print in the lower triangle
-                 write(stdOut,'(F7.2)',advance="no")corr
+                 write(stdOut,'(F7.2)',advance="no") corr
               else if(p1.eq.p2) then  ! Print on the diagonal
-                 write(stdOut,'(A7)',advance="no")' ######' !'
+                 write(stdOut,'(A7)',advance="no") ' ######'
               else
-                 write(stdOut,'(A7)',advance="no")''
+                 write(stdOut,'(A7)',advance="no") ''
               end if
            end do
-           write(stdOut,'(A)')'   '//trim(parNames(parID(p1)))
+           if(htmlOutput.ge.1) then
+              write(stdOut,'(A)')'   <b>'//trim(parNames(parID(p1)))//'</b>'
+           else
+              write(stdOut,'(A)')'   '//trim(parNames(parID(p1)))
+           end if
         end do
      end if
      
@@ -1396,9 +1458,13 @@ subroutine compute_mixing()
   
   if(prConv.ge.2) then
      write(stdOut,*)
-     if(htmlOutput.ge.1) write(stdOut,'(A)')'<br><hr><a name="mixing"></a><font size="1">'// &
-          '<a href="#top" title="Go to the top of the page">top</a></font><h2>Mixing</h2>'
-     write(stdOut,'(A,I8,A)')'  Mixing parameters for',nn,' data points in each chain:'
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A)')'<br><hr><a name="mixing"></a><font size="1">'// &
+             '<a href="#top" title="Go to the top of the page">top</a></font><h2>Mixing</h2>'
+        write(stdOut,'(A,I8,A)')'  <b>Mixing parameters for',nn,' data points in each chain:</b>'
+     else
+        write(stdOut,'(A,I8,A)')'  Mixing parameters for',nn,' data points in each chain:'
+     end if
   end if
   
   
@@ -1450,15 +1516,25 @@ subroutine compute_mixing()
   if(prConv.ge.1) then
      write(stdOut,*)
      write(stdOut,'(A14)',advance="no")''
+     if(htmlOutput.ge.1) write(stdOut,'(A3)',advance="no")'<b>'
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  ! Varying parameters only
         write(stdOut,'(A9)',advance="no") trim(parNames(parID(p)))
      end do
-     write(stdOut,'(A9)')'Mean'
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A9,A4)')'Mean','</b>'
+     else
+        write(stdOut,'(A9)')'Mean'
+     end if
      
      
      if(prConv.ge.3) then
-        write(stdOut,'(A)')'  Means:'
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(A)')'  <b>Means:</b>'
+        else
+           write(stdOut,'(A)')'  Means:'
+        end if
+        
         do ic=1,nChains0
            if(contrChain(ic).eq.0) cycle  ! Contributing chains only
            write(stdOut,'(I12,A2)',advance="no") ic,': '
@@ -1490,10 +1566,21 @@ subroutine compute_mixing()
   
   ! Flag and print variances:
   if(prvarStdev.eq.1) then
-     if(prConv.ge.3) write(stdOut,'(/,A)')'  Variances:'
+     if(prConv.ge.3) then
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(/,A)')'  <b>Variances:</b>'
+        else
+           write(stdOut,'(/,A)')'  Variances:'
+        end if
+     end if
   else
-     if(prConv.ge.3) write(stdOut,'(/,A)')'  Std.devs:'
+     if(prConv.ge.3) then
+        write(stdOut,'(/,A)')'  <b>Std.devs:</b>'
+     else
+        write(stdOut,'(/,A)')'  Std.devs:'
+     end if
   end if
+  
   do ic=1,nChains0
      if(contrChain(ic).eq.0) cycle  ! Contributing chains only
      lowVar = 0
@@ -1574,9 +1661,17 @@ subroutine compute_mixing()
   ! Print the variances within chains and between chains:
   if(prConv.ge.2) then
      if(prvarStdev.eq.1) then
-        write(stdOut,'(A)')'  Variances:'
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(A)')'  <b>Variances:</b>'
+        else
+           write(stdOut,'(A)')'  Variances:'
+        end if
      else
-        write(stdOut,'(A)')'  Standard deviations:'
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(A)')'  <b>Standard deviations:</b>' 
+        else 
+           write(stdOut,'(A)')'  Standard deviations:'
+        end if
      end if
      write(stdOut,'(A14)',advance="no")'      In chs: '
      do p=1,nMCMCpar
@@ -1603,7 +1698,12 @@ subroutine compute_mixing()
   
   ! Print R-hat:
   if(prConv.ge.1) then
-     write(stdOut,'(A14)',advance="no")'       R-hat: '
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A21)',advance="no")'       <b>R-hat:</b> '
+     else
+        write(stdOut,'(A14)',advance="no")'       R-hat: '
+     end if
+     
      !totRhat = 0.d0
      !totRhat = 1.d0
      nRhat = 0
@@ -1621,7 +1721,11 @@ subroutine compute_mixing()
      end do
      !write(stdOut,'(F9.4)') totRhat/dble(nRhat)          ! Arithmetic mean
      !write(stdOut,'(F9.4)') totRhat**(1.d0/dble(nRhat))  ! Geometric mean
-     write(stdOut,'(F9.4,A)') compute_median(Rhat(RhatArr(1:nRhat))),' (med)'
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A3,F9.4,A)') '<b>',compute_median(Rhat(RhatArr(1:nRhat))),'</b> (med)'
+     else
+        write(stdOut,'(F9.4,A)') compute_median(Rhat(RhatArr(1:nRhat))),' (med)'
+     end if
   end if
   
 end subroutine compute_mixing

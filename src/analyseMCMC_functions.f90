@@ -878,9 +878,16 @@ subroutine mcmcruninfo(exitcode)
               write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(13:99)), &
                    trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
            else
-              if(prRunInfo.le.2.and.ic.eq.1 .or. prRunInfo.eq.3) &
-                   write(stdOut,'(4x,A7,A12,A13,A10,A12,A11,A8,  2A8,2A8,  A8,  A10,  A8,  A8, 3x,A8)') 'Chain','file name', &
-                   'colour','Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','<d|d>','pN','Npar','WaveForm'
+              if(prRunInfo.le.2.and.ic.eq.1 .or. prRunInfo.eq.3) then
+                 if(htmlOutput.ge.1) then
+                    write(stdOut,'(4x,A3,A7,A12,A13,A10,A12,A11,A8,  2A8,2A8, A8, A16, A8, A8, 3x,A8, A4)') '<b>','Chain', &
+                         'file name','colour','Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR', &
+                         '&lt;d|d&gt;','pN','Npar','WaveForm','</b>'
+                 else
+                    write(stdOut,'(4x,A7,A12,A13,A10,A12,A11,A8,  2A8,2A8, A8, A10, A8, A8, 3x,A8)') 'Chain','file name','colour', &
+                         'Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','<d|d>','pN','Npar','WaveForm'
+                 end if
+              end if
               write(stdOut,'(4x,I7,A12,  A13,I10,I12,I11,I8,  2I8,2F8.1,F8.3,F10.2,F8.1,I8, 3x,A)')ic,trim(infile(19:99)), &
                    trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic), &
                    nCorr(ic),nTemps(ic),real(Tmax(ic)),Tchain(ic),networkSNR(ic),DoverD,pnOrder,nMCMCpar,trim(waveforms(waveform))
@@ -889,8 +896,14 @@ subroutine mcmcruninfo(exitcode)
         
         if((prRunInfo.le.2.and.ic.eq.nchains0) .or. prRunInfo.eq.3) then
            write(stdOut,*)
-           write(stdOut,'(A14,A3,A18,4A12,A22,A17,3A14)')'Detector','Nr','SNR','f_low','f_high','before tc','after tc', &
-                'Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
+           if(htmlOutput.ge.1) then
+              write(stdOut,'(A3,A14,A3,A18,4A12,A22,A17,3A14,A4)') '<b>','Detector','Nr','SNR','f_low','f_high','before tc', &
+                   'after tc','Sample start (GPS)','Sample length','Sample rate','Sample size','FT size','</b>'
+           else
+              write(stdOut,'(A14,A3,A18,4A12,A22,A17,3A14)') 'Detector','Nr','SNR','f_low','f_high','before tc','after tc', &
+                   'Sample start (GPS)','Sample length','Sample rate','Sample size','FT size'
+           end if
+           
            do i=1,ndet(ic)
               write(stdOut,'(A14,I3,F18.8,4F12.2,F22.8,F17.7,3I14)')trim(detnames(ic,i)),detnr(ic,i),snr(ic,i),flow(ic,i), &
                    fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i),nint(samplerate(ic,i)),samplesize(ic,i), &
@@ -1035,12 +1048,20 @@ subroutine mcmcruninfo(exitcode)
         write(stdOut,'(A,ES7.1,A1)') '  Data pts: ',abs(real(n(ic)-Nburn(ic))),'.'
      end if
   end do
-  if(prChainInfo.ge.1.and.update.ne.1) &
-       write(stdOut,'(4x,A, A,ES10.3, A,ES10.3, A,I4, A,ES9.2,   A,ES10.3,  A2,F5.1, A,I3,A1,I2,A1)') &
-       'All chains:','  # lines:',real(totlines), ',  # iterations:',real(totiter), ',  thinning:',nint(avgtotthin), &
-       'x,  med.burnin:',compute_median_sp(real(isburn(1:nChains0))),   ',  # dat.pts after burnin:',real(totpts), &
-       ' (',real(totpts)/real(totlines)*100,'%), contrib.chains:',contrChains,'/',nchains0,'.'
-  
+  if(prChainInfo.ge.1.and.update.ne.1) then
+     write(stdOut,'(4x,A, A,ES10.3, A,ES10.3, A,I4, A,ES9.2)', advance='no') 'All chains:','  # lines:',real(totlines), &
+          ',  # iterations:',real(totiter), ',  thinning:',nint(avgtotthin), 'x,  med.burnin:', &
+          compute_median_sp(real(isburn(1:nChains0)))
+     
+     if(htmlOutput.ge.1) write(stdOut,'(A3)', advance='no') '<b>'
+     write(stdOut,'(A,ES10.3,  A2,F5.1, A,I3,A1,I2,A1)', advance='no') ',  # dat.pts after burnin:',real(totpts), &
+          ' (',real(totpts)/real(totlines)*100,'%), contrib.chains:',contrChains,'/',nchains0,'.'
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A)') '</b>'
+     else
+        write(stdOut,*) ''
+     end if
+  end if
   
   
   
@@ -1078,11 +1099,11 @@ subroutine mcmcruninfo(exitcode)
   ! use SUFR_constants, only: pi
   
   if(changeVar.ge.1) then
-     if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)',advance="no")'  Changing some parameters...   '
+     if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)',advance="no")'  Changing some parameters...   '
      
      
      if(revID(61).eq.0 .and. revID(65).ne.0) then  ! Calculate Mc from Mc_16 (Mc^(1/6)):
-        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mc from Mc^(1/6)'
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mc from Mc^(1/6)'
         parID(nMCMCpar+1) = 61    ! Mc
         revID(61) = nMCMCpar + 1  ! Mc
         nMCMCpar = nMCMCpar + 1
@@ -1099,7 +1120,7 @@ subroutine mcmcruninfo(exitcode)
      
      ! Calculate q from log(q):
      if(revID(67).eq.0 .and. revID(68).ne.0) then
-        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing q from log(q)'
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing q from log(q)'
         parID(nMCMCpar+1) = 67    ! q
         revID(67) = nMCMCpar + 1  ! q
         nMCMCpar = nMCMCpar + 1
@@ -1125,7 +1146,7 @@ subroutine mcmcruninfo(exitcode)
      
      ! Calculate eta and log(q) from q:
      if(revID(62).eq.0 .and. revID(68).eq.0 .and. revID(67).ne.0) then
-        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing eta and log(q) from q'
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing eta and log(q) from q'
         parID(nMCMCpar+1) = 62    ! Eta
         parID(nMCMCpar+2) = 63    ! M1
         parID(nMCMCpar+3) = 64    ! M2
@@ -1165,7 +1186,7 @@ subroutine mcmcruninfo(exitcode)
      
      ! Calculate the individual masses from Mch and eta:
      if(revID(61)*revID(62).ne.0 .and. revID(63)+revID(64).eq.0) then
-        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing M1, M2, Mtot from Mc, eta'
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing M1, M2, Mtot from Mc, eta'
         parID(nMCMCpar+1) = 63    ! M1
         parID(nMCMCpar+2) = 64    ! M2
         parID(nMCMCpar+3) = 66    ! Mtot
@@ -1187,7 +1208,7 @@ subroutine mcmcruninfo(exitcode)
         
         ! Calculate Mc, eta from the individual masses:
      else if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) then
-        if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mc, eta from M1, M2'
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mc, eta from M1, M2'
         parID(nMCMCpar+1) = 61    ! Mc
         parID(nMCMCpar+2) = 62    ! eta
         revID(61) = nMCMCpar + 1  ! Mc
@@ -1206,7 +1227,7 @@ subroutine mcmcruninfo(exitcode)
         
         ! Compute total mass (var 66) and mass ratio (var 67) (q=M2/M1, not \eta) from the individual masses:
         ! (var 65 is reserved for Mc^(1/6)) & convert q -> 1/q, logq -> -logq and phi -> phi -pi for phi > pi
-        write(stdOut,'(A)')'  Computing Mtot, q, log(q) from masses'
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mtot, q, log(q) from masses'
         parID(nMCMCpar+1) = 66    ! Mtot
         parID(nMCMCpar+2) = 67    ! q
         parID(nMCMCpar+3) = 68    ! log(q)
@@ -1263,14 +1284,25 @@ subroutine mcmcruninfo(exitcode)
   jumps = 0.
   offsetrun = 0
   if(prInitial.ne.0) then
-     if(prInitial.eq.1) write(stdOut,'(/,A)')'  Starting values for the chains:'
-     if(prInitial.eq.2) write(stdOut,'(/,A)')'  Injection and starting values for the chains:'
-     if(prInitial.ge.3) write(stdOut,'(/,A)')'  Injection, starting and Lmax values for the chains:'
-     write(stdOut,'(15x,A10)',advance="no")'log Post'
+     if(htmlOutput.ge.1) then
+        if(prInitial.eq.1) write(stdOut,'(/,A)')'  <b>Starting values for the chains:</b>'
+        if(prInitial.eq.2) write(stdOut,'(/,A)')'  <b>Injection and starting values for the chains:</b>'
+        if(prInitial.ge.3) write(stdOut,'(/,A)')'  <b>Injection, starting and Lmax values for the chains:</b>'
+        write(stdOut,'(15x,A3,A10)',advance="no") '<b>','log Post'
+     else
+        if(prInitial.eq.1) write(stdOut,'(/,A)')'  Starting values for the chains:'
+        if(prInitial.eq.2) write(stdOut,'(/,A)')'  Injection and starting values for the chains:'
+        if(prInitial.ge.3) write(stdOut,'(/,A)')'  Injection, starting and Lmax values for the chains:'
+        write(stdOut,'(15x,A10)',advance="no") 'log Post'
+     end if
      do p=1,nMCMCpar
         write(stdOut,'(A8)',advance="no") trim(parNames(parID(p)))
      end do
-     write(stdOut,*)
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A4)') '</b>'
+     else
+        write(stdOut,*)
+     end if
   end if
   
   startval = 0.
