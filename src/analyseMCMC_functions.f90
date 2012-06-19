@@ -862,7 +862,8 @@ subroutine mcmcruninfo(exitcode)
   if(prRunInfo.gt.0.and.update.eq.0) then
      write(stdOut,*)
      if(htmlOutput.ge.1) then
-        write(stdOut,'(A)')'<br><hr><a name="runinfo"></a><h2>Run info</h2>'
+        write(stdOut,'(A)')'<br><hr><a name="runinfo"></a><font size="1"><a href="#top" title="Go to the top of the page">'// &
+             'top</a></font><h2>Run info</h2>'
      else
         if(prRunInfo.eq.1) write(stdOut,'(/,A)')'  Run information for chain 1:'
         if(prRunInfo.eq.2) write(stdOut,'(/,A)')'  Run information:'
@@ -1013,7 +1014,8 @@ subroutine mcmcruninfo(exitcode)
   
   !*** Print chain info to screen:
   ! Print info on number of iterations, burn-in, thinning, etc.:
-  if(prChainInfo.ge.2.and.update.ne.1.and.htmlOutput.ge.1) write(stdOut,'(A)')'<br><hr><a name="chaininfo"></a><h2>Chain info</h2>'
+  if(prChainInfo.ge.2.and.update.ne.1.and.htmlOutput.ge.1) write(stdOut,'(A)')'<br><hr><a name="chaininfo"></a>'// &
+       '<font size="1"><a href="#top" title="Go to the top of the page">top</a></font><h2>Chain info</h2>'
   do ic=1,nchains0
      infile = infiles(ic)
      if(prChainInfo.ge.2.and.update.ne.1) then
@@ -1061,7 +1063,7 @@ subroutine mcmcruninfo(exitcode)
            write(stdOut,'(A,I5,A,I5,A)')' state in likelihood, chains, jumps, etc. plots.  Average total thinning is', &
                 nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*real(chainPlI)),'x.'
         else
-           write(stdOut,'(A,I4,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.'// &
+           write(stdOut,'(A,I5,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.'// &
                 '  Average total thinning remains',nint(avgtotthin),'x for these plots.'
         end if
      end if
@@ -2631,4 +2633,65 @@ subroutine print_rundata(op)
 end subroutine print_rundata
 !***********************************************************************************************************************************
 
+
+!***********************************************************************************************************************************
+!>  Setup a index.html file for output
+
+subroutine create_html_index_file()
+  use SUFR_constants, only: stdOut
+  use SUFR_system, only: quit_program_error
+  
+  use aM_constants, only: stdOutFile, use_PLplot
+  use mcmcrun_data, only: t0
+  
+  implicit none
+  integer :: io
+  
+  ! Some initial output was already written to (tmp)stdOut.  Close that file, reopen it and overwrite it:
+  close(stdOut)
+  open(unit=stdOut,action='write',form='formatted',status='replace',file=trim(stdOutFile), iostat=io)
+  if(io.ne.0) call quit_program_error('Error reopening output file '//trim(stdOutFile),1)
+  
+  write(stdOut,'(A)') '<html>'
+  write(stdOut,'(A)') '  <head>'
+  write(stdOut,'(4x,A,I11,A)') '<title>AnalyseMCMC: event',nint(t0),'</title>'
+  write(stdOut,'(A)') '  </head>'
+  write(stdOut,'(A)') '  <body>'
+  
+  write(stdOut,'(4x,A)') '<a name="top"></a>'
+  write(stdOut,'(4x,A)') '<font size="2">'
+  
+  write(stdOut,'(6x,A)') '<b>Jump to:</b> &nbsp;'
+  write(stdOut,'(6x,A)') '<a href="#runinfo">Run info</a>'
+  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
+  write(stdOut,'(6x,A)') '<a href="#chaininfo">Chain info</a>'
+  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
+  write(stdOut,'(6x,A)') '<a href="#mixing">Mixing</a>'
+  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
+  write(stdOut,'(6x,A)') '<a href="#stats">Main statistics</a>'
+  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
+  write(stdOut,'(6x,A)') '<a href="#prob">Probability intervals</a>'
+  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
+  write(stdOut,'(6x,A)') '<a href="#statsprob">Stats &amp; prob.ivals </a>'
+  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
+  write(stdOut,'(6x,A)') '<a href="#corr">Correlations</a>'
+  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
+  write(stdOut,'(6x,A)') '<a href="#plots">Plots</a>'
+  
+  write(stdOut,'(4x,A)') '</font>'
+  write(stdOut,'(4x,A)') '<br>'
+  
+  write(stdOut,'(4x,A,I11,A)') '<h1>AnalyseMCMC: event',nint(t0),'</h1>'
+  
+  write(stdOut,'(A)', advance='no') '<b>'
+  call print_code_version(stdOut, use_PLplot)
+  write(stdOut,'(A)') '</b>'
+  
+  write(stdOut,'(A)') '<br><br>'
+  call print_rundata(stdOut)
+  
+  write(stdOut,'(A)') '<pre>'
+  
+end subroutine create_html_index_file
+!***********************************************************************************************************************************
 

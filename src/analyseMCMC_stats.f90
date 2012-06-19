@@ -438,7 +438,8 @@ subroutine statistics(exitcode)
      ! Print statistics to screen:
      if(prStat.gt.0) then
         if(htmlOutput.ge.1) then
-           write(stdOut,'(/,A)')'<br><hr><a name="stats"></a><h2>Main statistics</h2>'
+           write(stdOut,'(/,A)')'<br><hr><a name="stats"></a><font size="1"><a href="#top" title="Go to the top of the page">'// &
+                'top</a></font><h2>Main statistics</h2>'
         else
            write(stdOut,'(/,A)')'  Main statistics:'
         end if
@@ -468,7 +469,8 @@ subroutine statistics(exitcode)
      ! Print intervals as: centre, delta, in range:
      if(prIval.eq.1.or.prIval.eq.3) then
         if(htmlOutput.ge.1) then
-           write(stdOut,'(/,A)')'<br><hr><a name="prob"></a><h2>Probability intervals</h2>'
+           write(stdOut,'(/,A)')'<br><hr><a name="prob"></a><font size="1"><a href="#top" title="Go to the top of the page">'// &
+                'top</a></font><h2>Probability intervals</h2>'
         else
            write(stdOut,'(/,A)')'  Probability intervals:'
         end if
@@ -512,7 +514,8 @@ subroutine statistics(exitcode)
      
      if(prIval.ge.2) then
         if(htmlOutput.ge.1) then
-           write(stdOut,'(/,A)')'<br><hr><a name="statsprob"></a><h2>Statistics and probability intervals</h2>'
+           write(stdOut,'(/,A)')'<br><hr><a name="statsprob"></a><font size="1">'// &
+                '<a href="#top" title="Go to the top of the page">top</a></font><h2>Statistics and probability intervals</h2>'
         else
            write(stdOut,'(/,A)')'  Statistics and probability intervals:'
         end if
@@ -597,7 +600,8 @@ subroutine statistics(exitcode)
      if(prCorr.gt.0) then
         corr1 = 0.1
         corr2 = 0.5
-        if(htmlOutput.ge.1) write(stdOut,'(/,A)')'<br><hr><a name="corr"></a><h2>Correlatons</h2>'
+        if(htmlOutput.ge.1) write(stdOut,'(/,A)')'<br><hr><a name="corr"></a><font size="1">'// &
+             '<a href="#top" title="Go to the top of the page">top</a></font><h2>Correlations</h2>'
         write(stdOut,'(/,A)',advance="no")'  Correlations  '
         write(stdOut,'(A,3(F4.2,A))')'  (weak [',corr1,'<abs(cor)<',corr2,']: in lower triangle,  strong [abs(cor)>', &
              corr2,']: in upper triangle):'
@@ -1379,7 +1383,8 @@ subroutine compute_mixing()
   
   if(prConv.ge.2) then
      write(stdOut,*)
-     if(htmlOutput.ge.1) write(stdOut,'(A)')'<br><hr><a name="mixing"></a><h2>Mixing</h2>'
+     if(htmlOutput.ge.1) write(stdOut,'(A)')'<br><hr><a name="mixing"></a><font size="1">'// &
+          '<a href="#top" title="Go to the top of the page">top</a></font><h2>Mixing</h2>'
      write(stdOut,'(A,I8,A)')'  Mixing parameters for',nn,' data points in each chain:'
   end if
   

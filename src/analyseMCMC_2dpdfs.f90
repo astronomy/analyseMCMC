@@ -95,6 +95,8 @@ subroutine pdfs2d(exitcode)
      write(bmpxpix,'(I4)') bmpXSz                             ! Used as a text string by convert
      pltsz = bmpsz
      pltrat = bmprat
+     
+     
   end if
   
   

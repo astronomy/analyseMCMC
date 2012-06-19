@@ -240,11 +240,11 @@ program analyseMCMC
   if(file.ge.2) pltrat = PSrat
   
   
-  ! Use full unsharp-mask strength for plots with many panels and dots, weaker for those with fewer panels and/or no dots
-  write(unSharplogl,'(I4)')max(nint(real(unSharp)/2.),1)  !Only one panel with dots
-  write(unSharpchain,'(I4)')unSharp                       !~15 panels with dots
-  write(unSharppdf1d,'(I4)')max(nint(real(unSharp)/2.),1) !~15 panels, no dots
-  write(unSharppdf2d,'(I4)')max(nint(real(unSharp)/4.),1) !1 panel, no dots
+  ! Use full unsharp-mask strength for plots with many panels and dots, weaker for those with fewer panels and/or no dots:
+  write(unSharplogl,'(I4)')  max(nint(real(unSharp)/2.),1)  ! Only one panel with dots
+  write(unSharpchain,'(I4)') unSharp                        ! ~15 panels with dots
+  write(unSharppdf1d,'(I4)') max(nint(real(unSharp)/2.),1)  ! ~15 panels, no dots
+  write(unSharppdf2d,'(I4)') max(nint(real(unSharp)/4.),1)  ! 1 panel, no dots
   
   
   
@@ -354,6 +354,8 @@ program analyseMCMC
   call read_mcmcfiles(exitcode)
   if(exitcode.ne.0) goto 9998
   
+  ! Create HTML file:
+  if(htmlOutput.ge.1) call create_html_index_file(stdOut)
   
   ! Get and print some basic chain statistics:
   if(timing) timestamps(2) = timestamp()
@@ -417,7 +419,8 @@ program analyseMCMC
   
   if(prProgress.ge.2) write(stdOut,*)
   if(htmlOutput.ge.1) then
-     write(stdOut,'(A)') '<br><hr><a name="plots"></a><h2>Plots</h2>'
+     write(stdOut,'(A)') '<br><hr><a name="plots"></a><font size="1"><a href="#top" title="Go to the top of the page">top</a>'// &
+          '</font><h2>Plots</h2>'
   else
      if(plot.eq.1.and.prProgress.ge.1.and.update.eq.0) then
         write(stdOut,'(/,A)',advance="no")'  Plotting '
