@@ -58,7 +58,7 @@ subroutine chains(exitcode)
      if(htmlOutput.ge.1) then
         write(stdOut,'(A)') '<h3>Posterior chain</h3>'
         write(stdOut,'(A)') '<a href="'//trim(outputname)//'__posterior.png">'// &
-             '<img src="'//trim(outputname)//'__posterior.png" width="300" title="Click for a larger version"></a>'
+             '<img src="'//trim(outputname)//'__posterior.png" width="500" title="Click for a larger version"></a>'
      else
         if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' posterior chain, '
      end if
@@ -280,7 +280,7 @@ subroutine chains(exitcode)
      if(htmlOutput.ge.1) then
         write(stdOut,'(A)') '<h3>Parameter chains</h3>'
         write(stdOut,'(A)') '<a href="'//trim(outputname)//'__chains.png">'// &
-             '<img src="'//trim(outputname)//'__chains.png" width="300" title="Click for a larger version"></a>'
+             '<img src="'//trim(outputname)//'__chains.png" width="500" title="Click for a larger version"></a>'
      else
         if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter chains, '
      end if
@@ -712,7 +712,7 @@ subroutine chains(exitcode)
      if(htmlOutput.ge.1) then
         write(stdOut,'(A)') '<h3>Parameter-L</h3>'
         write(stdOut,'(A)') '<a href="'//trim(outputname)//'__logl.png">'// &
-             '<img src="'//trim(outputname)//'__logl.png" width="300" title="Click for a larger version"></a>'
+             '<img src="'//trim(outputname)//'__logl.png" width="500" title="Click for a larger version"></a>'
      else
         !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting parameter-L plot...'
         if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter-L, '
@@ -1022,7 +1022,7 @@ subroutine chains(exitcode)
      if(htmlOutput.ge.1) then
         write(stdOut,'(A)') '<h3>Jump sizes</h3>'
         write(stdOut,'(A)') '<a href="'//trim(outputname)//'__jumps.png">'// &
-             '<img src="'//trim(outputname)//'__jumps.png" width="300" title="Click for a larger version"></a>'
+             '<img src="'//trim(outputname)//'__jumps.png" width="500" title="Click for a larger version"></a>'
      else
         !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting jump sizes...'
         if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' jump sizes, '
@@ -1186,7 +1186,7 @@ subroutine chains(exitcode)
      if(htmlOutput.ge.1) then
         write(stdOut,'(A)') '<h3>Autocorrelations</h3>'
         write(stdOut,'(A)') '<a href="'//trim(outputname)//'__acorrs.png">'// &
-             '<img src="'//trim(outputname)//'__acorrs.png" width="300" title="Click for a larger version"></a>'
+             '<img src="'//trim(outputname)//'__acorrs.png" width="500" title="Click for a larger version"></a>'
      else
         !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting autocorrelations...'
         if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' autocorrelations, '

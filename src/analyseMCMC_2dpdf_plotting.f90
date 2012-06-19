@@ -56,7 +56,7 @@ subroutine open_2D_PDF_plot_file(p1,p2, npdf, sch, project_map, exitcode)
   if(htmlOutput.ge.1 .and. Npdf2D.gt.0) then
      write(stdOut,'(A)') '<h4>'//trim(htParNs(parID(p1)))//'-'//trim(htParNs(parID(p2)))//':</h4>'
      write(stdOut,'(A)') '<a href="'//trim(outputbasefile)//'.png">'// &
-          '<img src="'//trim(outputbasefile)//'.png" width="300" title="Click for a larger version"></a>'
+          '<img src="'//trim(outputbasefile)//'.png" width="500" title="Click for a larger version"></a>'
   end if
   
   write(outputbasefile,'(A)') trim(outputdir)//'/'//trim(outputbasefile)

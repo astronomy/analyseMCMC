@@ -221,11 +221,11 @@ program analyseMCMC
   
   !Some of the stuff below will have to go to the input file
   
-  !~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much 
+  ! ~Maximum number of dots to plot in e.g. chains plot, to prevent dots from being overplotted too much 
   !  and eps/pdf files from becoming huge.  Use this to autoset chainPlI
   maxdots = 25000  
   
-  !Use a white background in screen and bitmap plots: 0-no (black), 1-yes.  Used to be in input file.
+  ! Use a white background in screen and bitmap plots: 0-no (black), 1-yes.  Used to be in input file.
   whiteBG = 1                 
   
   ! Determine plot sizes and ratios:   (ratio ~ y/x and usually < 1 ('landscape'))
@@ -240,7 +240,7 @@ program analyseMCMC
   if(file.ge.2) pltrat = PSrat
   
   
-  !Use full unsharp-mask strength for plots with many panels and dots, weaker for those with fewer panels and/or no dots
+  ! Use full unsharp-mask strength for plots with many panels and dots, weaker for those with fewer panels and/or no dots
   write(unSharplogl,'(I4)')max(nint(real(unSharp)/2.),1)  !Only one panel with dots
   write(unSharpchain,'(I4)')unSharp                       !~15 panels with dots
   write(unSharppdf1d,'(I4)')max(nint(real(unSharp)/2.),1) !~15 panels, no dots
@@ -253,8 +253,8 @@ program analyseMCMC
   
   
   
-  !Sort out implicit options:
-  !eps/pdf: colour and orientation
+  ! Sort out implicit options:
+  ! eps/pdf: colour and orientation
   psclr = '/cps'
   if(colour.eq.0) psclr = '/ps'
   if(orientation.eq.1) then
@@ -349,23 +349,24 @@ program analyseMCMC
   !*********************************************************************************************************************************
   
 101 continue
-  !Read the input files:
+  ! Read the input files:
   exitcode = 0
   call read_mcmcfiles(exitcode)
   if(exitcode.ne.0) goto 9998
   
-  !Get and print some basic chain statistics:
+  
+  ! Get and print some basic chain statistics:
   if(timing) timestamps(2) = timestamp()
   exitcode = 0
   call mcmcruninfo(exitcode)
   
   if(savePDF.ge.2) then
      write(stdOut,'(A)')'  Writing after-burnin data points to file'
-     call save_data(exitcode) !save after-burnin combined data to file
+     call save_data(exitcode)  ! save after-burnin combined data to file
   end if
   
   
-  !More implicit options:
+  ! More implicit options:
   if(panels(1)*panels(2).lt.min(nPlPar,nMCMCpar)) panels = 0
   if(panels(1)*panels(2).lt.1) then
      if(min(nPlPar,nMCMCpar).eq.1) panels = (/1,1/)
@@ -523,14 +524,11 @@ program analyseMCMC
      goto 101
   end if
   
-  !write(stdOut,'(A)')'  Waiting for you to finish me off...'
-  !pause
-  
 9999 continue
   deallocate(selDat)
+  
 9998 continue
   deallocate(allDat,post,prior)
-  !if(prProgress.ge.1) write(stdOut,*)
   
   if(timing) then
      timestamps(9) = timestamp()
@@ -538,8 +536,6 @@ program analyseMCMC
      if(prProgress.ge.1) then
         write(stdOut,'(A)',advance="no")'  Run time: '
         write(stdOut,'(A,F5.1,A)',advance="no")'   input:',min(abs(timestamps(2)-timestamps(1)),999.9_dbl),'s,'
-        !write(stdOut,'(A,F5.1,A)',advance="no")'   info:',min(abs(timestamps(3)-timestamps(2)),999.9_dbl),'s,'
-        !write(stdOut,'(A,F5.1,A)',advance="no")'   stats:',min(abs(timestamps(4)-timestamps(3)),999.9_dbl),'s,'
         write(stdOut,'(A,F5.1,A)',advance="no")'   stats:',min(abs(timestamps(4)-timestamps(2)),999.9_dbl),'s,'
         if(plot.eq.1.and.plLogL+plChain+plJump+plACorr.gt.0) then
            write(stdOut,'(A,F5.1,A)',advance="no")'   chains:',min(abs(timestamps(5)-timestamps(4)),999.9_dbl),'s,'
@@ -550,8 +546,6 @@ program analyseMCMC
            if(plPDF2D.ge.1) write(stdOut,'(A,F6.1,A)',advance="no") &
                 '   2d pdfs:',min(abs(timestamps(7)-timestamps(6)),999.9_dbl),'s,'
         end if
-        !write(stdOut,'(A,F6.1,A)',advance="no")'   plots:',min(abs(timestamps(7)-timestamps(4)),999.9_dbl),'s,'
-        !write(stdOut,'(A,F5.1,A)',advance="no")'   save stats:',min(abs(timestamps(8)-timestamps(7)),999.9_dbl),'s,'
         if(plAnim.ge.1) write(stdOut,'(A,F5.1,A)',advance="no")'   movie:',min(abs(timestamps(9)-timestamps(8)),999.9_dbl),'s,'
         write(stdOut,'(A,F6.1,A)')'   total:',min(abs(timestamps(9)-timestamps(1)),999.9_dbl),'s.'
      end if
