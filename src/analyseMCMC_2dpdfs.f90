@@ -26,7 +26,7 @@
 
 subroutine pdfs2d(exitcode)
   use SUFR_constants, only: stdOut,stdErr, rh2r
-  use SUFR_system, only: swapreal
+  use SUFR_system, only: swapreal, quit_program_error
   use SUFR_text, only: replace_substring
   
   use analysemcmc_settings, only: update,prProgress,file,pssz,quality,fontsize2d,maxChs
@@ -96,7 +96,8 @@ subroutine pdfs2d(exitcode)
      pltsz = bmpsz
      pltrat = bmprat
      
-     
+     ! Open the 2D PDF matrix HTML page using unit 51:
+     call create_html_2dpdf_file(51)
   end if
   
   

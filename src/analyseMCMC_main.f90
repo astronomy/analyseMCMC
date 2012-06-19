@@ -176,11 +176,6 @@ program analyseMCMC
   end if
   write(stdOut,*)
   
-  if(htmlOutput.ge.1) then  ! Write standardised HTML output
-     open(unit=51,action='write',form='formatted',status='replace',file=trim(outputdir)//'/2dpdfs.html',iostat=io)
-     if(io.ne.0) call quit_program_error('Error opening HTML output file '//trim(outputdir)//'/2dpdfs.html',1)
-  end if
-  
   
   
   

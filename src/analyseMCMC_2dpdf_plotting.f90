@@ -54,7 +54,7 @@ subroutine open_2D_PDF_plot_file(p1,p2, npdf, sch, project_map, exitcode)
   write(outputbasefile,'(A)') trim(outputname)//'__pdf2d__'//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
   
   if(htmlOutput.ge.1 .and. Npdf2D.gt.0) then
-     write(stdOut,'(A)') '<h4>'//trim(htParNs(parID(p1)))//'-'//trim(htParNs(parID(p2)))//':</h4>'
+     write(stdOut,'(A)') '<a name="2dpdfs"></a><h4>'//trim(htParNs(parID(p1)))//'-'//trim(htParNs(parID(p2)))//':</h4>'
      write(stdOut,'(A)') '<a href="'//trim(outputbasefile)//'.png">'// &
           '<img src="'//trim(outputbasefile)//'.png" width="500" title="Click for a larger version"></a>'
   end if
@@ -684,7 +684,7 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
   if(file.eq.1) then
      countplots = 0
      
-     if(htmlOutput.ge.1) write(51,'(A)')'<table>'
+     if(htmlOutput.ge.1) write(51,'(4x,A)')'<table>'
      
      do p1=j1,j2
         
@@ -692,18 +692,18 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
         
         if(htmlOutput.ge.1) then
            if(p1.eq.j1) then
-              write(51,'(2x,A)')'<tr>'
-              write(51,'(4x,A)')'<td></td>'
+              write(51,'(6x,A)')'<tr>'
+              write(51,'(8x,A)')'<td></td>'
               do p2=j1,j2
                  if(fixedpar(p2).ge.1) cycle
-                 write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p2)))//'</h1></td>'
+                 write(51,'(8x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p2)))//'</h1></td>'
               end do
-              write(51,'(4x,A)')'<td></td>'
-              write(51,'(2x,A)')'</tr>'
+              write(51,'(8x,A)')'<td></td>'
+              write(51,'(6x,A)')'</tr>'
            end if
            
-           write(51,'(2x,A)')'<tr>'
-           write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
+           write(51,'(6x,A)')'<tr>'
+           write(51,'(8x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
         end if
         
         
@@ -722,7 +722,7 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
            
            if(p1.eq.p2) then
               if(htmlOutput.ge.1) then
-                 write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
+                 write(51,'(8x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
               end if
               cycle
            end if
@@ -749,35 +749,40 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
                       trim(parNames(parID(p2)))
               end if
               
-              write(51,'(4x,A)')'<td>'
-              write(51,'(4x,A)')'  <a href="'//trim(basefile)//'.png">'
-              write(51,'(4x,A)')'    <img src="'//trim(basefile)//'_thumb.png">'
-              write(51,'(4x,A)')'  </a>'
-              write(51,'(4x,A)')'</td>'
+              write(51,'(8x,A)')'<td>'
+              write(51,'(8x,A)')'  <a href="'//trim(basefile)//'.png">'
+              write(51,'(8x,A)')'    <img src="'//trim(basefile)//'_thumb.png">'
+              write(51,'(8x,A)')'  </a>'
+              write(51,'(8x,A)')'</td>'
            end if
            
         end do  ! p2=j1,j2
         
         
         if(htmlOutput.ge.1) then
-           write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
-           write(51,'(2x,A)')'</tr>'
+           write(51,'(8x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
+           write(51,'(6x,A)')'</tr>'
            
            if(p1.eq.j2) then
-              write(51,'(2x,A)')'<tr>'
-              write(51,'(4x,A)')'<td></td>'
+              write(51,'(6x,A)')'<tr>'
+              write(51,'(8x,A)')'<td></td>'
               do p2=j1,j2
                  if(fixedpar(p2).ge.1) cycle
-                 write(51,'(4x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p2)))//'</h1></td>'
+                 write(51,'(8x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p2)))//'</h1></td>'
               end do
-              write(51,'(4x,A)')'<td></td>'
-              write(51,'(2x,A)')'</tr>'
+              write(51,'(8x,A)')'<td></td>'
+              write(51,'(6x,A)')'</tr>'
            end if
         end if
         
      end do  ! p1=j1,j2
      
-     if(htmlOutput.ge.1) write(51,'(A)')'</table>'
+     if(htmlOutput.ge.1) then
+        write(51,'(4x,A)')'</table>'
+        
+        write(51,'(A)')'  </body>'
+        write(51,'(A)')'</html>'
+     end if
      
   end if  ! if(file.eq.1)
   

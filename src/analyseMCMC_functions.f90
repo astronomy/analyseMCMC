@@ -2652,6 +2652,7 @@ subroutine create_html_index_file()
   open(unit=stdOut,action='write',form='formatted',status='replace',file=trim(stdOutFile), iostat=io)
   if(io.ne.0) call quit_program_error('Error reopening output file '//trim(stdOutFile),1)
   
+  write(stdOut,'(A)') '<!DOCTYPE html>'
   write(stdOut,'(A)') '<html>'
   write(stdOut,'(A)') '  <head>'
   write(stdOut,'(4x,A,I11,A)') '<title>AnalyseMCMC: event',nint(t0),'</title>'
@@ -2681,7 +2682,8 @@ subroutine create_html_index_file()
   write(stdOut,'(4x,A)') '</font>'
   write(stdOut,'(4x,A)') '<br>'
   
-  write(stdOut,'(4x,A,I11,A)') '<h1>AnalyseMCMC: event',nint(t0),'</h1>'
+  write(stdOut,'(4x,A,I11,A)') '<h1><a href="http://analysemcmc.sourceforge.net/" target="_blank" title="AnalyseMCMC homepage">'// &
+       'AnalyseMCMC</a>: event',nint(t0),'</h1>'
   
   write(stdOut,'(A)', advance='no') '<b>'
   call print_code_version(stdOut, use_PLplot)
@@ -2693,5 +2695,50 @@ subroutine create_html_index_file()
   write(stdOut,'(A)') '<pre>'
   
 end subroutine create_html_index_file
+!***********************************************************************************************************************************
+
+
+
+!***********************************************************************************************************************************
+!>  Setup the 2dpdf.html file for output
+
+subroutine create_html_2dpdf_file(op)
+  use SUFR_system, only: quit_program_error
+  use aM_constants, only: use_PLplot
+  use mcmcrun_data, only: t0
+  
+  implicit none
+  integer, intent(in) :: op
+  integer :: io
+  character :: filename*(99)
+  
+  write(filename,'(A)') 'html/2dpdfs.html'
+  open(unit=op, action='write', form='formatted', status='replace', file=trim(filename), iostat=io)
+  if(io.ne.0) call quit_program_error('Error opening output file '//trim(filename),1)
+  
+  write(op,'(A)') '<!DOCTYPE html>'
+  write(op,'(A)') '<html>'
+  write(op,'(A)') '  <head>'
+  write(op,'(4x,A,I11,A)') '<title>AnalyseMCMC: event',nint(t0),' - 2D PDF matrix</title>'
+  write(op,'(A)') '  </head>'
+  write(op,'(A)') '  <body>'
+  
+  write(op,'(4x,A)') '<a name="top"></a>'
+  write(op,'(4x,A)') '<font size="2">'
+  write(op,'(6x,A)') '<a href="index.html#2dpdfs" title="Go back to the main page">Main page</a>'
+  write(op,'(4x,A)') '</font>'
+  write(op,'(4x,A)') '<br>'
+  
+  write(op,'(4x,A,I11,A)') '<h1><a href="http://analysemcmc.sourceforge.net/" target="_blank" title="AnalyseMCMC homepage">'// &
+       'AnalyseMCMC</a>: event',nint(t0),' &mdash; 2D PDF matrix</h1>'
+  
+  write(op,'(A)', advance='no') '<b>'
+  call print_code_version(op, use_PLplot)
+  write(op,'(A)') '</b>'
+  
+  write(op,'(A)') '<br><br>'
+  call print_rundata(op)
+  
+end subroutine create_html_2dpdf_file
 !***********************************************************************************************************************************
 
