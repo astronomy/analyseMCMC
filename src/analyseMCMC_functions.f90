@@ -2645,14 +2645,21 @@ end subroutine compBitmapSize
 
 subroutine print_rundata(op)
   use SUFR_constants, only: workdir,hostname,username,currenttimezonestr,currenttimestr,currentdatestr
+  use analysemcmc_settings, only: htmlOutput
   use general_data, only: infiles,nchains0
+  
   implicit none
   integer, intent(in) :: op
   
-  if(nchains0.eq.1) then
-     write(op,'(A)', advance="no")'  Analysing 1 chain from'
+  if(htmlOutput.ge.1) then
+     write(op,'(A)', advance="no")'  Analysed'
   else
-     write(op,'(A,I3,A)', advance="no")'  Analysing',nchains0,' chains from'
+     write(op,'(A)', advance="no")'  Analysing'
+  end if
+  if(nchains0.eq.1) then
+     write(op,'(A)', advance="no")' 1 chain from'
+  else
+     write(op,'(I3,A)', advance="no") nchains0,' chains from'
   end if
   if(index(infiles(1),'SPINspiral.output').ne.0 .or. index(infiles(1),'mcmc.output').ne.0) then
      write(op,'(A)', advance="no")' SPINspiral'
@@ -2717,13 +2724,6 @@ subroutine create_html_index_file()
   write(stdOut,'(4x,A,I11,A)') '<h1><a href="http://analysemcmc.sourceforge.net/" target="_blank" title="AnalyseMCMC homepage">'// &
        'AnalyseMCMC</a>: event',nint(t0),'</h1>'
   
-  write(stdOut,'(A)', advance='no') '<b>'
-  call print_code_version(stdOut, use_PLplot)
-  write(stdOut,'(A)') '</b>'
-  
-  write(stdOut,'(A)') '<br><br>'
-  call print_rundata(stdOut)
-  
   write(stdOut,'(A)') '<pre>'
   
 end subroutine create_html_index_file
@@ -2762,14 +2762,8 @@ subroutine create_html_2dpdf_file(op)
   write(op,'(4x,A)') '<br>'
   
   write(op,'(4x,A,I11,A)') '<h1><a href="http://analysemcmc.sourceforge.net/" target="_blank" title="AnalyseMCMC homepage">'// &
-       'AnalyseMCMC</a>: event',nint(t0),' &mdash; 2D PDF matrix</h1>'
-  
-  write(op,'(A)', advance='no') '<b>'
-  call print_code_version(op, use_PLplot)
-  write(op,'(A)') '</b>'
-  
-  write(op,'(A)') '<br><br>'
-  call print_rundata(op)
+       'AnalyseMCMC</a>: event',nint(t0),'</h1>'
+  write(op,'(4x,A)') '<h2>2D PDF matrix</h2>'
   
 end subroutine create_html_2dpdf_file
 !***********************************************************************************************************************************

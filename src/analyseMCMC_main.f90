@@ -466,7 +466,7 @@ program analyseMCMC
   if(Npdf2D.lt.0) then !Then we just plotted all 2D PDFs
      write(stdOut,*)
   else
-     if(prProgress.ge.1.and.update.eq.0.and.plot.gt.0) write(stdOut,'(A,/)')' done.  '
+     if(htmlOutput.eq.0.and.prProgress.ge.1.and.update.eq.0.and.plot.gt.0) write(stdOut,'(A,/)') ' done.  '
   end if
   
   if(timing) timestamps(7) = timestamp()  
@@ -530,11 +530,24 @@ program analyseMCMC
 9998 continue
   deallocate(allDat,post,prior)
   
+  
+  ! Print HTML footer:
+  if(htmlOutput.ge.1) then
+     write(stdOut,'(A)', advance='no') '<b>'
+     call print_code_version(stdOut, use_PLplot)
+     write(stdOut,'(A)') '</b>'
+     
+     !write(stdOut,'(A)') '<br><br>'
+     call print_rundata(stdOut)
+  end if
+  
+  
+  ! Print run times:
   if(timing) then
      timestamps(9) = timestamp()
      
      if(prProgress.ge.1) then
-        if(htmlOutput.ge.1) write(stdOut,'(A)') '<font size="2"><b>'
+        if(htmlOutput.ge.1) write(stdOut,'(A)') '<b>'
         write(stdOut,'(A)',advance="no")'  Run time: '
         write(stdOut,'(A,F5.1,A)',advance="no")'   input:',min(abs(timestamps(2)-timestamps(1)),999.9_dbl),'s,'
         write(stdOut,'(A,F5.1,A)',advance="no")'   stats:',min(abs(timestamps(4)-timestamps(2)),999.9_dbl),'s,'
@@ -549,7 +562,7 @@ program analyseMCMC
         end if
         if(plAnim.ge.1) write(stdOut,'(A,F5.1,A)',advance="no")'   movie:',min(abs(timestamps(9)-timestamps(8)),999.9_dbl),'s,'
         write(stdOut,'(A,F6.1,A)')'   total:',min(abs(timestamps(9)-timestamps(1)),999.9_dbl),'s.'
-        if(htmlOutput.ge.1) write(stdOut,'(A)') '</b></font>'
+        if(htmlOutput.ge.1) write(stdOut,'(A)') '</b>'
      end if
   end if
   

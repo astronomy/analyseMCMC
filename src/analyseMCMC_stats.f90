@@ -476,9 +476,13 @@ subroutine statistics(exitcode)
                    absVar2(p),ranges(ic,c,p,3),ranges(ic,c,p,1),ranges(ic,c,p,2),ranges(ic,c,p,4),  &
                    min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),99.9999),ranges(ic,c,p,5)  ! d/drnge wrt ctr of rng
               if(startval(ic,p,1).ge.ranges(ic,c,p,1).and.startval(ic,p,1).le.ranges(ic,c,p,2)) then
-                 write(stdOut,'(A4)',advance="no")'y '
+                 write(stdOut,'(A4)',advance="no") 'y '
               else
-                 write(stdOut,'(A4)',advance="no")'*N*'
+                 if(htmlOutput.ge.1) then
+                    write(stdOut,'(A3,2A4)',advance="no") '<b>','*N*','</b>'
+                 else
+                    write(stdOut,'(A4)',advance="no") '*N*'
+                 end if
               end if
               write(stdOut,'(F10.4,A3,F9.4)')ranges(ic,c,p,3),'+-',0.5*ranges(ic,c,p,4)
            end do  ! p
@@ -491,15 +495,20 @@ subroutine statistics(exitcode)
         if(htmlOutput.ge.1) then
            write(stdOut,'(/,A)')'<br><hr><a name="prob"></a><font size="1"><a href="#top" title="Go to the top of the page">'// &
                 'top</a></font><h2>Probability intervals</h2>'
+           write(stdOut,'(A25,A8)',advance="no") '<b>Interval:',''
         else
            write(stdOut,'(/,A)')'  Probability intervals:'
+           write(stdOut,'(A22,A8)',advance="no") 'Interval:',''
         end if
         
-        write(stdOut,'(A22,A8)',advance="no")'Interval:',''
         do c=1,Nival
-           write(stdOut,'(F20.4,A9)',advance="no")ivals(c),''
+           write(stdOut,'(F20.4,A9)',advance="no") ivals(c),''
         end do
-        write(stdOut,*)
+        if(htmlOutput.ge.1) then
+           write(stdOut,'(A)') '</b>'
+        else
+           write(stdOut,*)
+        end if
         
         if(htmlOutput.ge.1) then
            write(stdOut,'(A3,A10,2x,2A9)',advance="no") '<b>','Param.  ','model','median'
@@ -532,7 +541,11 @@ subroutine statistics(exitcode)
               if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
                  write(stdOut,'(A3)',advance="no") 'y '
               else
-                 write(stdOut,'(A3)',advance="no") 'N*'
+                 if(htmlOutput.ge.1) then
+                    write(stdOut,'(2A3,A4)',advance="no") '<b>','N*','</b>'
+                 else
+                    write(stdOut,'(A3)',advance="no") 'N*'
+                 end if
               end if
            end do  ! c
            write(stdOut,*)

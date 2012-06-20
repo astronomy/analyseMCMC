@@ -192,7 +192,7 @@ subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_p
   use SUFR_statistics, only: bin_data_2d
   use SUFR_text, only: replace_substring
   
-  use analysemcmc_settings, only: normPDF2D, maxChs, Nbin2Dx,Nbin2Dy, prProgress, Nival,prIval,ivals
+  use analysemcmc_settings, only: normPDF2D, maxChs, Nbin2Dx,Nbin2Dy, prProgress, Nival,prIval,ivals, htmlOutput
   use general_data, only: selDat, n, maxIter, startval, pgUnits
   use stats_data, only: probArea,probAreas, injectionranges2d
   use mcmcrun_data, only: parID
@@ -258,8 +258,16 @@ subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_p
         do i=1,Nival
            if(prIval.ge.1.and.prProgress.ge.2 .and. (sky_position .or. binary_orientation)) then  
               ! For sky position and orientation only:
-              if(i.eq.1) write(stdOut,'(/,1x,A10,A13,3A23)') 'Nr.','Ival frac.','Area (sq.deg) ', &
-                   'Circ. area rad. (deg) ','Fraction of sky '
+              if(i.eq.1) then
+                 if(htmlOutput.ge.1) then
+                    write(stdOut,'(/,1x,A3,A10,A13,3A23,A4)') '<b>','Nr.','Ival frac.','Area (sq.deg) ', &
+                         'Circ. area rad. (deg) ', 'Fraction of sky ','</b>'
+                 else
+                    write(stdOut,'(/,1x,A10,A13,3A23)') 'Nr.','Ival frac.','Area (sq.deg) ', 'Circ. area rad. (deg) ', &
+                         'Fraction of sky '
+                 end if
+                 
+              end if
               write(stdOut,'(I10,F13.2,3(2x,F21.5))') i,ivals(i),probArea(i),sqrt(probArea(i)/pi)*2, &
                    probArea(i)*(pi/180.)**2/(4*pi)  ! 4pi*(180/pi)^2 = 41252.961 sq. degrees in a sphere
               if(i.eq.Nival) write(stdOut,*) ''
@@ -272,7 +280,13 @@ subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_p
               call replace_substring(areaunit, '\dh\u', 'hr')       ! hr
               areaunit = ' '//trim(areaunit)  ! Add space between value and unit
               
-              if(i.eq.1) write(stdOut,'(/,1x,A10,A13,A23)') 'Nr.','Ival frac.','Area'
+              if(i.eq.1) then
+                 if(htmlOutput.ge.1) then
+                    write(stdOut,'(/,1x,A3,A10,A13,A23,A4)') '<b>','Nr.','Ival frac.','Area','</b>'
+                 else
+                    write(stdOut,'(/,1x,A10,A13,A23)') 'Nr.','Ival frac.','Area'
+                 end if
+              end if
               write(stdOut,'(I10,F13.2,2x,1p,G21.3,1x,A)') i,ivals(i),probArea(i),trim(areaunit)
            end if
            probAreas(p1,p2,i,1) = probArea(i)*(rpi/180.)**2/(4*rpi)  ! Fraction of the sky

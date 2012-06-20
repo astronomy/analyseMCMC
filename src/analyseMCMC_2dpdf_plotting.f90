@@ -668,7 +668,9 @@ end subroutine convert_2D_PDF_plot
 
 subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
   use SUFR_constants, only: stdErr
+  
   use analysemcmc_settings, only: file, htmlOutput, Npdf2D,PDF2Dpairs, bmpXSz,bmpYSz, scFac
+  use aM_constants, only: use_PLplot
   use mcmcrun_data, only: revID,parID
   use general_data, only: outputname,outputdir,parNames,htParNs, fixedpar
   use plot_data, only: bmpsz,bmprat,bmpxpix,pltsz,pltrat
@@ -779,6 +781,23 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
      
      if(htmlOutput.ge.1) then
         write(51,'(4x,A)')'</table>'
+        
+        
+        write(51,'(A)')'  <br><hr><br>'
+        
+        write(51,'(A)', advance='no') '<b>'
+        call print_code_version(51, use_PLplot)
+        write(51,'(A)') '</b>'
+        
+        write(51,'(A)') '<br><br>'
+        call print_rundata(51)
+        
+        
+        write(51,'(A)') '<br><br>'
+        write(51,'(4x,A)') '<font size="2">'
+        write(51,'(6x,A)') '<a href="index.html#2dpdfs" title="Go back to the main page">Main page</a>'
+        write(51,'(4x,A)') '</font>'
+        
         
         write(51,'(A)')'  </body>'
         write(51,'(A)')'</html>'
