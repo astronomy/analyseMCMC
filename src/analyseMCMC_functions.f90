@@ -974,9 +974,13 @@ subroutine mcmcruninfo(exitcode)
      ic = icloglmax
      i = iloglmax
      infile = infiles(ic)
-     write(stdOut,'(A,I4,2(A,I9),A,F10.3,A,F7.2,A)')'    Maximum likelihood point:   chain:',ic,' ('//trim(infile(19:99))// &
-          '),   line:',i*thin+7+ndet(ic), &
-          ',   iteration:',nint(is(ic,i)),',   max log(L):',loglmax,'  -> SNR:',sqrt(2*loglmax),'.'
+     write(stdOut,'(A,I4,2(A,I9))', advance='no')'    Maximum likelihood point:   chain:',ic,' ('//trim(infile(19:99))// &
+          '),   line:', i*thin+7+ndet(ic), ',   iteration:',nint(is(ic,i))
+     if(htmlOutput.ge.1) then
+        write(stdOut,'(A,F10.3,A,F7.2,A)') ',   <b>max log(L):',loglmax,'  -> SNR:',sqrt(2*loglmax),'</b>.'
+     else
+        write(stdOut,'(A,F10.3,A,F7.2,A)') ',   max log(L):',loglmax,'  -> SNR:',sqrt(2*loglmax),'.'
+     end if
      
      !Test: get parameter values for L=Lmax
      !if(prProgress.ge.3) then
@@ -2680,7 +2684,7 @@ subroutine create_html_index_file()
   use SUFR_constants, only: stdOut
   use SUFR_system, only: quit_program_error
   
-  use aM_constants, only: stdOutFile, use_PLplot
+  use aM_constants, only: stdOutFile
   use mcmcrun_data, only: t0
   
   implicit none
@@ -2736,7 +2740,6 @@ end subroutine create_html_index_file
 
 subroutine create_html_2dpdf_file(op)
   use SUFR_system, only: quit_program_error
-  use aM_constants, only: use_PLplot
   use mcmcrun_data, only: t0
   
   implicit none

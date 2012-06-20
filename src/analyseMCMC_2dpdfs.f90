@@ -26,7 +26,7 @@
 
 subroutine pdfs2d(exitcode)
   use SUFR_constants, only: stdOut,stdErr, rh2r
-  use SUFR_system, only: swapreal, quit_program_error
+  use SUFR_system, only: swapreal
   use SUFR_text, only: replace_substring
   
   use analysemcmc_settings, only: update,prProgress,file,pssz,quality,fontsize2d,maxChs

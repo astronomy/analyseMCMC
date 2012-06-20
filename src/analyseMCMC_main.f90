@@ -66,7 +66,7 @@ program analyseMCMC
   
   use aM_constants, only: os, stdOutFile, use_PLplot
   use analysemcmc_settings, only: panels,htmlOutput,prProgress,file,colour,prStdOut,prRunInfo,prChainInfo
-  use analysemcmc_settings, only: prInitial,prStat,prCorr,prIval,prConv,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D,plotSky
+  use analysemcmc_settings, only: prInitial,prStat,prCorr,prIval,prConv,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D
   use analysemcmc_settings, only: plAnim,plInject,plStart,plMedian,plRange,plBurn,plLmax,normPDF2D,bmpXSz,bmpYSz,Npdf2D,reverseRead
   use analysemcmc_settings, only: whiteBG,scFac,scrSz,scrRat,PSsz,PSrat,unSharp,orientation,chainSymbol,quality,plJump,savePDF
   use analysemcmc_settings, only: wrapData,update,nPlPar,mergeChains,tailoredOutput,plACorr, maxChs
@@ -567,7 +567,12 @@ program analyseMCMC
   end if
   
   
-  if(htmlOutput.ge.1) close(51)
+  if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '    </pre>'
+     write(stdOut,'(A)') '  </body>'
+     write(stdOut,'(A)') '</html>'
+     close(51)
+  end if
   
   write(stdOut,*)
   
