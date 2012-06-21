@@ -213,7 +213,7 @@ subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_p
   zz(1:n(ic)) = selDat(ic,1,1:n(ic))   ! Likelihood
   
   
-  if(normPDF2D.le.2.or.normPDF2D.eq.4) then
+  if(normPDF2D.le.2.or.normPDF2D.eq.4) then  ! lin, log, sqrt normalisation, or probability intervals
      
      
      ! Bin data in 2D:
@@ -252,9 +252,12 @@ subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_p
         
         ! Compute 2D probability areas; sum the areas of all bins:
         if(prProgress.ge.4) write(stdOut,'(A)',advance="no")'  computing 2D areas...'
-        call calc_2d_areas(p1,p2,Nival,Nbin2Dx+1,Nbin2Dy+1,z,tr,probArea)
+        call calc_2d_areas(p1,p2, Nival, Nbin2Dx+1,Nbin2Dy+1, z,tr, probArea, xmin,xmax, ymin,ymax)
+        
         injectionranges2d(p1,p2) = injectionrange2d(z,Nbin2Dx+1,Nbin2Dy+1,startval(1,p1,1),startval(1,p2,1),tr)
         
+        
+        ! Print the probability areas:
         do i=1,Nival
            if(prIval.ge.1.and.prProgress.ge.2 .and. (sky_position .or. binary_orientation)) then  
               ! For sky position and orientation only:
@@ -420,13 +423,15 @@ end subroutine bin_data_2d_a
 !!
 !! \param p1  Parameter ID 1
 !! \param p2  Parameter ID 2
+!!
 !! \param ni  Number of probability intervals
 !! \param nx  Number of bins in the x direction
 !! \param ny  Number of bins in the y direction
+!!
 !! \param z   Binned data (nx,ny) -> probability-interval data
 !! \param tr  Transformation elements used by PGPlot
 
-subroutine identify_2d_ranges(p1,p2,ni,nx,ny,z,tr)
+subroutine identify_2d_ranges(p1,p2, ni, nx,ny, z,tr)
   use SUFR_constants, only: stdOut
   use SUFR_constants, only: rd2r
   use SUFR_sorting, only: sorted_index_list
@@ -546,57 +551,94 @@ end subroutine identify_2d_ranges
 !***********************************************************************************************************************************
 !> \brief  Compute 2D probability areas
 !!
-!! \param p1  Parameter ID 1
-!! \param p2  Parameter ID 2
-!! \param ni  Number of probability intervals
-!! \param nx  Number of bins in the x direction
-!! \param ny  Number of bins in the y direction
-!! \param z   Binned data (nx,ny) -> probability-interval data
-!! \param tr  Transformation elements used by PGPlot
+!! \param  p1    Parameter ID 1
+!! \param  p2    Parameter ID 2
+!! \param  ni    Number of probability intervals
+!!
+!! \param  nx    Number of bins in the x direction
+!! \param  ny    Number of bins in the y direction
+!!
+!! \param  z     Binned data (nx,ny) -> probability-interval data
+!! \param  tr    Transformation elements used by PGPlot
+!!
 !! \retval area  Probability areas
+!!
+!! \retval xmin  Lower limit for the plotting range in the horizontal direction
+!! \retval xmax  Upper limit for the plotting range in the horizontal direction
+!! \retval ymin  Lower limit for the plotting range in the vertical direction
+!! \retval ymax  Upper limit for the plotting range in the vertical direction
 
-subroutine calc_2d_areas(p1,p2,ni,nx,ny,z,tr,area)
+subroutine calc_2d_areas(p1,p2, ni, nx,ny, z,tr, area, xmin,xmax,ymin,ymax)
   use SUFR_constants, only: rd2r
-  use analysemcmc_settings, only: changeVar
+  use analysemcmc_settings, only: changeVar, plRange
   use mcmcrun_data, only: parID
   
   implicit none
   integer, intent(in) :: p1,p2,ni,nx,ny
   real, intent(in) :: z(nx,ny),tr(6)
-  real, intent(out) :: area(ni)
+  real, intent(out) :: area(ni), xmin,xmax,ymin,ymax
   
   integer :: ix,iy,i,i1,iv
-  real :: y,dx,dy
+  real :: x,y,dx,dy
   
   
   area = 0.
+  xmin =  huge(xmin)
+  xmax = -huge(xmax)
+  ymin =  huge(ymin)
+  ymax = -huge(ymax)
   
   do ix = 1,nx
      do iy = 1,ny
         dx = tr(2)
         dy = tr(6)
+        
         if(changeVar.ge.1) then
            if((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) then  
-              !Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
+              ! Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
               y = tr(4) + tr(6)*real(iy)
               if(parID(p1).eq.31) then
                  dx = dx*cos(y*rd2r)
               else if(parID(p1).eq.52) then
-                 dx = dx*abs(sin(y*rd2r))  !Necessary for i-psi plot?
+                 dx = dx*abs(sin(y*rd2r))  ! Necessary for i-psi plot?
               end if
               if(parID(p1).eq.31) dx = dx*15
            end if
         end if
+        
         iv = nint(z(ix,iy))
+        
         do i=1,ni
            if(iv.ge.i) then
               i1 = ni-i+1
               area(i1) = area(i1) + dx*dy
+              
+              x = tr(1) + tr(2)*real(ix)
+              y = tr(4) + tr(6)*real(iy)
+              xmin = min(xmin,x)
+              xmax = max(xmax,x)
+              ymin = min(ymin,y)
+              ymax = max(ymax,y)
            end if
-        end do !i
+        end do  ! i
         
-     end do !iy
-  end do !ix
+     end do  ! iy
+  end do  ! ix
+  
+  
+  ! Adjust plot ranges:
+  dx = abs(xmax - xmin)*0.05
+  dy = abs(ymax - ymin)*0.05
+  
+  if(plRange.eq.2.or.plRange.eq.3.or.plRange.ge.5) then  ! Need extra room for 1D probabiliy-range arrows
+     dx = dx*2
+     dy = dy*2
+  end if
+  
+  xmin = xmin - dx
+  xmax = xmax + dx
+  ymin = ymin - dy
+  ymax = ymax + dy
   
 end subroutine calc_2d_areas
 !***********************************************************************************************************************************
