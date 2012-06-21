@@ -113,18 +113,18 @@ program analyseMCMC
      outputdir = 'html'       ! Directory where output is saved (either relative or absolute path)
      
      file = 1
-     colour = 1
+     !colour = 1
      
-     prStdOut = 2
-     prProgress = 2
-     prRunInfo = 2
-     prChainInfo = 2
-     prInitial = 4
+     !prStdOut = 2
+     !prProgress = 2
+     !prRunInfo = 2
+     !prChainInfo = 2
+     !prInitial = 4
      
-     prStat = 2
+     !prStat = 2
      prCorr = 1
-     prIval = 3
-     prConv = 3
+     !prIval = 3
+     !prConv = 3
      saveStats = 1
      
      plot = 1
@@ -135,13 +135,13 @@ program analyseMCMC
      !plotSky = 2
      plAnim = 0
      
-     plInject = 0
-     plStart = 1
-     plMedian = 1
-     plRange = 4
-     plBurn = 3
-     plLmax = 1
-     normPDF2D = 4
+     !plInject = 0
+     !plStart = 1
+     !plMedian = 1
+     !plRange = 4
+     !plBurn = 3
+     !plLmax = 1
+     !normPDF2D = 4
      
      bmpXSz = 1000
      bmpYSz =  700

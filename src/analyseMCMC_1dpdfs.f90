@@ -587,7 +587,8 @@ subroutine pdfs1d(exitcode)
                       write(str,'(A,F7.3)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)
               end if
               call pgsch(sch*1.2)
-              call pgptxt(xmin+0.05*dx,ymax*(1.0-0.1*fontsize1d),0.,0.,trim(pgParNss(parID(p))))
+              !call pgptxt(xmin+0.05*dx,ymax*(1.0-0.1*fontsize1d),0.,0.,trim(pgParNss(parID(p))))  ! No unit
+              call pgptxt(xmin+0.05*dx,ymax*(1.0-0.1*fontsize1d),0.,0.,trim(pgParNs(parID(p))))
            end if
         end if
         
@@ -684,11 +685,6 @@ subroutine pdfs1d(exitcode)
   
   if(plot.eq.1) then
      call pgsubp(1,1)
-     
-     ! CHECK: PLplot complains, needed for PGPlot?
-     !call pgsvp(0.,1.,0.,1.)
-     !call pgswin(-1.,1.,-1.,1.)
-     
      
      if(quality.eq.0) then
         ! Remove also the pgsvp at the beginning of the plot:

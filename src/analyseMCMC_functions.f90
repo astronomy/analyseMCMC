@@ -999,9 +999,9 @@ subroutine mcmcruninfo(exitcode)
   if(abs(autoBurnin).gt.1.e-10) then
      if(autoBurnin.lt.-1.e-10) autoBurnin = real(nMCMCpar0)/2.  ! The default value for autoBurnin = Npar/2
      loop1: do ic=1,nchains0
-        isburn(ic) = is(ic,ntot(ic)) !Set burn-in to last iteration, so that chain is completely excluded if condition never met
+        isburn(ic) = is(ic,ntot(ic))  ! Set burn-in to last iteration, so that chain is completely excluded if condition never met
         Nburn(ic) = ntot(ic)
-        do i=2,ntot(ic) !i=1 is injection value?
+        do i=2,ntot(ic)  ! i=1 is injection value?
            if(post(ic,i).gt.real(loglmax)-autoBurnin) then
               isburn(ic) = is(ic,i)
               Nburn(ic) = i
@@ -1012,8 +1012,8 @@ subroutine mcmcruninfo(exitcode)
   end if
   
   
-  !Determine the total number of iterations and lines in the input and data points for statistics;
-  !determine how many and which chains contribute
+  ! Determine the total number of iterations and lines in the input and data points for statistics;
+  ! determine how many and which chains contribute
   totiter = 0
   totpts  = 0
   contrChains = 0
