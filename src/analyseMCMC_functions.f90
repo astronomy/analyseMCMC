@@ -49,8 +49,10 @@ end subroutine setconstants
 
 !***********************************************************************************************************************************
 !> \brief  Read the settings file (called analysemcmc.dat by default) - old version (< 2012-06)
+!!
+!! \retval status  Status: 0-ok
 
-subroutine read_settingsfile_old()
+subroutine read_settingsfile_old(status)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdErr
   use SUFR_system, only: quit_program, find_free_io_unit
@@ -64,11 +66,14 @@ subroutine read_settingsfile_old()
   use analysemcmc_settings, only: orientation,fontType,fontSize1D,fontSize2D,chainSymbol,nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D
   
   implicit none
+  integer, intent(out) :: status
+  
   integer :: i,ip,io,io1
   character :: bla,filename*(99)
   real(double) :: dblvar
   filename = 'analysemcmc.dat'
   
+  status = 0
   ! dblvar is used when a (possibly) large integer is expected; read it as double, then convert to integer
   
   call find_free_io_unit(ip)
@@ -189,8 +194,10 @@ subroutine read_settingsfile_old()
   close(ip)
   
   if(io.ne.0) then
-     write(stdErr,'(/,A,I2,A,I3,A,/)')'  Error reading input file '//trim(filename)//', aborting...'
-     stop
+     !write(stdErr,'(/,A,I2,A,I3,A,/)')'  Error reading input file '//trim(filename)//', aborting...'
+     !stop
+     status = 1
+     return
   end if
   
 end subroutine read_settingsfile_old
@@ -251,25 +258,46 @@ subroutine read_settingsfile()
   if(io.ne.0) call quit_program_error('readsettingsfile(): error opening settings file '//trim(fname), 0)
   
   read(ip, nml=basic_options, iostat=io)             ! Basic options
-  if(io.ne.0) call try_old_settings_file(ip)
+  if(io.ne.0) then
+     call try_old_settings_file(ip)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Basic options', 0)
+  end if
   
   read(ip, nml=print_options, iostat=io)             ! Print options
-  if(io.ne.0) call try_old_settings_file(ip)
+  if(io.ne.0) then
+     call try_old_settings_file(ip)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Print options', 0)
+  end if
   
-  read(ip, nml=plot_select, iostat=io)               ! Select which plots to select
-  if(io.ne.0) call try_old_settings_file(ip)
+  read(ip, nml=plot_select, iostat=io)               ! Select which plots to make
+  if(io.ne.0) then
+     call try_old_settings_file(ip)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Plot select', 0)
+  end if
   
   read(ip, nml=plot_options, iostat=io)              ! Detailed plot settings
-  if(io.ne.0) call try_old_settings_file(ip)
+  if(io.ne.0) then
+     call try_old_settings_file(ip)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Plot options', 0)
+  end if
   
   read(ip, nml=output_format, iostat=io)             ! Output format
-  if(io.ne.0) call try_old_settings_file(ip)
+  if(io.ne.0) then
+     call try_old_settings_file(ip)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Output format', 0)
+  end if
   
   read(ip, nml=fonts_symbols, iostat=io)             ! Fonts, symbols, etc.
-  if(io.ne.0) call try_old_settings_file(ip)
+  if(io.ne.0) then
+     call try_old_settings_file(ip)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Fonts, symbols, etc.', 0)
+  end if
   
   read(ip, nml=plot_parameters_binning, iostat=io)   ! Select parameters to plot, binning, etc.
-  if(io.ne.0) call try_old_settings_file(ip)
+  if(io.ne.0) then
+     call try_old_settings_file(ip)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Plot parameters, binning, etc.', 0)
+  end if
   
   close(ip)
   
@@ -290,9 +318,12 @@ subroutine try_old_settings_file(old_ip)
   use SUFR_constants, only: stdOut
   implicit none
   integer, intent(in) :: old_ip
+  integer :: status
   
   close(old_ip)
-  call read_settingsfile_old()
+  call read_settingsfile_old(status)
+  if(status.ne.0) return
+  
   call write_settingsfile()
   
   write(stdOut,*) ''
