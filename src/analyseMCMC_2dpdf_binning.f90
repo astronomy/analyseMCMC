@@ -630,7 +630,8 @@ subroutine calc_2d_areas(p1,p2, ni, nx,ny, z,tr, area, xmin,xmax,ymin,ymax)
   dx = abs(xmax - xmin)*0.05
   dy = abs(ymax - ymin)*0.05
   
-  if(plRange.eq.2.or.plRange.eq.3.or.plRange.ge.5) then  ! Need extra room for 1D probabiliy-range arrows
+  ! Need extra room for 1D probabiliy-range arrows:
+  if(plRange.eq.2.or.plRange.eq.3.or.plRange.eq.5.or.plRange.eq.6.or.plRange.eq.7) then
      dx = dx*2
      dy = dy*2
   end if

@@ -409,7 +409,7 @@ subroutine plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw,
      
      
      ! Plot probability ranges in 2D PDF:
-     if(plRange.eq.2.or.plRange.eq.3.or.plRange.eq.5.or.plRange.eq.6) then
+     if(plRange.eq.2.or.plRange.eq.3.or.plRange.eq.5.or.plRange.eq.6.or.plRange.eq.7) then
         write(delta,'(A,I3.3,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
         if(nint(ivals(c0)*100).lt.100) write(delta,'(A,I2.2,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
         
@@ -424,6 +424,16 @@ subroutine plot_values_in_2D_PDF(ic, p1,p2, xmin,xmax, ymin,ymax, dx,dy, sch,lw,
         call pgarro( xmin+dx*0.023*sch, ranges(ic,c0,p2,3), xmin+dx*0.023*sch, ranges(ic,c0,p2,1) )
         call pgarro( xmin+dx*0.023*sch, ranges(ic,c0,p2,3), xmin+dx*0.023*sch, ranges(ic,c0,p2,2) )
         call pgptxt( xmin+dx*0.01*sch, ranges(ic,c0,p2,3), 90., 0.5, trim(delta) )
+        
+        if(plRange.eq.7) then  ! Plot dotted lines for 1D probability ranges in 2D plot
+           call pgsls(4)
+           call pgline(2, (/ranges(ic,c0,p1,1), ranges(ic,c0,p1,1)/), (/ymin, ymax/) )
+           call pgline(2, (/ranges(ic,c0,p1,2), ranges(ic,c0,p1,2)/), (/ymin, ymax/) )
+           
+           call pgline(2, (/xmin, xmax/), (/ranges(ic,c0,p2,1), ranges(ic,c0,p2,1)/) )
+           call pgline(2, (/xmin, xmax/), (/ranges(ic,c0,p2,2), ranges(ic,c0,p2,2)/) )
+           call pgsls(1)
+        end if
      end if
      
      call pgsch(sch)
