@@ -55,8 +55,8 @@ subroutine open_2D_PDF_plot_file(p1,p2, npdf, sch, project_map, exitcode)
   
   if(htmlOutput.ge.1 .and. Npdf2D.gt.0) then
      write(stdOut,'(A)') '<h4>'//trim(htParNs(parID(p1)))//'-'//trim(htParNs(parID(p2)))//':</h4>'
-     write(stdOut,'(A)') '<a href="'//trim(outputbasefile)//'.png">'// &
-          '<img src="'//trim(outputbasefile)//'.png" width="500" title="Click for a larger version"></a>'
+     write(stdOut,'(A)') '<img src="'//trim(outputbasefile)//'.png" title="2D PDF: '//trim(htParNs(parID(p1)))//'-'// &
+          trim(htParNs(parID(p2)))//'">'
   end if
   
   write(outputbasefile,'(A)') trim(outputdir)//'/'//trim(outputbasefile)
@@ -688,31 +688,31 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
      
      if(htmlOutput.ge.1) write(51,'(4x,A)')'<table>'
      
-     do p1=j1,j2
+     do p2=j1,j2  ! p2 is in the outer loop to get the proper HTML matrix
         
-        if(fixedpar(p1).ge.1) cycle
+        if(fixedpar(p2).ge.1) cycle
         
         if(htmlOutput.ge.1) then
-           if(p1.eq.j1) then
+           if(p2.eq.j1) then
               write(51,'(6x,A)')'<tr>'
               write(51,'(8x,A)')'<td></td>'
-              do p2=j1,j2
-                 if(fixedpar(p2).ge.1) cycle
-                 write(51,'(8x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p2)))//'</h1></td>'
+              do p1=j1,j2
+                 if(fixedpar(p1).ge.1) cycle
+                 write(51,'(8x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
               end do
               write(51,'(8x,A)')'<td></td>'
               write(51,'(6x,A)')'</tr>'
            end if
            
            write(51,'(6x,A)')'<tr>'
-           write(51,'(8x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
+           write(51,'(8x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p2)))//'</h1></td>'
         end if
         
         
         
-        do p2=j1,j2
+        do p1=j1,j2
            
-           if(fixedpar(p2).ge.1) cycle
+           if(fixedpar(p1).ge.1) cycle
            
            if(Npdf2D.ge.0) then
               plotthis = 0  ! Determine to plot or save this combination of j1/j2 or p1/p2
@@ -734,18 +734,18 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
            write(tempfile,'(A)') trim(outputdir)//'/'//trim(basefile)
            status = system('rm -f '//trim(tempfile)//'.ppm')
            
+           
            if(htmlOutput.ge.1) then
               
               inquire(file=trim(tempfile)//'.png', exist=ex)
               if(ex) then
                  
                  ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
-                 if(countplots.eq.Npdf2D) then
-                    status = system('convert -resize 200x200 '//trim(tempfile)//'.png '// &
-                         trim(tempfile)//'_thumb.png')
+                 !if(countplots.eq.Npdf2D) then
+                 if(p1.eq.j2) then
+                    status = system('convert -resize 200x200 '//trim(tempfile)//'.png '//trim(tempfile)//'_thumb.png')
                  else
-                    status = system('convert -resize 200x200 '//trim(tempfile)//'.png '// &
-                         trim(tempfile)//'_thumb.png &')
+                    status = system('convert -resize 200x200 '//trim(tempfile)//'.png '//trim(tempfile)//'_thumb.png &')
                  end if
                  if(status.ne.0) write(stdErr,'(A)')'  Error creating thumbnail for '//trim(parNames(parID(p1)))//'-'// &
                       trim(parNames(parID(p2)))
@@ -753,31 +753,33 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
               
               write(51,'(8x,A)')'<td>'
               write(51,'(8x,A)')'  <a href="'//trim(basefile)//'.png">'
-              write(51,'(8x,A)')'    <img src="'//trim(basefile)//'_thumb.png">'
+              write(51,'(8x,A)')'    <img src="'//trim(basefile)//'_thumb.png" title="2D PDF: '//trim(ParNames(parID(p1)))//'-'// &
+                   trim(ParNames(parID(p2)))//'">'
               write(51,'(8x,A)')'  </a>'
               write(51,'(8x,A)')'</td>'
            end if
            
-        end do  ! p2=j1,j2
+        end do  ! p1=j1,j2
         
         
         if(htmlOutput.ge.1) then
-           write(51,'(8x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
+           write(51,'(8x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p2)))//'</h1></td>'
            write(51,'(6x,A)')'</tr>'
            
-           if(p1.eq.j2) then
+           if(p2.eq.j2) then
               write(51,'(6x,A)')'<tr>'
               write(51,'(8x,A)')'<td></td>'
-              do p2=j1,j2
-                 if(fixedpar(p2).ge.1) cycle
-                 write(51,'(8x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p2)))//'</h1></td>'
+              do p1=j1,j2
+                 if(fixedpar(p1).ge.1) cycle
+                 write(51,'(8x,A)')'<td align="center"><h1>'//trim(htParNs(parID(p1)))//'</h1></td>'
               end do
               write(51,'(8x,A)')'<td></td>'
               write(51,'(6x,A)')'</tr>'
            end if
         end if
         
-     end do  ! p1=j1,j2
+     end do  ! p2=j1,j2
+     
      
      if(htmlOutput.ge.1) then
         write(51,'(4x,A)')'</table>'
