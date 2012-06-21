@@ -622,14 +622,14 @@ subroutine convert_2D_PDF_plot(p1,p2, countplots)
   character :: convopts*(99)
   logical :: ex
   
-  
   if(file.eq.1) then
      call pgend
      
      inquire(file=trim(outputtempfile)//'.ppm', exist=ex)
      if(ex) then
         convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharppdf2d)
-        if(countplots.eq.Npdf2D) then
+        !if(p2.eq.1 .or. countplots.eq.Npdf2D) then        ! Doesn't seem to matter much which one you choose
+        if(mod(p2,6).eq.0 .or. countplots.eq.Npdf2D) then  ! Doesn't seem to matter much which one you choose
            
            ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
            status = system('convert '//trim(convopts)//' '//trim(outputtempfile)//'.ppm '//trim(outputbasefile)//'.png')
@@ -741,8 +741,8 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
               if(ex) then
                  
                  ! Convert the last plot in the foreground, so that the process finishes before deleting the original file:
-                 !if(countplots.eq.Npdf2D) then
-                 if(p1.eq.j2) then
+                 !if(p1.eq.1 .or. countplots.eq.Npdf2D) then        ! Doesn't seem to matter much which one you choose
+                 if(mod(p1,6).eq.0 .or. countplots.eq.Npdf2D) then  ! Doesn't seem to matter much which one you choose
                     status = system('convert -resize 200x200 '//trim(tempfile)//'.png '//trim(tempfile)//'_thumb.png')
                  else
                     status = system('convert -resize 200x200 '//trim(tempfile)//'.png '//trim(tempfile)//'_thumb.png &')
