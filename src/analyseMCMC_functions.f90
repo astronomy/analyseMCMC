@@ -1180,7 +1180,7 @@ subroutine mcmcruninfo(exitcode)
      
      
      ! Calculate eta and log(q) from q:
-     if(revID(62).eq.0 .and. revID(68).eq.0 .and. revID(67).ne.0) then
+     if(revID(62).eq.0 .and. revID(67).ne.0) then
         if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing eta and log(q) from q'
         parID(nMCMCpar+1) = 62    ! Eta
         parID(nMCMCpar+2) = 63    ! M1
