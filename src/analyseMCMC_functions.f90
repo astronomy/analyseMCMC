@@ -818,10 +818,10 @@ subroutine parNames2IDs(parNameStr,nMCMCpar, parID)
   character :: pnames(npIDs)*(19),pars(npIDs)*(19)
   
   parID = 0
-  pnames(1:npIDs) = [character(len=19) :: 'iota','psi','dec','ra','dist','phi_orb','time','q','mc',  &
-       'a1','theta1','phi1','a2','theta2','phi2','eta','logq']  ! CHECK: time = t40? tc?
-  pIDs(1:npIDs) = (/                   51,    52,   32,   31,  22,    41,       11,    67, 61,  &
-       71,72,73, 81,82,83,62,68/)
+  pnames(1:npIDs) = [character(len=19) :: 'a2','theta2','phi2','a1','theta1','phi1',  &
+       'iota','psi','dec','ra','dist','phi_orb','time','q','mc','eta','logq']  ! CHECK: time = t40? tc?
+  pIDs(1:npIDs) = (/                   81,82,83, 71,72,73,  &
+51,    52,   32,   31,  22,    41,       11,    67, 61,62,68/)
   
   read(parNameStr,*) (pars(pr1),pr1=1,nMCMCpar+3)
   do pr1=1,nMCMCpar+3
@@ -1165,6 +1165,13 @@ subroutine mcmcruninfo(exitcode)
            stop
         end if
         do ic=1,nchains0
+           if(changeVar.eq.3) then ! Folding log(q) for comparison
+              do j=1,ntot(ic)
+                 if(allDat(ic,revID(68),j).gt.0.0) then
+                 allDat(ic,revID(68),j) = -allDat(ic,revID(68),j)
+                 end if
+              end do
+           end if
            if(changeVar.eq.2) then  ! for phi > pi -> logq = -logq & phi = phi - pi
               do j=1,ntot(ic)
                  if(allDat(ic,revID(41),j).gt.rpi) then
@@ -1199,6 +1206,13 @@ subroutine mcmcruninfo(exitcode)
            stop
         end if
         do ic=1,nchains0
+           if(changeVar.eq.3) then ! Folding log(q) for comparison
+              do j=1,ntot(ic)
+                 if(allDat(ic,revID(67),j).gt.1.0) then
+                    allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)
+                 end if
+              end do
+           end if
            if(changeVar.eq.2) then  ! for phi > pi -> q = 1/q & phi = phi - pi
               do j=1,ntot(ic)
                  if(allDat(ic,revID(41),j).gt.rpi) then
@@ -1277,6 +1291,13 @@ subroutine mcmcruninfo(exitcode)
         end if
         do ic=1,nchains0
            allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(64),1:ntot(ic)) / allDat(ic,revID(63),1:ntot(ic))     ! q = m2 / m1
+           if(changeVar.eq.3) then ! Folding log(q) for comparison
+              do j=1,ntot(ic)
+                 if(allDat(ic,revID(67),j).gt.1.0) then
+                    allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)
+                 end if
+              end do
+           end if
            if(changeVar.eq.2) then  ! m2/m1 for q<1, & phi<pi and m1/m2 for q>1 & phi >pi
               do j=1,ntot(ic)
                  if(allDat(ic,revID(41),j).gt.rpi) then
