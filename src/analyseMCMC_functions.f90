@@ -820,8 +820,8 @@ subroutine parNames2IDs(parNameStr,nMCMCpar, parID)
   parID = 0
   pnames(1:npIDs) = [character(len=19) :: 'iota','psi','dec','ra','dist','phi_orb','time','q','mc',  &
        'a1','theta1','phi1','a2','theta2','phi2','eta','logq']  ! CHECK: time = t40? tc?
-  pIDs(1:npIDs) = (/                   51,    52,   32,   31,  22,    41,       11,    67, 61,  &
-       71,72,73, 81,82,83,62,68/)
+  pIDs(1:npIDs) = (/                       51,    52,   32,   31,  22,    41,       11,    67, 61,  &
+       71,   72,      73,    81,  82,      83,    62,   68/)
   
   read(parNameStr,*) (pars(pr1),pr1=1,nMCMCpar+3)
   do pr1=1,nMCMCpar+3
