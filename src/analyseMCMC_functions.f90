@@ -815,7 +815,7 @@ subroutine parNames2IDs(parNameStr,nMCMCpar, parID)
   
   integer, parameter :: npIDs = 17
   integer :: pr1,pr2,pIDs(npIDs)
-  character :: pnames(npIDs)*(19),pars(npIDs)*(19)
+  character :: pnames(npIDs)*(19),pars(nMCMCpar+3)*(19)
   
   parID = 0
   pnames(1:npIDs) = [character(len=19) :: 'iota','psi','dec','ra','dist','phi_orb','time','q','mc',  &

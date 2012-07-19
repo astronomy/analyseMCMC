@@ -336,7 +336,7 @@ subroutine statistics(exitcode)
            ranges(ic,c,p,4) = y2-y1
            ranges(ic,c,p,5) = ranges(ic,c,p,4)
            if(parID(p).eq.21.or.parID(p).eq.22 .or. parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) &
-                ranges(ic,c,p,5) = ranges(ic,c,p,4)/ranges(ic,c,p,3)  ! Distance or mass
+                ranges(ic,c,p,5) = ranges(ic,c,p,4)/(ranges(ic,c,p,3)+tiny(ranges))  ! Distance or mass
         end do  ! p
      end do  ! c
      !if(htmlOutput.eq.0.and.prProgress.ge.2) write(stdOut,'(A34,F8.4)')'.  Standard probability interval: ',ivals(ival0)
@@ -533,10 +533,11 @@ subroutine statistics(exitcode)
               if(mergeChains.eq.0) then
                  ! Defined with centre of prob. range, need some extra security to print correctly:
                  write(stdOut,'(2x,2F9.4,F6.3)',advance="no") ranges(ic,c,p,3),ranges(ic,c,p,4), &
-                      min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),9.999) 
+                      min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/(ranges(ic,c,p,4)+tiny(ranges)),9.999)
               else
+                 ! Defined with centre of prob. range:
                  write(stdOut,'(2x,2F9.4,F6.3)',advance="no") ranges(ic,c,p,3),ranges(ic,c,p,4), &
-                      min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),99.999) ! Defined with centre of prob. range
+                      min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/(ranges(ic,c,p,4)+tiny(ranges)),99.999)
               end if
               if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
                  write(stdOut,'(A3)',advance="no") 'y '
@@ -849,10 +850,11 @@ subroutine save_stats(exitcode)
         !write(o,'(2x,2F11.6,F6.3)',advance="no")ranges(ic,c,p,1),ranges(ic,c,p,2), &
         !2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4) !Defined with centre of prob. range
         if(fixedpar(p).eq.0) then
+           ! Defined with centre of prob. range:
            write(o,'(2x,2F12.6,F7.3)',advance="no") ranges(ic,c,p,3),ranges(ic,c,p,4), &
-                min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),99.999)  ! Defined with centre of prob. range
+                min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/(ranges(ic,c,p,4)+tiny(ranges)),99.999)
         else
-           write(o,'(2x,2F12.6,F7.3)',advance="no")0.,0.,99.999
+           write(o,'(2x,2F12.6,F7.3)',advance="no") 0.,0.,99.999
         end if
         if(startval(ic,p,1).gt.ranges(ic,c,p,1).and.startval(ic,p,1).lt.ranges(ic,c,p,2)) then
            write(o,'(A2)',advance="no")'y'
