@@ -65,9 +65,9 @@ program analyseMCMC
   use SUFR_system, only: quit_program_error
   
   use aM_constants, only: os, stdOutFile, use_PLplot
-  use analysemcmc_settings, only: panels,htmlOutput,prProgress,file,colour,prStdOut,prRunInfo,prChainInfo
-  use analysemcmc_settings, only: prInitial,prStat,prCorr,prIval,prConv,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D
-  use analysemcmc_settings, only: plAnim,plInject,plStart,plMedian,plRange,plBurn,plLmax,normPDF2D,bmpXSz,bmpYSz,Npdf2D,reverseRead
+  use analysemcmc_settings, only: panels,htmlOutput,prProgress,file,colour,prStdOut,prChainInfo
+  use analysemcmc_settings, only: prCorr,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D
+  use analysemcmc_settings, only: plAnim,bmpXSz,bmpYSz,Npdf2D,reverseRead
   use analysemcmc_settings, only: whiteBG,scFac,scrSz,scrRat,PSsz,PSrat,unSharp,orientation,chainSymbol,quality,plJump,savePDF
   use analysemcmc_settings, only: wrapData,update,nPlPar,mergeChains,tailoredOutput,plACorr, maxChs
   !use analysemcmc_settings, only: phi_q_sorting
@@ -102,29 +102,15 @@ program analyseMCMC
   
   
   ! Print code version and set use_PLplot:
-  if(prProgress.ge.1) then
-     call print_code_version(stdOut, use_PLplot)
-     !write(stdOut,'(A)', advance='no') '  Using'
-     !call print_libSUFR_version(stdOut)
-     !write(stdOut,'(A)') '.'
-  end if
+  if(prProgress.ge.1) call print_code_version(stdOut, use_PLplot)
+  
   
   if(htmlOutput.ge.1) then
      outputdir = 'html'       ! Directory where output is saved (either relative or absolute path)
      
      file = 1
-     !colour = 1
-     
-     !prStdOut = 2
-     !prProgress = 2
-     !prRunInfo = 2
-     !prChainInfo = 2
-     !prInitial = 4
-     
-     !prStat = 2
+
      prCorr = 1
-     !prIval = 3
-     !prConv = 3
      saveStats = 1
      
      plot = 1
@@ -132,23 +118,10 @@ program analyseMCMC
      plChain = 1
      plPDF1D = 1
      plPDF2D = 2
-     !plotSky = 2
      plAnim = 0
-     
-     !plInject = 0
-     !plStart = 1
-     !plMedian = 1
-     !plRange = 4
-     !plBurn = 3
-     !plLmax = 1
-     !normPDF2D = 4
      
      bmpXSz = 1000
      bmpYSz =  700
-     
-     !nPlPar = 
-     !plPars = (//)
-     !Npdf2D = -1
   end if
   
   

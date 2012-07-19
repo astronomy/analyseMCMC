@@ -54,7 +54,6 @@ end subroutine setconstants
 
 subroutine read_settingsfile_old(status)
   use SUFR_kinds, only: double
-  use SUFR_constants, only: stdErr
   use SUFR_system, only: quit_program, find_free_io_unit
   
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
@@ -194,8 +193,6 @@ subroutine read_settingsfile_old(status)
   close(ip)
   
   if(io.ne.0) then
-     !write(stdErr,'(/,A,I2,A,I3,A,/)')'  Error reading input file '//trim(filename)//', aborting...'
-     !stop
      status = 1
      return
   end if

@@ -34,7 +34,7 @@ subroutine pdfs1d(exitcode)
   use analysemcmc_settings, only: plInject,mergeChains,maxChs
   use analysemcmc_settings, only: savePDF,plot,ivals,Nbin1D,Nival,fillPDF,normPDF1D,smooth,plPDF1D,plMedian,plRange,prIval,prValues
   use general_data, only: allDat,outputname,outputdir,nChains0,startval,icloglmax,iloglmax,nChains,parNames,pgParNs
-  use general_data, only: pgParNss,selDat,stats,ranges,c0,contrchain,n,maxIter,wrap,fixedpar,shifts,shIvals,pgunits
+  use general_data, only: selDat,stats,ranges,c0,contrchain,n,maxIter,wrap,fixedpar,shifts,shIvals,pgunits
   use mcmcrun_data, only: totpts,revID,parID,Tchain
   use plot_data, only: psclr,bmpsz,bmprat,ncolours,colours,bmpxpix,unSharppdf1d
   
