@@ -162,7 +162,7 @@ subroutine chains(exitcode)
      !call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
      call plot_posterior_snr_axes(xmin,xmax,ymin,ymax)
      
-     if(quality.ne.1 .and. abs(startval(1,1,1)-startval(1,1,2))/abs(startval(1,1,1)).gt.1.e-10) then
+     if(quality.ne.1 .and. abs(startval(1,1,1)-startval(1,1,2))/abs((startval(1,1,1))+tiny(startval)).gt.1.e-10) then
         call pgsls(4)
         call pgbox('',0.0,0,'G',0.0,0)  ! Plot a grid of horizontal lines
         call pgsls(1)
@@ -599,9 +599,8 @@ subroutine chains(exitcode)
               end if
            end if
            
-           
            ! Plot starting values in chains:
-           if(plStart.ge.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/startval(ic,p,1)) .gt. 1.e-10) then
+           if(plStart.ge.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/(startval(ic,p,1)+sqrt(tiny(startval)))) .gt. 1.e-10) then
               call pgsls(4)
               if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
               plx = startval(ic,p,2) !Initial value

@@ -33,7 +33,7 @@ if( Fortran_COMPILER_NAME MATCHES "gfortran" )
   
   set( CMAKE_Fortran_FLAGS "-pipe -funroll-all-loops" )
   set( CMAKE_Fortran_FLAGS_RELEASE "-pipe -funroll-all-loops" )
-  set( CMAKE_Fortran_FLAGS_DEBUG "-g -ffpe-trap=zero,invalid -fsignaling-nans -fbacktrace" )
+  set( CMAKE_Fortran_FLAGS_DEBUG "-ggdb -ffpe-trap=zero,invalid,overflow,underflow -fsignaling-nans -fbacktrace" )
   set( CMAKE_Fortran_FLAGS_PROFILE "-g -gp" )
   
   
@@ -50,7 +50,8 @@ if( Fortran_COMPILER_NAME MATCHES "gfortran" )
   endif( WANT_STATIC )
   
   if( WANT_CHECKS )
-    set( CHECK_FLAGS "-ffpe-trap=zero,invalid -fsignaling-nans -fbacktrace" )
+    set( CHECK_FLAGS "-ffpe-trap=zero,invalid,overflow,underflow -fsignaling-nans -g -fbacktrace" )
+    #set( CHECK_FLAGS " ${CHECK_FLAGS} -ggdb" )
     if( COMPILER_VERSION VERSION_GREATER "4.4.99" )
       set( CHECK_FLAGS "-fcheck=all ${CHECK_FLAGS}" )    # >= v.4.5
     else( COMPILER_VERSION VERSION_GREATER "4.4.99" )

@@ -1377,7 +1377,8 @@ subroutine mcmcruninfo(exitcode)
            write(stdOut,*)
            if(prInitial.ge.4) write(stdOut,*)
         end if
-        if(abs((sum(startval(ic,1:nMCMCpar,1))-sum(startval(ic,1:nMCMCpar,2)))/sum(startval(ic,1:nMCMCpar,1))).gt.1.e-10) then
+        if( abs( (sum(startval(ic,1:nMCMCpar,1))-sum(startval(ic,1:nMCMCpar,2)) ) / &
+             (sum(startval(ic,1:nMCMCpar,1))+sqrt(tiny(startval)) ) ) .gt. 1.e-10) then
            offsetrun = 1
            write(stdOut,'(I4,A1,A10)',advance="no")ic,':','  Start: '
            write(stdOut,'(F10.3)',advance="no")post(ic,2)
