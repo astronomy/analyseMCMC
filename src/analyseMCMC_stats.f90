@@ -65,43 +65,19 @@ subroutine statistics(exitcode)
   
   ! Convert MCMC parameters/PDFs (cos/sin->ang, rad->deg, etc):
   if(changeVar.ge.1) then
-     if(outputVersion.lt.2.1) then
+     if(outputVersion.ge.2.1) then
+        
         do ic=1,nChains0  !selDat consists of nChains chains, allDat of nChains0 chains;  nChains <= nChains0
            !if(prProgress.ge.1.and.ic.eq.1.and.update.eq.0) write(stdOut,'(A)',advance="no")'.  Change vars. '
            do p=1,nMCMCpar
               select case(parID(p))
                  
-              case(21) !Take cube root: d^3 -> Distance:
-                 allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**rc3rd
-                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**rc3rd
-                 if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**rc3rd
-                 
-              case(22) !Take exp: logD -> Distance:
-                 allDat(ic,p,1:Ntot(ic)) = exp(allDat(ic,p,1:Ntot(ic)))   
-                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = exp(selDat(ic,p,1:n(ic)))
-                 if(ic.eq.1) startval(1:nChains0,p,1:3) = exp(startval(1:nChains0,p,1:3))
-                 
-              case(65) !Mc_1/6 -> Mc:
-                 allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**6
-                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**6
-                 if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**6
-                 
-              case(51,72,82) !cos -> deg:
-                 allDat(ic,p,1:Ntot(ic)) = acos(allDat(ic,p,1:Ntot(ic)))*rr2d
-                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = acos(selDat(ic,p,1:n(ic)))*rr2d
-                 if(ic.eq.1) startval(1:nChains0,p,1:3) = acos(startval(1:nChains0,p,1:3))*rr2d
-                 
-              case(31) !rad -> h:
-                 allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*rr2h  !rad -> h
+              case(31)  ! rad -> h:
+                 allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*rr2h
                  if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2h
                  if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2h
                  
-              case(32,53) !sin -> deg:
-                 allDat(ic,p,1:Ntot(ic)) = asin(allDat(ic,p,1:Ntot(ic)))*rr2d
-                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = asin(selDat(ic,p,1:n(ic)))*rr2d
-                 if(ic.eq.1) startval(1:nChains0,p,1:3) = asin(startval(1:nChains0,p,1:3))*rr2d
-                 
-              case(33,41,52,54,55,73,74,83,84) !rad -> deg:
+              case(32, 41, 51,52, 72,73, 82,83)  ! rad -> deg:
                  allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*rr2d
                  if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2d
                  if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2d
@@ -110,6 +86,53 @@ subroutine statistics(exitcode)
            end do !p
            
         end do !ic
+     else  ! then outputVersion < 2.1
+        
+        do ic=1,nChains0  !selDat consists of nChains chains, allDat of nChains0 chains;  nChains <= nChains0
+           !if(prProgress.ge.1.and.ic.eq.1.and.update.eq.0) write(stdOut,'(A)',advance="no")'.  Change vars. '
+           do p=1,nMCMCpar
+              select case(parID(p))
+                 
+              case(21)  ! Take cube root: d^3 -> Distance:
+                 allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**rc3rd
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**rc3rd
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**rc3rd
+                 
+              case(22)  ! Take exp: logD -> Distance:
+                 allDat(ic,p,1:Ntot(ic)) = exp(allDat(ic,p,1:Ntot(ic)))   
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = exp(selDat(ic,p,1:n(ic)))
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = exp(startval(1:nChains0,p,1:3))
+                 
+              case(65)  ! Mc_1/6 -> Mc:
+                 allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))**6
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))**6
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)**6
+                 
+              case(51,72,82)  ! cos -> deg:
+                 allDat(ic,p,1:Ntot(ic)) = acos(allDat(ic,p,1:Ntot(ic)))*rr2d
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = acos(selDat(ic,p,1:n(ic)))*rr2d
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = acos(startval(1:nChains0,p,1:3))*rr2d
+                 
+              case(31)  ! rad -> h:
+                 allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*rr2h  !rad -> h
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2h
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2h
+                 
+              case(32,53)  ! sin -> deg:
+                 allDat(ic,p,1:Ntot(ic)) = asin(allDat(ic,p,1:Ntot(ic)))*rr2d
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = asin(selDat(ic,p,1:n(ic)))*rr2d
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = asin(startval(1:nChains0,p,1:3))*rr2d
+                 
+              case(33,41,52,54,55,73,74,83,84)  ! rad -> deg:
+                 allDat(ic,p,1:Ntot(ic)) = allDat(ic,p,1:Ntot(ic))*rr2d
+                 if(ic.le.nChains) selDat(ic,p,1:n(ic)) = selDat(ic,p,1:n(ic))*rr2d
+                 if(ic.eq.1) startval(1:nChains0,p,1:3) = startval(1:nChains0,p,1:3)*rr2d
+              end select
+              
+           end do !p
+           
+        end do !ic
+        
      end if  ! if(outputVersion.lt.2.1)
      
      ! Change the parameter names:

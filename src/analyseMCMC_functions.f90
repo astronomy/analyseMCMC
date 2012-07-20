@@ -623,7 +623,7 @@ subroutine read_mcmcfiles(exitcode)
      
      read(10,*,end=199,err=199) tmpStr  ! Read (empty) line above detector info
      do i=1,ndet(ic)
-        read(10,*)detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i), &
+        read(10,*) detnames(ic,i),snr(ic,i),flow(ic,i),fhigh(ic,i),t_before(ic,i),t_after(ic,i),FTstart(ic,i),deltaFT(ic,i), &
              samplerate(ic,i),samplesize(ic,i),FTsize(ic,i)
         detname = detnames(ic,i)
         j = len_trim(detname)
