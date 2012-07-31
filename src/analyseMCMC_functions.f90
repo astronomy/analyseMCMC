@@ -56,6 +56,7 @@ subroutine read_settingsfile_old(status)
   use SUFR_kinds, only: double
   use SUFR_system, only: quit_program, find_free_io_unit
   
+  use analysemcmc_settings, only: settingsfile
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
@@ -68,16 +69,15 @@ subroutine read_settingsfile_old(status)
   integer, intent(out) :: status
   
   integer :: i,ip,io,io1
-  character :: bla,filename*(99)
+  character :: bla
   real(double) :: dblvar
-  filename = 'analysemcmc.dat'
   
   status = 0
   ! dblvar is used when a (possibly) large integer is expected; read it as double, then convert to integer
   
   call find_free_io_unit(ip)
-  open(unit=ip,form='formatted',status='old',action='read',file=trim(filename), iostat=io)
-  if(io.ne.0) call quit_program('Error opening input file '//trim(filename))
+  open(unit=ip,form='formatted',status='old',action='read',file=trim(settingsfile), iostat=io)
+  if(io.ne.0) call quit_program('Error opening input file '//trim(settingsfile))
   
   io = 0
   io1 = 0
@@ -207,6 +207,7 @@ end subroutine read_settingsfile_old
 subroutine read_settingsfile()
   use SUFR_system, only: find_free_io_unit, quit_program_error
   
+  use analysemcmc_settings, only: settingsfile
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
@@ -219,7 +220,6 @@ subroutine read_settingsfile()
   
   implicit none
   integer :: ip, io, NburnMax
-  character :: fname*(99)
   
   ! Basic options:
   namelist /basic_options/ thin, NburnMax, NburnFrac, autoBurnin, maxChLen, file, colour, quality, reverseRead, &
@@ -248,52 +248,51 @@ subroutine read_settingsfile()
   
   
   
-  
   call find_free_io_unit(ip)
-  fname = 'analysemcmc.dat'
-  open(unit=ip, status='old', action='read', file=trim(fname), iostat=io)
-  if(io.ne.0) call quit_program_error('readsettingsfile(): error opening settings file '//trim(fname), 0)
+  open(unit=ip, status='old', action='read', file=trim(settingsfile), iostat=io)
+  if(io.ne.0) call quit_program_error('readsettingsfile(): error opening settings file '//trim(settingsfile), 0)
   
   read(ip, nml=basic_options, iostat=io)             ! Basic options
   if(io.ne.0) then
      call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Basic options', 0)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Basic options', 0)
   end if
   
   read(ip, nml=print_options, iostat=io)             ! Print options
   if(io.ne.0) then
      call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Print options', 0)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Print options', 0)
   end if
   
   read(ip, nml=plot_select, iostat=io)               ! Select which plots to make
   if(io.ne.0) then
      call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Plot select', 0)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Plot select', 0)
   end if
   
   read(ip, nml=plot_options, iostat=io)              ! Detailed plot settings
   if(io.ne.0) then
      call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Plot options', 0)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Plot options', 0)
   end if
   
   read(ip, nml=output_format, iostat=io)             ! Output format
   if(io.ne.0) then
      call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Output format', 0)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Output format', 0)
   end if
   
   read(ip, nml=fonts_symbols, iostat=io)             ! Fonts, symbols, etc.
   if(io.ne.0) then
      call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Fonts, symbols, etc.', 0)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Fonts, symbols, etc.', 0)
   end if
   
   read(ip, nml=plot_parameters_binning, iostat=io)   ! Select parameters to plot, binning, etc.
   if(io.ne.0) then
      call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(fname)//', Plot parameters, binning, etc.', 0)
+     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)// &
+          ', Plot parameters, binning, etc.', 0)
   end if
   
   close(ip)

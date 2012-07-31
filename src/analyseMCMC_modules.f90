@@ -44,7 +44,7 @@ module analysemcmc_settings
   real :: NburnFrac,autoBurnin,ivals(maxNival)
   real :: scrSz,scrRat,PSsz,PSrat,scFac,fontsize1d,fontsize2d
   
-  character :: outputbasefile*(199), outputtempfile*(199)
+  character :: settingsfile*(199), outputbasefile*(199), outputtempfile*(199)
   
 end module analysemcmc_settings
 !***********************************************************************************************************************************

@@ -65,7 +65,7 @@ program analyseMCMC
   use SUFR_system, only: quit_program_error
   
   use aM_constants, only: os, stdOutFile, use_PLplot
-  use analysemcmc_settings, only: panels,htmlOutput,prProgress,file,colour,prStdOut,prChainInfo
+  use analysemcmc_settings, only: settingsfile, panels,htmlOutput,prProgress,file,colour,prStdOut,prChainInfo
   use analysemcmc_settings, only: prCorr,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D
   use analysemcmc_settings, only: plAnim,bmpXSz,bmpYSz,Npdf2D,reverseRead
   use analysemcmc_settings, only: whiteBG,scFac,scrSz,scrRat,PSsz,PSrat,unSharp,orientation,chainSymbol,quality,plJump,savePDF
@@ -92,6 +92,52 @@ program analyseMCMC
   timing = .false.
   if(abs(timestamps(1)).gt.1.e-6_dbl .and. abs(timestamps(1)).lt.1.e20_dbl) timing = .true.
   
+  
+  
+  ! Get command-line arguments:
+  nchains0 = command_argument_count()
+  
+  settingsfile = 'analysemcmc.dat'
+  if(nchains0.eq.1) then  ! Check whether this is the name of the input file
+     call get_command_argument(1,infile)  ! Read file name from the command-line arguments
+     if(index(trim(infile),'nalyse').ne.0 .and. infile(len_trim(infile)-3:len_trim(infile)).eq.'.dat') then
+        settingsfile = trim(infile)
+        nchains0 = 0
+     end if
+  end if
+  
+  if(nchains0.lt.1) then  ! No command-line arguments - select all files SPINspiral.output.*.00 in the current dir
+     call findFiles('SPINspiral.output.*.00',maxChs,1,infiles,nchains0)
+     if(nchains0.eq.0) then
+        write(stdErr,'(A)')'  No files matching  SPINspiral.output.*.00  were found in the current directory.'
+        write(stdErr,'(A)')'  I will try LALInference output file names  PTMCMC.output.*.00  instead.'
+        call findFiles('PTMCMC.output.*.00',maxChs,1,infiles,nchains0)
+     end if
+     if(nchains0.eq.0) then
+        write(stdErr,'(A)')'  No files matching  PTMCMC.output.*.00  were found either.'
+        write(stdErr,'(A)')'  I will try the old file names  mcmc.output.*.00  before I give up.'
+        call findFiles('mcmc.output.*.00',maxChs,1,infiles,nchains0)
+        if(nchains0.eq.0) call quit_program_error('No valid input files were found in the current directory.'// &
+             '  Please specify input files manually.',1)
+     end if
+  else
+     do ic = 1,nchains0
+        if(reverseRead.eq.0) then
+           call get_command_argument(ic,infile)  ! Read file name from the command-line arguments
+        else
+           call get_command_argument(nchains0-ic+1,infile)  ! Read file name from the command-line arguments in reverse order
+        end if
+        infiles(ic) = infile
+     end do
+  end if
+  
+  
+  if(nchains0.gt.maxChs) write(stdErr,'(A,I3,A)')'  *** WARNING:  Too many input files (chains),'// &
+       ' please increase maxChs in analyseMCMC_modules.f90. Only',maxChs,' files can be read.'
+  nchains0 = min(nchains0,maxChs)
+  
+  
+  ! Set and read settings:
   call set_plotsettings()     ! Set plot settings to 'default' values
   call read_settingsfile()    ! Read the plot settings (overwrite the defaults)
   if(prProgress.ge.3) call write_settingsfile()   ! Write the input file back to disc
@@ -102,7 +148,10 @@ program analyseMCMC
   
   
   ! Print code version and set use_PLplot:
-  if(prProgress.ge.1) call print_code_version(stdOut, use_PLplot)
+  if(prProgress.ge.1) then
+     call print_code_version(stdOut, use_PLplot)
+     write(StdOut,'(A)') '  Using settings file:  '//trim(settingsfile)
+  end if
   
   
   if(htmlOutput.ge.1) then
@@ -140,7 +189,9 @@ program analyseMCMC
   
   if(htmlOutput.ge.1) write(tmpStdOut,'(A)') '<html><body><pre><b>'
   call print_code_version(tmpStdOut, use_PLplot)
-  if(htmlOutput.ge.1) write(tmpStdOut,'(A)') '</b>'
+  if(htmlOutput.ge.1) write(tmpStdOut,'(A)') '</b><br>'
+  if(prProgress.ge.1) write(tmpStdOut,'(A)') '  Using settings file:  '//trim(settingsfile)
+  
   
   if(prStdOut.ge.2) then
      stdOut = tmpStdOut  ! Keep writing standard output to file rather than screen
@@ -152,37 +203,6 @@ program analyseMCMC
   
   
   
-  
-  ! Get command-line arguments:
-  nchains0 = command_argument_count()
-  if(nchains0.lt.1) then  ! No command-line arguments - select all files SPINspiral.output.*.00 in the current dir
-     call findFiles('SPINspiral.output.*.00',maxChs,1,infiles,nchains0)
-     if(nchains0.eq.0) then
-        write(stdErr,'(A)')'  No files matching  SPINspiral.output.*.00  were found in the current directory.'
-        write(stdErr,'(A)')'  I will try LALInference output file names  PTMCMC.output.*.00  instead.'
-        call findFiles('PTMCMC.output.*.00',maxChs,1,infiles,nchains0)
-     end if
-     if(nchains0.eq.0) then
-        write(stdErr,'(A)')'  No files matching  PTMCMC.output.*.00  were found either.'
-        write(stdErr,'(A)')'  I will try the old file names  mcmc.output.*.00  before I give up.'
-        call findFiles('mcmc.output.*.00',maxChs,1,infiles,nchains0)
-        if(nchains0.eq.0) call quit_program_error('No valid input files were found in the current directory.'// &
-             '  Please specify input files manually.',1)
-     end if
-  else
-     do ic = 1,nchains0
-        if(reverseRead.eq.0) then
-           call get_command_argument(ic,infile)  ! Read file name from the command-line arguments
-        else
-           call get_command_argument(nchains0-ic+1,infile)  ! Read file name from the command-line arguments in reverse order
-        end if
-        infiles(ic) = infile
-     end do
-  end if
-  
-  if(nchains0.gt.maxChs) write(stdErr,'(A,I3,A)')'  *** WARNING:  Too many input files (chains),'// &
-       ' please increase maxChs in analyseMCMC_modules.f90. Only',maxChs,' files can be read.'
-  nchains0 = min(nchains0,maxChs)
   
   
   
@@ -509,6 +529,7 @@ program analyseMCMC
      write(stdOut,'(A)', advance='no') '<b>'
      call print_code_version(stdOut, use_PLplot)
      write(stdOut,'(A)') '</b>'
+     write(stdOut,'(A)') '  Used settings file:  '//trim(settingsfile)
      
      !write(stdOut,'(A)') '<br><br>'
      call print_rundata(stdOut)
