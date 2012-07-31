@@ -593,17 +593,15 @@ subroutine calc_2d_areas(p1,p2, ni, nx,ny, z,tr, area, xmin,xmax,ymin,ymax)
         dx = tr(2)
         dy = tr(6)
         
-        if(changeVar.ge.1) then
-           if((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) then  
-              ! Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
-              y = tr(4) + tr(6)*real(iy)
-              if(parID(p1).eq.31) then
-                 dx = dx*cos(y*rd2r)
-              else if(parID(p1).eq.52) then
-                 dx = dx*abs(sin(y*rd2r))  ! Necessary for i-psi plot?
-              end if
-              if(parID(p1).eq.31) dx = dx*15
+        if(changeVar.ge.1 .and. ((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) ) then 
+           ! Then: RA-Dec or (phi/theta_Jo)/(psi/i) plot, convert lon -> lon * 15 * cos(lat)
+           y = tr(4) + tr(6)*real(iy)
+           if(parID(p1).eq.31) then
+              dx = dx*cos(y*rd2r)
+           else if(parID(p1).eq.52) then
+              dx = dx*abs(sin(y*rd2r))  ! Necessary for i-psi plot?
            end if
+           if(parID(p1).eq.31) dx = dx*15
         end if
         
         iv = nint(z(ix,iy))

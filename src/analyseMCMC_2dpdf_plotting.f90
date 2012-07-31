@@ -485,7 +485,7 @@ subroutine plot_2D_PDF_axes_labels_titles(p1,p2, sch,flw, project_map)
   use SUFR_text, only: replace_substring
   
   use aM_constants, only: use_PLplot
-  use analysemcmc_settings, only: prIval, normPDF2D, nIval,ivals, fonttype, quality, plotSky
+  use analysemcmc_settings, only: prIval, normPDF2D, nIval,ivals, fonttype, quality, plotSky, changeVar
   use general_data, only: pgParNs,pgUnits
   use mcmcrun_data, only: parID
   use stats_data, only: probAreas
@@ -541,6 +541,8 @@ subroutine plot_2D_PDF_axes_labels_titles(p1,p2, sch,flw, project_map)
         areaunit = trim(pgUnits(parID(p1)))//' '//trim(pgUnits(parID(p2)))
         if(trim(pgUnits(parID(p1))) .eq. trim(pgUnits(parID(p2)))) areaunit = trim(pgUnits(parID(p1)))//'\u2\d'  ! mm->m^2
         if(trim(areaunit).eq.'\(2218)\u2\d') areaunit = 'deg\u2\d'  ! Square degrees
+        if(changeVar.ge.1 .and. ((parID(p1).eq.31.and.parID(p2).eq.32) .or. (parID(p1).eq.52.and.parID(p2).eq.51)) ) &
+             areaunit = 'deg\u2\d'  ! Square degrees for sky map and iota-psi 'map' - exception in calc_2d_areas()
         areaunit = ' '//trim(areaunit)  ! Add space between value and unit
         
         
