@@ -148,7 +148,7 @@ subroutine plot_2D_PDF(z, tr, project_map)
      ! Plot 2D image - 0: no projection:
      call pgimag_project(z, Nbin2Dx+1, Nbin2Dy+1, 1,Nbin2Dx+1, 1,Nbin2Dy+1, 0.,1., clr1,clr2, tr, 0)
      
-     ! Plot 2D image - produces ~2.5x smaller plots - used to give segfaults (still does in some cases? was either png or eps):
+     ! Plot 2D image - produces ~2.5x smaller plots - used to give segfaults (still does when plotting to ppm):
      !call pgimag(z,Nbin2Dx+1,Nbin2Dy+1,1,Nbin2Dx+1,1,Nbin2Dy+1,0.,1.,tr)
      
   end if
@@ -170,7 +170,7 @@ subroutine set_2D_probability_colours(clr1,clr2)
   
   implicit none
   integer, intent(out) :: clr1,clr2
-  integer :: ci, clr,maxclr
+  integer :: ci, clr, minclr,maxclr
   real :: tmpflt
   
   
@@ -178,22 +178,23 @@ subroutine set_2D_probability_colours(clr1,clr2)
      
      call pgscir(0,nint(1e9))
      call pgqcir(clr,maxclr)  ! Maxclr is device-dependent
-     if(maxclr.lt.30) call warn('Not enough colours on device for 2D plot!',0)
+     minclr = 30
+     if(maxclr.lt.minclr) call warn('Not enough colours on device for 2D plot!',0)
      
-     do ci=0,maxclr-30  ! Colour indices typically run 0-255, but this is device-dependent. 
-        ! Reserve ~0-29 for other purposes -> (maxclr-30) for these grey scales:
-        tmpflt = real((maxclr-30) - ci)/real(maxclr-30)          ! White background
-        call pgscr(30+ci,tmpflt,tmpflt,tmpflt)
+     do ci=0,maxclr-minclr  ! Colour indices typically run 0-255, but this is device-dependent.
+        ! Reserve ~0-29 for other purposes -> (maxclr-minclr) for these grey scales:
+        tmpflt = real((maxclr-minclr) - ci)/real(maxclr-minclr)          ! White background
+        call pgscr(minclr+ci,tmpflt,tmpflt,tmpflt)
      end do
      
-     call pgscir(30,maxclr)  ! Set colour-index range for pgimag
+     call pgscir(minclr,maxclr)  ! Set colour-index range for pgimag
      
      
   else if(normPDF2D.eq.4) then  ! Use colour
      
      
      if(colour.eq.0) then
-        call pgscr(30,1.,1.,1.)  ! BG colour
+        call pgscr(minclr,1.,1.,1.)  ! BG colour
         if(Nival.eq.2) then
            call pgscr(31,0.5,0.5,0.5)  ! Grey
            call pgscr(32,0.,0.,0.)     ! Black
@@ -219,7 +220,7 @@ subroutine set_2D_probability_colours(clr1,clr2)
      end if
      
      if(colour.ge.1) then
-        call pgscr(30,1.,1.,1.)  ! BG colour
+        call pgscr(minclr,1.,1.,1.)  ! BG colour
         if(Nival.eq.2) then
            call pgscr(31,1.,1.,0.)  ! Yellow
            if(file.ge.2) call pgscr(31,0.8,0.7,0.)  ! Dark yellow
@@ -248,8 +249,8 @@ subroutine set_2D_probability_colours(clr1,clr2)
         end if
      end if
      
-     clr1 = 30
-     clr2 = 30+Nival
+     clr1 = minclr
+     clr2 = minclr+Nival
      call pgscir(clr1,clr2)  ! Set colour-index range for pgimag
      
   end if  ! if(normPDF2D .eq. 4)  ! Use colour
