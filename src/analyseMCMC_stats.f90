@@ -33,7 +33,7 @@ subroutine statistics(exitcode)
   use SUFR_statistics, only: compute_median
   
   use analysemcmc_settings, only: changeVar,prProgress,mergeChains,wrapData,saveStats,prCorr,ivals,ival0,prStat,prIval,Nival,Nburn
-  use analysemcmc_settings, only: prConv,wikioutput,plAcorr,prAcorr,maxMCMCpar,maxChs, htmlOutput
+  use analysemcmc_settings, only: prConv,wikioutput,plAcorr,plRhat,prAcorr,maxMCMCpar,maxChs, htmlOutput
   use general_data, only: allDat,selDat,startval,shIvals,wrap,shifts,stats,ranges,nChains0,Ntot,nChains,n,raShift,contrChain
   use general_data, only: raCentre,fixedpar,c0,post,parNames, maxIter, Rhat
   use general_data, only: logebayesfactor,log10bayesfactor,logebayestempfactor,logebayesfactortotalgeom,logebayesfactortotalarith
@@ -71,16 +71,17 @@ subroutine statistics(exitcode)
      nn = min(nn,Ntot(ic)-Nburn(ic))
   end do
   
-  dn = max(1,nn/1000)  ! Compute R-hat for 1000 cases
-  RhatsN = 0
-  do in = dn,nn,dn
-     RhatsN = RhatsN + 1
-     call compute_mixing(in, .false.)  ! Don't print results
-     !print*,in,nn,real(rhat(0))
-     Rhats(1,RhatsN) = real(in)*avgTotThin + real(maxval(isBurn))
-     Rhats(2,RhatsN) = real(Rhat(0))
-  end do
-  
+  ! Compute data to make Rhat plot:
+  if(plRhat.gt.0) then
+     dn = max(1,nn/1000)  ! Compute R-hat for 1000 cases
+     RhatsN = 0
+     do in = dn,nn,dn
+        RhatsN = RhatsN + 1
+        call compute_mixing(in, .false.)  ! Don't print results
+        Rhats(1,RhatsN) = real(in)*avgTotThin + real(maxval(isBurn))
+        Rhats(2,RhatsN) = real(Rhat(0))
+     end do
+  end if
   
   ! Convert MCMC parameters/PDFs (cos/sin->ang, rad->deg, etc):
   if(changeVar.ge.1) then

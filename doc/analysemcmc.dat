@@ -58,6 +58,7 @@
  PLPARL             =  0,                         ! Plot L vs. parameter value: 0-no, 1-yes
  PLJUMP             =  0,                         ! Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log
  PLACORR            =  0,                         ! Plot autocorrelations: 0-no, 1-yes
+ PLRHAT             =  0,                         ! Plot Rhat vs. iteration number: 0-no, 1-yes
  
  PLPDF1D            =  1,                         ! Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.
  PLPDF2D            =  2,                         ! Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) or not (=0).

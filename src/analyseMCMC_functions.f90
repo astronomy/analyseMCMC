@@ -211,7 +211,7 @@ subroutine read_settingsfile()
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
-  use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plotSky,plAnim,chainPlI,scLogLpl
+  use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plRhat,plotSky,plAnim,chainPlI,scLogLpl
   use analysemcmc_settings, only: scChainsPl,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D
   use analysemcmc_settings, only: normPDF2D,nAnimFrames,animScheme,Nival,ival0,scrSz,scrRat,bmpXSz,bmpYSz,PSsz,PSrat,scFac,unSharp
   use analysemcmc_settings, only: orientation,fontType,fontSize1D,fontSize2D,chainSymbol,nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D
@@ -230,7 +230,7 @@ subroutine read_settingsfile()
        prConv, saveStats, savePDF, wikiOutput, tailoredOutput, htmlOutput
   
   ! Select which plots to make:
-  namelist /plot_select/ plot, plLogL, plChain, plParL, plJump, plPDF1D, plPDF2D, plAcorr, plotSky, mapProjection, plAnim
+  namelist /plot_select/ plot, plLogL, plChain, plParL, plJump, plPDF1D, plPDF2D, plAcorr, plRhat, plotSky, mapProjection, plAnim
   
   ! Detailed plot settings:
   namelist /plot_options/ chainPlI, scLogLpl, scChainsPl, plInject, plStart, plMedian, plRange, plBurn, plLmax, prValues, smooth, &
@@ -345,7 +345,7 @@ subroutine write_settingsfile()
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
-  use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plotSky,plAnim,chainPlI,scLogLpl
+  use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plRhat,plotSky,plAnim,chainPlI,scLogLpl
   use analysemcmc_settings, only: scChainsPl,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D
   use analysemcmc_settings, only: normPDF2D,nAnimFrames,animScheme,Nival,ival0,scrSz,scrRat,bmpXSz,bmpYSz,PSsz,PSrat,scFac,unSharp
   use analysemcmc_settings, only: orientation,fontType,fontSize1D,fontSize2D,chainSymbol,nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D
@@ -364,7 +364,7 @@ subroutine write_settingsfile()
        prConv, saveStats, savePDF, wikiOutput, tailoredOutput, htmlOutput
   
   ! Select which plots to make:
-  namelist /plot_select/ plot, plLogL, plChain, plParL, plJump, plAcorr, plPDF1D, plPDF2D, plotSky, mapProjection, plAnim
+  namelist /plot_select/ plot, plLogL, plChain, plParL, plJump, plAcorr, plRhat, plPDF1D, plPDF2D, plotSky, mapProjection, plAnim
   
   ! Detailed plot settings:
   namelist /plot_options/ chainPlI, scLogLpl, scChainsPl, plInject, plStart, plMedian, plRange, plBurn, plLmax, prValues, smooth, &
@@ -412,7 +412,7 @@ subroutine set_plotsettings()
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
-  use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plotSky,plAnim,chainPlI,scLogLpl
+  use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plRhat,plotSky,plAnim,chainPlI,scLogLpl
   use analysemcmc_settings, only: scChainsPl,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D
   use analysemcmc_settings, only: normPDF2D,nAnimFrames,animScheme,Nival,ival0,scrSz,scrRat,bmpXSz,bmpYSz,PSsz,PSrat,scFac,unSharp
   use analysemcmc_settings, only: orientation,fontType,fontSize1D,fontSize2D,chainSymbol,nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D
@@ -468,9 +468,10 @@ subroutine set_plotsettings()
   plLogL = 1        ! Plot log L chains: 0-no, 1-yes
   plChain = 1       ! Plot parameter chains: 0-no, 1-yes
   plParL = 0        ! Plot L vs. parameter value: 0-no, 1-yes
-  plJump = 0        ! Plot actual jump sizes
+  plJump = 0        ! Plot actual jump sizes 
   plAcorr = 0       ! Plot autocorrelations: 0-no, 1-yes
-  
+  plRhat = 0        ! Plot Rhat: 0-no, 1-yes
+ 
   plPDF1D = 1       ! Plot 1d posterior distributions
   plPDF2D = 2       ! Plot 2d posterior distributions
   plotSky = 2       ! Plot 2d pdf with stars, implies plPDF2D>0

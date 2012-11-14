@@ -69,7 +69,7 @@ program analyseMCMC
   use analysemcmc_settings, only: prCorr,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D
   use analysemcmc_settings, only: plAnim,bmpXSz,bmpYSz,Npdf2D,reverseRead
   use analysemcmc_settings, only: whiteBG,scFac,scrSz,scrRat,PSsz,PSrat,unSharp,orientation,chainSymbol,quality,plJump,savePDF
-  use analysemcmc_settings, only: wrapData,update,nPlPar,mergeChains,tailoredOutput,plACorr, maxChs
+  use analysemcmc_settings, only: wrapData,update,nPlPar,mergeChains,tailoredOutput,plACorr,plRhat, maxChs
   !use analysemcmc_settings, only: phi_q_sorting
   use general_data, only: infiles,allDat,selDat,post,prior,outputDir,nchains0,nchains,ntot,outputname
   use mcmcrun_data, only: nMCMCpar
@@ -545,7 +545,7 @@ program analyseMCMC
         write(stdOut,'(A)',advance="no")'  Run time: '
         write(stdOut,'(A,F5.1,A)',advance="no")'   input:',min(abs(timestamps(2)-timestamps(1)),999.9_dbl),'s,'
         write(stdOut,'(A,F5.1,A)',advance="no")'   stats:',min(abs(timestamps(4)-timestamps(2)),999.9_dbl),'s,'
-        if(plot.eq.1.and.plLogL+plChain+plJump+plACorr.gt.0) then
+        if(plot.eq.1.and.plLogL+plChain+plJump+plACorr+plRhat.gt.0) then
            write(stdOut,'(A,F5.1,A)',advance="no")'   chains:',min(abs(timestamps(5)-timestamps(4)),999.9_dbl),'s,'
         end if
         if(plot.eq.1.or.savePDF.ge.1) then

@@ -36,7 +36,7 @@ module analysemcmc_settings
   integer :: file,colour,orientation,quality,fonttype
   integer :: prStdOut,prProgress,prRunInfo,prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv
   integer :: saveStats,savePDF,tailoredOutput
-  integer :: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plACorr,plotSky,plAnim       
+  integer :: plot, plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plACorr,plRhat, plotSky,plAnim
   integer :: chainSymbol,chainPlI,plInject,plStart,plMedian,plRange,plBurn,plLmax,prValues,smooth,fillPDF,normPDF1D,normPDF2D
   integer :: scLogLpl,scChainsPl,bmpXSz,bmpYSz,mapProjection
   integer :: nAnimFrames,animScheme,whiteBG,unSharp,Nival,ival0,wikioutput,htmlOutput

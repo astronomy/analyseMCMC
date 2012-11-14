@@ -25,7 +25,7 @@
 !! \retval exitcode  Exit status code (0=ok)
 
 subroutine chains(exitcode)
-  use analysemcmc_settings, only: plLogL,plChain,plParL,plJump,plAcorr
+  use analysemcmc_settings, only: plLogL,plChain,plParL,plJump,plAcorr,plRhat
   
   implicit none
   integer, intent(out) :: exitcode
@@ -59,7 +59,7 @@ subroutine chains(exitcode)
   
   
   ! Plot R-hat:
-  call plot_Rhat_chains(exitcode)
+  if(plRhat.gt.0) call plot_Rhat_chains(exitcode)
   if(exitcode.ne.0) return
   
 end subroutine chains
