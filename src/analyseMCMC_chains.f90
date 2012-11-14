@@ -26,18 +26,17 @@
 
 subroutine chains(exitcode)
   use SUFR_constants, only: stdOut,stdErr
-  use SUFR_statistics, only: compute_median_sp
   
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: plLogL,update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality,scLogLpl
   use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,plChain,fontsize1d,nPlPar,panels,plPars,scChainsPl,changeVar
-  use analysemcmc_settings, only: chainSymbol,plInject,mergeChains,plStart,prConv,plParL,plJump,plAcorr,nAcorr, autoBurnin
+  use analysemcmc_settings, only: chainSymbol,plInject,mergeChains,plStart,prConv,plParL,plJump,plAcorr, autoBurnin
   use analysemcmc_settings, only: htmlOutput
   use general_data, only: post,allDat,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax,nChains,parNames,pgParNs,rhat
-  use general_data, only: pgOrigParns,pgParNss
+  use general_data, only: pgOrigParns
   use mcmcrun_data, only: revID,parID
   use plot_data, only: psclr,defcolour,bmpsz,bmprat,ncolours,colours,unSharplogl,bmpxpix,nsymbols,symbols,unSharpchain
-  use chain_data, only: is,jumps,acorrs,lAcorrs,isburn
+  use chain_data, only: is,jumps,isburn
   
   implicit none
   integer, intent(out) :: exitcode
@@ -1172,154 +1171,181 @@ subroutine chains(exitcode)
   
   
   
-  
-  
-  
-  !*********************************************************************************************************************************
-  ! Plot autocorrelations for each parameter:
-  if(plAcorr.gt.0) then
-     if(htmlOutput.ge.1) then
-        write(stdOut,'(A)') '<h3>Autocorrelations:</h3>'
-        write(stdOut,'(A)') '<img src="'//trim(outputname)//'__acorrs.png" title="Autocorrelations">'
-     else
-        !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting autocorrelations...'
-        if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' autocorrelations, '
-     end if
-     
-     if(file.eq.0) then
-        if(.not.use_Plplot) io = pgopen('19/xs')
-        call pgpap(scrSz,scrRat)
-        if(use_Plplot) io = pgopen('19/xs')
-        
-        sch = fontsize1d*1.5
-        sch = sch*1.5
-     end if
-     tempfile = trim(outputdir)//'/'//trim(outputname)//'__acorrs'
-     if(file.eq.1) then
-        if(.not.use_Plplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
-        call pgpap(bmpsz,bmprat)
-        if(use_Plplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
-        sch = fontsize1d*1.2
-        sch = sch*1.5
-     end if
-     if(file.ge.2) then
-        if(.not.use_Plplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
-        call pgpap(PSsz,PSrat)
-        if(use_Plplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
-        
-        sch = fontsize1d*1.2
-        sch = sch*1.5
-        call pgscf(fonttype)
-     end if
-     if(io.le.0) then
-        write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
-        exitcode = 1
-        return
-     end if
-     
-     call pgsch(sch)
-     
-     if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
-     
-     call pgsubp(panels(1),panels(2))
-     
-     ic = 1
-     do j=1,nPlPar
-        p = revID(plPars(j))
-        if(p.eq.0) then
-           write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))// &
-                ' is not defined, check plPars() in the input file.  Skipping...'
-           cycle
-        end if
-        
-        call pgpage()
-        if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
-        call pgsch(sch)
-        
-        xmin = 0.
-        xmin = minval(acorrs(1:nChains0,0,0:nAcorr))
-        xmax = maxval(acorrs(1:nChains0,0,0:nAcorr))
-        dx = abs(xmax-xmin)*0.01
-        
-        !ymin =  1.e30
-        !ymax = -1.e30
-        !do ic=1,nChains0
-        !   ymin = min(ymin,minval(acorrs(ic,p,0:nAcorr)))
-        !   ymax = max(ymax,maxval(acorrs(ic,p,0:nAcorr)))
-        !end do
-        !ymin = max(ymin,-1.)
-        !ymax = min(ymax,1.)
-        ymin = -1.
-        ymax = 1.
-        dy = abs(ymax-ymin)*0.05
-        !write(stdOut,'(3I3,5F12.2)')p,nChains,nChains0,xmin,xmax,ymin,ymax,acorrs(1,0,nAcorr)
-        
-        call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
-        call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-        
-        call pgsci(defcolour)
-        do ic=1,nChains0
-           
-           if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           symbol = chainSymbol
-           if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
-           
-           do i=1,nAcorr
-              call pgpoint(1,acorrs(ic,0,i),acorrs(ic,p,i),symbol)
-           end do
-        end do
-        
-        ! Plot autocorrelation length:
-        call pgsls(2)
-        call pgsci(defcolour)
-        do ic=1,nChains0
-           if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           call pgline(2,(/lAcorrs(ic,p),lAcorrs(ic,p)/),(/ymin-dy,ymax+dy/))
-        end do
-        
-        ! Plot horizontal line at 0:
-        call pgsci(1)
-        call pgline(2,(/xmin,xmax/),(/0.,0./))
-        call pgsci(1)
-        call pgsls(1)
-        !write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', mean length:',sum(lAcorrs(1:nChains0,p))/real(nChains0)
-        write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', med. length:', &
-             compute_median_sp(lAcorrs(1:nChains0,p))
-        call pgmtxt('T',1.,0.5,0.5,trim(title))
-     end do
-     
-     if(quality.eq.0) then
-        call pgsubp(1,1)
-        call pgsvp(0.,1.,0.,1.)
-        call pgswin(-1.,1.,-1.,1.)
-        
-        call pgsch(sch*0.8)
-        call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  !Print title
-        call pgsch(sch)
-     end if
-     
-     call pgend
-     if(file.ge.2) then
-        if(file.eq.3) then
-           status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
-        end if
-     else if(file.eq.1) then
-        inquire(file=trim(tempfile)//'.ppm', exist=ex)
-        if(ex) then
-           convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)
-           status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm  '//trim(tempfile)//'.png')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot ppm -> png',status
-           status = system('rm -f '//trim(tempfile)//'.ppm')
-        end if
-     end if
-  end if !if(plAcorr.gt.0)
+  if(plAcorr.gt.0) call plot_Acorr_chains(exitcode)
+  if(exitcode.ne.0) return
   
   
 end subroutine chains
 !***********************************************************************************************************************************
 
 
+
+!***********************************************************************************************************************************
+!> \brief  Plot autocorrelations for each parameter
+
+subroutine plot_Acorr_chains(exitcode)
+  use SUFR_constants, only: stdOut,stdErr
+  use SUFR_statistics, only: compute_median_sp
+  
+  use aM_constants, only: use_PLplot
+  use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
+  use analysemcmc_settings, only: fontsize1d,nPlPar,panels,plPars, chainSymbol,nAcorr, htmlOutput
+  use general_data, only: outputname,outputdir,nChains0,parNames,pgParNss
+  use mcmcrun_data, only: revID,parID
+  use plot_data, only: psclr,defcolour,bmpsz,bmprat,ncolours,colours,bmpxpix,nsymbols,symbols,unSharpchain
+  use chain_data, only: acorrs,lAcorrs
+  
+  implicit none
+  integer, intent(out) :: exitcode
+  
+  integer :: i,j,pgopen,symbol,io,ic,p,status,system
+  real :: dx,dy,xmin,xmax,ymin,ymax,sch
+  character :: title*(99), tempfile*(199), convopts*(99)
+  logical :: ex
+  
+  
+  exitcode = 0
+  
+  if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '<h3>Autocorrelations:</h3>'
+     write(stdOut,'(A)') '<img src="'//trim(outputname)//'__acorrs.png" title="Autocorrelations">'
+  else
+     !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting autocorrelations...'
+     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' autocorrelations, '
+  end if
+  
+  if(file.eq.0) then
+     if(.not.use_Plplot) io = pgopen('19/xs')
+     call pgpap(scrSz,scrRat)
+     if(use_Plplot) io = pgopen('19/xs')
+     
+     sch = fontsize1d*1.5
+     sch = sch*1.5
+  end if
+  tempfile = trim(outputdir)//'/'//trim(outputname)//'__acorrs'
+  if(file.eq.1) then
+     if(.not.use_Plplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+     call pgpap(bmpsz,bmprat)
+     if(use_Plplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+     sch = fontsize1d*1.2
+     sch = sch*1.5
+  end if
+  if(file.ge.2) then
+     if(.not.use_Plplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+     call pgpap(PSsz,PSrat)
+     if(use_Plplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+     
+     sch = fontsize1d*1.2
+     sch = sch*1.5
+     call pgscf(fonttype)
+  end if
+  if(io.le.0) then
+     write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
+     exitcode = 1
+     return
+  end if
+  
+  call pgsch(sch)
+  
+  if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87) !To make room for title
+  
+  call pgsubp(panels(1),panels(2))
+  
+  ic = 1
+  do j=1,nPlPar
+     p = revID(plPars(j))
+     if(p.eq.0) then
+        write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))// &
+             ' is not defined, check plPars() in the input file.  Skipping...'
+        cycle
+     end if
+     
+     call pgpage()
+     if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
+     call pgsch(sch)
+     
+     xmin = 0.
+     xmin = minval(acorrs(1:nChains0,0,0:nAcorr))
+     xmax = maxval(acorrs(1:nChains0,0,0:nAcorr))
+     dx = abs(xmax-xmin)*0.01
+     
+     !ymin =  1.e30
+     !ymax = -1.e30
+     !do ic=1,nChains0
+     !   ymin = min(ymin,minval(acorrs(ic,p,0:nAcorr)))
+     !   ymax = max(ymax,maxval(acorrs(ic,p,0:nAcorr)))
+     !end do
+     !ymin = max(ymin,-1.)
+     !ymax = min(ymax,1.)
+     ymin = -1.
+     ymax = 1.
+     dy = abs(ymax-ymin)*0.05
+     !write(stdOut,'(3I3,5F12.2)')p,nChains,nChains0,xmin,xmax,ymin,ymax,acorrs(1,0,nAcorr)
+     
+     call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
+     call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
+     
+     call pgsci(defcolour)
+     do ic=1,nChains0
+        
+        if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+        symbol = chainSymbol
+        if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
+        
+        do i=1,nAcorr
+           call pgpoint(1,acorrs(ic,0,i),acorrs(ic,p,i),symbol)
+        end do
+     end do
+     
+     ! Plot autocorrelation length:
+     call pgsls(2)
+     call pgsci(defcolour)
+     do ic=1,nChains0
+        if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+        call pgline(2,(/lAcorrs(ic,p),lAcorrs(ic,p)/),(/ymin-dy,ymax+dy/))
+     end do
+     
+     ! Plot horizontal line at 0:
+     call pgsci(1)
+     call pgline(2,(/xmin,xmax/),(/0.,0./))
+     call pgsci(1)
+     call pgsls(1)
+     !write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', mean length:',sum(lAcorrs(1:nChains0,p))/real(nChains0)
+     write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', med. length:', &
+          compute_median_sp(lAcorrs(1:nChains0,p))
+     call pgmtxt('T',1.,0.5,0.5,trim(title))
+  end do
+  
+  if(quality.eq.0) then
+     call pgsubp(1,1)
+     call pgsvp(0.,1.,0.,1.)
+     call pgswin(-1.,1.,-1.,1.)
+     
+     call pgsch(sch*0.8)
+     call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  !Print title
+     call pgsch(sch)
+  end if
+  
+  call pgend
+  if(file.ge.2) then
+     if(file.eq.3) then
+        status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+     end if
+  else if(file.eq.1) then
+     inquire(file=trim(tempfile)//'.ppm', exist=ex)
+     if(ex) then
+        convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)
+        status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm  '//trim(tempfile)//'.png')
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot ppm -> png',status
+        status = system('rm -f '//trim(tempfile)//'.ppm')
+     end if
+  end if
+  
+end subroutine plot_Acorr_chains
+!***********************************************************************************************************************************
+  
+  
 
 
 
