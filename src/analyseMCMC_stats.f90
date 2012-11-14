@@ -28,24 +28,24 @@
 
 subroutine statistics(exitcode)
   use SUFR_kinds, only: realkindmax
-  use SUFR_constants, only: stdOut
-  use SUFR_constants, only: rc3rd,rr2d,rr2h,rpi,rpi2
+  use SUFR_constants, only: stdOut, rc3rd,rr2d,rr2h,rpi,rpi2
   use SUFR_sorting, only: sorted_index_list
+  use SUFR_statistics, only: compute_median
   
   use analysemcmc_settings, only: changeVar,prProgress,mergeChains,wrapData,saveStats,prCorr,ivals,ival0,prStat,prIval,Nival,Nburn
   use analysemcmc_settings, only: prConv,wikioutput,plAcorr,prAcorr,maxMCMCpar,maxChs, htmlOutput
   use general_data, only: allDat,selDat,startval,shIvals,wrap,shifts,stats,ranges,nChains0,Ntot,nChains,n,raShift,contrChain
-  use general_data, only: raCentre,fixedpar,c0,post,parNames, maxIter
+  use general_data, only: raCentre,fixedpar,c0,post,parNames, maxIter, Rhat
   use general_data, only: logebayesfactor,log10bayesfactor,logebayestempfactor,logebayesfactortotalgeom,logebayesfactortotalarith
   use general_data, only: logebayesfactortotalharmo,logebayesfactortotal
   use stats_data, only: absVar1,absVar2,stdev1,stdev2
   use chain_data, only: corrs
-  use mcmcrun_data, only: nMCMCpar,parID,Tchain,loglmax, outputVersion
+  use mcmcrun_data, only: nMCMCpar,nMCMCpar0, parID,Tchain,loglmax, outputVersion
   
   implicit none
   integer, intent(out) :: exitcode
   
-  integer :: c,i,ic,p,p1,p2, wraptype
+  integer :: c,i,ic, in,nn,dn, p,p1,p2, wraptype
   integer :: indexx(maxMCMCpar,maxChs*maxIter),index1(maxChs*maxIter)
   real :: revper
   real :: x1,x2,y1,y2
@@ -61,6 +61,22 @@ subroutine statistics(exitcode)
   
   ! Compute and print mixing (Rhat).  Need unwrapped data for this:
   if(nChains0.gt.1 .and. (prConv.ge.1.or.saveStats.ge.1)) call compute_mixing(0, .true.)  ! True: print results
+  
+  !> Determine the number of points to use for the computation of R-hat
+  !!  Since we need a fixed number of points for all chains, take
+  !! nn = the minimum of (the length of each chain after the burn-in) and use the last nn data points of each chain
+  nn = huge(nn)
+  do ic=1,nChains0
+     if(contrChain(ic).eq.0) cycle  ! Contributing chains only
+     nn = min(nn,Ntot(ic)-Nburn(ic))
+  end do
+  
+  dn = max(1,nn/1000)
+  do in = dn,nn,dn
+     call compute_mixing(in, .false.)  ! Don't print results
+     !print*,in,nn,real(rhat(0))
+  end do
+  
   
   ! Convert MCMC parameters/PDFs (cos/sin->ang, rad->deg, etc):
   if(changeVar.ge.1) then
@@ -1486,7 +1502,7 @@ subroutine compute_mixing(mynn, print_data)
   prVarStdev = 1  ! Print 1-Variances, 2-Standard deviations in detailed mixing output
   
   !> Determine the number of points to use for the computation of R-hat
-  !!  Since we need a fixed number of points for all chains, take 
+  !!  Since we need a fixed number of points for all chains, take
   !! nn = the minimum of (the length of each chain after the burn-in) and use the last nn data points of each chain
   nn = huge(nn)
   do ic=1,nChains0
@@ -1747,28 +1763,33 @@ subroutine compute_mixing(mynn, print_data)
      else
         write(stdOut,'(A14)',advance="no")'       R-hat: '
      end if
-     
-     !totRhat = 0.d0
-     !totRhat = 1.d0
-     nRhat = 0
-     do p=1,nMCMCpar
-        if(fixedpar(p).eq.1) cycle  ! Varying parameters only
-        write(stdOut,'(F9.4)',advance="no") Rhat(p)
-        !print*,parID(p)
-        !if(parID(p).ne.63.and.parID(p).ne.64) then  ! If not one of M1,M2
-        if(p.le.nMCMCpar0) then  ! If not one of the secondary variables
-           !totRhat = totRhat + Rhat(p)   ! Arithmetic mean
-           !totRhat = totRhat * Rhat(p)   ! Geometric mean
-           nRhat = nRhat + 1
-           RhatArr(nRhat) = p
-        end if
-     end do
+  end if
+  
+  !totRhat = 0.d0
+  !totRhat = 1.d0
+  nRhat = 0
+  do p=1,nMCMCpar
+     if(fixedpar(p).eq.1) cycle  ! Varying parameters only
+     if(print_data .and. prConv.ge.1) write(stdOut,'(F9.4)',advance="no") Rhat(p)
+     !print*,parID(p)
+     !if(parID(p).ne.63.and.parID(p).ne.64) then  ! If not one of M1,M2
+     if(p.le.nMCMCpar0) then  ! If not one of the secondary variables
+        !totRhat = totRhat + Rhat(p)   ! Arithmetic mean
+        !totRhat = totRhat * Rhat(p)   ! Geometric mean
+        nRhat = nRhat + 1
+        RhatArr(nRhat) = p
+     end if
+  end do
+  Rhat(0) = compute_median(Rhat(RhatArr(1:nRhat)))
+  
+  if(print_data .and. prConv.ge.1) then
      !write(stdOut,'(F9.4)') totRhat/dble(nRhat)          ! Arithmetic mean
      !write(stdOut,'(F9.4)') totRhat**(1.d0/dble(nRhat))  ! Geometric mean
+     
      if(htmlOutput.ge.1) then
-        write(stdOut,'(A3,F9.4,A)') '<b>',compute_median(Rhat(RhatArr(1:nRhat))),'</b> (med)'
+        write(stdOut,'(A3,F9.4,A)') '<b>',Rhat(0),'</b> (med)'
      else
-        write(stdOut,'(F9.4,A)') compute_median(Rhat(RhatArr(1:nRhat))),' (med)'
+        write(stdOut,'(F9.4,A)') Rhat(0),' (med)'
      end if
   end if
   
