@@ -71,7 +71,7 @@ subroutine statistics(exitcode)
      nn = min(nn,Ntot(ic)-Nburn(ic))
   end do
   
-  dn = max(1,nn/1000)
+  dn = max(1,nn/1000)  ! Compute R-hat for 1000 cases
   do in = dn,nn,dn
      call compute_mixing(in, .false.)  ! Don't print results
      !print*,in,nn,real(rhat(0))
