@@ -30,34 +30,32 @@ subroutine chains(exitcode)
   implicit none
   integer, intent(out) :: exitcode
   
+  
   exitcode = 0
   
-  
-  
   ! Plot posterior chain:
-  if(plLogL.ge.1) call plot_posterior_chain(exitcode)
+  if(plLogL.gt.0) call plot_posterior_chain(exitcode)
   if(exitcode.ne.0) return
   
   
   ! Plot Markov chains per parameter:
-  if(plChain.eq.1) call plot_parameter_chains(exitcode)
+  if(plChain.gt.0) call plot_parameter_chains(exitcode)
   if(exitcode.ne.0) return
   
   
   ! Plot L vs parameter value:
-  if(plParL.ge.1) call plot_par_L(exitcode)
+  if(plParL.gt.0) call plot_par_L(exitcode)
   if(exitcode.ne.0) return
   
   
   ! Plot jump sizes:
-  if(plJump.ge.1) call plot_Jump_sizes(exitcode)
+  if(plJump.gt.0) call plot_Jump_sizes(exitcode)
   if(exitcode.ne.0) return
   
   
   ! Plot autocorrelations:
   if(plAcorr.gt.0) call plot_Acorr_chains(exitcode)
   if(exitcode.ne.0) return
-  
   
 end subroutine chains
 !***********************************************************************************************************************************
@@ -68,15 +66,15 @@ end subroutine chains
 !***********************************************************************************************************************************
 !> \brief  Plot posterior chain
 !!
+!! \retval exitcode  Exit status code (0=ok)
+!!
 
 subroutine plot_posterior_chain(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality,scLogLpl
-  use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,fontsize1d,nPlPar
-  use analysemcmc_settings, only: chainSymbol,plInject, autoBurnin
-  use analysemcmc_settings, only: htmlOutput
+  use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,fontsize1d,nPlPar, chainSymbol,plInject, autoBurnin, htmlOutput
   use general_data, only: post,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax
   use plot_data, only: psclr,defcolour,bmpsz,bmprat,ncolours,colours,unSharplogl,bmpxpix,nsymbols,symbols
   use chain_data, only: is,isburn
@@ -89,8 +87,8 @@ subroutine plot_posterior_chain(exitcode)
   character :: tempfile*(199), convopts*(99)
   logical :: ex
   
-  exitcode = 0
   
+  exitcode = 0
   
   if(htmlOutput.ge.1) then
      write(stdOut,'(A)') '<h3>Posterior chain:</h3>'
@@ -298,6 +296,9 @@ end subroutine plot_posterior_chain
 
 !***********************************************************************************************************************************
 !> \brief  Plot chains for each parameter
+!!
+!! \retval exitcode  Exit status code (0=ok)
+!!
 
 subroutine plot_parameter_chains(exitcode)
   use SUFR_constants, only: stdOut,stdErr
@@ -320,10 +321,8 @@ subroutine plot_parameter_chains(exitcode)
   character :: title*(99), tempfile*(199), convopts*(99)
   logical :: ex
   
+  
   exitcode = 0
-  
-  
-  
   
   if(htmlOutput.ge.1) then
      write(stdOut,'(A)') '<h3>Parameter chains:</h3>'
@@ -755,15 +754,15 @@ end subroutine plot_parameter_chains
 !***********************************************************************************************************************************
 !> \brief  Plot L vs parameter value
 !!
+!! \retval exitcode  Exit status code (0=ok)
+!!
 
 subroutine plot_par_L(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   
   use aM_constants, only: use_PLplot
-  use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
-  use analysemcmc_settings, only: Nburn,plLmax,chainPlI,fontsize1d,nPlPar,panels,plPars,changeVar
-  use analysemcmc_settings, only: chainSymbol,plInject,mergeChains
-  use analysemcmc_settings, only: htmlOutput
+  use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality, htmlOutput
+  use analysemcmc_settings, only: Nburn,plLmax,chainPlI,fontsize1d,nPlPar,panels,plPars,changeVar, chainSymbol,plInject,mergeChains
   use general_data, only: post,allDat,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax,nChains,parNames
   use mcmcrun_data, only: revID,parID
   use plot_data, only: psclr,defcolour,bmpsz,bmprat,ncolours,colours,bmpxpix,nsymbols,symbols,unSharpchain
@@ -776,6 +775,7 @@ subroutine plot_par_L(exitcode)
   real :: dx,dy,xmin,xmax,ymin,ymax,sch,plx,ply
   character :: tempfile*(199), convopts*(99)
   logical :: ex
+  
   
   exitcode = 0
   
@@ -1085,17 +1085,17 @@ end subroutine plot_par_L
 
 !***********************************************************************************************************************************
 !> \brief  Plot jump sizes
+!!
+!! \retval exitcode  Exit status code (0=ok)
+!!
 
 subroutine plot_Jump_sizes(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,colour,whitebg,quality
-  use analysemcmc_settings, only: plBurn,chainPlI,fontsize1d,nPlPar,panels,plPars
-  use analysemcmc_settings, only: chainSymbol,plJump
-  use analysemcmc_settings, only: htmlOutput
-  use general_data, only: outputname,outputdir,nChains0,Ntot,parNames
-  use general_data, only: pgOrigParns
+  use analysemcmc_settings, only: plBurn,chainPlI,fontsize1d,nPlPar,panels,plPars, chainSymbol,plJump, htmlOutput
+  use general_data, only: outputname,outputdir,nChains0,Ntot, parNames,pgOrigParns
   use mcmcrun_data, only: revID,parID
   use plot_data, only: psclr,defcolour,bmpsz,bmprat,ncolours,colours,bmpxpix,nsymbols,symbols,unSharpchain
   use chain_data, only: is,jumps,isburn
@@ -1107,6 +1107,7 @@ subroutine plot_Jump_sizes(exitcode)
   real :: dx,dy,xmin,xmax,ymin,ymax,sch
   character :: tempfile*(199), convopts*(99)
   logical :: ex
+  
   
   exitcode = 0
   
@@ -1269,6 +1270,9 @@ end subroutine plot_Jump_sizes
 
 !***********************************************************************************************************************************
 !> \brief  Plot autocorrelations for each parameter
+!!
+!! \retval exitcode  Exit status code (0=ok)
+!!
 
 subroutine plot_Acorr_chains(exitcode)
   use SUFR_constants, only: stdOut,stdErr
@@ -1457,6 +1461,7 @@ subroutine plot_posterior_snr_axes(itermin,itermax,logpmin,logpmax)
   real :: logpmin0,snrmin,snrmax,dsnr,snr, dlogp,logp, ntick0,tick_om,dtick, tick
   real :: len, dist, ori
   character :: label*(19),fmt*(19)
+  
   
   call pgbox('BCNTS',0.0,0,'BNTS',0.0,0)  ! No right border
   call pgbox('',0.0,0,'C',0.0,0)          ! Right border without ticks, labels
