@@ -29,21 +29,19 @@ subroutine chains(exitcode)
   
   use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: plLogL,update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality,scLogLpl
-  use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,plChain,fontsize1d,nPlPar,panels,plPars,scChainsPl,changeVar
-  use analysemcmc_settings, only: chainSymbol,plInject,mergeChains,plStart,prConv,plParL,plJump,plAcorr, autoBurnin
+  use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,plChain,fontsize1d,nPlPar
+  use analysemcmc_settings, only: chainSymbol,plInject,plParL,plJump,plAcorr, autoBurnin
   use analysemcmc_settings, only: htmlOutput
-  use general_data, only: post,allDat,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax,parNames,pgParNs,rhat
-  use mcmcrun_data, only: revID,parID
-  use plot_data, only: psclr,defcolour,bmpsz,bmprat,ncolours,colours,unSharplogl,bmpxpix,nsymbols,symbols,unSharpchain
+  use general_data, only: post,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax
+  use plot_data, only: psclr,defcolour,bmpsz,bmprat,ncolours,colours,unSharplogl,bmpxpix,nsymbols,symbols
   use chain_data, only: is,isburn
   
   implicit none
   integer, intent(out) :: exitcode
   
-  integer :: i,j,pgopen,imin,ci,lw,symbol,io,ic,p,status,system
-  real :: rev360,rev24,rev180
-  real :: dx,dy,xmin,xmax,ymin,ymax,sch,plx,ply
-  character :: title*(99), tempfile*(199), convopts*(99)
+  integer :: i,pgopen,imin,ci,lw,symbol,io,ic,status,system
+  real :: dx,dy,xmin,xmax,ymin,ymax,ply
+  character :: tempfile*(199), convopts*(99)
   logical :: ex
   
   exitcode = 0
@@ -124,8 +122,6 @@ subroutine chains(exitcode)
      if(quality.eq.0) call pgsvp(0.08,0.92,0.07,0.94)  ! To make room for title
      
      ic = 1
-     p=1
-     !call pgpage()
      xmax = -1.e30
      ymin =  1.e30
      ymax = -1.e30
@@ -138,7 +134,6 @@ subroutine chains(exitcode)
         ymax = max(ymax,maxval(post(ic,imin:Ntot(ic))))
      end do
      ic = 1
-     p = 1
      if(scLogLpl.eq.0) then                                    ! Take into account 0, injection and starting values
         ymin = min(ymin,post(ic,1),post(ic,2),0.)
         ymax = max(ymax,post(ic,1),post(ic,2),0.)
@@ -269,343 +264,361 @@ subroutine chains(exitcode)
   
   
   
+  if(plChain.eq.1) call plot_parameter_chains(exitcode)
+  if(exitcode.ne.0) return
   
   
-  !*********************************************************************************************************************************
-  ! Plot chains for each parameter:
-  if(plChain.eq.1) then
-     if(htmlOutput.ge.1) then
-        write(stdOut,'(A)') '<h3>Parameter chains:</h3>'
-        write(stdOut,'(A)') '<img src="'//trim(outputname)//'__chains.png" title="Parameter chains">'
-     else
-        if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter chains, '
+  
+  
+  ! Plot L vs parameter value:
+  if(plParL.ge.1) call plot_par_L(exitcode)
+  if(exitcode.ne.0) return
+  
+  
+  ! Plot jump sizes:
+  if(plJump.ge.1) call plot_Jump_sizes(exitcode)
+  if(exitcode.ne.0) return
+  
+  
+  ! Plot autocorrelations:
+  if(plAcorr.gt.0) call plot_Acorr_chains(exitcode)
+  if(exitcode.ne.0) return
+  
+  
+end subroutine chains
+!***********************************************************************************************************************************
+
+
+
+!***********************************************************************************************************************************
+!> \brief  Plot chains for each parameter
+
+subroutine plot_parameter_chains(exitcode)
+  use SUFR_constants, only: stdOut,stdErr
+  
+  use aM_constants, only: use_PLplot
+  use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
+  use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,fontsize1d,nPlPar,panels,plPars,scChainsPl,changeVar
+  use analysemcmc_settings, only: chainSymbol,plInject,mergeChains,plStart,prConv, htmlOutput
+  use general_data, only: allDat,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax,parNames,pgParNs,rhat
+  use mcmcrun_data, only: revID,parID
+  use plot_data, only: psclr,defcolour,bmpsz,bmprat,ncolours,colours,bmpxpix,nsymbols,symbols,unSharpchain
+  use chain_data, only: is,isburn
+  
+  implicit none
+  integer, intent(out) :: exitcode
+  
+  integer :: i,j,pgopen,imin,ci,lw,symbol,io,ic,p,status,system
+  real :: rev360,rev24,rev180
+  real :: dx,dy,xmin,xmax,ymin,ymax,sch,plx,ply
+  character :: title*(99), tempfile*(199), convopts*(99)
+  logical :: ex
+  
+  exitcode = 0
+  
+  
+  
+  
+  if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '<h3>Parameter chains:</h3>'
+     write(stdOut,'(A)') '<img src="'//trim(outputname)//'__chains.png" title="Parameter chains">'
+  else
+     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' parameter chains, '
+  end if
+  
+  if(file.eq.0) then
+     if(.not.use_PLplot) io = pgopen('13/xs')
+     call pgpap(scrSz,scrRat)
+     if(use_PLplot) io = pgopen('13/xs')
+     
+     sch = fontsize1d*1.5
+     lw = 1
+  end if
+  if(file.ge.1) then
+     tempfile = trim(outputdir)//'/'//trim(outputname)//'__chains'
+     if(file.eq.1) then
+        if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+        call pgpap(bmpsz,bmprat)
+        if(use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+     end if
+     if(file.ge.2) then
+        if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+        call pgpap(PSsz,PSrat)
+        if(use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+        
+        call pgscf(fonttype)
      end if
      
-     if(file.eq.0) then
-        if(.not.use_PLplot) io = pgopen('13/xs')
-        call pgpap(scrSz,scrRat)
-        if(use_PLplot) io = pgopen('13/xs')
-        
-        sch = fontsize1d*1.5
-        lw = 1
+     
+     lw = 3
+     if(nPlPar.ge.10) lw = 2
+     if(quality.lt.2) lw = max(lw-1,1)  ! Draft/Paper
+     sch = fontsize1d*1.2
+     !if(nChains.eq.1.and.nPlPar.gt.9) sch = fontsize1d*1.2
+     if(quality.eq.0) then  ! Draft
+        sch = sch*1.75
+        lw = 2
      end if
-     if(file.ge.1) then
-        tempfile = trim(outputdir)//'/'//trim(outputname)//'__chains'
-        if(file.eq.1) then
-           if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
-           call pgpap(bmpsz,bmprat)
-           if(use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
-        end if
-        if(file.ge.2) then
-           if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
-           call pgpap(PSsz,PSrat)
-           if(use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
-           
-           call pgscf(fonttype)
-        end if
-        
-
-        lw = 3
-        if(nPlPar.ge.10) lw = 2
-        if(quality.lt.2) lw = max(lw-1,1)  ! Draft/Paper
-        sch = fontsize1d*1.2
-        !if(nChains.eq.1.and.nPlPar.gt.9) sch = fontsize1d*1.2
-        if(quality.eq.0) then  ! Draft
+     if(quality.eq.1) then  ! Paper
+        if(nPlPar.eq.1) then
+           sch = fontsize1d*2
+           lw = nint(2*fontsize1d)
+        else if(nPlPar.eq.12) then
            sch = sch*1.75
            lw = 2
+        else
+           sch = sch*1.25
+           lw = 1
         end if
-        if(quality.eq.1) then  ! Paper
-           if(nPlPar.eq.1) then
-              sch = fontsize1d*2
-              lw = nint(2*fontsize1d)
-           else if(nPlPar.eq.12) then
-              sch = sch*1.75
-              lw = 2
-           else
-              sch = sch*1.25
-              lw = 1
-           end if
+     end if
+     if(quality.eq.2) then  ! Talk
+        if(nPlPar.gt.12) then
+           sch = sch*1.5
+           lw = 1
         end if
-        if(quality.eq.2) then  ! Talk
-           if(nPlPar.gt.12) then
-              sch = sch*1.5
-              lw = 1
-           end if
-           if(nPlPar.le.12) then
-              sch = sch*2
-              lw = 2
-           end if
-           !if(nPlPar.le.6) then
-           !   !sch = sch*4
-           !   !lw = 4
-           !end if
-        end if
-        if(quality.eq.3) then !Poster
-           if(nPlPar.eq.12.and.file.ge.2) then
-              sch = sch*2.7
-              lw = 3
-           else
-              !sch = sch*1.25
-              sch = sch*1.5
-              lw = 2
-           end if
-        end if
-        if(quality.eq.4) then !Vivien's thesis
-           sch = sch*2.5
+        if(nPlPar.le.12) then
+           sch = sch*2
            lw = 2
         end if
-     end if  ! if(file.ge.1)
-     
-     if(io.le.0) then
-        write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
-        exitcode = 1
-        return
+        !if(nPlPar.le.6) then
+        !   !sch = sch*4
+        !   !lw = 4
+        !end if
+     end if
+     if(quality.eq.3) then !Poster
+        if(nPlPar.eq.12.and.file.ge.2) then
+           sch = sch*2.7
+           lw = 3
+        else
+           !sch = sch*1.25
+           sch = sch*1.5
+           lw = 2
+        end if
+     end if
+     if(quality.eq.4) then !Vivien's thesis
+        sch = sch*2.5
+        lw = 2
+     end if
+  end if  ! if(file.ge.1)
+  
+  if(io.le.0) then
+     write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
+     exitcode = 1
+     return
+  end if
+  
+  if(file.eq.1) call pgsch(1.5)
+  if(use_PLplot) then
+     sch = sch*0.6
+  else
+     if(file.eq.1) sch = sch*0.8
+  end if
+  call pgsch(sch)
+  call pgslw(lw)
+  
+  
+  call pgsubp(panels(1),panels(2))
+  
+  ic = 1
+  do j=1,nPlPar
+     p = revID(plPars(j))
+     if(p.eq.0) then
+        write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))// &
+             ' is not defined, check plPars() in the input file.  Skipping...'
+        cycle
      end if
      
-     if(file.eq.1) call pgsch(1.5)
-     if(use_PLplot) then
-        sch = sch*0.6
-     else
-        if(file.eq.1) sch = sch*0.8
+     if(nPlPar.gt.1) call pgpage()
+     if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
+     
+     call pgsch(sch/2.*sqrt(real(nPlPar)))
+     
+     if(file.eq.0.and.scrRat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+     if(file.eq.1) then
+        if(bmprat.gt.1.35) then
+           call pgsvp(0.08,0.95,0.1,0.95)
+        else
+           if(use_PLplot) then
+              call pgsvp(0.1,0.92,0.12,0.9)  ! default case?
+           else
+              call pgsvp(0.1,0.95,0.08,0.9)  ! default case?
+           end if
+        end if
      end if
-     call pgsch(sch)
-     call pgslw(lw)
+     if(file.ge.2.and.PSrat.gt.1.35) & 
+          !call pgsvp(0.08,0.95,0.1,0.94)
+          call pgsvp(0.08*sqrt(fontsize1D),1.0-0.04-0.04*sqrt(fontsize1D),0.07*fontsize1D**1.5,1.0-0.05-0.03*fontsize1D**1.5)
+     if(file.ge.2.and.PSrat.le.1.35.and.nPlPar.eq.1) &
+          !call pgsvp(0.08,0.92,0.07,0.94)  ! Same as logP plot
+          call pgsvp(0.08*fontsize1D,1.0-0.08*fontsize1D,0.07*fontsize1D,1.0-0.06*fontsize1D)
      
+     if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87)  ! To make room for title
+     if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
      
-     call pgsubp(panels(1),panels(2))
+     xmin = 0.
+     !xma x = real(maxval(Ntot(1:nChains0)))
+     xmax = -1.e30
+     ymin =  1.e30
+     ymax = -1.e30
+     do ic=1,nChains0
+        xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
+        imin = 1                                               ! Take into account burn-in
+        if(scChainsPl.eq.1) imin = Nburn(ic)                   ! Scale without taking into account burn-in
+        ymin = min(ymin,minval(allDat(ic,p,imin:Ntot(ic))))
+        ymax = max(ymax,maxval(allDat(ic,p,imin:Ntot(ic))))
+     end do
      
-     ic = 1
-     do j=1,nPlPar
-        p = revID(plPars(j))
-        if(p.eq.0) then
-           write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))// &
-                ' is not defined, check plPars() in the input file.  Skipping...'
-           cycle
-        end if
-        
-        if(nPlPar.gt.1) call pgpage()
-        if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
-        
-        call pgsch(sch/2.*sqrt(real(nPlPar)))
-        
-        if(file.eq.0.and.scrRat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
-        if(file.eq.1) then
-           if(bmprat.gt.1.35) then
-              call pgsvp(0.08,0.95,0.1,0.95)
-           else
-              if(use_PLplot) then
-                 call pgsvp(0.1,0.92,0.12,0.9)  ! default case?
-              else
-                 call pgsvp(0.1,0.95,0.08,0.9)  ! default case?
-              end if
+     if(changeVar.ge.1) then
+        select case(parID(p))
+        case(31) !RA
+           if(ymin.lt.0..or.ymax.gt.24.) then
+              ymin = 0.
+              ymax = 24.
            end if
-        end if
-        if(file.ge.2.and.PSrat.gt.1.35) & 
-             !call pgsvp(0.08,0.95,0.1,0.94)
-             call pgsvp(0.08*sqrt(fontsize1D),1.0-0.04-0.04*sqrt(fontsize1D),0.07*fontsize1D**1.5,1.0-0.05-0.03*fontsize1D**1.5)
-        if(file.ge.2.and.PSrat.le.1.35.and.nPlPar.eq.1) &
-             !call pgsvp(0.08,0.92,0.07,0.94)  ! Same as logP plot
-             call pgsvp(0.08*fontsize1D,1.0-0.08*fontsize1D,0.07*fontsize1D,1.0-0.06*fontsize1D)
-
-        if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87)  ! To make room for title
-        if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
-        
-        xmin = 0.
-        !xma x = real(maxval(Ntot(1:nChains0)))
-        xmax = -1.e30
-        ymin =  1.e30
-        ymax = -1.e30
-        do ic=1,nChains0
-           xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
-           imin = 1                                               ! Take into account burn-in
-           if(scChainsPl.eq.1) imin = Nburn(ic)                   ! Scale without taking into account burn-in
-           ymin = min(ymin,minval(allDat(ic,p,imin:Ntot(ic))))
-           ymax = max(ymax,maxval(allDat(ic,p,imin:Ntot(ic))))
-        end do
-        
-        if(changeVar.ge.1) then
-           select case(parID(p))
-           case(31) !RA
-              if(ymin.lt.0..or.ymax.gt.24.) then
-                 ymin = 0.
-                 ymax = 24.
-              end if
-           case(41,54,73,83) !Phases
-              if(ymin.lt.0..or.ymax.gt.360.) then
-                 ymin = 0.
-                 ymax = 360.
-              end if
-           case(52) !Psi
-              if(ymin.lt.0..or.ymax.gt.180.) then
-                 ymin = 0.
-                 ymax = 180.
-              end if
-           end select
-        end if
-        
-        dx = abs(xmax-xmin)*0.01
-        dy = abs(ymax-ymin)*0.05
-        if(dx.eq.0) then
-           xmin = 0.5*xmin
-           xmax = 2*xmax
-           if(xmin.eq.0.) then
-              xmin = -1.
-              xmax = 1.
+        case(41,54,73,83) !Phases
+           if(ymin.lt.0..or.ymax.gt.360.) then
+              ymin = 0.
+              ymax = 360.
            end if
-        end if
-        if(dy.eq.0) then
-           ymin = 0.5*ymin
-           ymax = 2*ymax
-           if(ymin.eq.0.) then
-              ymin = -1.
-              ymax = 1.
+        case(52) !Psi
+           if(ymin.lt.0..or.ymax.gt.180.) then
+              ymin = 0.
+              ymax = 180.
            end if
+        end select
+     end if
+     
+     dx = abs(xmax-xmin)*0.01
+     dy = abs(ymax-ymin)*0.05
+     if(dx.eq.0) then
+        xmin = 0.5*xmin
+        xmax = 2*xmax
+        if(xmin.eq.0.) then
+           xmin = -1.
+           xmax = 1.
         end if
-        xmin = xmin - dx
-        xmax = xmax + dx
-        
-        call pgswin(xmin,xmax,ymin-dy,ymax+dy)
-        if(quality.eq.1) call pgswin(xmin,xmax,ymin-dy,ymax+dy*2)
-        call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-        
-        ! Plot the actual chain values:
-        call pgsch(sch*0.5)
-        if(nPlPar.ne.1.and.chainSymbol.ne.1) call pgsch(sch*0.7*0.5)
-        
-        call pgslw(1)
-        !write(stdOut,'(15I4)'),nsymbols,symbols(1:nsymbols)
-        do ic=1,nChains0
-           symbol = chainSymbol
-           if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
-           call pgsci(defcolour)
-           if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           if(chainSymbol.eq.0) then !Plot lines rather than symbols
-              call pgline(Ntot(ic),is(ic,1:Ntot(ic)),allDat(ic,p,1:Ntot(ic)))
-           else
-              
-              ! Give pre- and post-burn-in different colour in parameter-chain plots:
-              ci = defcolour
-              if(nChains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
-              
-              ! Pre-burnin:
-              call pgsci(ci)
-              if(plBurn.ge.2) call pgscidark(ci,file,whiteBG)
-              do i=ic,Nburn(ic),chainPlI !Start at ic to reduce overplotting
-                 ply = allDat(ic,p,i)
-                 if(changeVar.ge.1) then
-                    select case(parID(p))
-                    case(31) 
-                       ply = rev24(ply)  !RA
-                    case(41,54,73,83) 
-                       ply = rev360(ply)
-                    case(52) 
-                       ply = rev180(ply)
-                    end select
-                 end if
-                 call pgpoint(1,is(ic,i),ply,symbol)
-              end do
-              
-              ! Post-burnin:
-              call pgsci(ci)
-              do i=Nburn(ic)+ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
-                 ply = allDat(ic,p,i)
-                 if(changeVar.ge.1) then
-                    select case(parID(p))
-                    case(31) 
-                       ply = rev24(ply)  !RA
-                    case(41,54,73,83) 
-                       ply = rev360(ply)
-                    case(52) 
-                       ply = rev180(ply)
-                    end select
-                 end if
-                 call pgpoint(1,is(ic,i),ply,symbol)
-              end do
-              
-              
-           end if
-        end do
-        
-        call pgsch(sch/2.*sqrt(real(nPlPar)))
-        
-        call pgslw(lw)
-        
-        ! Plot max posterior:
-        if(plLmax.ge.1) then
-           ply = allDat(icloglmax,p,iloglmax)
-           if(changeVar.ge.1) then
-              select case(parID(p))
-              case(31) 
-                 ply = rev24(ply)  !RA
-              case(41,54,73,83) 
-                 ply = rev360(ply)
-              case(52) 
-                 ply = rev180(ply)
-              end select
-           end if
-           call pgsci(1)
-           call pgpoint(1,is(icloglmax,iloglmax),ply,18)
-           call pgsls(5)
-           call pgline(2,(/xmin,xmax/),(/ply,ply/))
+     end if
+     if(dy.eq.0) then
+        ymin = 0.5*ymin
+        ymax = 2*ymax
+        if(ymin.eq.0.) then
+           ymin = -1.
+           ymax = 1.
         end if
-        
-        
-        ! Plot burn-in, injection and starting values:
-        do ic=1,nChains0
-           call pgsls(2)
-           call pgsci(6)
+     end if
+     xmin = xmin - dx
+     xmax = xmax + dx
+     
+     call pgswin(xmin,xmax,ymin-dy,ymax+dy)
+     if(quality.eq.1) call pgswin(xmin,xmax,ymin-dy,ymax+dy*2)
+     call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
+     
+     ! Plot the actual chain values:
+     call pgsch(sch*0.5)
+     if(nPlPar.ne.1.and.chainSymbol.ne.1) call pgsch(sch*0.7*0.5)
+     
+     call pgslw(1)
+     !write(stdOut,'(15I4)'),nsymbols,symbols(1:nsymbols)
+     do ic=1,nChains0
+        symbol = chainSymbol
+        if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
+        call pgsci(defcolour)
+        if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+        if(chainSymbol.eq.0) then !Plot lines rather than symbols
+           call pgline(Ntot(ic),is(ic,1:Ntot(ic)),allDat(ic,p,1:Ntot(ic)))
+        else
            
-           ! Mark end of burn-in phase:
-           if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/), &
-                (/ymin-dy,ymax+2*dy/))
-           call pgsci(1)
+           ! Give pre- and post-burn-in different colour in parameter-chain plots:
+           ci = defcolour
+           if(nChains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
            
-           
-           ! Plot injection values in chains:
-           if(plInject.ge.1) then
-              if(mergeChains.ne.1.or.ic.eq.1) then 
-                 !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1
-                 !(but they have for the starting values, why?)
-                 
-                 plx = startval(ic,p,1) !Injection value
-                 plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
-                 if(changeVar.ge.1) then
-                    select case(parID(p))
-                    case(31) 
-                       plx = rev24(plx)  !RA
-                    case(41,54,73,83) 
-                       plx = rev360(plx)
-                    case(52) 
-                       plx = rev180(plx)
-                    end select
-                 end if
-                 call pgline(2,(/xmin,xmax/),(/plx,plx/))
-                 if(changeVar.ge.1) then
-                    select case(parID(p))
-                    case(31)
-                       call pgline(2,(/xmin,xmax/),(/plx-24.,plx-24./))
-                       call pgline(2,(/xmin,xmax/),(/plx+24.,plx+24./))
-                    case(41,54,73,83)
-                       call pgline(2,(/xmin,xmax/),(/plx-360.,plx-360./))
-                       call pgline(2,(/xmin,xmax/),(/plx+360.,plx+360./))
-                    case(52)
-                       call pgline(2,(/xmin,xmax/),(/plx-180.,plx-180./))
-                       call pgline(2,(/xmin,xmax/),(/plx+180.,plx+180./))
-                    end select
-                 end if
-              end if
-           end if
-           
-           ! Plot starting values in chains:
-           if(plStart.ge.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/(startval(ic,p,1)+sqrt(tiny(startval)))) .gt. 1.e-10) then
-              call pgsls(4)
-              if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-              plx = startval(ic,p,2) !Initial value
+           ! Pre-burnin:
+           call pgsci(ci)
+           if(plBurn.ge.2) call pgscidark(ci,file,whiteBG)
+           do i=ic,Nburn(ic),chainPlI !Start at ic to reduce overplotting
+              ply = allDat(ic,p,i)
               if(changeVar.ge.1) then
                  select case(parID(p))
                  case(31) 
-                    plx = rev24(plx)
+                    ply = rev24(ply)  !RA
+                 case(41,54,73,83) 
+                    ply = rev360(ply)
+                 case(52) 
+                    ply = rev180(ply)
+                 end select
+              end if
+              call pgpoint(1,is(ic,i),ply,symbol)
+           end do
+           
+           ! Post-burnin:
+           call pgsci(ci)
+           do i=Nburn(ic)+ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
+              ply = allDat(ic,p,i)
+              if(changeVar.ge.1) then
+                 select case(parID(p))
+                 case(31) 
+                    ply = rev24(ply)  !RA
+                 case(41,54,73,83) 
+                    ply = rev360(ply)
+                 case(52) 
+                    ply = rev180(ply)
+                 end select
+              end if
+              call pgpoint(1,is(ic,i),ply,symbol)
+           end do
+           
+           
+        end if
+     end do
+     
+     call pgsch(sch/2.*sqrt(real(nPlPar)))
+     
+     call pgslw(lw)
+     
+     ! Plot max posterior:
+     if(plLmax.ge.1) then
+        ply = allDat(icloglmax,p,iloglmax)
+        if(changeVar.ge.1) then
+           select case(parID(p))
+           case(31) 
+              ply = rev24(ply)  !RA
+           case(41,54,73,83) 
+              ply = rev360(ply)
+           case(52) 
+              ply = rev180(ply)
+           end select
+        end if
+        call pgsci(1)
+        call pgpoint(1,is(icloglmax,iloglmax),ply,18)
+        call pgsls(5)
+        call pgline(2,(/xmin,xmax/),(/ply,ply/))
+     end if
+     
+     
+     ! Plot burn-in, injection and starting values:
+     do ic=1,nChains0
+        call pgsls(2)
+        call pgsci(6)
+        
+        ! Mark end of burn-in phase:
+        if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+        if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/), &
+             (/ymin-dy,ymax+2*dy/))
+        call pgsci(1)
+        
+        
+        ! Plot injection values in chains:
+        if(plInject.ge.1) then
+           if(mergeChains.ne.1.or.ic.eq.1) then 
+              !The units of the injection values haven't changed (e.g. from rad to deg) for ic>1
+              !(but they have for the starting values, why?)
+              
+              plx = startval(ic,p,1) !Injection value
+              plx = max(min(1.e30,startval(ic,p,1)),1.e-30)
+              if(changeVar.ge.1) then
+                 select case(parID(p))
+                 case(31) 
+                    plx = rev24(plx)  !RA
                  case(41,54,73,83) 
                     plx = rev360(plx)
                  case(52) 
@@ -627,58 +640,91 @@ subroutine chains(exitcode)
                  end select
               end if
            end if
-        end do !ic=1,nChains0
+        end if
         
-        
-        ! Print labels:
-        call pgsci(1)
-        call pgsls(1)
-        write(title,'(F6.3)') rhat(p)
-        if(nPlPar.eq.1) then
-           call pgmtxt('L',2.0,0.5,0.5,' '//trim(pgParNs(parID(p))))
-           if(quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
-           if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',2.0,1.,1.,'R-hat: '//trim(title))
-        else
-           if(use_PLplot) then
-              call pgmtxt('T',2.4,0.,0.,' '//trim(pgParNs(parID(p))))
-              if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',2.4,1.,1.,'R-hat: '//trim(title))
-           else
-              call pgmtxt('T',0.6,0.,0.,' '//trim(pgParNs(parID(p))))
-              if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',0.6,1.,1.,'R-hat: '//trim(title))
+        ! Plot starting values in chains:
+        if(plStart.ge.1.and.abs((startval(ic,p,1)-startval(ic,p,2))/(startval(ic,p,1)+sqrt(tiny(startval)))) .gt. 1.e-10) then
+           call pgsls(4)
+           if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+           plx = startval(ic,p,2) !Initial value
+           if(changeVar.ge.1) then
+              select case(parID(p))
+              case(31) 
+                 plx = rev24(plx)
+              case(41,54,73,83) 
+                 plx = rev360(plx)
+              case(52) 
+                 plx = rev180(plx)
+              end select
+           end if
+           call pgline(2,(/xmin,xmax/),(/plx,plx/))
+           if(changeVar.ge.1) then
+              select case(parID(p))
+              case(31)
+                 call pgline(2,(/xmin,xmax/),(/plx-24.,plx-24./))
+                 call pgline(2,(/xmin,xmax/),(/plx+24.,plx+24./))
+              case(41,54,73,83)
+                 call pgline(2,(/xmin,xmax/),(/plx-360.,plx-360./))
+                 call pgline(2,(/xmin,xmax/),(/plx+360.,plx+360./))
+              case(52)
+                 call pgline(2,(/xmin,xmax/),(/plx-180.,plx-180./))
+                 call pgline(2,(/xmin,xmax/),(/plx+180.,plx+180./))
+              end select
            end if
         end if
-
-        
-     end do !do j=1,nPlPar
+     end do !ic=1,nChains0
      
      
-     if(quality.eq.0) then
-        call pgsubp(1,1)
-        call pgsvp(0.,1.,0.,1.)
-        call pgswin(-1.,1.,-1.,1.)
-        
-        call pgsch(sch*0.8)
-        call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  ! Print titel
-        call pgsch(sch)
-     end if
-     
-     call pgend
-     if(file.ge.2) then
-        if(file.eq.3) then
-           status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf  >& /dev/null')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
-        end if
-     else if(file.eq.1) then
-        inquire(file=trim(tempfile)//'.ppm', exist=ex)
-        if(ex) then
-           convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)
-           status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm  '//trim(tempfile)//'.png')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot ppm -> png',status
-           status = system('rm -f '//trim(tempfile)//'.ppm')
+     ! Print labels:
+     call pgsci(1)
+     call pgsls(1)
+     write(title,'(F6.3)') rhat(p)
+     if(nPlPar.eq.1) then
+        call pgmtxt('L',2.0,0.5,0.5,' '//trim(pgParNs(parID(p))))
+        if(quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
+        if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',2.0,1.,1.,'R-hat: '//trim(title))
+     else
+        if(use_PLplot) then
+           call pgmtxt('T',2.4,0.,0.,' '//trim(pgParNs(parID(p))))
+           if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',2.4,1.,1.,'R-hat: '//trim(title))
+        else
+           call pgmtxt('T',0.6,0.,0.,' '//trim(pgParNs(parID(p))))
+           if(nChains0.gt.1.and.prConv.ge.1) call pgmtxt('T',0.6,1.,1.,'R-hat: '//trim(title))
         end if
      end if
-  end if !if(plChain.eq.1)
-  !*********************************************************************************************************************************
+     
+     
+  end do !do j=1,nPlPar
+  
+  
+  if(quality.eq.0) then
+     call pgsubp(1,1)
+     call pgsvp(0.,1.,0.,1.)
+     call pgswin(-1.,1.,-1.,1.)
+     
+     call pgsch(sch*0.8)
+     call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  ! Print titel
+     call pgsch(sch)
+  end if
+  
+  call pgend
+  if(file.ge.2) then
+     if(file.eq.3) then
+        status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf  >& /dev/null')
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+     end if
+  else if(file.eq.1) then
+     inquire(file=trim(tempfile)//'.ppm', exist=ex)
+     if(ex) then
+        convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)
+        status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm  '//trim(tempfile)//'.png')
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot ppm -> png',status
+        status = system('rm -f '//trim(tempfile)//'.ppm')
+     end if
+  end if
+  
+end subroutine plot_parameter_chains
+!*********************************************************************************************************************************
   
   
   
@@ -698,29 +744,6 @@ subroutine chains(exitcode)
   
   
   
-  
-  
-  ! Plot L vs parameter value:
-  if(plParL.ge.1) call plot_par_L(exitcode)
-  if(exitcode.ne.0) return
-  
-  
-  
-  
-  
-  ! Plot jump sizes:
-  if(plJump.ge.1) call plot_Jump_sizes(exitcode)
-  if(exitcode.ne.0) return
-  
-  
-  ! Plot autocorrelations:
-  if(plAcorr.gt.0) call plot_Acorr_chains(exitcode)
-  if(exitcode.ne.0) return
-  
-  
-end subroutine chains
-!***********************************************************************************************************************************
-
 
 
 !***********************************************************************************************************************************
