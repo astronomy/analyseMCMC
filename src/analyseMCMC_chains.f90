@@ -25,249 +25,23 @@
 !! \retval exitcode  Exit status code (0=ok)
 
 subroutine chains(exitcode)
-  use SUFR_constants, only: stdOut,stdErr
-  
-  use aM_constants, only: use_PLplot
-  use analysemcmc_settings, only: plLogL,update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality,scLogLpl
-  use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,plChain,fontsize1d,nPlPar
-  use analysemcmc_settings, only: chainSymbol,plInject,plParL,plJump,plAcorr, autoBurnin
-  use analysemcmc_settings, only: htmlOutput
-  use general_data, only: post,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax
-  use plot_data, only: psclr,defcolour,bmpsz,bmprat,ncolours,colours,unSharplogl,bmpxpix,nsymbols,symbols
-  use chain_data, only: is,isburn
+  use analysemcmc_settings, only: plLogL,plChain,plParL,plJump,plAcorr
   
   implicit none
   integer, intent(out) :: exitcode
-  
-  integer :: i,pgopen,imin,ci,lw,symbol,io,ic,status,system
-  real :: dx,dy,xmin,xmax,ymin,ymax,ply
-  character :: tempfile*(199), convopts*(99)
-  logical :: ex
   
   exitcode = 0
   
   
   
-  !*********************************************************************************************************************************
   ! Plot posterior chain:
-  if(plLogL.ge.1) then
-     if(htmlOutput.ge.1) then
-        write(stdOut,'(A)') '<h3>Posterior chain:</h3>'
-        write(stdOut,'(A)') '<img src="'//trim(outputname)//'__posterior.png" title="log Posterior">'
-     else
-        if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' posterior chain, '
-     end if
-     
-     if(use_PLplot) then
-        if(file.eq.0) then
-           call pgpap(scrSz,scrRat)
-           call pgsch(1.5*fontsize1D)
-        end if
-        if(file.eq.1) then
-           call pgpap(bmpsz,bmprat)
-           call pgsch(1.5*fontsize1D)
-        end if
-        if(file.ge.2) then
-           call pgpap(PSsz,PSrat)
-           call pgscf(fonttype)
-           call pgsch(fontsize1D)
-        end if
-     end if
-     
-     if(file.eq.0) then
-        io = pgopen('12/xs')
-        call pgsch(1.5*fontsize1D)
-        lw = 1
-     end if
-     if(file.ge.1) then
-        tempfile = trim(outputdir)//'/'//trim(outputname)//'__posterior'
-        if(file.eq.1) io = pgopen(trim(tempfile)//'.ppm/ppm')
-        if(file.ge.2) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
-        call pgsch(1.2*fontsize1D)
-        lw = 1
-        if(file.ge.2) then
-           lw = lw*2
-           if(nPlPar.eq.1) lw = nint(2*fontsize1d)
-        end if
-     end if
-     
-     if(io.le.0) then
-        write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
-        exitcode = 1
-        return
-     end if
-     
-     if(.not.use_PLplot) then
-        if(file.eq.0) then
-           call pgpap(scrSz,scrRat)
-           call pgsch(1.5*fontsize1D)
-        end if
-        if(file.eq.1) then
-           call pgpap(bmpsz,bmprat)
-           call pgsch(1.5*fontsize1D)
-        end if
-        if(file.ge.2) then
-           call pgpap(PSsz,PSrat)
-           call pgscf(fonttype)
-           call pgsch(fontsize1D)
-        end if
-     end if
-     
-     ! Custom initialisation of PGPlot/PLplot:
-     call pginitl(colour,file,whiteBG)
-     call pgslw(lw)
-     
-     !call pgsvp(0.08,0.92,0.07,0.94)  ! Need wider margin for title on right
-     call pgsvp(0.08*fontsize1D,1.-0.08*fontsize1D,0.07*fontsize1D,1.-0.06*fontsize1D)  ! Need wider margin for title on right
-     if(quality.eq.0) call pgsvp(0.08,0.92,0.07,0.94)  ! To make room for title
-     
-     ic = 1
-     xmax = -1.e30
-     ymin =  1.e30
-     ymax = -1.e30
-     do ic=1,nChains0
-        xmin = 0.
-        xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
-        imin = 10                                              ! Take into account burn-in
-        if(scLogLpl.eq.1) imin = Nburn(ic)                     ! Scale without taking into account burn-in
-        ymin = min(ymin,minval(post(ic,imin:Ntot(ic)))) 
-        ymax = max(ymax,maxval(post(ic,imin:Ntot(ic))))
-     end do
-     ic = 1
-     if(scLogLpl.eq.0) then                                    ! Take into account 0, injection and starting values
-        ymin = min(ymin,post(ic,1),post(ic,2),0.)
-        ymax = max(ymax,post(ic,1),post(ic,2),0.)
-     else                                                      ! Take into account injection values only
-        ymin = min(ymin,post(ic,1))
-        ymax = max(ymax,post(ic,1))
-     end if
-     
-     ymin = max(0.,ymin)
-     dx = abs(xmax-xmin)*0.01
-     dy = abs(ymax-ymin)*0.05
-     xmin = xmin - dx
-     xmax = xmax + dx
-     ymin = ymin - dy
-     ymax = ymax + dy
-     
-     
-     call pgswin(xmin,xmax,ymin,ymax)
-     !call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-     call plot_posterior_snr_axes(xmin,xmax,ymin,ymax)
-     
-     if(quality.ne.1 .and. abs(startval(1,1,1)-startval(1,1,2))/abs((startval(1,1,1))+tiny(startval)).gt.1.e-10) then
-        call pgsls(4)
-        call pgbox('',0.0,0,'G',0.0,0)  ! Plot a grid of horizontal lines
-        call pgsls(1)
-     end if
-     
-     do ic=1,nChains0
-        ! Give pre- and post-burn-in different colour in posterior chain:
-        ci = defcolour
-        if(nChains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
-        
-        symbol = chainSymbol
-        if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
-        
-        ! Pre-burnin:
-        call pgsci(ci)
-        if(plBurn.ge.2) call pgscidark(ci,file,whiteBG)
-        do i=ic,Nburn(ic),chainPlI  ! Start at ic to reduce overplotting
-           call pgpoint(1,is(ic,i),post(ic,i), symbol)
-        end do
-        
-        ! Post-burnin:
-        call pgsci(ci)
-        do i=Nburn(ic)+ic,Ntot(ic),chainPlI  ! Start at ic to reduce overplotting
-           call pgpoint(1,is(ic,i),post(ic,i), symbol)
-        end do
-     end do
-     
-     
-     ! Plot max posterior:
-     if(plLmax.ge.1) then
-        ply = post(icloglmax,iloglmax)
-        call pgsci(1)
-        call pgpoint(1,is(icloglmax,iloglmax),ply,18)
-        call pgsls(5)
-        call pgline(2,(/xmin,xmax/),(/ply,ply/))
-        if(plLmax.ge.2 .and. abs(autoBurnin).gt.1.e-10) then
-           ply = ply - autoBurnin
-           call pgline(2,(/xmin,xmax/),(/ply,ply/))
-           print*,ply,autoBurnin
-        end if
-     end if
-     
-     do ic=1,nChains0
-        call pgsci(1)
-        call pgsls(2)
-        
-        ! Plot injection value, only if injection was done: dashed horizontal line:
-        if(plInject.ge.1 .and. abs(post(ic,1)).gt.1.e-4) call pgline(2,(/xmin,xmax/),(/post(ic,1),post(ic,1)/))  
-        call pgsci(colours(mod(ic-1,ncolours)+1))
-        
-        ! Mark the end of the burn-in phase: dashed vertical line:
-        if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/), &
-             (/ymin,ymax/))
-        
-        ! Starting value: horizontal dotted line:
-        call pgsls(4)
-        call pgline(2,(/xmin,xmax/),(/post(ic,2),post(ic,2)/))
-     end do
-     call pgsci(1)
-     call pgsls(1)
-     if(use_PLplot) then
-        call pgmtxt('L',5.0,0.5,0.5,'log Posterior')
-        call pgmtxt('R',5.0,0.5,0.5,'\(2267)(2logP) \(0248) SNR')
-     else
-        call pgmtxt('L',2.3,0.5,0.5,'log Posterior')
-        call pgmtxt('R',2.5,0.5,0.5,'\(2267)(2logP) \(0248) SNR')
-     end if
-     if(nPlPar.eq.1.and.quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
-     
-     if(quality.eq.0) then
-        !call pgsch(sch*0.8*fontsize1D)
-        call pgmtxt('T',0.5,0.9,0.9,trim(outputname))  !Print title
-        !call pgsch(sch*fontsize1D)
-     end if
-     
-     call pgend
-     
-     if(file.ge.2) then
-        if(file.eq.3) then
-           status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
-        end if
-     else if(file.eq.1) then
-        inquire(file=trim(tempfile)//'.ppm', exist=ex)
-        if(ex) then
-           convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharplogl)
-           status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm '//trim(tempfile)//'.png')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot ppm -> png',status
-           status = system('rm -f '//trim(tempfile)//'.ppm')
-           !if(status.ne.0) write(stdErr,'(A)')'  Error removing file',status
-        end if
-     end if
-  end if !if(plLogL.eq.1) then
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  if(plChain.eq.1) call plot_parameter_chains(exitcode)
+  if(plLogL.ge.1) call plot_posterior_chain(exitcode)
   if(exitcode.ne.0) return
   
   
+  ! Plot Markov chains per parameter:
+  if(plChain.eq.1) call plot_parameter_chains(exitcode)
+  if(exitcode.ne.0) return
   
   
   ! Plot L vs parameter value:
@@ -289,6 +63,238 @@ end subroutine chains
 !***********************************************************************************************************************************
 
 
+
+
+!***********************************************************************************************************************************
+!> \brief  Plot posterior chain
+!!
+
+subroutine plot_posterior_chain(exitcode)
+  use SUFR_constants, only: stdOut,stdErr
+  
+  use aM_constants, only: use_PLplot
+  use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality,scLogLpl
+  use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,fontsize1d,nPlPar
+  use analysemcmc_settings, only: chainSymbol,plInject, autoBurnin
+  use analysemcmc_settings, only: htmlOutput
+  use general_data, only: post,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax
+  use plot_data, only: psclr,defcolour,bmpsz,bmprat,ncolours,colours,unSharplogl,bmpxpix,nsymbols,symbols
+  use chain_data, only: is,isburn
+  
+  implicit none
+  integer, intent(out) :: exitcode
+  
+  integer :: i,pgopen,imin,ci,lw,symbol,io,ic,status,system
+  real :: dx,dy,xmin,xmax,ymin,ymax,ply
+  character :: tempfile*(199), convopts*(99)
+  logical :: ex
+  
+  exitcode = 0
+  
+  
+  if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '<h3>Posterior chain:</h3>'
+     write(stdOut,'(A)') '<img src="'//trim(outputname)//'__posterior.png" title="log Posterior">'
+  else
+     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' posterior chain, '
+  end if
+  
+  if(use_PLplot) then
+     if(file.eq.0) then
+        call pgpap(scrSz,scrRat)
+        call pgsch(1.5*fontsize1D)
+     end if
+     if(file.eq.1) then
+        call pgpap(bmpsz,bmprat)
+        call pgsch(1.5*fontsize1D)
+     end if
+     if(file.ge.2) then
+        call pgpap(PSsz,PSrat)
+        call pgscf(fonttype)
+        call pgsch(fontsize1D)
+     end if
+  end if
+  
+  if(file.eq.0) then
+     io = pgopen('12/xs')
+     call pgsch(1.5*fontsize1D)
+     lw = 1
+  end if
+  if(file.ge.1) then
+     tempfile = trim(outputdir)//'/'//trim(outputname)//'__posterior'
+     if(file.eq.1) io = pgopen(trim(tempfile)//'.ppm/ppm')
+     if(file.ge.2) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+     call pgsch(1.2*fontsize1D)
+     lw = 1
+     if(file.ge.2) then
+        lw = lw*2
+        if(nPlPar.eq.1) lw = nint(2*fontsize1d)
+     end if
+  end if
+  
+  if(io.le.0) then
+     write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
+     exitcode = 1
+     return
+  end if
+  
+  if(.not.use_PLplot) then
+     if(file.eq.0) then
+        call pgpap(scrSz,scrRat)
+        call pgsch(1.5*fontsize1D)
+     end if
+     if(file.eq.1) then
+        call pgpap(bmpsz,bmprat)
+        call pgsch(1.5*fontsize1D)
+     end if
+     if(file.ge.2) then
+        call pgpap(PSsz,PSrat)
+        call pgscf(fonttype)
+        call pgsch(fontsize1D)
+     end if
+  end if
+  
+  ! Custom initialisation of PGPlot/PLplot:
+  call pginitl(colour,file,whiteBG)
+  call pgslw(lw)
+  
+  !call pgsvp(0.08,0.92,0.07,0.94)  ! Need wider margin for title on right
+  call pgsvp(0.08*fontsize1D,1.-0.08*fontsize1D,0.07*fontsize1D,1.-0.06*fontsize1D)  ! Need wider margin for title on right
+  if(quality.eq.0) call pgsvp(0.08,0.92,0.07,0.94)  ! To make room for title
+  
+  ic = 1
+  xmax = -1.e30
+  ymin =  1.e30
+  ymax = -1.e30
+  do ic=1,nChains0
+     xmin = 0.
+     xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
+     imin = 10                                              ! Take into account burn-in
+     if(scLogLpl.eq.1) imin = Nburn(ic)                     ! Scale without taking into account burn-in
+     ymin = min(ymin,minval(post(ic,imin:Ntot(ic)))) 
+     ymax = max(ymax,maxval(post(ic,imin:Ntot(ic))))
+  end do
+  ic = 1
+  if(scLogLpl.eq.0) then                                    ! Take into account 0, injection and starting values
+     ymin = min(ymin,post(ic,1),post(ic,2),0.)
+     ymax = max(ymax,post(ic,1),post(ic,2),0.)
+  else                                                      ! Take into account injection values only
+     ymin = min(ymin,post(ic,1))
+     ymax = max(ymax,post(ic,1))
+  end if
+  
+  ymin = max(0.,ymin)
+  dx = abs(xmax-xmin)*0.01
+  dy = abs(ymax-ymin)*0.05
+  xmin = xmin - dx
+  xmax = xmax + dx
+  ymin = ymin - dy
+  ymax = ymax + dy
+  
+  
+  call pgswin(xmin,xmax,ymin,ymax)
+  !call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
+  call plot_posterior_snr_axes(xmin,xmax,ymin,ymax)
+  
+  if(quality.ne.1 .and. abs(startval(1,1,1)-startval(1,1,2))/abs((startval(1,1,1))+tiny(startval)).gt.1.e-10) then
+     call pgsls(4)
+     call pgbox('',0.0,0,'G',0.0,0)  ! Plot a grid of horizontal lines
+     call pgsls(1)
+  end if
+  
+  do ic=1,nChains0
+     ! Give pre- and post-burn-in different colour in posterior chain:
+     ci = defcolour
+     if(nChains0.gt.1) ci = colours(mod(ic-1,ncolours)+1)
+     
+     symbol = chainSymbol
+     if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
+     
+     ! Pre-burnin:
+     call pgsci(ci)
+     if(plBurn.ge.2) call pgscidark(ci,file,whiteBG)
+     do i=ic,Nburn(ic),chainPlI  ! Start at ic to reduce overplotting
+        call pgpoint(1,is(ic,i),post(ic,i), symbol)
+     end do
+     
+     ! Post-burnin:
+     call pgsci(ci)
+     do i=Nburn(ic)+ic,Ntot(ic),chainPlI  ! Start at ic to reduce overplotting
+        call pgpoint(1,is(ic,i),post(ic,i), symbol)
+     end do
+  end do
+  
+  
+  ! Plot max posterior:
+  if(plLmax.ge.1) then
+     ply = post(icloglmax,iloglmax)
+     call pgsci(1)
+     call pgpoint(1,is(icloglmax,iloglmax),ply,18)
+     call pgsls(5)
+     call pgline(2,(/xmin,xmax/),(/ply,ply/))
+     if(plLmax.ge.2 .and. abs(autoBurnin).gt.1.e-10) then
+        ply = ply - autoBurnin
+        call pgline(2,(/xmin,xmax/),(/ply,ply/))
+        print*,ply,autoBurnin
+     end if
+  end if
+  
+  do ic=1,nChains0
+     call pgsci(1)
+     call pgsls(2)
+     
+     ! Plot injection value, only if injection was done: dashed horizontal line:
+     if(plInject.ge.1 .and. abs(post(ic,1)).gt.1.e-4) call pgline(2,(/xmin,xmax/),(/post(ic,1),post(ic,1)/))  
+     call pgsci(colours(mod(ic-1,ncolours)+1))
+     
+     ! Mark the end of the burn-in phase: dashed vertical line:
+     if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/), &
+          (/ymin,ymax/))
+     
+     ! Starting value: horizontal dotted line:
+     call pgsls(4)
+     call pgline(2,(/xmin,xmax/),(/post(ic,2),post(ic,2)/))
+  end do
+  call pgsci(1)
+  call pgsls(1)
+  if(use_PLplot) then
+     call pgmtxt('L',5.0,0.5,0.5,'log Posterior')
+     call pgmtxt('R',5.0,0.5,0.5,'\(2267)(2logP) \(0248) SNR')
+  else
+     call pgmtxt('L',2.3,0.5,0.5,'log Posterior')
+     call pgmtxt('R',2.5,0.5,0.5,'\(2267)(2logP) \(0248) SNR')
+  end if
+  if(nPlPar.eq.1.and.quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
+  
+  if(quality.eq.0) then
+     !call pgsch(sch*0.8*fontsize1D)
+     call pgmtxt('T',0.5,0.9,0.9,trim(outputname))  !Print title
+     !call pgsch(sch*fontsize1D)
+  end if
+  
+  call pgend
+  
+  if(file.ge.2) then
+     if(file.eq.3) then
+        status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+     end if
+  else if(file.eq.1) then
+     inquire(file=trim(tempfile)//'.ppm', exist=ex)
+     if(ex) then
+        convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharplogl)
+        status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm '//trim(tempfile)//'.png')
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot ppm -> png',status
+        status = system('rm -f '//trim(tempfile)//'.ppm')
+        !if(status.ne.0) write(stdErr,'(A)')'  Error removing file',status
+     end if
+  end if
+  
+end subroutine plot_posterior_chain
+!***********************************************************************************************************************************
+
+
+  
 
 !***********************************************************************************************************************************
 !> \brief  Plot chains for each parameter
