@@ -35,12 +35,12 @@ subroutine statistics(exitcode)
   use analysemcmc_settings, only: changeVar,prProgress,mergeChains,wrapData,saveStats,prCorr,ivals,ival0,prStat,prIval,Nival,Nburn
   use analysemcmc_settings, only: prConv,wikioutput,plAcorr,prAcorr,maxMCMCpar,maxChs, htmlOutput
   use general_data, only: allDat,selDat,startval,shIvals,wrap,shifts,stats,ranges,nChains0,Ntot,nChains,n,raShift,contrChain
-  use general_data, only: raCentre,fixedpar,c0,post,parNames, maxIter, Rhat
+  use general_data, only: raCentre,fixedpar,c0,post,parNames, maxIter
   use general_data, only: logebayesfactor,log10bayesfactor,logebayestempfactor,logebayesfactortotalgeom,logebayesfactortotalarith
   use general_data, only: logebayesfactortotalharmo,logebayesfactortotal
   use stats_data, only: absVar1,absVar2,stdev1,stdev2
   use chain_data, only: corrs
-  use mcmcrun_data, only: nMCMCpar,nMCMCpar0, parID,Tchain,loglmax, outputVersion
+  use mcmcrun_data, only: nMCMCpar, parID,Tchain,loglmax, outputVersion
   
   implicit none
   integer, intent(out) :: exitcode
