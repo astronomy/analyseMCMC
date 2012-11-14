@@ -300,9 +300,9 @@ subroutine statistics(exitcode)
      
      
      
-     ! Compute correlations:
+     ! Compute cross-correlations:
      if(prCorr.gt.0.or.saveStats.gt.0) then
-        !write(stdOut,'(A)')' Calculating correlations...   '
+        !write(stdOut,'(A)')' Calculating cross-correlations...   '
         if(htmlOutput.eq.0.and.prProgress.ge.1) write(stdOut,'(A)',advance="no")' corrs, '
         do p1=1,nMCMCpar
            do p2=1,nMCMCpar
@@ -313,8 +313,8 @@ subroutine statistics(exitcode)
                     !corrs(p1,p2) = corrs(p1,p2) + (selDat(ic,p1,i) - medians(p1))*(selDat(ic,p2,i) - medians(p2))  !Use median
                     corrs(p1,p2) = corrs(p1,p2) + (selDat(ic,p1,i) - mean(p1))*(selDat(ic,p2,i) - mean(p2)) !Use mean (~median)
                  end do
-                 !corrs(p1,p2) = corrs(p1,p2) / (stdev1(p1)*stdev1(p2)*real(n(ic)-1))  !Use median
-                 corrs(p1,p2) = corrs(p1,p2) / (stdev2(p1)*stdev2(p2)*real(n(ic)-1))  !Use mean
+                 !corrs(p1,p2) = corrs(p1,p2) / (stdev1(p1)*stdev1(p2)*real(n(ic)-1))  ! Use median
+                 corrs(p1,p2) = corrs(p1,p2) / (stdev2(p1)*stdev2(p2)*real(n(ic)-1))   ! Use mean
               end if
            end do !p2
         end do !p1
@@ -680,17 +680,17 @@ subroutine statistics(exitcode)
      
      
      
-     ! Print correlations:
+     ! Print cross-correlations:
      if(prCorr.gt.0) then
         corr1 = 0.1
         corr2 = 0.5
         if(htmlOutput.ge.1) then
            write(stdOut,'(/,A)')'<br><hr><a name="corr"></a><font size="1">'// &
-                '<a href="#top" title="Go to the top of the page">top</a></font><h2>Correlations</h2>'
-           write(stdOut,'(/,A,3(F4.2,A),A)')'  <b>Correlations    (weak [',corr1,'<abs(cor)<',corr2, &
+                '<a href="#top" title="Go to the top of the page">top</a></font><h2>Cross-correlations</h2>'
+           write(stdOut,'(/,A,3(F4.2,A),A)')'  <b>Cross-correlations    (weak [',corr1,'<abs(cor)<',corr2, &
                 ']: in lower triangle,  strong [abs(cor)>', corr2,']: in upper triangle):','</b>'
         else
-           write(stdOut,'(/,A,3(F4.2,A))')'  Correlations    (weak [',corr1,'<abs(cor)<',corr2, &
+           write(stdOut,'(/,A,3(F4.2,A))')'  Cross-correlations    (weak [',corr1,'<abs(cor)<',corr2, &
                 ']: in lower triangle,  strong [abs(cor)>', corr2,']: in upper triangle):'
         end if
         
@@ -835,7 +835,7 @@ subroutine save_stats(exitcode)
   write(o,*)
   
   
-  ! Write correlations to file:
+  ! Write cross-correlations to file:
   write(o,'(//,A,/)')'CORRELATIONS:'
   write(o,'(A,I3)')'Npar:',nMCMCpar
   write(o,'(A9)',advance="no")''
