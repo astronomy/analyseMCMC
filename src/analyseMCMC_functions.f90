@@ -864,14 +864,13 @@ subroutine mcmcruninfo(exitcode)
   
   use mcmcrun_data, only: niter,Nburn0,detnames,detnr,parID,seed,snr,revID,ndet,flow,fhigh,t_before,nCorr,nTemps,Tmax,Tchain
   use mcmcrun_data, only: networkSNR,waveform,pnOrder,nMCMCpar,t_after,FTstart,deltaFT,samplerate,samplesize,FTsize,outputVersion
-  use mcmcrun_data, only: nMCMCpar0,t0,GPStime,totthin,loglmaxs,totiter,loglmax,totpts,totlines,offsetrun,spinningRun
+  use mcmcrun_data, only: nMCMCpar0,t0,GPStime,totthin,loglmaxs,totiter,loglmax,totpts,totlines,offsetrun,spinningRun, avgTotThin
   use chain_data, only: is,isburn,DoverD,jumps
   use plot_data, only: ncolours,colours,colournames,maxdots
   
   implicit none
   integer, intent(out) :: exitcode
   integer :: i,ic,j,p,maxLine
-  real :: avgtotthin
   real(double) :: lon2ra,gmst
   character :: infile*(99)
   
@@ -971,7 +970,7 @@ subroutine mcmcruninfo(exitcode)
         totthin(ic) = nint(isburn(ic)/real(Nburn(ic)))
      end do
   end do
-  avgtotthin = sum(isburn(1:nchains0))/real(sum(Nburn(1:nchains0))) !Total thinning, averaged over all chains
+  avgTotThin = sum(isburn(1:nchains0))/real(sum(Nburn(1:nchains0)))  ! Total thinning, averaged over all chains
   
   
   
@@ -1081,7 +1080,7 @@ subroutine mcmcruninfo(exitcode)
   end do
   if(prChainInfo.ge.1.and.update.ne.1) then
      write(stdOut,'(4x,A, A,ES10.3, A,ES10.3, A,I4, A,ES9.2)', advance='no') 'All chains:','  # lines:',real(totlines), &
-          ',  # iterations:',real(totiter), ',  thinning:',nint(avgtotthin), 'x,  med.burnin:', &
+          ',  # iterations:',real(totiter), ',  thinning:',nint(avgTotThin), 'x,  med.burnin:', &
           compute_median_sp(real(isburn(1:nChains0)))
      
      if(htmlOutput.ge.1) write(stdOut,'(A3)', advance='no') '<b>'
@@ -1113,10 +1112,10 @@ subroutine mcmcruninfo(exitcode)
               write(stdOut,'(A,I4,A)', advance='no')'    Plotting every',chainPlI,'-th'
            end if
            write(stdOut,'(A,I5,A,I5,A)')' state in likelihood, chains, jumps, etc. plots.  Average total thinning is', &
-                nint(avgtotthin),'x, for these plots it is',nint(avgtotthin*real(chainPlI)),'x.'
+                nint(avgTotThin),'x, for these plots it is',nint(avgTotThin*real(chainPlI)),'x.'
         else
            write(stdOut,'(A,I5,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.'// &
-                '  Average total thinning remains',nint(avgtotthin),'x for these plots.'
+                '  Average total thinning remains',nint(avgTotThin),'x for these plots.'
         end if
      end if
      write(stdOut,*)

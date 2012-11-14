@@ -35,12 +35,12 @@ subroutine statistics(exitcode)
   use analysemcmc_settings, only: changeVar,prProgress,mergeChains,wrapData,saveStats,prCorr,ivals,ival0,prStat,prIval,Nival,Nburn
   use analysemcmc_settings, only: prConv,wikioutput,plAcorr,prAcorr,maxMCMCpar,maxChs, htmlOutput
   use general_data, only: allDat,selDat,startval,shIvals,wrap,shifts,stats,ranges,nChains0,Ntot,nChains,n,raShift,contrChain
-  use general_data, only: raCentre,fixedpar,c0,post,parNames, maxIter
+  use general_data, only: raCentre,fixedpar,c0,post,parNames, maxIter, Rhat
   use general_data, only: logebayesfactor,log10bayesfactor,logebayestempfactor,logebayesfactortotalgeom,logebayesfactortotalarith
   use general_data, only: logebayesfactortotalharmo,logebayesfactortotal
   use stats_data, only: absVar1,absVar2,stdev1,stdev2
-  use chain_data, only: corrs
-  use mcmcrun_data, only: nMCMCpar, parID,Tchain,loglmax, outputVersion
+  use chain_data, only: corrs, Rhats,RhatsN, isburn
+  use mcmcrun_data, only: nMCMCpar, parID,Tchain,loglmax, outputVersion, avgTotThin
   
   implicit none
   integer, intent(out) :: exitcode
@@ -72,9 +72,13 @@ subroutine statistics(exitcode)
   end do
   
   dn = max(1,nn/1000)  ! Compute R-hat for 1000 cases
+  RhatsN = 0
   do in = dn,nn,dn
+     RhatsN = RhatsN + 1
      call compute_mixing(in, .false.)  ! Don't print results
      !print*,in,nn,real(rhat(0))
+     Rhats(1,RhatsN) = real(in)*avgTotThin + real(maxval(isBurn))
+     Rhats(2,RhatsN) = real(Rhat(0))
   end do
   
   

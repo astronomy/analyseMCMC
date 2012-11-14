@@ -117,7 +117,7 @@ module mcmcrun_data
   integer :: parID(maxMCMCpar),revID(nParDB),spinningRun
   integer(long) :: GPStime,seed(maxChs)
   real :: snr(maxChs,ndets),flow(maxChs,ndets),fhigh(maxChs,ndets),t_before(maxChs,ndets),t_after(maxChs,ndets)
-  real :: deltaFT(maxChs,ndets), samplerate(maxChs,ndets)
+  real :: deltaFT(maxChs,ndets), samplerate(maxChs,ndets), avgTotThin
   real :: Tchain(maxChs),networkSNR(maxChs),pnOrder,outputVersion
   real(double) :: FTstart(maxChs,ndets),t0,loglmax,loglmaxs(maxChs)
   character :: detnames(maxChs,ndets)*(14)
@@ -171,8 +171,8 @@ module chain_data
   save
   private :: double, maxMCMCpar,maxChs, maxIter
   
-  real :: is(maxChs,maxIter),isburn(maxChs)
-  real :: jumps(maxChs,maxMCMCpar,maxIter)
+  integer :: RhatsN
+  real :: is(maxChs,maxIter), isburn(maxChs), jumps(maxChs, maxMCMCpar,maxIter), Rhats(2,maxIter)
   real :: corrs(maxMCMCpar,maxMCMCpar),acorrs(maxChs,0:maxMCMCpar,0:maxIter),lAcorrs(maxChs,0:maxMCMCpar)
   real(double) :: DoverD
   

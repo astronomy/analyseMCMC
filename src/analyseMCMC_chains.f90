@@ -57,6 +57,11 @@ subroutine chains(exitcode)
   if(plAcorr.gt.0) call plot_Acorr_chains(exitcode)
   if(exitcode.ne.0) return
   
+  
+  ! Plot R-hat:
+  call plot_Rhat_chains(exitcode)
+  if(exitcode.ne.0) return
+  
 end subroutine chains
 !***********************************************************************************************************************************
 
@@ -83,7 +88,7 @@ subroutine plot_posterior_chain(exitcode)
   integer, intent(out) :: exitcode
   
   integer :: i,pgopen,imin,ci,lw,symbol,io,ic,status,system
-  real :: dx,dy,xmin,xmax,ymin,ymax,ply
+  real :: dx,dy,xmin,xmax,ymin,ymax,ply, sch
   character :: tempfile*(199), convopts*(99)
   logical :: ex
   
@@ -100,29 +105,29 @@ subroutine plot_posterior_chain(exitcode)
   if(use_PLplot) then
      if(file.eq.0) then
         call pgpap(scrSz,scrRat)
-        call pgsch(1.5*fontsize1D)
+        sch = 1.5*fontsize1D
      end if
      if(file.eq.1) then
         call pgpap(bmpsz,bmprat)
-        call pgsch(1.5*fontsize1D)
+        sch = 1.5*fontsize1D
      end if
      if(file.ge.2) then
         call pgpap(PSsz,PSrat)
         call pgscf(fonttype)
-        call pgsch(fontsize1D)
+        sch = fontsize1D
      end if
   end if
   
   if(file.eq.0) then
      io = pgopen('12/xs')
-     call pgsch(1.5*fontsize1D)
+     sch = 1.5*fontsize1D
      lw = 1
   end if
   if(file.ge.1) then
      tempfile = trim(outputdir)//'/'//trim(outputname)//'__posterior'
      if(file.eq.1) io = pgopen(trim(tempfile)//'.ppm/ppm')
      if(file.ge.2) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
-     call pgsch(1.2*fontsize1D)
+     sch = 1.2*fontsize1D
      lw = 1
      if(file.ge.2) then
         lw = lw*2
@@ -139,22 +144,23 @@ subroutine plot_posterior_chain(exitcode)
   if(.not.use_PLplot) then
      if(file.eq.0) then
         call pgpap(scrSz,scrRat)
-        call pgsch(1.5*fontsize1D)
+        sch = 1.5*fontsize1D
      end if
      if(file.eq.1) then
         call pgpap(bmpsz,bmprat)
-        call pgsch(1.5*fontsize1D)
+        sch = 1.5*fontsize1D
      end if
      if(file.ge.2) then
         call pgpap(PSsz,PSrat)
         call pgscf(fonttype)
-        call pgsch(fontsize1D)
+        sch = fontsize1D
      end if
   end if
   
   ! Custom initialisation of PGPlot/PLplot:
   call pginitl(colour,file,whiteBG)
   call pgslw(lw)
+  call pgsch(sch)
   
   !call pgsvp(0.08,0.92,0.07,0.94)  ! Need wider margin for title on right
   call pgsvp(0.08*fontsize1D,1.-0.08*fontsize1D,0.07*fontsize1D,1.-0.06*fontsize1D)  ! Need wider margin for title on right
@@ -253,6 +259,7 @@ subroutine plot_posterior_chain(exitcode)
      call pgsls(4)
      call pgline(2,(/xmin,xmax/),(/post(ic,2),post(ic,2)/))
   end do
+  
   call pgsci(1)
   call pgsls(1)
   if(use_PLplot) then
@@ -265,12 +272,10 @@ subroutine plot_posterior_chain(exitcode)
   if(nPlPar.eq.1.and.quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
   
   if(quality.eq.0) then
-     !call pgsch(sch*0.8*fontsize1D)
      call pgmtxt('T',0.5,0.9,0.9,trim(outputname))  !Print title
-     !call pgsch(sch*fontsize1D)
   end if
   
-  call pgend
+  call pgend()
   
   if(file.ge.2) then
      if(file.eq.3) then
@@ -1434,6 +1439,164 @@ subroutine plot_Acorr_chains(exitcode)
   end if
   
 end subroutine plot_Acorr_chains
+!***********************************************************************************************************************************
+  
+  
+
+
+
+
+
+
+
+!***********************************************************************************************************************************
+!> \brief  Plot R-hat vs. iteration number
+!!
+!! \retval exitcode  Exit status code (0=ok)
+!!
+
+subroutine plot_Rhat_chains(exitcode)
+  use SUFR_constants, only: stdOut,stdErr
+  
+  use aM_constants, only: use_PLplot
+  use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
+  use analysemcmc_settings, only: fontsize1d,nPlPar, chainSymbol, htmlOutput
+  use general_data, only: outputname,outputdir
+  use chain_data, only: Rhats,RhatsN
+  use plot_data, only: psclr,defcolour,bmpsz,bmprat,bmpxpix,unSharpchain
+  
+  implicit none
+  integer, intent(out) :: exitcode
+  
+  integer :: pgopen,symbol,io,status,system, lw
+  real :: dx,dy,xmin,xmax,ymin,ymax,sch
+  character :: tempfile*(199), convopts*(99)
+  logical :: ex
+  
+  
+  exitcode = 0
+  
+  if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '<h3>R-hat:</h3>'
+     write(stdOut,'(A)') '<img src="'//trim(outputname)//'__rhat.png" title="R-hat">'
+  else
+     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' R-hat, '
+  end if
+  
+  if(use_PLplot) then
+     if(file.eq.0) then
+        call pgpap(scrSz,scrRat)
+        sch = 1.5*fontsize1D
+     end if
+     if(file.eq.1) then
+        call pgpap(bmpsz,bmprat)
+        sch = 1.5*fontsize1D
+     end if
+     if(file.ge.2) then
+        call pgpap(PSsz,PSrat)
+        call pgscf(fonttype)
+        sch = fontsize1D
+     end if
+  end if
+  
+  if(file.eq.0) then
+     io = pgopen('12/xs')
+     sch = 1.5*fontsize1D
+     lw = 1
+  end if
+  if(file.ge.1) then
+     tempfile = trim(outputdir)//'/'//trim(outputname)//'__rhat'
+     if(file.eq.1) io = pgopen(trim(tempfile)//'.ppm/ppm')
+     if(file.ge.2) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+     sch = 1.2*fontsize1D
+     lw = 1
+     if(file.ge.2) then
+        lw = lw*2
+        if(nPlPar.eq.1) lw = nint(2*fontsize1d)
+     end if
+  end if
+  
+  if(io.le.0) then
+     write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
+     exitcode = 1
+     return
+  end if
+  
+  if(.not.use_PLplot) then
+     if(file.eq.0) then
+        call pgpap(scrSz,scrRat)
+        sch = 1.5*fontsize1D
+     end if
+     if(file.eq.1) then
+        call pgpap(bmpsz,bmprat)
+        sch = 1.5*fontsize1D
+     end if
+     if(file.ge.2) then
+        call pgpap(PSsz,PSrat)
+        call pgscf(fonttype)
+        sch = fontsize1D
+     end if
+  end if
+  
+  
+  
+  
+  call pginitl(colour,file,whiteBG)
+  call pgsch(sch)
+  call pgslw(lw)
+  
+  call pgsvp(0.08*fontsize1D,1.-0.03*fontsize1D,0.07*fontsize1D,1.-0.06*fontsize1D)
+  if(quality.eq.0) call pgsvp(0.08,0.97,0.07,0.94)  ! To make room for title
+  
+  
+  xmin = 0.
+  xmax = maxval(Rhats(1,1:RhatsN))
+  dx = abs(xmax-xmin)*0.01
+  
+  ymin = log10(minval(Rhats(2,1:RhatsN) - 1.0))
+  ymax = min(log10(maxval(Rhats(2,1:RhatsN) - 1.0)),1.0)
+  dy = abs(ymax-ymin)*0.05
+  
+  call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
+  call pgbox('BCNTS',0.0,0,'BCLNTS',0.0,0)
+  
+  
+  call pgsci(defcolour)
+  symbol = chainSymbol
+  call pgpoint(RhatsN, Rhats(1,1:RhatsN), log10(Rhats(2,1:RhatsN)-1.0), symbol)
+  
+  
+  call pgsci(1)
+  call pgsls(1)
+  if(use_PLplot) then
+     call pgmtxt('L',5.0,0.5,0.5,'R-hat - 1.0')
+  else
+     call pgmtxt('L',2.3,0.5,0.5,'R-hat - 1.0')
+  end if
+  if(nPlPar.eq.1.and.quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
+  
+  if(quality.eq.0) then
+     call pgmtxt('T',0.5,0.9,0.9,trim(outputname))  ! Print title
+  end if
+  
+  call pgend()
+  
+  if(file.ge.2) then
+     if(file.eq.3) then
+        status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+     end if
+  else if(file.eq.1) then
+     inquire(file=trim(tempfile)//'.ppm', exist=ex)
+     if(ex) then
+        convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)
+        status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm  '//trim(tempfile)//'.png')
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot ppm -> png',status
+        status = system('rm -f '//trim(tempfile)//'.ppm')
+     end if
+  end if
+  
+end subroutine plot_Rhat_chains
 !***********************************************************************************************************************************
   
   
