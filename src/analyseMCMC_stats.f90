@@ -45,7 +45,7 @@ subroutine statistics(exitcode)
   implicit none
   integer, intent(out) :: exitcode
   
-  integer :: c,i,ic,p,p1,p2,wraptype
+  integer :: c,i,ic,p,p1,p2, wraptype
   integer :: indexx(maxMCMCpar,maxChs*maxIter),index1(maxChs*maxIter)
   real :: revper
   real :: x1,x2,y1,y2
@@ -59,9 +59,8 @@ subroutine statistics(exitcode)
   ! Compute autocorrelations:
   if(prAcorr.gt.0.or.plAcorr.gt.0) call compute_autocorrelations()
   
-  ! Compute and print mixing:
-  if(nChains0.gt.1 .and. (prConv.ge.1.or.saveStats.ge.1)) call compute_mixing()  ! Need unwrapped data for this
-  
+  ! Compute and print mixing (Rhat).  Need unwrapped data for this:
+  if(nChains0.gt.1 .and. (prConv.ge.1.or.saveStats.ge.1)) call compute_mixing(0, .true.)  ! True: print results
   
   ! Convert MCMC parameters/PDFs (cos/sin->ang, rad->deg, etc):
   if(changeVar.ge.1) then
@@ -1451,17 +1450,22 @@ end subroutine save_cbc_wiki_data
 
 
 !***********************************************************************************************************************************
-!> \brief  Check mixing for multiple chains.  Use unwrapped data
+!> \brief  Compute mixing (R-hat) for multiple chains.  Use unwrapped data
 !!
-!! - This works only for fixed chain length, so take the min N
-!! - This is probably taken from (at least equal to):
-!!   - Brooks & Gelman, Journal of Computational and Graphical Statistics, Vol.7, Nr.4, p.434-455, 1998:
+!! \param mynn        Number of iterations to compute Rhat for.  Use nn=0 for full chains.  The *last* nn data points are used.
+!! \param print_data  Print results or not.
+!!
+!!
+!! \note This works only for fixed chain length, so take the min N
+!!
+!! \see
+!!   Brooks & Gelman, Journal of Computational and Graphical Statistics, Vol.7, Nr.4, p.434-455, 1998:
 !!   - "General Methods for Monitoring Convergence of Iterative Simulations"
 !!   - http://www.jstor.org/pss/1390675 (for purchase)
 !!   - http://www.stat.columbia.edu/~gelman/research/published/brooksgelman.pdf (Author's website)
 !!   - See Eq.1.1,  where:  B/n := meanVar  and  W := chVar
 
-subroutine compute_mixing()
+subroutine compute_mixing(mynn, print_data)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdOut
   use SUFR_statistics, only: compute_median
@@ -1471,7 +1475,9 @@ subroutine compute_mixing()
   use mcmcrun_data, only: parID,revID,nMCMCpar,nMCMCpar0
   
   implicit none
-  integer :: i,ic,p,nn,nn1, prVarStdev
+  integer, intent(in) :: mynn
+  logical, intent(in) :: print_data
+  integer :: i,ic,p, nn, prVarStdev
   integer :: lowVar(maxMCMCpar),nLowVar,highVar(maxMCMCpar),nHighVar,nmeanRelVar,nRhat,IDs(maxMCMCpar),nUsedPar, RhatArr(maxMCMCpar)
   real(double) :: chMean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar), dx
   real(double) :: meanRelVar !, totRhat
@@ -1479,22 +1485,22 @@ subroutine compute_mixing()
   
   prVarStdev = 1  ! Print 1-Variances, 2-Standard deviations in detailed mixing output
   
-  if(contrChains.le.1) then
-     if(prConv.ge.1) write(stdOut,'(A)')'  At least two chains are needed to compute R-hat...'
-     return
-  end if
-  
   !> Determine the number of points to use for the computation of R-hat
   !!  Since we need a fixed number of points for all chains, take 
   !! nn = the minimum of (the length of each chain after the burn-in) and use the last nn data points of each chain
   nn = huge(nn)
   do ic=1,nChains0
      if(contrChain(ic).eq.0) cycle  ! Contributing chains only
-     nn1 = Ntot(ic)-Nburn(ic)
-     if(nn1.lt.nn) nn = nn1
+     nn = min(nn,Ntot(ic)-Nburn(ic))
   end do
+  if(mynn.gt.0) nn = min(nn,mynn)  ! Use preferred value of nn instead
   
-  if(prConv.ge.2) then
+  if(contrChains.le.1) then
+     if(print_data .and. prConv.ge.1) write(stdOut,'(A)')'  At least two chains are needed to compute R-hat...'
+     return
+  end if
+  
+  if(print_data.and.prConv.ge.2) then
      write(stdOut,*)
      if(htmlOutput.ge.1) then
         write(stdOut,'(A)')'<br><hr><a name="mixing"></a><font size="1">'// &
@@ -1551,7 +1557,7 @@ subroutine compute_mixing()
   
   
   ! Print means per chain:
-  if(prConv.ge.1) then
+  if(print_data .and. prConv.ge.1) then
      write(stdOut,*)
      write(stdOut,'(A14)',advance="no")''
      if(htmlOutput.ge.1) write(stdOut,'(A3)',advance="no")'<b>'
@@ -1597,14 +1603,14 @@ subroutine compute_mixing()
         end do
         write(stdOut,*)
         
-     end if !if(prConv.ge.3)
-  end if !if(prConv.ge.1)
+     end if  ! if(prConv.ge.3)
+  end if     ! if(print_data .and. prConv.ge.1)
   
   
   
   ! Flag and print variances:
   if(prvarStdev.eq.1) then
-     if(prConv.ge.3) then
+     if(print_data .and. prConv.ge.3) then
         if(htmlOutput.ge.1) then
            write(stdOut,'(/,A)')'  <b>Variances:</b>'
         else
@@ -1612,7 +1618,7 @@ subroutine compute_mixing()
         end if
      end if
   else
-     if(prConv.ge.3) then
+     if(print_data .and. prConv.ge.3) then
         write(stdOut,'(/,A)')'  <b>Std.devs:</b>'
      else
         write(stdOut,'(/,A)')'  Std.devs:'
@@ -1653,7 +1659,7 @@ subroutine compute_mixing()
      meanRelVar = meanRelVar**(1.d0/dble(nmeanRelVar)) 
      
      ! Print and flag mean variance and variances for each chain:
-     if(prConv.ge.3) then
+     if(print_data .and. prConv.ge.3) then
         ch = ' '
         if(nLowVar.eq.nUsedPar) ch = '*'
         if(nHighVar.eq.nUsedPar) ch = '#'
@@ -1676,12 +1682,12 @@ subroutine compute_mixing()
         if(meanRelVar.gt.2.0) ch = '#'
         write(stdOut,'(F8.3,A1)',advance="no") meanRelVar,ch
         write(stdOut,*)
-     end if !if(prConv.ge.3)
+     end if !if(print_data .and. prConv.ge.3)
   end do
   
   
   ! Print mean variance for all parameters :
-  if(prConv.ge.3) then
+  if(print_data .and. prConv.ge.3) then
      write(stdOut,'(A14)',advance="no") 'Mean: '
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  ! Varying parameters only
@@ -1693,11 +1699,11 @@ subroutine compute_mixing()
      end do
      write(stdOut,*)
      write(stdOut,*)
-  end if !if(prConv.ge.3)
+  end if !if(print_data .and. prConv.ge.3)
   
   
   ! Print the variances within chains and between chains:
-  if(prConv.ge.2) then
+  if(print_data .and. prConv.ge.2) then
      if(prvarStdev.eq.1) then
         if(htmlOutput.ge.1) then
            write(stdOut,'(A)')'  <b>Variances:</b>'
@@ -1735,7 +1741,7 @@ subroutine compute_mixing()
   
   
   ! Print R-hat:
-  if(prConv.ge.1) then
+  if(print_data .and. prConv.ge.1) then
      if(htmlOutput.ge.1) then
         write(stdOut,'(A21)',advance="no")'       <b>R-hat:</b> '
      else
