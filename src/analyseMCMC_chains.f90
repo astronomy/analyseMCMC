@@ -33,10 +33,9 @@ subroutine chains(exitcode)
   use analysemcmc_settings, only: chainSymbol,plInject,mergeChains,plStart,prConv,plParL,plJump,plAcorr, autoBurnin
   use analysemcmc_settings, only: htmlOutput
   use general_data, only: post,allDat,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax,nChains,parNames,pgParNs,rhat
-  use general_data, only: pgOrigParns
   use mcmcrun_data, only: revID,parID
   use plot_data, only: psclr,defcolour,bmpsz,bmprat,ncolours,colours,unSharplogl,bmpxpix,nsymbols,symbols,unSharpchain
-  use chain_data, only: is,jumps,isburn
+  use chain_data, only: is,isburn
   
   implicit none
   integer, intent(out) :: exitcode
@@ -1009,174 +1008,202 @@ subroutine chains(exitcode)
   
   
   
-  
-  
-  !*********************************************************************************************************************************
   ! Plot jump sizes:
-  if(plJump.ge.1) then
-     if(htmlOutput.ge.1) then
-        write(stdOut,'(A)') '<h3>Jump sizes:</h3>'
-        write(stdOut,'(A)') '<img src="'//trim(outputname)//'__jumps.png" title="Jump sizes">'
-     else
-        !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting jump sizes...'
-        if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' jump sizes, '
-     end if
-     
-     if(file.eq.0) then
-        if(.not.use_PLplot) io = pgopen('18/xs')
-        call pgpap(scrSz,scrRat)
-        if(use_PLplot) io = pgopen('18/xs')
-        
-        sch = fontsize1d*1.5
-     end if
-     if(file.ge.1) then
-        tempfile = trim(outputdir)//'/'//trim(outputname)//'__jumps'
-        if(file.eq.1) then
-           if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
-           call pgpap(bmpsz,bmprat)
-           if(use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
-           
-           sch = fontsize1d*1.5
-        end if
-        if(file.ge.2) then
-           if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
-           call pgpap(PSsz,PSrat)
-           if(use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
-           
-           sch = fontsize1d*1.2
-        end if
-     end if
-     
-     if(io.le.0) then
-        write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
-        exitcode = 1
-        return
-     end if
-     
-     if(quality.eq.0) then !Draft
-        !sch = sch*1.75
-        sch = sch*1.4
-        lw = 2
-        call pgsvp(0.1,0.95,0.06,0.87) !To make room for title
-     end if
-     
-     call pgsch(sch)
-     
-     call pgsubp(panels(1),panels(2))
-     
-     ic = 1
-     do j=1,nPlPar
-        p = revID(plPars(j))
-        if(p.eq.0) then
-           write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))// &
-                ' is not defined, check plPars() in the input file.  Skipping...'
-           cycle
-        end if
-        
-        call pgpage()
-        if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
-        call pgsch(sch)
-        
-        xmax = -1.e30
-        ymin =  1.e30
-        ymax = -1.e30
-        do ic=1,nChains0
-           xmin = 0.
-           xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
-           if(plJump.eq.1) then
-              ymin = min(ymin,minval(jumps(ic,p,2:Ntot(ic))))
-              ymax = max(ymax,maxval(jumps(ic,p,2:Ntot(ic))))
-           end if
-           do i=10,Ntot(ic)
-              if(plJump.eq.2.and.jumps(ic,p,i).gt.1.e-20) then
-                 ymin = min(ymin,log10(abs(jumps(ic,p,i))))
-                 ymax = max(ymax,log10(abs(jumps(ic,p,i))))
-              end if
-              ymin = -6.
-              ymax = 1.
-           end do
-        end do
-        dx = abs(xmax-xmin)*0.01
-        dy = abs(ymax-ymin)*0.05
-        if(dy.lt.1.e-10) dy = ymin*0.1
-        
-        call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
-        if(plJump.eq.1) call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0) !lin
-        if(plJump.eq.2) call pgbox('BCNTS',0.0,0,'BCLNTS',0.0,0) !log
-        
-        do ic=1,nChains0
-           
-           !call pgsci(mod(ic*2,10))
-           call pgsci(defcolour)
-           if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           
-           symbol = chainSymbol
-           if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
-           
-           if(plJump.eq.1) then
-              !do i=1,Ntot(ic),chainPlI
-              do i=ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
-                 call pgpoint(1,is(ic,i),jumps(ic,p,i), symbol)
-              end do
-           else
-              !do i=1,Ntot(ic),chainPlI
-              do i=ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
-                 call pgpoint(1,is(ic,i),log10(abs(jumps(ic,p,i))+1.e-30), symbol)
-              end do
-           end if
-        end do
-        
-        ! Mark the end of the burn-in phase:
-        call pgsls(2)
-        call pgsci(6)
-        do ic=1,nChains0
-           if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
-           if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/), &
-                (/ymin-dy,ymax+dy/))
-        end do
-        
-        call pgsci(1)
-        call pgsls(1)
-        !call pgmtxt('T',1.,0.5,0.5,'Jumps: '//trim(pgOrigParns(parID(p))))
-        call pgmtxt('T',-1.2,0.05,0.0,trim(pgOrigParns(parID(p))))
-     end do
-     
-     if(quality.eq.0) then
-        call pgsubp(1,1)
-        call pgsvp(0.,1.,0.,1.)
-        call pgswin(-1.,1.,-1.,1.)
-        
-        call pgsch(sch*0.8)
-        call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  !Print title
-        call pgsch(sch)
-     end if
-     
-     call pgend
-     if(file.ge.2) then
-        if(file.eq.3) then
-           status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
-        end if
-     else if(file.eq.1) then
-        inquire(file=trim(tempfile)//'.ppm', exist=ex)
-        if(ex) then
-           convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)
-           status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm  '//trim(tempfile)//'.png')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot ppm -> png',status
-           status = system('rm -f '//trim(tempfile)//'.ppm')
-        end if
-     end if
-  end if !if(plJump.ge.1)
+  if(plJump.ge.1) call plot_Jump_sizes(exitcode)
+  if(exitcode.ne.0) return
   
   
-  
-  
+  ! Plot autocorrelations:
   if(plAcorr.gt.0) call plot_Acorr_chains(exitcode)
   if(exitcode.ne.0) return
   
   
 end subroutine chains
 !***********************************************************************************************************************************
+
+
+
+!***********************************************************************************************************************************
+!> \brief  Plot jump sizes
+
+subroutine plot_Jump_sizes(exitcode)
+  use SUFR_constants, only: stdOut,stdErr
+  
+  use aM_constants, only: use_PLplot
+  use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,colour,whitebg,quality
+  use analysemcmc_settings, only: plBurn,chainPlI,fontsize1d,nPlPar,panels,plPars
+  use analysemcmc_settings, only: chainSymbol,plJump
+  use analysemcmc_settings, only: htmlOutput
+  use general_data, only: outputname,outputdir,nChains0,Ntot,parNames
+  use general_data, only: pgOrigParns
+  use mcmcrun_data, only: revID,parID
+  use plot_data, only: psclr,defcolour,bmpsz,bmprat,ncolours,colours,bmpxpix,nsymbols,symbols,unSharpchain
+  use chain_data, only: is,jumps,isburn
+  
+  implicit none
+  integer, intent(out) :: exitcode
+  
+  integer :: i,j,pgopen,symbol,io,ic,p,status,system
+  real :: dx,dy,xmin,xmax,ymin,ymax,sch
+  character :: tempfile*(199), convopts*(99)
+  logical :: ex
+  
+  exitcode = 0
+  
+  if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '<h3>Jump sizes:</h3>'
+     write(stdOut,'(A)') '<img src="'//trim(outputname)//'__jumps.png" title="Jump sizes">'
+  else
+     !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')' Plotting jump sizes...'
+     if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' jump sizes, '
+  end if
+  
+  if(file.eq.0) then
+     if(.not.use_PLplot) io = pgopen('18/xs')
+     call pgpap(scrSz,scrRat)
+     if(use_PLplot) io = pgopen('18/xs')
+     
+     sch = fontsize1d*1.5
+  end if
+  if(file.ge.1) then
+     tempfile = trim(outputdir)//'/'//trim(outputname)//'__jumps'
+     if(file.eq.1) then
+        if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+        call pgpap(bmpsz,bmprat)
+        if(use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+        
+        sch = fontsize1d*1.5
+     end if
+     if(file.ge.2) then
+        if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+        call pgpap(PSsz,PSrat)
+        if(use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+        
+        sch = fontsize1d*1.2
+     end if
+  end if
+  
+  if(io.le.0) then
+     write(stdErr,'(A,I4)')'   Error:  Cannot open PGPlot device.  Quitting the programme',io
+     exitcode = 1
+     return
+  end if
+  
+  if(quality.eq.0) then !Draft
+     !sch = sch*1.75
+     sch = sch*1.4
+     call pgsvp(0.1,0.95,0.06,0.87) !To make room for title
+  end if
+  
+  call pgsch(sch)
+  
+  call pgsubp(panels(1),panels(2))
+  
+  ic = 1
+  do j=1,nPlPar
+     p = revID(plPars(j))
+     if(p.eq.0) then
+        write(stdErr,'(/,A)')'  * Warning:  chains():  parameter '//trim(parNames(plPars(j)))// &
+             ' is not defined, check plPars() in the input file.  Skipping...'
+        cycle
+     end if
+     
+     call pgpage()
+     if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
+     call pgsch(sch)
+     
+     xmax = -1.e30
+     ymin =  1.e30
+     ymax = -1.e30
+     do ic=1,nChains0
+        xmin = 0.
+        xmax = max(xmax,maxval(is(ic,1:Ntot(ic))))
+        if(plJump.eq.1) then
+           ymin = min(ymin,minval(jumps(ic,p,2:Ntot(ic))))
+           ymax = max(ymax,maxval(jumps(ic,p,2:Ntot(ic))))
+        end if
+        do i=10,Ntot(ic)
+           if(plJump.eq.2.and.jumps(ic,p,i).gt.1.e-20) then
+              ymin = min(ymin,log10(abs(jumps(ic,p,i))))
+              ymax = max(ymax,log10(abs(jumps(ic,p,i))))
+           end if
+           ymin = -6.
+           ymax = 1.
+        end do
+     end do
+     dx = abs(xmax-xmin)*0.01
+     dy = abs(ymax-ymin)*0.05
+     if(dy.lt.1.e-10) dy = ymin*0.1
+     
+     call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
+     if(plJump.eq.1) call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0) !lin
+     if(plJump.eq.2) call pgbox('BCNTS',0.0,0,'BCLNTS',0.0,0) !log
+     
+     do ic=1,nChains0
+        
+        !call pgsci(mod(ic*2,10))
+        call pgsci(defcolour)
+        if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+        
+        symbol = chainSymbol
+        if(chainSymbol.le.-10) symbol = symbols(mod(ic-1,nsymbols)+1)
+        
+        if(plJump.eq.1) then
+           !do i=1,Ntot(ic),chainPlI
+           do i=ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
+              call pgpoint(1,is(ic,i),jumps(ic,p,i), symbol)
+           end do
+        else
+           !do i=1,Ntot(ic),chainPlI
+           do i=ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
+              call pgpoint(1,is(ic,i),log10(abs(jumps(ic,p,i))+1.e-30), symbol)
+           end do
+        end if
+     end do
+     
+     ! Mark the end of the burn-in phase:
+     call pgsls(2)
+     call pgsci(6)
+     do ic=1,nChains0
+        if(nChains0.gt.1) call pgsci(colours(mod(ic-1,ncolours)+1))
+        if((plBurn.eq.1.or.plBurn.ge.3).and.isburn(ic).lt.is(ic,Ntot(ic))) call pgline(2,(/isburn(ic),isburn(ic)/), &
+             (/ymin-dy,ymax+dy/))
+     end do
+     
+     call pgsci(1)
+     call pgsls(1)
+     !call pgmtxt('T',1.,0.5,0.5,'Jumps: '//trim(pgOrigParns(parID(p))))
+     call pgmtxt('T',-1.2,0.05,0.0,trim(pgOrigParns(parID(p))))
+  end do
+  
+  if(quality.eq.0) then
+     call pgsubp(1,1)
+     call pgsvp(0.,1.,0.,1.)
+     call pgswin(-1.,1.,-1.,1.)
+     
+     call pgsch(sch*0.8)
+     call pgmtxt('T',-0.7,0.5,0.5,trim(outputname))  !Print title
+     call pgsch(sch)
+  end if
+  
+  call pgend
+  if(file.ge.2) then
+     if(file.eq.3) then
+        status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+     end if
+  else if(file.eq.1) then
+     inquire(file=trim(tempfile)//'.ppm', exist=ex)
+     if(ex) then
+        convopts = '-resize '//trim(bmpxpix)//' -depth 8 -unsharp '//trim(unSharpchain)
+        status = system('convert '//trim(convopts)//' '//trim(tempfile)//'.ppm  '//trim(tempfile)//'.png')
+        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot ppm -> png',status
+        status = system('rm -f '//trim(tempfile)//'.ppm')
+     end if
+  end if
+end subroutine plot_Jump_sizes
+!***********************************************************************************************************************************
+  
 
 
 
