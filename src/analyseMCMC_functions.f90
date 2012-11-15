@@ -1107,9 +1107,9 @@ subroutine mcmcruninfo(exitcode)
               write(stdOut,'(A)', advance='no')'    Plotting every'
            else if(chainPlI.eq.2) then
               write(stdOut,'(A,I2,A)', advance='no')'    Plotting every',chainPlI,'-nd'
-           else if(chainPlI.eq.2) then
+           else if(chainPlI.eq.3) then
               write(stdOut,'(A,I2,A)', advance='no')'    Plotting every',chainPlI,'-rd'
-           else if(chainPlI.eq.2) then
+           else
               write(stdOut,'(A,I4,A)', advance='no')'    Plotting every',chainPlI,'-th'
            end if
            write(stdOut,'(A,I5,A,I5,A)')' state in likelihood, chains, jumps, etc. plots.  Average total thinning is', &
