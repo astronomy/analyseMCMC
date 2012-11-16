@@ -32,7 +32,7 @@ subroutine pdfs2d(exitcode)
   use analysemcmc_settings, only: update,prProgress,file,pssz,quality,fontsize2d,maxChs
   use analysemcmc_settings, only: Npdf2D,PDF2Dpairs,htmlOutput,bmpXSz,bmpYSz,scFac,Nbin2Dx,Nbin2Dy,plotSky
   use analysemcmc_settings, only: savePDF,plot,plPDF1D,plPDF2D
-  use general_data, only: outputname,outputdir,parNames, nfixedpar, maxIter, raCentre,raShift
+  use general_data, only: outputname,outputdir,parNames, nfixedpar, raCentre,raShift
   use mcmcrun_data, only: totpts,revID, nMCMCpar
   use plot_data, only: bmpsz,bmprat,bmpxpix,pltsz,pltrat
   

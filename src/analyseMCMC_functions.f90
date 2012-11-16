@@ -409,7 +409,7 @@ end subroutine write_settingsfile
 !> \brief  Set plot settings to 'default' values
 
 subroutine set_plotsettings()
-  use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
+  use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
   use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plRhat,plotSky,plAnim,chainPlI,scLogLpl
@@ -861,7 +861,7 @@ subroutine mcmcruninfo(exitcode)
   use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar,plInject,plStart,htmlOutput
   
   use general_data, only: allDat,post,ntot,n,nchains,nchains0,infiles,contrChain,startval,fixedpar,selDat,iloglmax,icloglmax
-  use general_data, only: contrChains,parNames,nfixedpar,outputname,maxIter
+  use general_data, only: contrChains,parNames,nfixedpar,outputname
   
   use mcmcrun_data, only: niter,Nburn0,detnames,detnr,parID,seed,snr,revID,ndet,flow,fhigh,t_before,nCorr,nTemps,Tmax,Tchain
   use mcmcrun_data, only: networkSNR,waveform,pnOrder,nMCMCpar,t_after,FTstart,deltaFT,samplerate,samplesize,FTsize,outputVersion

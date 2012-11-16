@@ -1498,10 +1498,10 @@ subroutine compute_mixing(mynn, print_data)
   implicit none
   integer, intent(in) :: mynn
   logical, intent(in) :: print_data
-  integer :: i,ic,p, nn, prVarStdev
-  integer :: lowVar(maxMCMCpar),nLowVar,highVar(maxMCMCpar),nHighVar,nmeanRelVar,nRhat,IDs(maxMCMCpar),nUsedPar, RhatArr(maxMCMCpar)
-  real(double) :: chMean(maxChs,maxMCMCpar),avgMean(maxMCMCpar),chVar(maxMCMCpar),chVar1(maxChs,maxMCMCpar),meanVar(maxMCMCpar), dx
-  real(double) :: meanRelVar !, totRhat
+  integer :: i,ic,p, nn, prVarStdev, nRhat, nUsedPar
+  integer :: lowVar(maxMCMCpar),nLowVar, highVar(maxMCMCpar),nHighVar, nmeanRelVar, IDs(maxMCMCpar), RhatArr(maxMCMCpar)
+  real(double) :: chMean(maxChs,maxMCMCpar), avgMean(maxMCMCpar), chVar(maxMCMCpar), chVar1(maxChs,maxMCMCpar), meanVar(maxMCMCpar)
+  real(double) :: meanRelVar, dx !, totRhat
   character :: ch
   
   prVarStdev = 1  ! Print 1-Variances, 2-Standard deviations in detailed mixing output
@@ -1534,8 +1534,8 @@ subroutine compute_mixing(mynn, print_data)
   
   
   ! Compute the means for each chain and for all chains:
-  chMean  = tiny(chMean)
-  avgMean = tiny(avgMean)
+  chMean  = epsilon(chMean)    ! epsilon iso tiny -> can still divide by nn if unchanged
+  avgMean = epsilon(avgMean)
   do p=1,nMCMCpar
      do ic=1,nChains0
         if(contrChain(ic).eq.0) cycle                    ! Contributing chains only
@@ -1550,9 +1550,9 @@ subroutine compute_mixing(mynn, print_data)
   
   
   ! Compute variances per chain, for all chains:
-  chVar = tiny(chVar)
-  chVar1 = tiny(chVar1)
-  meanVar = tiny(meanVar)
+  chVar = epsilon(chVar)
+  chVar1 = epsilon(chVar1)
+  meanVar = epsilon(meanVar)
   do p=1,nMCMCpar
      
      do ic=1,nChains0
@@ -1563,7 +1563,7 @@ subroutine compute_mixing(mynn, print_data)
            chVar1(ic,p) = chVar1(ic,p) + dx  ! Keep track of the variance per chain
         end do
         meanVar(p) = meanVar(p) + (chMean(ic,p) - avgMean(p))**2
-        chVar1(ic,p) = chVar1(ic,p)/dble(nn-1)
+        chVar1(ic,p) = chVar1(ic,p)/dble(max(nn,2)-1)
         !if(p.eq.1) print*,chVar1(ic,p)
      end do  ! ic
      
@@ -1655,9 +1655,9 @@ subroutine compute_mixing(mynn, print_data)
      do p=1,nMCMCpar
         ! Take only the parameters that were fitted and have a variance > 0:
         if(fixedpar(p).eq.0 .and.abs(chVar1(ic,p)).gt.1.e-30) then
-           if(chVar1(ic,p).lt.0.5*chVar(p)) lowVar(p) = 1  !Too (?) low variance, mark it
-           if(chVar1(ic,p).gt.2*chVar(p))  highVar(p) = 1  !Too (?) high variance, mark it
-           meanRelVar = meanRelVar * chVar1(ic,p)/chVar(p) !Multiply in order to take the geometric mean
+           if(chVar1(ic,p).lt.0.5*chVar(p)) lowVar(p) = 1   ! Too (?) low variance, mark it
+           if(chVar1(ic,p).gt.2*chVar(p))  highVar(p) = 1   ! Too (?) high variance, mark it
+           meanRelVar = meanRelVar * chVar1(ic,p)/chVar(p)  ! Multiply in order to take the geometric mean
            nmeanRelVar = nmeanRelVar + 1
         end if
      end do
@@ -1862,7 +1862,7 @@ subroutine compute_autocorrelations()
            do i=1,Ntot(ic)-j*j1
               acorrs(ic,p,j) = acorrs(ic,p,j) + (allDat(ic,p,i) - median)*(allDat(ic,p,i+j*j1) - median)
            end do
-           acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev*stdev*real(Ntot(ic)-j*j1))
+           acorrs(ic,p,j) = acorrs(ic,p,j) / (stdev*stdev*real(Ntot(ic)-j*j1) + tiny(stdev))
            
            if(lAcorrs(ic,p).lt.1. .and. acorrs(ic,p,j).lt.0) lAcorrs(ic,p) = real(j*j1*totthin(ic))
            if(p.eq.1) acorrs(ic,0,j) = real(j*j1*totthin(ic))  ! Make sure you get the iteration number, not the data-point number
