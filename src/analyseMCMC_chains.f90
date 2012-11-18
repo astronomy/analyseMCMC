@@ -1166,6 +1166,7 @@ subroutine plot_Jump_sizes(exitcode)
   call pgsubp(panels(1),panels(2))
   
   ic = 1
+  xmin = 0.
   do j=1,nPlPar
      p = revID(plPars(j))
      if(p.eq.0) then

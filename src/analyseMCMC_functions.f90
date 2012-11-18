@@ -208,7 +208,7 @@ subroutine read_settingsfile()
   use SUFR_system, only: find_free_io_unit, quit_program_error
   
   use analysemcmc_settings, only: settingsfile
-  use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
+  use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
   use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plRhat,plotSky,plAnim,chainPlI,scLogLpl
@@ -342,7 +342,7 @@ end subroutine try_old_settings_file
 subroutine write_settingsfile()
   use SUFR_system, only: find_free_io_unit
   
-  use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChs,maxChLen,file,colour
+  use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
   use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plRhat,plotSky,plAnim,chainPlI,scLogLpl
