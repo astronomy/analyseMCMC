@@ -8,6 +8,7 @@
 ##  11/05/2012, AF: bzr -> git
 
 
+
 if [[ ${#} -ne 4 && ${#} -ne 5 ]]; then
     
     echo -e "\n  syntax:   code_version.sh  <CMake base dir>  <f90 output file>  <Fortran compiler name>  <Compiler flags>  [<PLPLOT>]\n"
