@@ -384,31 +384,32 @@ subroutine plotpdf2d(pID1,pID2,lbl)
         write(*,'(A,I5)')'  Error opening file '//trim(fname)//'.'
         cycle
      end if
-     read(10,'(5I6)')nplvar1,nplvar2,nchains,nbinx(f),nbiny(f) !Plot parameter 1,2, total number of chains, number of bins x,y
+     read(10,'(5I6)') nplvar1,nplvar2,nchains,nbinx(f),nbiny(f)  ! Plot parameter 1,2, total number of chains, number of bins x,y
      nplvar = nplvar2-nplvar1+1
      p12 = 0
      
      dop11: do p11=nplvar1,nplvar2-1
         do p22=p11+1,nplvar2
            p12 = p12+1
-           read(10,*,iostat=io)tmpstr
+           read(10,*,iostat=io) tmpstr
            if(io.ne.0) then
-              write(0,'(A)')'  End of file '//trim(fname)//' reached, parameter combination '//trim(parNames(pID1))//'-'// &
+              write(0,'(A)') '  End of file '//trim(fname)//' reached, parameter combination '//trim(parNames(pID1))//'-'// &
                    trim(parNames(pID2))//' not found,  skipping...'
               cycle dof
            end if
-           read(10,'(3I6)')ic,pID1a,pID2a !'Chain number and parameter ID 1,2'
-           read(10,'(2E15.7)')startval(f,p12,1,1:2) !'True and starting value p1'
-           read(10,'(2E15.7)')startval(f,p12,2,1:2) !True and starting value p2'
-           read(10,'(6E15.7)')stats(f,p12,1,1:6) !Stats: median, mean, absvar1, absvar2, stdev1, stdev2 for p1'
-           read(10,'(6E15.7)')stats(f,p12,2,1:6) !Stats: median, mean, absvar1, absvar2, stdev1, stdev2 for p2'
+           read(10,'(3I6)')    ic,pID1a,pID2a         ! 'Chain number and parameter ID 1,2'
+           read(10,'(2E15.7)') startval(f,p12,1,1:2)  ! 'True and starting value p1'
+           read(10,'(2E15.7)') startval(f,p12,2,1:2)  ! True and starting value p2'
+           read(10,'(6E15.7)') stats(f,p12,1,1:6)     ! Stats: median, mean, absvar1, absvar2, stdev1, stdev2 for p1'
+           read(10,'(6E15.7)') stats(f,p12,2,1:6)     ! Stats: median, mean, absvar1, absvar2, stdev1, stdev2 for p2'
+           
            ! The limits are NOT used as plot limits!!!:
-           read(10,'(5E15.7)')ranges(f,p12,1,1:5) !Ranges: lower,upper limit, centre, width, relative width for p1'
-           read(10,'(5E15.7)')ranges(f,p12,2,1:5) !Ranges: lower,upper limit, centre, width, relative width for p2'
-           read(10,'(4E15.7)')xmin1(f,p12,1),xmax1(f,p12,1),ymin1(f,p12,2),ymax1(f,p12,2) !'Xmin,Xmax,Ymin,Ymax of PDF'
-           read(10,'(6E15.7)')tr(f,p12,1:6) !'Tr'              
+           read(10,'(5E15.7)') ranges(f,p12,1,1:5)    ! Ranges: lower,upper limit, centre, width, relative width for p1'
+           read(10,'(5E15.7)') ranges(f,p12,2,1:5)    ! Ranges: lower,upper limit, centre, width, relative width for p2'
+           read(10,'(4E15.7)') xmin1(f,p12,1),xmax1(f,p12,1),ymin1(f,p12,2),ymax1(f,p12,2)  ! 'Xmin,Xmax,Ymin,Ymax of PDF'
+           read(10,'(6E15.7)') tr(f,p12,1:6)          ! 'Tr'              
            !print*,tr
-           read(10,*)tmpstr
+           read(10,*) tmpstr
            do bx=1,nbinx(f)+1
               do by=1,nbiny(f)
                  read(10,'(E15.7)',advance='no')z1(bx,by)
@@ -416,12 +417,12 @@ subroutine plotpdf2d(pID1,pID2,lbl)
               read(10,'(E15.7)')z1(bx,by)
            end do
            
-           if(pID1a.eq.pID1.and.pID2a.eq.pID2) then  !Found the desired parameter combination
+           if(pID1a.eq.pID1.and.pID2a.eq.pID2) then  ! Found the desired parameter combination
               pp12 = p12
               pp11 = pID1a
               pp22 = pID2a
               z(f,:,:) = z1(:,:)
-              cycle dop11
+              exit dop11
            end if
            
         end do !p22
