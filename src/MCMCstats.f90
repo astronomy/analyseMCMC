@@ -44,11 +44,11 @@ program mcmcstats
   
   integer :: npdf2d(nf1),nbin2dx(nf1),nbin2dy(nf1),pdfpar2dx(nf1,npar1),pdfpar2dy(nf1,npar1)
   
-  integer :: sym,ci,ci0,ls,ls0,p0,p1,p2,p3,p10,p20,p11,p22
+  integer :: sym,ci,ci0,ls,ls0,p0,p01,p02,p1,p2,p3,p10,p20,p11,p22
   real :: xmin,xmax,dx,ymin,ymax,dy,x0,y0,x1,y1,clr
   real :: par1,par2,par3
   
-  integer :: rel,nplpar,plpar1,plpar2,plpars(npar1),docycle
+  integer :: rel,nplpar,plpar1,plpar2,plpars(99),docycle
   real :: x,pi,d2r
   real :: papsize,paprat
   character :: plParNs(npar1)*(25)
@@ -67,6 +67,9 @@ program mcmcstats
   
   !ival0 = 0.90  ! 
   ival0 = 0.95450  ! "2 sigma"
+  
+  fonttype = 1  ! 1-"arial", 2-"roman"
+  
   
   if(plfile.eq.0) then
      papsize = 10.81  ! Screen size (Gentoo: 10.81, Fink: 16.4)
@@ -93,9 +96,8 @@ program mcmcstats
   
   
   ! Set parameter names:
-  fonttype = 1  ! 1-"arial", 2-"roman"
-  !call set_originalParameterNames()
-  call set_derivedParameterNames()
+  !call set_originalParameterNames()  ! Needs fonttype defined
+  call set_derivedParameterNames()  ! Needs fonttype defined
   
   
   letters = [character(len=1) :: 'a','b','c','d','e']
@@ -657,21 +659,24 @@ program mcmcstats
      plpars = 0
      !plParNs(1:18) = [character(len=25) :: 'Mc','eta','tc','dl','RA','dec','incl','phase','psi','spin1','th1','phi1', &
      !     'spin2','th2','phi2','M1','M2','Mtot']
-     plParNs(1:15) = [character(len=25) :: 'Mc','eta','tc','dl','RA','dec','incl','phase','psi','spin1','th1','phi1', &
-          'spin2','th2','phi2']
+     !plParNs(1:15) = [character(len=25) :: 'Mc','eta','tc','dl','RA','dec','incl','phase','psi','spin1','th1','phi1', &
+     !     'spin2','th2','phi2']
      plParNs(1:15) = [character(len=25) :: 'Mc','eta','spin1','th1','phi1','spin2','th2','phi2', &
           'tc','dl','RA','dec','incl','phase','psi']
      
+     nPlPar = 0
      do p1=1,npar1
         do p2=1,npar1
            if(trim(varNames(1,p1)).eq.trim(plParNs(p2)) .and. len_trim(plParNs(p2)).ne.0.and. len_trim(plParNs(p2)).ne.25) then
               !print*,trim(varNames(1,p1)),trim(plParNs(p2)),len_trim(plParNs(p2))
-              plPars(p1) = 1
+              plPars(p1) = p2
+              nPlPar = nPlPar + 1
+              !print*,nPlPar,p1,p2,varNames(1,p1),plParNs(p2)
            end if
         end do
      end do
      
-     nplpar = sum(plpars)
+     !nplpar = sum(plpars)
      !nplpar = plpar2 - plpar1 + 1
      
      !call pgsubp(4,3)
@@ -681,7 +686,7 @@ program mcmcstats
      call pgswin(-1.,real(nplpar+1),real(nplpar+1),-1.)
      call pgslw(3)
      call pgsch(sqrt(12./real(nplpar)))
-     call pgscf(1)
+     call pgscf(fonttype)
      !if(plfile.ge.2) then
      !   call pgsch(1.)
      !end if
@@ -690,13 +695,13 @@ program mcmcstats
      
      call pgsci(1)
      
-     print*,parID(:)
-     print*,revID(:)
-     
      dx = 6./real(nplpar)
      p11 = 0
-     do p=plpar1,plpar2
-        if(plpars(p).eq.1) then
+     do p0=1,nPlPar !  plpar1,plpar2
+        do p=1,nPlPar
+           if(plPars(p).eq.p0) exit
+        end do
+        if(plPars(p).ne.0) then
            p11 = p11+1
         else
            cycle
@@ -715,7 +720,13 @@ program mcmcstats
      
      do fi=1,nf
         p11 = 0
-        do p1=plpar1,plpar2
+        !do p1=plpar1,plpar2
+        do p01=1,nPlPar !  plpar1,plpar2
+           do p1=1,nPlPar
+              if(plPars(p1).eq.p01) exit
+           end do
+           !p1 = plPars(p01)
+           
            if(plpars(p1).eq.0) then
               cycle
            else
@@ -723,7 +734,13 @@ program mcmcstats
            end if
            
            p22 = 0
-           do p2=plpar1,plpar2
+           !do p2=plpar1,plpar2
+           do p02=1,nPlPar !  plpar1,plpar2
+              do p2=1,nPlPar
+                 if(plPars(p2).eq.p02) exit
+              end do
+              !p2 = plPars(p02)
+
               if(plpars(p2).eq.0) then
                  cycle
               else
