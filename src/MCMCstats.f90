@@ -683,27 +683,17 @@ program mcmcstats
            do p1=1,nPlPar
               if(plPars(p1).eq.p01) exit
            end do
-           
-           if(plpars(p1).eq.0) then
-              cycle
-           else
-              p11 = p11+1
-           end if
+           p11 = p11+1
            
            p22 = 0
            do p02=1,nPlPar
               do p2=1,nPlPar
                  if(plPars(p2).eq.p02) exit
               end do
+              p22 = p22+1
               
-              if(plpars(p2).eq.0) then
-                 cycle
-              else
-                 p22 = p22+1
-              end if
-              
-              if(fi.eq.1.and.p2.ge.p1) cycle  ! Use upper triangle
-              if(fi.eq.2.and.p2.le.p1) cycle  ! Use lower triangle
+              if(fi.eq.1.and.p22.ge.p11) cycle  ! Use upper triangle
+              if(fi.eq.2.and.p22.le.p11) cycle  ! Use lower triangle
               
               y1 = corrs(fi,p2,p1)
               if(fi.eq.2) y1 = corrs(fi,p1,p2)
