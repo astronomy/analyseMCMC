@@ -32,7 +32,7 @@ program mcmcstats
   
   integer :: totiter(nf1),totlines(nf1),totpts(nf1),totburn(nf1),totchains(nf1),usedchains(nf1),ndet(nf1),seed(nf1)
   integer :: detnr(nf1,nifo1),samplerate(nf1,nifo1),samplesize(nf1,nifo1),FTsize(nf1,nifo1)
-  integer :: npar(nf1),ncol(nf1),nival(nf1),tbase(nf1), parID(nf1,npar1)
+  integer :: npar(nf1),ncol(nf1),nival(nf1),tbase(nf1), parID(npar1), revID(99)
   real :: nullh(nf1),snr(nf1,nifo1),totsnr(nf1)
   real :: flow(nf1,nifo1),fhigh(nf1,nifo1),t_before(nf1,nifo1),t_after(nf1,nifo1),FTstart(nf1,nifo1),deltaFT(nf1,nifo1)
   real :: model(nf1,npar1),median(nf1,npar1),mean(nf1,npar1),stdev1(nf1,npar1),stdev2(nf1,npar1),absvar1(nf1,npar1)
@@ -163,10 +163,15 @@ program mcmcstats
         
         ! Get parameter IDs:
         do p1=1,99
-           if(trim(parNames(p1)).eq.varnames(fi,p)) parID(fi,p) = p1
+           if(trim(parNames(p1)).eq.varnames(fi,p)) parID(p) = p1
+        end do
+     end do  ! p
+     
+     do p=1,99
+        do p1=1,npar(fi)
+           if(parID(p1).eq.p) revID(p) = p1
         end do
      end do
-     
      
      ! Read correlations:
      read(o,*) bla
@@ -357,7 +362,7 @@ program mcmcstats
         call pgsls(1)
         call pgsch(2.)
         !call pgmtxt('T',1.,0.5,0.5,trim(varnames(1,p)) )
-        call pgmtxt('T',1.,0.5,0.5,trim(pgParNs(parID(1,p))) )
+        call pgmtxt('T',1.,0.5,0.5,trim(pgParNs(parID(p))) )
         !write(6,*)''
      end do
      
@@ -595,7 +600,7 @@ program mcmcstats
            call pgsls(1)
            call pgsch(2.)
            !call pgmtxt('T',1.,0.5,0.5,trim(varnames(1,p)) )
-           call pgmtxt('T',1.,0.5,0.5,trim(pgParNs(parID(1,p))) )
+           call pgmtxt('T',1.,0.5,0.5,trim(pgParNs(parID(p))) )
            !write(6,*)''
         end do
         
@@ -654,6 +659,9 @@ program mcmcstats
      !     'spin2','th2','phi2','M1','M2','Mtot']
      plParNs(1:15) = [character(len=25) :: 'Mc','eta','tc','dl','RA','dec','incl','phase','psi','spin1','th1','phi1', &
           'spin2','th2','phi2']
+     plParNs(1:15) = [character(len=25) :: 'Mc','eta','spin1','th1','phi1','spin2','th2','phi2', &
+          'tc','dl','RA','dec','incl','phase','psi']
+     
      do p1=1,npar1
         do p2=1,npar1
            if(trim(varNames(1,p1)).eq.trim(plParNs(p2)) .and. len_trim(plParNs(p2)).ne.0.and. len_trim(plParNs(p2)).ne.25) then
@@ -665,8 +673,6 @@ program mcmcstats
      
      nplpar = sum(plpars)
      !nplpar = plpar2 - plpar1 + 1
-     
-     write(*,'(//,I5,//)') nplpar
      
      !call pgsubp(4,3)
      call pgscr(3,0.,0.5,0.)
@@ -684,6 +690,9 @@ program mcmcstats
      
      call pgsci(1)
      
+     print*,parID(:)
+     print*,revID(:)
+     
      dx = 6./real(nplpar)
      p11 = 0
      do p=plpar1,plpar2
@@ -692,15 +701,16 @@ program mcmcstats
         else
            cycle
         end if
-        !call pgptxt(real(p)-0.5,-0.5,0.,0.5,trim(pgParNss(parID(1,p))))
-        !if(plpar2.eq.12) call pgptxt(real(p)-0.5,12.5,0.,0.5,trim(pgParNss(parID(1,p))))
-        !call pgptxt(-0.5,real(p)-0.3,0.,0.5,trim(pgParNss(parID(1,p))))
-        !if(plpar2.eq.12) call pgptxt(12.5,real(p)-0.3,0.,0.5,trim(pgParNss(parID(1,p))))
         
-        call pgptxt(real(p11)-0.5,-dx*0.5-0.0167*nplpar,0.,0.5,trim(pgParNss(parID(1,p))))  ! At top
-        call pgptxt(-dx*0.5-0.0167*nplpar,real(p11)-0.5+0.0167*nplpar,0.,0.5,trim(pgParNss(parID(1,p))))   ! At left
-        !if(plpar2.eq.12) call pgptxt(real(p11)-dx,real(nplpar)+dx,0.,0.5,trim(pgParNss(parID(1,p))))
-        !if(plpar2.eq.12) call pgptxt(real(nplpar)+dx,real(p11)-dx*0.6,0.,0.5,trim(pgParNss(parID(1,p))))
+        !call pgptxt(real(p)-0.5,-0.5,0.,0.5,trim(pgParNss(parID(p))))
+        !if(plpar2.eq.12) call pgptxt(real(p)-0.5,12.5,0.,0.5,trim(pgParNss(parID(p))))
+        !call pgptxt(-0.5,real(p)-0.3,0.,0.5,trim(pgParNss(parID(p))))
+        !if(plpar2.eq.12) call pgptxt(12.5,real(p)-0.3,0.,0.5,trim(pgParNss(parID(p))))
+        
+        call pgptxt(real(p11)-0.5,-dx*0.5-0.0167*nplpar,0.,0.5,trim(pgParNss(parID(p))))  ! At top
+        call pgptxt(-dx*0.5-0.0167*nplpar,real(p11)-0.5+0.0167*nplpar,0.,0.5,trim(pgParNss(parID(p))))   ! At left
+        !if(plpar2.eq.12) call pgptxt(real(p11)-dx,real(nplpar)+dx,0.,0.5,trim(pgParNss(parID(p))))
+        !if(plpar2.eq.12) call pgptxt(real(nplpar)+dx,real(p11)-dx*0.6,0.,0.5,trim(pgParNss(parID(p))))
      end do
      
      do fi=1,nf
@@ -768,7 +778,7 @@ program mcmcstats
      !call pgsls(1)
      !call pgsch(2.)
      !!call pgmtxt('T',1.,0.5,0.5,trim(varnames(1,p)) )
-     !call pgmtxt('T',1.,0.5,0.5,trim(pgParNs(parID(1,p))) )
+     !call pgmtxt('T',1.,0.5,0.5,trim(pgParNs(parID(p))) )
      !!write(6,*)''
      
      !call pgscr(14,0.7,0.7,0.7)
