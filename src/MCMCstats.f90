@@ -21,23 +21,26 @@
 
 !***********************************************************************************************************************************
 program mcmcstats
+  use analysemcmc_settings, only: fonttype
+  use general_data, only: parNames, pgParNs,pgParNss
+  
   implicit none
-  integer, parameter :: nf1=100,nifo1=3,npar1=15,nival1=5
+  integer, parameter :: nf1=100,nifo1=3,npar1=22,nival1=5
   integer :: i,j,iv,iv1,iv2,fi,nf,o,p,io,pgopen,system
   integer :: prinput,plfile
   character :: infile*(99),bla,str*(99),output*(1000)
   
   integer :: totiter(nf1),totlines(nf1),totpts(nf1),totburn(nf1),totchains(nf1),usedchains(nf1),ndet(nf1),seed(nf1)
   integer :: detnr(nf1,nifo1),samplerate(nf1,nifo1),samplesize(nf1,nifo1),FTsize(nf1,nifo1)
-  integer :: npar(nf1),ncol(nf1),nival(nf1),tbase(nf1)
+  integer :: npar(nf1),ncol(nf1),nival(nf1),tbase(nf1), parID(nf1,npar1)
   real :: nullh(nf1),snr(nf1,nifo1),totsnr(nf1)
   real :: flow(nf1,nifo1),fhigh(nf1,nifo1),t_before(nf1,nifo1),t_after(nf1,nifo1),FTstart(nf1,nifo1),deltaFT(nf1,nifo1)
   real :: model(nf1,npar1),median(nf1,npar1),mean(nf1,npar1),stdev1(nf1,npar1),stdev2(nf1,npar1),absvar1(nf1,npar1)
   real :: absvar2(nf1,npar1),corrs(nf1,npar1,1:npar1)
-  real :: ivals(nf1,1:nival1),ivlcntr(nf1,npar1,nival1),ivldelta(nf1,npar1,nival1),ivlinrnge(nf1,npar1,nival1)
+  real :: ival0,ivals(nf1,1:nival1),ivlcntr(nf1,npar1,nival1),ivldelta(nf1,npar1,nival1),ivlinrnge(nf1,npar1,nival1)
   real :: ivldelta2d(nf1,npar1,nival1)
   character :: detname(nf1,nifo1)*(25),varnames(nf1,npar1)*(25),outputnames(nf1)*(99),ivlok(nf1,npar1,nival1)*(3)
-  character :: ivlok2d(nf1,npar1,nival1)*(3),pgvarns(1:npar1)*(99),pgvarnss(1:npar1)*(99), letters(5)
+  character :: ivlok2d(nf1,npar1,nival1)*(3),letters(5)
   
   integer :: npdf2d(nf1),nbin2dx(nf1),nbin2dy(nf1),pdfpar2dx(nf1,npar1),pdfpar2dy(nf1,npar1)
   
@@ -45,22 +48,25 @@ program mcmcstats
   real :: xmin,xmax,dx,ymin,ymax,dy,x0,y0,x1,y1,clr
   real :: par1,par2,par3
   
-  integer :: rel,nplpar,plpar1,plpar2,plpars(20),docycle
+  integer :: rel,nplpar,plpar1,plpar2,plpars(npar1),docycle
   real :: x,pi,d2r
   real :: papsize,paprat
+  character :: plParNs(npar1)*(25)
   
   integer :: plotdeltas,plotsnrs,plotcorrelations,plotcorrmatrix,printdeltastable
   
   
-  prinput = 0  ! Print input to screen: 0-no, 1-yes
+  prinput = 1  ! Print input to screen: 0-no, 1-yes
   plfile  = 2  ! Plot to file: 0-no (screen), 1-png, 2-eps, 3-pdf, 4-eps & pdf
   
   plotdeltas = 0        ! 0 or 1x
   plotsnrs = 0          ! 0 or 1
-  plotcorrelations = 0  ! 0 or 1
-  plotcorrmatrix = 0    ! 0-2; 2: swap rows/columns
-  printdeltastable = 1  ! 0 or 1,2
+  plotcorrelations = 1  ! 0 or 1
+  plotcorrmatrix = 1    ! 0-2; 2: swap rows/columns
+  printdeltastable = 0  ! 0 or 1,2
   
+  !ival0 = 0.90  ! 
+  ival0 = 0.95450  ! "2 sigma"
   
   if(plfile.eq.0) then
      papsize = 10.81  ! Screen size (Gentoo: 10.81, Fink: 16.4)
@@ -85,16 +91,12 @@ program mcmcstats
   
   ivlok = ' y '
   
-  pgvarns(1:14)  = [character(len=99) :: 'M\dc\u (M\d\(2281)\u) ','\(2133)               ','t\dc\u (s)            ',  &
-       'd\dL\u (Mpc)          ','a\dspin\u             ','\(2134)\dSL\u(\(2218))','R.A. (h)              ', &
-       'Dec. (\(2218))        ', '\(2147)\dc\u (\(2218))','\(2134)\dJ\u (\(2218))','\(2147)\dJ\u (\(2218))', &
-       '\(2127)\dc\u (\(2218))     ','M\d1\u (M\d\(2281)\u) ','M\d2\u(M\d\(2281)\u)  ']
-  pgvarnss(1:14)  = [character(len=99) :: 'M\dc\u','\(2133)','t\dc\u','d\dL\u','a\dspin\u','\(2134)\dSL\u','R.A.','Dec.', &
-       '\(2147)\dc\u',  '\(2134)\dJ0\u','\(2147)\dJ0\u','\(2127)\dc\u','M\d1\u','M\d2\u']
-  ! Include units
-  !pgvarnss(1:14)  = [character(len=99) :: 'M\dc\u (M\d\(2281)\u)','\(2133)','t\dc\u (s)','d\dL\u (Mpc)','a\dspin\u', &
-  ! '\(2134)\dSL\u (\(2218))','R.A. (h)','Dec. (\(2218))','\(2147)\dc\u (\(2218))',  &
-  !     '\(2134)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','\(2127) (\(2218))','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)']
+  
+  ! Set parameter names:
+  fonttype = 1  ! 1-"arial", 2-"roman"
+  !call set_originalParameterNames()
+  call set_derivedParameterNames()
+  
   
   letters = [character(len=1) :: 'a','b','c','d','e']
   
@@ -146,7 +148,7 @@ program mcmcstats
      if(prinput.eq.1) write(6,'(A,I12)')' t0:',tbase(fi)
      
      
-     ! Read correlations:
+     ! Read basic statistics:
      read(o,*) bla
      read(o,*) bla,bla,npar(fi),ncol(fi)
      if(prinput.eq.1) write(6,*)''
@@ -154,10 +156,15 @@ program mcmcstats
      read(o,*) bla  ! Statistics headers
      if(prinput.eq.1) write(6,'(A)')'  param.       model      median        mean      stdev1      stdev2      abvar1      abvar2'
      do p=1,npar(fi)
-        read(o,'(A8,7F12.6)')varnames(fi,p),model(fi,p),median(fi,p),mean(fi,p),stdev1(fi,p),stdev2(fi,p),absvar1(fi,p), &
+        read(o,'(A8,7F12.6)') varnames(fi,p),model(fi,p),median(fi,p),mean(fi,p),stdev1(fi,p),stdev2(fi,p),absvar1(fi,p), &
              absvar2(fi,p)
-        if(prinput.eq.1) write(6,'(A8,7F12.6)')trim(varnames(fi,p)),model(fi,p),median(fi,p),mean(fi,p),stdev1(fi,p),stdev2(fi,p), &
-             absvar1(fi,p),absvar2(fi,p)
+        if(prinput.eq.1) write(6,'(A8,7F12.6)') trim(varnames(fi,p)),model(fi,p),median(fi,p),mean(fi,p), &
+             stdev1(fi,p),stdev2(fi,p), absvar1(fi,p),absvar2(fi,p)
+        
+        ! Get parameter IDs:
+        do p1=1,99
+           if(trim(parNames(p1)).eq.varnames(fi,p)) parID(fi,p) = p1
+        end do
      end do
      
      
@@ -182,7 +189,7 @@ program mcmcstats
      if(prinput.eq.1) write(6,'(A)')''
      read(o,*) bla,nival(fi)
      if(prinput.eq.1) write(6,'(A,I3)')' Nival: ',nival(fi)
-     nival(fi) = nival(fi) + 1  ! Since 100% interval is not counted in AnalyseMCMC
+     nival(fi) = nival(fi)   !+ 1  ! Since 100% interval is not counted in AnalyseMCMC
      read(o,*) bla,ivals(fi,1:nival(fi))
      if(prinput.eq.1) write(6,'(A22,10(F20.5,14x))')'Interval:',ivals(fi,1:nival(fi))
      
@@ -350,7 +357,7 @@ program mcmcstats
         call pgsls(1)
         call pgsch(2.)
         !call pgmtxt('T',1.,0.5,0.5,trim(varnames(1,p)) )
-        call pgmtxt('T',1.,0.5,0.5,trim(pgvarns(p)) )
+        call pgmtxt('T',1.,0.5,0.5,trim(pgParNs(parID(1,p))) )
         !write(6,*)''
      end do
      
@@ -588,7 +595,7 @@ program mcmcstats
            call pgsls(1)
            call pgsch(2.)
            !call pgmtxt('T',1.,0.5,0.5,trim(varnames(1,p)) )
-           call pgmtxt('T',1.,0.5,0.5,trim(pgvarns(p)) )
+           call pgmtxt('T',1.,0.5,0.5,trim(pgParNs(parID(1,p))) )
            !write(6,*)''
         end do
         
@@ -637,12 +644,29 @@ program mcmcstats
      
      plpars = 0
      plpar1 = 1
-     plpar2 = 12
-     plpars(plpar1:plpar2) = (/1,1,1,1,1,1,1,1,1,1,1,1/)
-     plpars(plpar1:plpar2) = (/1,1,0,0,1,1,1,1,0,0,0,0/)
+     plpar2 = maxval(npar)  !12
+     plpars = 1
+     !plpars(plpar1:plpar2) = (/1,1,1,1,1,1,1,1,1,1,1,1/)
+     !plpars(plpar1:plpar2) = (/1,1,0,0,1,1,1,1,0,0,0,0/)
+     
+     plpars = 0
+     !plParNs(1:18) = [character(len=25) :: 'Mc','eta','tc','dl','RA','dec','incl','phase','psi','spin1','th1','phi1', &
+     !     'spin2','th2','phi2','M1','M2','Mtot']
+     plParNs(1:15) = [character(len=25) :: 'Mc','eta','tc','dl','RA','dec','incl','phase','psi','spin1','th1','phi1', &
+          'spin2','th2','phi2']
+     do p1=1,npar1
+        do p2=1,npar1
+           if(trim(varNames(1,p1)).eq.trim(plParNs(p2)) .and. len_trim(plParNs(p2)).ne.0.and. len_trim(plParNs(p2)).ne.25) then
+              !print*,trim(varNames(1,p1)),trim(plParNs(p2)),len_trim(plParNs(p2))
+              plPars(p1) = 1
+           end if
+        end do
+     end do
+     
      nplpar = sum(plpars)
      !nplpar = plpar2 - plpar1 + 1
      
+     write(*,'(//,I5,//)') nplpar
      
      !call pgsubp(4,3)
      call pgscr(3,0.,0.5,0.)
@@ -667,15 +691,15 @@ program mcmcstats
         else
            cycle
         end if
-        !call pgptxt(real(p)-0.5,-0.5,0.,0.5,trim(pgvarnss(p)))
-        !if(plpar2.eq.12) call pgptxt(real(p)-0.5,12.5,0.,0.5,trim(pgvarnss(p)))
-        !call pgptxt(-0.5,real(p)-0.3,0.,0.5,trim(pgvarnss(p)))
-        !if(plpar2.eq.12) call pgptxt(12.5,real(p)-0.3,0.,0.5,trim(pgvarnss(p)))
+        !call pgptxt(real(p)-0.5,-0.5,0.,0.5,trim(pgParNss(parID(1,p))))
+        !if(plpar2.eq.12) call pgptxt(real(p)-0.5,12.5,0.,0.5,trim(pgParNss(parID(1,p))))
+        !call pgptxt(-0.5,real(p)-0.3,0.,0.5,trim(pgParNss(parID(1,p))))
+        !if(plpar2.eq.12) call pgptxt(12.5,real(p)-0.3,0.,0.5,trim(pgParNss(parID(1,p))))
         
-        call pgptxt(real(p11)-0.5,-dx*0.5-0.0167*nplpar,0.,0.5,trim(pgvarnss(p)))  ! At top
-        call pgptxt(-dx*0.5-0.0167*nplpar,real(p11)-0.5+0.0167*nplpar,0.,0.5,trim(pgvarnss(p)))   ! At left
-        !if(plpar2.eq.12) call pgptxt(real(p11)-dx,real(nplpar)+dx,0.,0.5,trim(pgvarnss(p)))
-        !if(plpar2.eq.12) call pgptxt(real(nplpar)+dx,real(p11)-dx*0.6,0.,0.5,trim(pgvarnss(p)))
+        call pgptxt(real(p11)-0.5,-dx*0.5-0.0167*nplpar,0.,0.5,trim(pgParNss(parID(1,p))))  ! At top
+        call pgptxt(-dx*0.5-0.0167*nplpar,real(p11)-0.5+0.0167*nplpar,0.,0.5,trim(pgParNss(parID(1,p))))   ! At left
+        !if(plpar2.eq.12) call pgptxt(real(p11)-dx,real(nplpar)+dx,0.,0.5,trim(pgParNss(parID(1,p))))
+        !if(plpar2.eq.12) call pgptxt(real(nplpar)+dx,real(p11)-dx*0.6,0.,0.5,trim(pgParNss(parID(1,p))))
      end do
      
      do fi=1,nf
@@ -733,16 +757,16 @@ program mcmcstats
               call pgscr(ci,clr,clr,clr)
               !call pgptxt(real(p1)-0.5,real(p2)-0.3,0.,0.5,trim(str))
               call pgptxt(real(p11)-0.5,real(p22)-0.5+0.0167*nplpar,0.,0.5,trim(str))
-           end do
-        end do
-     end do
+           end do  ! p2
+        end do  ! p1
+     end do  ! fi
      
      call pgsci(1)
      call pgslw(1)
      !call pgsls(1)
      !call pgsch(2.)
      !!call pgmtxt('T',1.,0.5,0.5,trim(varnames(1,p)) )
-     !call pgmtxt('T',1.,0.5,0.5,trim(pgvarns(p)) )
+     !call pgmtxt('T',1.,0.5,0.5,trim(pgParNs(parID(1,p))) )
      !!write(6,*)''
      
      !call pgscr(14,0.7,0.7,0.7)
@@ -787,7 +811,7 @@ program mcmcstats
      do fi=1,nf
         iv = 0
         do i=1,nival(fi)
-           if(abs(ivals(fi,i)-0.90).lt.1.e-5) iv = i
+           if(abs(ivals(fi,i)-ival0).lt.1.e-5) iv = i
         end do
         if(iv.eq.0) then
            write(6,'(A)')'  Interval not found, file '//trim(outputnames(fi))
@@ -982,7 +1006,7 @@ program mcmcstats
         do fi=1,nf
            iv = 0
            do i=1,nival(fi)
-              if(abs(ivals(fi,i)-0.90).lt.1.e-5) iv = i
+              if(abs(ivals(fi,i)-ival0).lt.1.e-5) iv = i
            end do
            if(iv.eq.0) then
               write(6,'(A)')'  Interval not found, file '//trim(outputnames(fi))

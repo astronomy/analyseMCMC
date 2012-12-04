@@ -31,7 +31,7 @@ RUNCHECK = yes#           # to compile with runtime-check options
 #OPTIMISE = yes#           # to compile with some extra run-time optimisation (sets RUNCHECK=no)
 F2003 = yes#              # compile with Fortran 2003 standard
 #STATIC = yes#              # link statically
-PLPLOT = yes#             # use PLplot instead of PGPlot
+#PLPLOT = yes#             # use PLplot instead of PGPlot
 
 
 
@@ -269,12 +269,12 @@ endif
 
 
 
-STDOBJ = $(OBJDIR)/analyseMCMC_modules.o $(OBJDIR)/code_version.o
+STDOBJ = $(OBJDIR)/analyseMCMC_modules.o $(OBJDIR)/code_version.o $(OBJDIR)/analyseMCMC_textroutines.o
 ifeq ($(PLPLOT),yes)
   STDOBJ += $(OBJDIR)/PG2PLplot.o
 endif
 
-ANALYSEMCMC_OBJ =  $(OBJDIR)/analyseMCMC_functions.o $(OBJDIR)/analyseMCMC_textroutines.o 
+ANALYSEMCMC_OBJ =  $(OBJDIR)/analyseMCMC_functions.o
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_stats.o $(OBJDIR)/analyseMCMC_tailored.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_chains.o $(OBJDIR)/analyseMCMC_1dpdfs.o 
 ANALYSEMCMC_OBJ += $(OBJDIR)/analyseMCMC_2dpdf_skymap.o $(OBJDIR)/analyseMCMC_2dpdf_routines.o $(OBJDIR)/analyseMCMC_2dpdfs.o 
@@ -334,7 +334,7 @@ plotSpectrum: $(STDOBJ) $(OBJDIR)/plotSpectrum.o
 
 #$(SRCDIR)/code_version.f90: .svn/entries   #.svn/entries changes when committing/updating
 $(SRCDIR)/code_version.f90: code_version    # regenerate code_version.f90; code_version is PHONY and always out-of-date
-	@. ./code_version.sh src/code_version.f90 $(COMP) $(OPT) $(PLPLOT)
+	@. ./code_version.sh . src/code_version.f90 $(COMP) $(OPT) $(PLPLOT)
 
 
 dirs:
