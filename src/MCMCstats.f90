@@ -48,7 +48,7 @@ program mcmcstats
   real :: xmin,xmax,dx,ymin,ymax,dy,x0,y0,x1,y1,clr
   real :: par1,par2,par3
   
-  integer :: rel,nplpar,plpar1,plpar2,plpars(99),docycle
+  integer :: rel,nplpar,plpars(99),docycle
   real :: x,pi,d2r
   real :: papsize,paprat
   character :: plParNs(npar1)*(25)
@@ -304,8 +304,6 @@ program mcmcstats
         do fi=1,nf
            ymin = min(ymin,ivldelta(fi,p,iv))
            ymax = max(ymax,ivldelta(fi,p,iv))
-           !ymin = min(ymin,log10(ivldelta(fi,p,iv)+1.e-30))
-           !ymax = max(ymax,log10(ivldelta(fi,p,iv)+1.e-30))
         end do
         ymin = 0.  ! Only in linear
         dy = abs(ymax-ymin)*0.1
@@ -342,13 +340,11 @@ program mcmcstats
                     if(p2.eq.55) ls = 2
                     x1 = model(fi,5)
                     y1 = ivldelta(fi,p,iv)
-                    !y1 = log10(ivldelta(fi,p,iv)+1.e-30)
                     call pgpoint(1,x1,y1,sym)
                     if(ci.eq.ci0.and.ls.eq.ls0) then
                        call pgsls(ls)
                        !call pgline(2,(/x0,x1/),(/y0,y1/))
                     end if
-                    !print*,p,fi,model(fi,5),ivldelta(fi,p,iv)
                     x0  = x1
                     y0  = y1
                     ci0 = ci
@@ -372,13 +368,10 @@ program mcmcstats
      call pgend
      
      if(plfile.eq.1) then
-        !i = system('convert -depth 8 deltas.ppm  '//trim(outputname)//'__deltas.png')
         i = system('convert -depth 8 deltas.ppm deltas.png')
         i = system('rm -f deltas.ppm')
      end if
      if(plfile.gt.2) then
-        !i = system('eps2pdf deltas.eps  -o '//trim(outputname)//'__deltas.pdf   >& /dev/null')
-        !i = system('mv -f deltas.eps '//trim(outputname)//'__deltas.eps')
         i = system('eps2pdf deltas.eps  -o deltas.pdf   >& /dev/null')
         if(plfile.eq.3) i = system('rm -f detas.eps')
      end if
@@ -395,7 +388,6 @@ program mcmcstats
   !*********************************************************************************************************************************
   ! Plot SNRs:
   if(plotsnrs.eq.1.and.nf.gt.2) then
-     !write(6,*)''
      write(6,'(A)')' Plotting SNRs...'
      if(plfile.eq.0) then
         io = pgopen('13/xs')
@@ -410,11 +402,9 @@ program mcmcstats
      call pgsch(1.5)
      call pgpap(papsize,paprat)
      
-     !call pgsubp(4,3)
      call pgscr(3,0.,0.5,0.)
      
      
-     !call pgpage
      call pgsch(2.)
      ci = 1
      ci0 = ci+1
@@ -466,7 +456,7 @@ program mcmcstats
                     call pgsls(ls)
                     call pgline(2,(/x0,x1/),(/y0,y1/))
                  end if
-                 !print*,p,fi,model(fi,5),ivldelta(fi,p,iv)
+                 
                  x0  = x1
                  y0  = y1
                  ci0 = ci
@@ -482,19 +472,15 @@ program mcmcstats
      call pgsls(1)
      call pgsch(2.)
      call pgmtxt('T',1.,0.5,0.5,'SNR' )
-     !write(6,*)''
      
      
      call pgend
      
      if(plfile.eq.1) then
-        !i = system('convert -depth 8 snrs.ppm  '//trim(outputname)//'__snrs.png')
         i = system('convert -depth 8 snrs.ppm snrs.png')
         i = system('rm -f snrs.ppm')
      end if
      if(plfile.gt.2) then
-        !i = system('eps2pdf snrs.eps  -o '//trim(outputname)//'__snrs.pdf   >& /dev/null')
-        !i = system('mv -f snrs.eps '//trim(outputname)//'__snrs.eps')
         i = system('eps2pdf snrs.eps  -o snrs.pdf   >& /dev/null')
         if(plfile.eq.3) i = system('rm -f snrs.eps')
      end if
@@ -511,7 +497,6 @@ program mcmcstats
   !*********************************************************************************************************************************
   ! Plot correlations:
   if(plotcorrelations.eq.1.and.nf.gt.2) then
-     !write(6,*)''
      write(6,'(A)')' Plotting correlations...'
      
      do p0 = 1,12
@@ -610,13 +595,10 @@ program mcmcstats
         call pgend
         
         if(plfile.eq.1) then
-           !i = system('convert -depth 8 corrs.ppm  '//trim(outputname)//'__corrs.png')
            i = system('convert -depth 8 corrs.ppm corrs.png')
            i = system('rm -f corrs.ppm')
         end if
         if(plfile.ge.2) then
-           !i = system('eps2pdf corrs.eps  -o '//trim(outputname)//'__corrs.pdf   >& /dev/null')
-           !i = system('mv -f corrs.eps '//trim(outputname)//'__corrs.eps')
            write(str,'(I2.2)')p0
            if(plfile.gt.2) i = system('eps2pdf corrs.eps  -o corrs_'//trim(str)//'.pdf   >& /dev/null')
            if(plfile.eq.2.or.plfile.eq.4) i = system('mv -f corrs.eps  corrs_'//trim(str)//'.eps')
@@ -634,7 +616,6 @@ program mcmcstats
   !*********************************************************************************************************************************
   ! Plot correlation matrix:
   if(plotcorrmatrix.eq.1.and.nf.le.2) then
-     !write(6,*)''
      write(6,'(A)')' Plotting correlation matrix...'
      
      if(plfile.eq.0) then
@@ -648,13 +629,6 @@ program mcmcstats
         stop
      end if
      call pgpap(papsize,paprat)
-     
-     plpars = 0
-     plpar1 = 1
-     plpar2 = maxval(npar)  !12
-     plpars = 1
-     !plpars(plpar1:plpar2) = (/1,1,1,1,1,1,1,1,1,1,1,1/)
-     !plpars(plpar1:plpar2) = (/1,1,0,0,1,1,1,1,0,0,0,0/)
      
      plpars = 0
      !plParNs(1:18) = [character(len=25) :: 'Mc','eta','tc','dl','RA','dec','incl','phase','psi','spin1','th1','phi1', &
@@ -676,20 +650,12 @@ program mcmcstats
         end do
      end do
      
-     !nplpar = sum(plpars)
-     !nplpar = plpar2 - plpar1 + 1
-     
-     !call pgsubp(4,3)
      call pgscr(3,0.,0.5,0.)
      call pgsvp(0.,1.0,0.,1.0)
-     !call pgswin(-1.,13.,13.,-1.)
      call pgswin(-1.,real(nplpar+1),real(nplpar+1),-1.)
      call pgslw(3)
      call pgsch(sqrt(12./real(nplpar)))
      call pgscf(fonttype)
-     !if(plfile.ge.2) then
-     !   call pgsch(1.)
-     !end if
      
      ci = 20
      
@@ -697,7 +663,7 @@ program mcmcstats
      
      dx = 6./real(nplpar)
      p11 = 0
-     do p0=1,nPlPar !  plpar1,plpar2
+     do p0=1,nPlPar
         do p=1,nPlPar
            if(plPars(p).eq.p0) exit
         end do
@@ -707,25 +673,16 @@ program mcmcstats
            cycle
         end if
         
-        !call pgptxt(real(p)-0.5,-0.5,0.,0.5,trim(pgParNss(parID(p))))
-        !if(plpar2.eq.12) call pgptxt(real(p)-0.5,12.5,0.,0.5,trim(pgParNss(parID(p))))
-        !call pgptxt(-0.5,real(p)-0.3,0.,0.5,trim(pgParNss(parID(p))))
-        !if(plpar2.eq.12) call pgptxt(12.5,real(p)-0.3,0.,0.5,trim(pgParNss(parID(p))))
-        
         call pgptxt(real(p11)-0.5,-dx*0.5-0.0167*nplpar,0.,0.5,trim(pgParNss(parID(p))))  ! At top
         call pgptxt(-dx*0.5-0.0167*nplpar,real(p11)-0.5+0.0167*nplpar,0.,0.5,trim(pgParNss(parID(p))))   ! At left
-        !if(plpar2.eq.12) call pgptxt(real(p11)-dx,real(nplpar)+dx,0.,0.5,trim(pgParNss(parID(p))))
-        !if(plpar2.eq.12) call pgptxt(real(nplpar)+dx,real(p11)-dx*0.6,0.,0.5,trim(pgParNss(parID(p))))
      end do
      
      do fi=1,nf
         p11 = 0
-        !do p1=plpar1,plpar2
-        do p01=1,nPlPar !  plpar1,plpar2
+        do p01=1,nPlPar
            do p1=1,nPlPar
               if(plPars(p1).eq.p01) exit
            end do
-           !p1 = plPars(p01)
            
            if(plpars(p1).eq.0) then
               cycle
@@ -734,13 +691,11 @@ program mcmcstats
            end if
            
            p22 = 0
-           !do p2=plpar1,plpar2
-           do p02=1,nPlPar !  plpar1,plpar2
+           do p02=1,nPlPar
               do p2=1,nPlPar
                  if(plPars(p2).eq.p02) exit
               end do
-              !p2 = plPars(p02)
-
+              
               if(plpars(p2).eq.0) then
                  cycle
               else
@@ -749,14 +704,10 @@ program mcmcstats
               
               if(fi.eq.1.and.p2.ge.p1) cycle  ! Use upper triangle
               if(fi.eq.2.and.p2.le.p1) cycle  ! Use lower triangle
-              !if(p1.gt.2.and.p1.lt.5.or.p1.gt.6) cycle  ! Just do masses and spins
-              !if(p2.gt.2.and.p2.lt.5.or.p2.gt.6) cycle
               
               y1 = corrs(fi,p2,p1)
               if(fi.eq.2) y1 = corrs(fi,p1,p2)
-              !if(abs(y1).lt.0.8) cycle
               
-              !call pgscr(ci,abs(y1),abs(y1),abs(y1))  ! Grey
               if(plfile.lt.2) then                           ! Screen/bitmap have black backgrounds
                  if(fi.eq.1) call pgscr(ci,0.,0.,abs(y1)**2)  ! Blue
                  if(fi.eq.2) call pgscr(ci,abs(y1)**2,0.,0.)  ! Red
@@ -765,18 +716,8 @@ program mcmcstats
                  if(fi.eq.2) call pgscr(ci,1.,1.-abs(y1)**2,1.-abs(y1)**2)  ! Red 
               end if
               call pgsci(ci)
-              !call pgrect(real(p1-1),real(p1),real(p2-1),real(p2))
               call pgrect(real(p11-1),real(p11),real(p22-1),real(p22))
               
-              !if(plfile.lt.2) then
-              !   call pgsci(0)
-              !   if(abs(y1).lt.0.5) call pgsci(1)  ! For grey values only
-              !else
-              !   call pgsci(1)
-              !   if(abs(y1).lt.0.5) call pgsci(0)  ! For grey values only
-              !end if
-              
-              !if(abs(y1).lt.0.1) cycle
               write(str,'(F5.2)')y1
               clr = 0.
               if(plfile.lt.2) clr = 1.
@@ -784,36 +725,21 @@ program mcmcstats
               if(plfile.ge.2.and.abs(y1).lt.0.25) clr = 1. - abs(y1)*4.
               if(abs(y1).gt.0.75) clr = 1.  ! White on dark background for the strongest correlations
               call pgscr(ci,clr,clr,clr)
-              !call pgptxt(real(p1)-0.5,real(p2)-0.3,0.,0.5,trim(str))
               call pgptxt(real(p11)-0.5,real(p22)-0.5+0.0167*nplpar,0.,0.5,trim(str))
            end do  ! p2
         end do  ! p1
      end do  ! fi
      
      call pgsci(1)
-     call pgslw(1)
-     !call pgsls(1)
-     !call pgsch(2.)
-     !!call pgmtxt('T',1.,0.5,0.5,trim(varnames(1,p)) )
-     !call pgmtxt('T',1.,0.5,0.5,trim(pgParNs(parID(p))) )
-     !!write(6,*)''
-     
-     !call pgscr(14,0.7,0.7,0.7)
-     !call pgsci(14)
      call pgslw(5)
      call pgline(2,(/0.,real(nplpar)/),(/0.,real(nplpar)/))
      call pgline(2,(/0.,0./),(/0.,real(nplpar)/))
      call pgline(2,(/0.,real(nplpar)/),(/0.,0.0/))
      call pgline(2,(/0.0,real(nplpar)/),(/real(nplpar),real(nplpar)/))
      call pgline(2,(/real(nplpar),real(nplpar)/),(/0.,real(nplpar)/))
-     do p = 1,nplpar
-        !call pgrect(real(p-1),real(p),real(p-1),real(p))
-        !call pgcirc(real(p-0.5),real(p-0.5),0.2)
-     end do
      call pgend
      
      if(plfile.eq.1) then
-        !i = system('convert -depth 8 corr_matrix.ppm  '//trim(outputname)//'__corr_matrix.png')
         i = system('convert -depth 8 corr_matrix.ppm corr_matrix.png')
         i = system('rm -f corr_matrix.ppm')
      end if
@@ -834,9 +760,7 @@ program mcmcstats
   !*******************************************************************************************
   
   if(printdeltastable.eq.1) then
-     !open(unit=30, form='formatted', status='replace', file='table.tex')
      open(unit=30, form='formatted', status='unknown', position='append', file='table.tex')
-     !write(6,*)''
      do fi=1,nf
         iv = 0
         do i=1,nival(fi)
