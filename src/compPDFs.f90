@@ -107,7 +107,7 @@ program comp_pdfs
      call pgsch(1.)
   end if
   if(file.ge.2) then
-     call pgbegin(1,'plot.eps/cps',1,1)
+     call pgbegin(1,'plot.eps/vcps',1,1)
      call pgpap(size,rat)
   end if
   call pgscf(fonttype)
@@ -134,7 +134,8 @@ program comp_pdfs
      nfrx = 1
      nfry = 1
   end if
-  space = 0.3 !Fraction of space between the panels (>=0.0)
+  !space = 0.3 !Fraction of space between the panels in the horizontal direction (>=0.0)
+  space = 0.3*3./real(nfrx) !Fraction of space between the panels in the horizontal direction (>=0.0)
   xwinmin = 0.0    !Absolute limits
   xwinmax = 0.99
   ywinmin = 0.0
