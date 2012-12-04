@@ -670,11 +670,12 @@ program mcmcstats
      
      !call pgsubp(4,3)
      call pgscr(3,0.,0.5,0.)
+     call pgsvp(0.,1.0,0.,1.0)
      !call pgswin(-1.,13.,13.,-1.)
      call pgswin(-1.,real(nplpar+1),real(nplpar+1),-1.)
      call pgslw(3)
      call pgsch(sqrt(12./real(nplpar)))
-     call pgscf(2)
+     call pgscf(1)
      !if(plfile.ge.2) then
      !   call pgsch(1.)
      !end if
@@ -754,6 +755,7 @@ program mcmcstats
               if(plfile.lt.2) clr = 1.
               if(plfile.lt.2.and.abs(y1).lt.0.25) clr = abs(y1)*4.       ! Fade out the numbers
               if(plfile.ge.2.and.abs(y1).lt.0.25) clr = 1. - abs(y1)*4.
+              if(abs(y1).gt.0.75) clr = 1.  ! White on dark background for the strongest correlations
               call pgscr(ci,clr,clr,clr)
               !call pgptxt(real(p1)-0.5,real(p2)-0.3,0.,0.5,trim(str))
               call pgptxt(real(p11)-0.5,real(p22)-0.5+0.0167*nplpar,0.,0.5,trim(str))
