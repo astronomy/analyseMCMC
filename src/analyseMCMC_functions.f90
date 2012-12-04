@@ -202,7 +202,7 @@ end subroutine read_settingsfile_old
 
 
 !***********************************************************************************************************************************
-!> \brief  Read a copy of the settings file (called analysemcmc.dat by default)
+!> \brief  Read the settings file (called analysemcmc.dat by default)
 
 subroutine read_settingsfile()
   use SUFR_system, only: find_free_io_unit, quit_program_error
@@ -249,6 +249,7 @@ subroutine read_settingsfile()
   
   
   call find_free_io_unit(ip)
+  write(*,'(A)') '  Reading settings file '//trim(settingsfile)//'...'
   open(unit=ip, status='old', action='read', file=trim(settingsfile), iostat=io)
   if(io.ne.0) call quit_program_error('readsettingsfile(): error opening settings file '//trim(settingsfile), 0)
   
@@ -341,6 +342,7 @@ end subroutine try_old_settings_file
 
 subroutine write_settingsfile()
   use SUFR_system, only: find_free_io_unit
+  use SUFR_constants, only: stdOut
   
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
@@ -385,6 +387,7 @@ subroutine write_settingsfile()
   
   
   call find_free_io_unit(op)
+  write(stdOut,'(A)') '  Saving settings file as analysemcmc.new'
   open(unit=op,form='formatted',status='replace',action='write',file='analysemcmc.new')
   
   write(op,'(A,/)') '# Input file for AnalyseMCMC'

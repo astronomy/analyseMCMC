@@ -106,6 +106,15 @@ program analyseMCMC
      end if
   end if
   
+  ! Set and read settings:
+  call set_plotsettings()     ! Set plot settings to 'default' values
+  call read_settingsfile()    ! Read the plot settings (overwrite the defaults)
+  if(prProgress.ge.3) call write_settingsfile()   ! Write the input file back to disc as analysemcmc.new
+  
+  ! New parameters that should go into the settings file(?):
+  !phi_q_sorting = 0  ! Do phase/mass-ratio sorting (if phi>pi, q -> 1/q; m1 <-> m2): 0-no, 1-yes - not implemented yet
+  
+  
   if(nchains0.lt.1) then  ! No command-line arguments - select all files SPINspiral.output.*.00 in the current dir
      call findFiles('SPINspiral.output.*.00',maxChs,1,infiles,nchains0)
      if(nchains0.eq.0) then
@@ -135,16 +144,6 @@ program analyseMCMC
   if(nchains0.gt.maxChs) write(stdErr,'(A,I3,A)')'  *** WARNING:  Too many input files (chains),'// &
        ' please increase maxChs in analyseMCMC_modules.f90. Only',maxChs,' files can be read.'
   nchains0 = min(nchains0,maxChs)
-  
-  
-  ! Set and read settings:
-  call set_plotsettings()     ! Set plot settings to 'default' values
-  call read_settingsfile()    ! Read the plot settings (overwrite the defaults)
-  if(prProgress.ge.3) call write_settingsfile()   ! Write the input file back to disc
-  !call write_settingsfile()   ! Write the input file back to disc as analysemcmc.new
-  
-  ! New parameters that should go into the settings file(?):
-  !phi_q_sorting = 0  ! Do phase/mass-ratio sorting (if phi>pi, q -> 1/q; m1 <-> m2): 0-no, 1-yes - not implemented yet
   
   
   ! Print code version and set use_PLplot:
