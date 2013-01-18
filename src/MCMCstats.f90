@@ -727,7 +727,14 @@ program mcmcstats
      call pgline(2,(/0.,real(nplpar)/),(/0.,0.0/))
      call pgline(2,(/0.0,real(nplpar)/),(/real(nplpar),real(nplpar)/))
      call pgline(2,(/real(nplpar),real(nplpar)/),(/0.,real(nplpar)/))
-     call pgend
+     
+     
+     ! Draw dotted lines between two groups of parameters:
+     !call pgsls(4)
+     !call pgline(2,(/-1.,real(nplpar)/),(/8.,8./))
+     !call pgline(2,(/8.,8./),(/-1.,real(nplpar)/))
+     
+     call pgend()
      
      if(plfile.eq.1) then
         i = system('convert -depth 8 corr_matrix.ppm corr_matrix.png')
