@@ -547,14 +547,14 @@ end subroutine set_plotsettings
 
 
 !***********************************************************************************************************************************
-!> \brief  Read the SPINspiral output files (SPINspiral.output.*)
+!> \brief  Read the MCMC output files (SPINspiral.output.*, PTMCMC.output.*)
 !!
 !! \retval exitcode  Exit status code (0=ok)
 
 subroutine read_mcmcfiles(exitcode)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdErr,stdOut
-  use SUFR_system, only: quit_program_error
+  use SUFR_system, only: quit_program_error, warn
   
   use analysemcmc_settings, only: thin,maxChLen, maxMCMCpar, prProgress
   use general_data, only: allDat,post,prior,ntot,n,nchains,nchains0,infiles,maxIter, parNames
@@ -617,9 +617,22 @@ subroutine read_mcmcfiles(exitcode)
              niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic)
      else
         !read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') &
-        read(10,*) &
-             niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform, &
-             pnOrder,nMCMCpar
+        read(10,*, iostat=io) niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic), &
+             nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform, pnOrder,nMCMCpar
+        
+        if(io.ne.0) then  ! Try reading this line again, without Tmax (output v.2.2, after August 2012):
+           backspace(10, iostat=io)
+           backspace(10, iostat=io)
+           backspace(10, iostat=io)
+           
+           read(10,*, iostat=io) niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic), &
+                nTemps(ic),Tchain(ic),networkSNR(ic),waveform, pnOrder,nMCMCpar
+           outputVersion = outputVersion + 0.1
+           if(abs(outputVersion-2.2).gt.0.05) call warn('I expected outputVersion=2.2 here, please check what is going on', stdOut)
+           
+           if(io.ne.0) call quit_program_error('Error reading header line (nIter, Nburn, etc)',stdErr)
+           
+        end if
      end if
      
      nMCMCpar0 = nMCMCpar  ! nMCMCpar may change when secondary parameters are computed
@@ -779,7 +792,9 @@ subroutine read_mcmcfiles(exitcode)
      end do !i
      
      if(i.ge.maxIter-2) write(stdErr,'(A)',advance="no")'   *** WARNING ***   Not all lines in this file were read    '
-199  close(10)
+     
+199  continue
+     close(10)
      ntot(ic) = i-1
      n(ic) = ntot(ic)  ! n can be changed in rearranging chains, ntot wont be changed
      !if(prProgress.ge.2.and.update.ne.1) write(stdOut,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:', &
