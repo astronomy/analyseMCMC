@@ -35,6 +35,7 @@ subroutine setconstants()
   detabbrs = (/'H1','L1','V ','H2'/)
   
   ! Define waveforms here (don't forget to change waveforms() in the module constants in analyseMCMC_modules.f90):
+  ! In LAL, these numbers change so rapidly that its pointless to specify them here
   waveforms    = 'Unknown'             ! All of them, except those specified below
   waveforms(1) = 'Apostolatos'
   waveforms(2) = 'SpinTaylor12'
@@ -559,9 +560,10 @@ subroutine read_mcmcfiles(exitcode)
   use analysemcmc_settings, only: thin,maxChLen, maxMCMCpar, prProgress
   use general_data, only: allDat,post,prior,ntot,n,nchains,nchains0,infiles,maxIter, parNames
   use mcmcrun_data, only: niter,Nburn0,detnames,detnr,parID,seed,snr,revID,ndet,flow,fhigh,t_before,nCorr,nTemps,Tmax,Tchain
-  use mcmcrun_data, only: networkSNR,waveform,pnOrder,nMCMCpar,t_after,FTstart,deltaFT,samplerate,samplesize,FTsize,outputVersion
-  use mcmcrun_data, only: nMCMCpar0,t0,GPStime
+  use mcmcrun_data, only: networkSNR,waveform,waveformName,pnOrder,nMCMCpar,t_after,FTstart,deltaFT,samplerate,samplesize,FTsize
+  use mcmcrun_data, only: nMCMCpar0,t0,GPStime,outputVersion
   use chain_data, only: is,DoverD
+  use aM_constants, only: waveforms
   
   implicit none
   integer, intent(out) :: exitcode
@@ -607,7 +609,15 @@ subroutine read_mcmcfiles(exitcode)
      if(outputVersion > 0.5) then
         ! Read command line between version number and first header. Read nothing if no command line:
         read(10,'(A999)',end=199,err=199) commandline
-        if(commandline(1:14).eq.'  Command line') outputVersion = 2.1  ! LALinference, without parameter IDs
+        if(commandline(1:14).eq.'  Command line') then
+           outputVersion = 2.1  ! LALinference, without parameter IDs
+           
+           ! Determine waveformName from commandline, since IDs change rapidly
+           waveformName = 'Unknown'
+           i = index(trim(commandline),'--approximant', back=.false.)
+           if(i.ne.0) read(commandline(i+13:),*,iostat=io) waveformName
+        end if
+        
         ! Read empty line between version number and first header:
         read(10,*,end=199,err=199) tmpStr
      end if
@@ -620,6 +630,8 @@ subroutine read_mcmcfiles(exitcode)
         read(10,*, iostat=io) niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic), &
              nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform, pnOrder,nMCMCpar
         
+        if(outputVersion.lt.1.999) waveformName = waveforms(waveform)  ! SPINspiral
+           
         if(io.ne.0) then  ! Try reading this line again, without Tmax (output v.2.2, after August 2012):
            backspace(10, iostat=io)
            backspace(10, iostat=io)
@@ -872,7 +884,7 @@ subroutine mcmcruninfo(exitcode)
   use SUFR_constants, only: stdOut,stdErr, rpi
   use SUFR_statistics, only: compute_median_sp
   use SUFR_system, only: swapreal, quit_program_error
-  use aM_constants, only: waveforms,detabbrs
+  use aM_constants, only: detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
   use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar,plInject,plStart,htmlOutput
@@ -881,8 +893,9 @@ subroutine mcmcruninfo(exitcode)
   use general_data, only: contrChains,parNames,nfixedpar,outputname
   
   use mcmcrun_data, only: niter,Nburn0,detnames,detnr,parID,seed,snr,revID,ndet,flow,fhigh,t_before,nCorr,nTemps,Tmax,Tchain
-  use mcmcrun_data, only: networkSNR,waveform,pnOrder,nMCMCpar,t_after,FTstart,deltaFT,samplerate,samplesize,FTsize,outputVersion
+  use mcmcrun_data, only: networkSNR,waveformName,pnOrder,nMCMCpar,t_after,FTstart,deltaFT,samplerate,samplesize,FTsize
   use mcmcrun_data, only: nMCMCpar0,t0,GPStime,totthin,loglmaxs,totiter,loglmax,totpts,totlines,offsetrun,spinningRun, avgTotThin
+  use mcmcrun_data, only: outputVersion
   use chain_data, only: is,isburn,DoverD,jumps
   use plot_data, only: ncolours,colours,colournames,maxdots
   
@@ -932,9 +945,9 @@ subroutine mcmcruninfo(exitcode)
                          'Niter','Nburn','seed','Ndet',  'Ncorr','Ntemp','Tmax','Tchain','NetSNR','<d|d>','pN','Npar','WaveForm'
                  end if
               end if
-              write(stdOut,'(4x,I7,A12,  A13,I10,I12,I11,I8,  2I8,2F8.1,F8.3,F10.2,F8.1,I8, 3x,A)')ic,trim(infile(19:99)), &
+              write(stdOut,'(4x,I7,A12,  A13,I10,I12,I11,I8,  2I8,2F8.1,F8.3,F10.2,F8.1,I8, 3x,A)') ic,trim(infile(19:99)), &
                    trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic), &
-                   nCorr(ic),nTemps(ic),real(Tmax(ic)),Tchain(ic),networkSNR(ic),DoverD,pnOrder,nMCMCpar,trim(waveforms(waveform))
+                   nCorr(ic),nTemps(ic),real(Tmax(ic)),Tchain(ic),networkSNR(ic),DoverD,pnOrder,nMCMCpar,trim(waveformName)
            end if
         end if
         
@@ -1471,15 +1484,15 @@ subroutine mcmcruninfo(exitcode)
   
   !*** Construct output file name:  GPS0929052945_H1L1V__Apostolatos_1.5pN_SP  for GPS time, detectors, waveform-pN Spinning
   ic = 1
-  write(outputname,'(A3,I10.10,A1)')'GPS',GPStime,'_'
+  write(outputname,'(A3,I10.10,A1)') 'GPS',GPStime,'_'
   do i=1,ndet(ic)
-     write(outputname,'(A)')trim(outputname)//trim(detabbrs(detnr(ic,i)))
+     write(outputname,'(A)') trim(outputname)//trim(detabbrs(detnr(ic,i)))
   end do
-  write(outputname,'(A,F3.1,A)')trim(outputname)//'__'//trim(waveforms(waveform))//'_',pnOrder,'pN'
+  write(outputname,'(A,F3.1,A)') trim(outputname)//'__'//trim(waveformName)//'_',pnOrder,'pN'
   if(spinningRun.gt.0) then
-     write(outputname,'(A,I1,A)')trim(outputname)//'_',spinningRun,'sp'
+     write(outputname,'(A,I1,A)') trim(outputname)//'_',spinningRun,'sp'
   else
-     write(outputname,'(A)')trim(outputname)//'_ns'
+     write(outputname,'(A)') trim(outputname)//'_ns'
   end if
   
   

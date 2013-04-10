@@ -58,7 +58,7 @@ module aM_constants
   save
   
   integer :: os
-  character :: detabbrs(4)*(2),waveforms(0:19)*(99)
+  character :: detabbrs(4)*(2),waveforms(0:99)*(99)
   character(len=99) :: stdOutFile
   logical :: use_PLplot
   
@@ -120,7 +120,7 @@ module mcmcrun_data
   real :: deltaFT(maxChs,ndets), samplerate(maxChs,ndets), avgTotThin
   real :: Tchain(maxChs),networkSNR(maxChs),pnOrder,outputVersion
   real(double) :: FTstart(maxChs,ndets),t0,loglmax,loglmaxs(maxChs)
-  character :: detnames(maxChs,ndets)*(14)
+  character :: detnames(maxChs,ndets)*(14),waveformName*(99)
   
 end module mcmcrun_data
 !***********************************************************************************************************************************
