@@ -558,7 +558,7 @@ subroutine read_mcmcfiles(exitcode)
   use SUFR_system, only: quit_program_error, warn
   
   use analysemcmc_settings, only: thin,maxChLen, maxMCMCpar, prProgress
-  use general_data, only: allDat,post,prior,ntot,n,nchains,nchains0,infiles,maxIter, parNames
+  use general_data, only: allDat, startval, post,prior, ntot,n,nchains,nchains0,infiles,maxIter, parNames
   use mcmcrun_data, only: niter,Nburn0,detnames,detnr,parID,seed,snr,revID,ndet,flow,fhigh,t_before,nCorr,nTemps,Tmax,Tchain
   use mcmcrun_data, only: networkSNR,waveform,waveformName,pnOrder,nMCMCpar,t_after,FTstart,deltaFT,samplerate,samplesize,FTsize
   use mcmcrun_data, only: nMCMCpar0,t0,GPStime,outputVersion
@@ -569,13 +569,15 @@ subroutine read_mcmcfiles(exitcode)
   integer, intent(out) :: exitcode
   integer :: i,tmpInt,io,ic,j,readerror,p
   character :: tmpStr*(99),detname*(14),firstLine*(999),infile*(99),commandline*(999),parNameStr*(999)
-  real(double) :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar),lon2ra,ra2lon
+  real :: injPost,injPrior
+  real(double) :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar), lon2ra,ra2lon
   
   exitcode = 0
   readerror = 0
   allocate(allDat(nchains,maxMCMCpar,maxIter))
   allocate(post(nchains,maxIter),prior(nchains,maxIter))
   
+  t0 = 0.d0
   
   do ic = 1,nchains0
      infile = infiles(ic)
@@ -728,7 +730,19 @@ subroutine read_mcmcfiles(exitcode)
      end do
      if(prProgress.ge.3) write(stdOut,*)
      
-     i=1
+     
+     i = 1
+     if(outputVersion.gt.1.999) then  ! LALInferenceMCMC, no injection value in file - get it from injection file:
+        if(outputVersion.gt.1.999) call get_LIM_injection_values(ic,nMCMCpar, startval, injPost,injPrior)
+        is(ic,i) = -1
+        post(ic,i)  = injPost
+        prior(ic,i) = injPrior
+        allDat(ic,1:nMCMCpar,i) = startval(ic,1:nMCMCpar,1)
+        
+        i = 2  ! Continue with reading the "second" line of the Markov chains
+     end if
+     
+     
      do while(i.le.maxIter)
         if(outputVersion < 0.5) then
            read(10,*,iostat=io) tmpInt,post(ic,i),tmpDat(1:nMCMCpar)
@@ -761,11 +775,11 @@ subroutine read_mcmcfiles(exitcode)
         !if(i.lt.10) print*,tmpInt
         
         ! GPS time doesn't fit in single-precision variable
-        if(ic.eq.1.and.i.eq.1) then
+        if(ic.eq.1 .and. i.le.2 .and. t0.lt.1.d0) then
            dtmpDat = 0.d0
            do p=1,nMCMCpar
               if(parID(p).ge.11.and.parID(p).le.19) then
-                 dtmpDat(p) = dble(floor(tmpDat(p)/10.d0)*10)  !'GPS base time', rounded off to the nearest 10s, 
+                 dtmpDat(p) = dble(nint(tmpDat(p)/10.d0)*10)   !'GPS base time', rounded off to the nearest 10s,
                  t0 = dtmpDat(p)                               !  to allow x.xx labels on the plots for GPS-t0
                  GPStime = floor(tmpDat(p)+0.05)               !Always floor, unless >x.95s. Use e.g. in file names
               end if
@@ -783,17 +797,17 @@ subroutine read_mcmcfiles(exitcode)
         
         tmpStr = tmpStr  ! Remove 'set but never used' warning
         if(1.eq.2) then
-           !In case you ran with lon rather than RA:
+           ! In case you ran with lon rather than RA:
            allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
            !allDat(ic,revID(31),i) = real(ra2lon(dble(allDat(ic,revID(31),i)),t0))  
            
-           !In case only the injection value is lon rather than RA:
+           ! In case only the injection value is lon rather than RA:
            if(i.eq.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
            
-           !In case only the injection value is lon rather than RA:
+           ! In case only the injection value is lon rather than RA:
            if(i.ne.1) allDat(ic,revID(31),i) = real(ra2lon(dble(allDat(ic,revID(31),i)),t0))
            
-           !In case all but the injection value is lon rather than RA:
+           ! In case all but the injection value is lon rather than RA:
            if(i.ne.1) allDat(ic,revID(31),i) = real(lon2ra(dble(allDat(ic,revID(31),i)),t0))
         end if
         
@@ -1361,8 +1375,8 @@ subroutine mcmcruninfo(exitcode)
   
   
   
-  !*** Put plot data in startval and jumps.  Print initial and starting values to screen.
-  !Startval: 1: injection value, 2: starting value, 3: Lmax value
+  ! *** Put plot data in startval and jumps.  Print initial and starting values to screen.
+  ! Startval: 1: injection value, 2: starting value, 3: Lmax value
   jumps = 0.
   offsetrun = 0
   if(prInitial.ne.0) then
@@ -1398,10 +1412,10 @@ subroutine mcmcruninfo(exitcode)
      jumps(ic,1:nMCMCpar,2:n(ic)) = allDat(ic,1:nMCMCpar,2:n(ic)) -  allDat(ic,1:nMCMCpar,1:n(ic)-1)
      if(prInitial.ne.0) then 
         if(ic.eq.1.and.prInitial.ge.2) then
-           write(stdOut,'(4x,A11)',advance="no")'Injection:  '
-           write(stdOut,'(F10.3)',advance="no")post(ic,1)
+           write(stdOut,'(4x,A11)',advance="no") 'Injection:  '
+           write(stdOut,'(F10.3)',advance="no") post(ic,1)
            do p=1,nMCMCpar
-              write(stdOut,'(F8.3)',advance="no")startval(1,p,1)
+              write(stdOut,'(F8.3)',advance="no") startval(1,p,1)
            end do
            write(stdOut,*)
            if(prInitial.ge.4) write(stdOut,*)
@@ -1581,3 +1595,61 @@ end subroutine save_data
 
 
 
+!***********************************************************************************************************************************
+!> \brief  Get injection values for LALInferenceMCMC (LIM) output
+!!
+!! \param ic  Current chain/input file
+!! \param startval  Injection/Staring/Lmax values
+
+subroutine get_LIM_injection_values(ic, nMCMCpar, startval, post,prior)
+  use SUFR_kinds, only: double
+  use SUFR_system, only: warn,find_free_io_unit
+  use analysemcmc_settings, only: maxChs,maxMCMCpar
+  use general_data, only: infiles
+  use mcmcrun_data, only: ndet,parID
+  
+  implicit none
+  integer, intent(in) :: ic, nMCMCpar
+  real, intent(inout) :: startval(maxChs,maxMCMCpar,3)
+  real, intent(out) :: post,prior
+  
+  integer :: ip,in,status,line, tmpInt, p
+  real(double) :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar)
+  character :: infile*(99), tmpStr*(99)
+  logical :: ex
+  
+  startval(ic,:,1) = 0.
+  
+  infile = infiles(ic)
+  in = index(trim(infile),'.', back=.true.)
+  if(len_trim(infile)-in.ne.2) return        ! Third-last character in file name is not a period
+  
+  infile = infile(1:in)//'injection'         ! Compose injection file name from MCMC output file name
+  inquire(file=trim(infile), exist=ex)       ! Check whether the file exists
+  if(.not.ex) return
+  
+  call find_free_io_unit(ip)
+  open(unit=ip,form='formatted',status='old',position='rewind',file=trim(infile),iostat=status)
+  if(status.ne.0) then
+     call warn('File not found: '//trim(infile), 0)
+     return
+  end if
+  
+  do line=1,ndet(ic)+6
+     read(ip,*) tmpStr
+  end do
+  
+  read(ip,*,iostat=status) tmpInt,post,prior,tmpDat(1:nMCMCpar)        ! Don't have injection posterior (first tmpReal)...
+  close(ip)
+  
+  ! Get rid of first zillion decimals of GPS time, so that the number can be saved in single-precision:
+  dtmpDat = 0.d0
+  do p=1,nMCMCpar
+     if(parID(p).ge.11.and.parID(p).le.19) &
+          dtmpDat(p) = dble(nint(tmpDat(p)/10.d0)*10)  ! 'GPS base time', rounded off to the nearest 10s
+  end do
+  
+  startval(ic,1:nMCMCpar,1) = real(tmpDat(1:nMCMCpar) - dtmpDat(1:nMCMCpar))
+  
+end subroutine get_LIM_injection_values
+!***********************************************************************************************************************************
