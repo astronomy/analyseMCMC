@@ -7,6 +7,7 @@ set( AnalyseMCMC_SRC_FILES
   src/analyseMCMC_animation.f90
   src/analyseMCMC_chains.f90
   src/analyseMCMC_functions.f90
+  src/analyseMCMC_io.f90
   src/analyseMCMC_main.f90
   src/analyseMCMC_modules.f90
   src/analyseMCMC_plot.f90
