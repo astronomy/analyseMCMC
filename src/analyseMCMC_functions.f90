@@ -627,11 +627,11 @@ subroutine read_mcmcfiles(exitcode)
            
            read(10,*, iostat=io) niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic), &
                 nTemps(ic),Tchain(ic),networkSNR(ic),waveform, pnOrder,nMCMCpar
+           
            outputVersion = outputVersion + 0.1
            if(abs(outputVersion-2.2).gt.0.05) call warn('I expected outputVersion=2.2 here, please check what is going on', stdOut)
            
            if(io.ne.0) call quit_program_error('Error reading header line (nIter, Nburn, etc)',stdErr)
-           
         end if
      end if
      
@@ -666,7 +666,7 @@ subroutine read_mcmcfiles(exitcode)
         
      else  !Set the parameter IDs of an old MCMC output file manually:
         
-        !Assume 12-parameter Apostolatos:
+        ! Assume 12-parameter Apostolatos:
         if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters,"// &
              " assuming that an Apostolatos, 1.5-pN, 12-parameter waveform was used..."
         nMCMCpar = 12  !Mc et tc ld a1 th ra de ph tJ pJ,ph_spin
@@ -674,16 +674,15 @@ subroutine read_mcmcfiles(exitcode)
         waveform = 1
         pNorder = 1.5
         
-        !Assume 12-parameter Apostolatos: lq=log(q)
+        ! Assume 12-parameter Apostolatos: lq=log(q)
         !if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters,"// &
         !     " assuming that an Apostolatos, 1.5-pN, 12-parameter waveform was used..."
         !nMCMCpar = 12  !Mc lq tc ld a1 th ra de ph tJ pJ,ph_spin
         !parID(1:12) = (/61,68,11,22,71,72,31,32,41,53,54,73/)
         !waveform = 1
         !pNorder = 1.5
-
-
-        !Assume 12-parameter SpinTaylor:
+        
+        ! Assume 12-parameter SpinTaylor:
         !if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters,"// &
         !" assuming that a SpinTaylor, 3.5-pN, 12-parameter waveform was used..."
         !nMCMCpar = 12  !
@@ -691,7 +690,7 @@ subroutine read_mcmcfiles(exitcode)
         !waveform = 2
         !pNorder = 3.5
         
-        !Assume 15-parameter SpinTaylor:
+        ! Assume 15-parameter SpinTaylor:
         !if(ic.eq.1) write(stdOut,'(A)')"  *** Note:  I'm using a hardcoded definition of the MCMC parameters,"// &
         !" assuming that a SpinTaylor, 3.5-pN, 15-parameter waveform was used..."
         !nMCMCpar = 15  !
