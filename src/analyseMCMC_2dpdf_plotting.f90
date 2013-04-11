@@ -161,24 +161,24 @@ end subroutine plot_2D_PDF
 !***********************************************************************************************************************************
 !> \brief  Define the grey scales or colours for the 2D probability areas
 !!
-!! \retval clr1  First colour of colour-index range for pgimag
-!! \retval clr2  Second colour of colour-index range for pgimag
+!! \retval minclr  First colour of colour-index range for pgimag
+!! \retval maxclr  Last colour of colour-index range for pgimag
 
-subroutine set_2D_probability_colours(clr1,clr2)
+subroutine set_2D_probability_colours(minclr,maxclr)
   use SUFR_system, only: warn
   use analysemcmc_settings, only: colour, Nival, file, normPDF2D
   
   implicit none
-  integer, intent(out) :: clr1,clr2
-  integer :: ci, clr, minclr,maxclr
+  integer, intent(out) :: minclr,maxclr
+  integer :: ci, clr
   real :: tmpflt
   
   
   if(normPDF2D.lt.4) then  ! Use grey scales
      
      call pgscir(0,nint(1e9))
-     call pgqcir(clr,maxclr)  ! Maxclr is device-dependent
      minclr = 30
+     call pgqcir(clr,maxclr)  ! Maxclr is device-dependent
      if(maxclr.lt.minclr) call warn('Not enough colours on device for 2D plot!',0)
      
      do ci=0,maxclr-minclr  ! Colour indices typically run 0-255, but this is device-dependent.
@@ -189,13 +189,11 @@ subroutine set_2D_probability_colours(clr1,clr2)
      
      call pgscir(minclr,maxclr)  ! Set colour-index range for pgimag
      
-     
   else if(normPDF2D.eq.4) then  ! Use colour
      
      minclr = 30
-     clr1 = minclr
-     clr2 = minclr+Nival
-     call pgscir(clr1,clr2)  ! Set colour-index range for pgimag
+     maxclr = minclr+Nival
+     call pgscir(minclr,maxclr)  ! Set colour-index range for pgimag
      
      
      if(colour.eq.0) then
