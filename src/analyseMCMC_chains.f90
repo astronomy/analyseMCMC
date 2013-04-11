@@ -102,22 +102,6 @@ subroutine plot_posterior_chain(exitcode)
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' posterior chain, '
   end if
   
-  if(use_PLplot) then
-     if(file.eq.0) then
-        call pgpap(scrSz,scrRat)
-        sch = 1.5*fontsize1D
-     end if
-     if(file.eq.1) then
-        call pgpap(bmpsz,bmprat)
-        sch = 1.5*fontsize1D
-     end if
-     if(file.ge.2) then
-        call pgpap(PSsz,PSrat)
-        call pgscf(fonttype)
-        sch = fontsize1D
-     end if
-  end if
-  
   if(file.eq.0) then
      io = pgopen('12/xs')
      sch = 1.5*fontsize1D
@@ -141,26 +125,25 @@ subroutine plot_posterior_chain(exitcode)
      return
   end if
   
-  if(.not.use_PLplot) then
-     if(file.eq.0) then
-        call pgpap(scrSz,scrRat)
-        sch = 1.5*fontsize1D
-     end if
-     if(file.eq.1) then
-        call pgpap(bmpsz,bmprat)
-        sch = 1.5*fontsize1D
-     end if
-     if(file.ge.2) then
-        call pgpap(PSsz,PSrat)
-        call pgscf(fonttype)
-        sch = fontsize1D
-     end if
+  if(file.eq.0) then
+     call pgpap(scrSz,scrRat)
+     sch = 1.5*fontsize1D
+  end if
+  if(file.eq.1) then
+     call pgpap(bmpsz,bmprat)
+     sch = 1.5*fontsize1D
+  end if
+  if(file.ge.2) then
+     call pgpap(PSsz,PSrat)
+     call pgscf(fonttype)
+     sch = fontsize1D
   end if
   
   ! Custom initialisation of PGPlot/PLplot:
   call pginitl(colour,file,whiteBG)
   call pgslw(lw)
   call pgsch(sch)
+  
   
   !call pgsvp(0.08,0.92,0.07,0.94)  ! Need wider margin for title on right
   call pgsvp(0.08*fontsize1D,1.-0.08*fontsize1D,0.07*fontsize1D,1.-0.06*fontsize1D)  ! Need wider margin for title on right
@@ -337,9 +320,8 @@ subroutine plot_parameter_chains(exitcode)
   end if
   
   if(file.eq.0) then
-     if(.not.use_PLplot) io = pgopen('13/xs')
+     io = pgopen('13/xs')
      call pgpap(scrSz,scrRat)
-     if(use_PLplot) io = pgopen('13/xs')
      
      sch = fontsize1d*1.5
      lw = 1
@@ -347,14 +329,12 @@ subroutine plot_parameter_chains(exitcode)
   if(file.ge.1) then
      tempfile = trim(outputdir)//'/'//trim(outputname)//'__chains'
      if(file.eq.1) then
-        if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+        io = pgopen(trim(tempfile)//'.ppm/ppm')
         call pgpap(bmpsz,bmprat)
-        if(use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
      end if
      if(file.ge.2) then
-        if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+        io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
         call pgpap(PSsz,PSrat)
-        if(use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
         
         call pgscf(fonttype)
      end if
@@ -439,7 +419,7 @@ subroutine plot_parameter_chains(exitcode)
      end if
      
      if(nPlPar.gt.1) call pgpage()
-     if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
+     if(j.eq.1) call pginitl(colour,file,whiteBG)
      
      call pgsch(sch/2.*sqrt(real(nPlPar)))
      
@@ -765,7 +745,6 @@ end subroutine plot_parameter_chains
 subroutine plot_par_L(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   
-  use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality, htmlOutput
   use analysemcmc_settings, only: Nburn,plLmax,chainPlI,fontsize1d,nPlPar,panels,plPars,changeVar, chainSymbol,plInject,mergeChains
   use general_data, only: post,allDat,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax,nChains,parNames
@@ -793,9 +772,8 @@ subroutine plot_par_L(exitcode)
   end if
   
   if(file.eq.0) then
-     if(.not.use_PLplot) io = pgopen('22/xs')
+     io = pgopen('22/xs')
      call pgpap(scrSz,scrRat)
-     if(use_PLplot) io = pgopen('22/xs')
      
      sch = fontsize1d*1.5
      lw = 1
@@ -803,14 +781,12 @@ subroutine plot_par_L(exitcode)
   if(file.ge.1) then
      tempfile = trim(outputdir)//'/'//trim(outputname)//'__logl'
      if(file.eq.1) then
-        if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+        io = pgopen(trim(tempfile)//'.ppm/ppm')
         call pgpap(bmpsz,bmprat)
-        if(use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
      end if
      if(file.ge.2) then
-        if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+        io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
         call pgpap(PSsz,PSrat)
-        if(use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
         
         call pgscf(fonttype)
      end if
@@ -886,7 +862,7 @@ subroutine plot_par_L(exitcode)
      end if
      
      call pgpage()
-     if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
+     if(j.eq.1) call pginitl(colour,file,whiteBG)
      call pgsch(sch)
      
      xmin = 1.e30
@@ -1097,7 +1073,6 @@ end subroutine plot_par_L
 subroutine plot_Jump_sizes(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   
-  use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,colour,whitebg,quality
   use analysemcmc_settings, only: plBurn,chainPlI,fontsize1d,nPlPar,panels,plPars, chainSymbol,plJump, htmlOutput
   use general_data, only: outputname,outputdir,nChains0,Ntot, parNames,pgOrigParns
@@ -1125,25 +1100,22 @@ subroutine plot_Jump_sizes(exitcode)
   end if
   
   if(file.eq.0) then
-     if(.not.use_PLplot) io = pgopen('18/xs')
+     io = pgopen('18/xs')
      call pgpap(scrSz,scrRat)
-     if(use_PLplot) io = pgopen('18/xs')
      
      sch = fontsize1d*1.5
   end if
   if(file.ge.1) then
      tempfile = trim(outputdir)//'/'//trim(outputname)//'__jumps'
      if(file.eq.1) then
-        if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+        io = pgopen(trim(tempfile)//'.ppm/ppm')
         call pgpap(bmpsz,bmprat)
-        if(use_PLplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
         
         sch = fontsize1d*1.5
      end if
      if(file.ge.2) then
-        if(.not.use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+        io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
         call pgpap(PSsz,PSrat)
-        if(use_PLplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
         
         sch = fontsize1d*1.2
      end if
@@ -1176,7 +1148,7 @@ subroutine plot_Jump_sizes(exitcode)
      end if
      
      call pgpage()
-     if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
+     if(j.eq.1) call pginitl(colour,file,whiteBG)
      call pgsch(sch)
      
      xmax = -1.e30
@@ -1284,7 +1256,6 @@ subroutine plot_Acorr_chains(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   use SUFR_statistics, only: compute_median_sp
   
-  use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: fontsize1d,nPlPar,panels,plPars, chainSymbol,nAcorr, htmlOutput
   use general_data, only: outputname,outputdir,nChains0,parNames,pgParNss
@@ -1312,25 +1283,22 @@ subroutine plot_Acorr_chains(exitcode)
   end if
   
   if(file.eq.0) then
-     if(.not.use_Plplot) io = pgopen('19/xs')
+     io = pgopen('19/xs')
      call pgpap(scrSz,scrRat)
-     if(use_Plplot) io = pgopen('19/xs')
      
      sch = fontsize1d*1.5
      sch = sch*1.5
   end if
   tempfile = trim(outputdir)//'/'//trim(outputname)//'__acorrs'
   if(file.eq.1) then
-     if(.not.use_Plplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
+     io = pgopen(trim(tempfile)//'.ppm/ppm')
      call pgpap(bmpsz,bmprat)
-     if(use_Plplot) io = pgopen(trim(tempfile)//'.ppm/ppm')
      sch = fontsize1d*1.2
      sch = sch*1.5
   end if
   if(file.ge.2) then
-     if(.not.use_Plplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+     io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
      call pgpap(PSsz,PSrat)
-     if(use_Plplot) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
      
      sch = fontsize1d*1.2
      sch = sch*1.5
@@ -1358,7 +1326,7 @@ subroutine plot_Acorr_chains(exitcode)
      end if
      
      call pgpage()
-     if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
+     if(j.eq.1) call pginitl(colour,file,whiteBG)
      call pgsch(sch)
      
      xmin = 0.
@@ -1484,31 +1452,17 @@ subroutine plot_Rhat_chains(exitcode)
      if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' R-hat, '
   end if
   
-  if(use_PLplot) then
-     if(file.eq.0) then
-        call pgpap(scrSz,scrRat)
-        sch = 1.5*fontsize1D
-     end if
-     if(file.eq.1) then
-        call pgpap(bmpsz,bmprat)
-        sch = 1.5*fontsize1D
-     end if
-     if(file.ge.2) then
-        call pgpap(PSsz,PSrat)
-        call pgscf(fonttype)
-        sch = fontsize1D
-     end if
-  end if
-  
   if(file.eq.0) then
      io = pgopen('12/xs')
      sch = 1.5*fontsize1D
      lw = 1
-  end if
-  if(file.ge.1) then
+  else  ! file.gt.0
      tempfile = trim(outputdir)//'/'//trim(outputname)//'__rhat'
-     if(file.eq.1) io = pgopen(trim(tempfile)//'.ppm/ppm')
-     if(file.ge.2) io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+     if(file.eq.1) then
+        io = pgopen(trim(tempfile)//'.ppm/ppm')
+     else  ! file.ge.2
+        io = pgopen(trim(tempfile)//'.eps'//trim(psclr))
+     end if
      sch = 1.2*fontsize1D
      lw = 1
      if(file.ge.2) then
@@ -1523,20 +1477,18 @@ subroutine plot_Rhat_chains(exitcode)
      return
   end if
   
-  if(.not.use_PLplot) then
-     if(file.eq.0) then
-        call pgpap(scrSz,scrRat)
-        sch = 1.5*fontsize1D
-     end if
-     if(file.eq.1) then
-        call pgpap(bmpsz,bmprat)
-        sch = 1.5*fontsize1D
-     end if
-     if(file.ge.2) then
-        call pgpap(PSsz,PSrat)
-        call pgscf(fonttype)
-        sch = fontsize1D
-     end if
+  if(file.eq.0) then
+     call pgpap(scrSz,scrRat)
+     sch = 1.5*fontsize1D
+  end if
+  if(file.eq.1) then
+     call pgpap(bmpsz,bmprat)
+     sch = 1.5*fontsize1D
+  end if
+  if(file.ge.2) then
+     call pgpap(PSsz,PSrat)
+     call pgscf(fonttype)
+     sch = fontsize1D
   end if
   
   
@@ -1554,8 +1506,10 @@ subroutine plot_Rhat_chains(exitcode)
   xmax = maxval(Rhats(1,1:RhatsN))
   dx = abs(xmax-xmin)*0.01
   
-  ymin = log10(minval(Rhats(2,1:RhatsN) - 1.0))
+  ymin = log10(minval(abs(Rhats(2,1:RhatsN) - 1.0)))
   ymax = min(log10(maxval(Rhats(2,1:RhatsN) - 1.0)),1.0)
+  !ymin = log10(minval(Rhats(2,1:RhatsN)))
+  !ymax = min(log10(maxval(Rhats(2,1:RhatsN))),1.0)
   dy = abs(ymax-ymin)*0.05
   
   call pgswin(xmin-dx,xmax+dx,ymin-dy,ymax+dy)
@@ -1564,21 +1518,22 @@ subroutine plot_Rhat_chains(exitcode)
   
   call pgsci(defcolour)
   symbol = chainSymbol
-  call pgpoint(RhatsN, Rhats(1,1:RhatsN), log10(Rhats(2,1:RhatsN)-1.0), symbol)
+  call pgpoint(RhatsN, Rhats(1,1:RhatsN), log10(abs(Rhats(2,1:RhatsN)-1.0)), symbol)
+  !call pgpoint(RhatsN, Rhats(1,1:RhatsN), log10(abs(Rhats(2,1:RhatsN))), symbol)
   
   
   call pgsci(1)
   call pgsls(1)
   if(use_PLplot) then
      call pgmtxt('L',5.0,0.5,0.5,'R-hat - 1.0')
+     !call pgmtxt('L',5.0,0.5,0.5,'R-hat')
   else
      call pgmtxt('L',2.3,0.5,0.5,'R-hat - 1.0')
+     !call pgmtxt('L',2.3,0.5,0.5,'R-hat')
   end if
   if(nPlPar.eq.1.and.quality.eq.1) call pgmtxt('B',2.5,0.5,0.5,'iteration')
   
-  if(quality.eq.0) then
-     call pgmtxt('T',0.5,0.9,0.9,trim(outputname))  ! Print title
-  end if
+  if(quality.eq.0) call pgmtxt('T',0.5,0.9,0.9,trim(outputname))  ! Print title
   
   call pgend()
   

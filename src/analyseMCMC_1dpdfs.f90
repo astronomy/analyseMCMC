@@ -87,17 +87,6 @@ subroutine pdfs1d(exitcode)
   
   if(plot.eq.1) then
      
-     if(use_PLplot) then  ! then call pgpap *before* pgopen
-        if(file.eq.0) call pgpap(scrSz,scrRat)
-        if(file.eq.1) call pgpap(bmpsz,bmprat)
-        if(file.ge.2) then
-           call pgpap(PSsz,PSrat)
-           !if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.925)
-           if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.85)
-           !call pgscf(fonttype)
-        end if
-     end if
-     
      if(file.eq.0) then
         io = pgopen('14/xs')
         sch = 1.5*fontsize1d
@@ -159,19 +148,15 @@ subroutine pdfs1d(exitcode)
         return
      end if
      
-     if(.not.use_PLplot) then  ! then call pgpap *after* pgopen
-        if(file.eq.0) call pgpap(scrSz,scrRat)
-        if(file.eq.1) call pgpap(bmpsz,bmprat)
-        if(file.ge.2) then
-           call pgpap(PSsz,PSrat)
-           !if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.925)
-           if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.85)
-           call pgscf(fonttype)
-        end if
+     if(file.eq.0) call pgpap(scrSz,scrRat)
+     if(file.eq.1) call pgpap(bmpsz,bmprat)
+     if(file.ge.2) then
+        call pgpap(PSsz,PSrat)
+        !if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.925)
+        if(quality.eq.3.and.nPlPar.eq.12) call pgpap(10.6,0.85)
+        call pgscf(fonttype)
      end if
      
-     !call pgscr(3,0.,0.5,0.)
-     !call pginitl(colour,file,whiteBG)
      call pgslw(lw)
      call pgsch(sch)
      call pgsfs(fillPDF)
@@ -182,13 +167,15 @@ subroutine pdfs1d(exitcode)
      call pgsubp(panels(1),panels(2))
   end if !if(plot.eq.1)
   
-  !Save 1D PDF data
+  
+  ! Save 1D PDF data
   if(savePDF.eq.1) then
      open(unit=30,action='write',form='formatted',status='replace',file=trim(outputdir)//'/'//trim(outputname)//'__pdf1d.dat')
      write(30,'(3I6,T101,A)')nPlPar,nchains,Nbin1D,'Total number of plot parameters, total number of chains, number of bins'
      !write(30,'(3I6,T101,A)')nPlPar-nfixedpar,nchains,Nbin1D,&
      !'Total number of plot parameters, total number of chains, number of bins'
   end if
+  
   
   do j=1,nPlPar
      p = revID(plPars(j))
@@ -199,8 +186,8 @@ subroutine pdfs1d(exitcode)
      end if
      
      if(plot.eq.1) then
-        call pgpage()
-        if(j.eq.1 .or. use_PLplot) call pginitl(colour,file,whiteBG)
+        if(nPlPar.gt.1) call pgpage()
+        if(j.eq.1) call pginitl(colour,file,whiteBG)
         call pgsch(sch)
      end if
      
@@ -333,10 +320,23 @@ subroutine pdfs1d(exitcode)
         end if
         if(ymax.lt.1.e-19) ymax = 1.
         
-        
         if(file.eq.0.and.scrRat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
-        if(file.eq.1.and.bmprat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
-        if(file.ge.2.and.PSrat.gt.1.35) call pgsvp(0.08,0.95,0.1,0.95)
+        if(file.eq.1) then
+           if(bmprat.gt.1.35) then
+              call pgsvp(0.08,0.95,0.1,0.95)
+           else
+              if(use_PLplot) then
+                 call pgsvp(0.1,0.92,0.12,0.9)  ! default case?
+              else
+                 call pgsvp(0.1,0.95,0.08,0.9)  ! default case?
+              end if
+           end if
+        end if
+        if(file.ge.2.and.PSrat.gt.1.35) & 
+             call pgsvp(0.08*sqrt(fontsize1D),1.0-0.04-0.04*sqrt(fontsize1D),0.07*fontsize1D**1.5,1.0-0.05-0.03*fontsize1D**1.5)
+        if(file.ge.2.and.PSrat.le.1.35.and.nPlPar.eq.1) &
+             call pgsvp(0.08*fontsize1D,1.0-0.08*fontsize1D,0.07*fontsize1D,1.0-0.06*fontsize1D)
+        
         if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87)  ! To make room for title
         if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
         
@@ -346,6 +346,7 @@ subroutine pdfs1d(exitcode)
            xbin = 0.
            ybin = 0.
         end if
+        
         
         ! Plot 1D PDF:
         !if(fixedpar(p).eq.0) then
@@ -684,9 +685,10 @@ subroutine pdfs1d(exitcode)
   if(savePDF.eq.1) close(30)
   
   if(plot.eq.1) then
-     call pgsubp(1,1)
      
      if(quality.eq.0) then
+        call pgsubp(1,1)
+        
         ! Remove also the pgsvp at the beginning of the plot:
         string=' '
         write(string,'(A,I7,A,I4)')trim(string)//'n:',totpts,', nbin:',Nbin1D
@@ -695,7 +697,7 @@ subroutine pdfs1d(exitcode)
         call pgsch(sch)
      end if
      
-     call pgend
+     call pgend()
      
      if(file.ge.2) then
         if(file.eq.3) then

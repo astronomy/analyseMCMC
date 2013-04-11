@@ -35,14 +35,16 @@ subroutine pginitl(colour,file,whiteBG)
   if(whiteBG.ge.1) then
      call pgscr(0,1.,1.,1.)                ! Background colour always white (also on screen, bitmap)
      call pgscr(1,0.,0.,0.)                ! Default foreground colour always black
+     
      if(file.le.1) then                    ! png: create white background
+        call pgsvp(-100.,100.,-100.,100.)
+        call pgswin(0.,1.,0.,1.)
+        call pgsci(0)
+        call pgrect(-1.,2.,-1.,2.)
+        
         if(use_PLplot) then
            call pgsvp(0.08,0.92,0.12,0.94) ! Default viewport size (?)
         else
-           call pgsvp(-100.,100.,-100.,100.)
-           call pgswin(0.,1.,0.,1.)
-           call pgsci(0)
-           call pgrect(-1.,2.,-1.,2.)
            call pgsvp(0.08,0.95,0.06,0.87) ! Default viewport size (?)
         end if
      end if

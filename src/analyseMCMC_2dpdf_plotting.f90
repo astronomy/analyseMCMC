@@ -32,7 +32,6 @@
 
 subroutine open_2D_PDF_plot_file(p1,p2, npdf, sch, project_map, exitcode)
   use SUFR_constants, only: stdErr, stdOut
-  use aM_constants, only: use_PLplot
   use analysemcmc_settings, only: outputbasefile,outputtempfile, file, Npdf2D, htmlOutput
   use analysemcmc_settings, only: scrsz,scrrat,pssz,psrat, colour,whitebg,fonttype
   use general_data, only: outputname,outputdir, parNames, htParNs
@@ -64,37 +63,34 @@ subroutine open_2D_PDF_plot_file(p1,p2, npdf, sch, project_map, exitcode)
   if(file.eq.0) then
      npdf=npdf+1
      write(str,'(I3,A3)') 200+npdf,'/xs'
-     if(.not.use_PLplot) io = pgopen(trim(str))
+     io = pgopen(trim(str))
      if(project_map) then
         call pgpap(scrSz/0.5*scrRat,0.5)
      else
         call pgpap(scrSz,scrRat)
      end if
-     if(use_PLplot) io = pgopen(trim(str))
      call pginitl(colour,file,whiteBG)
   end if
   
   if(file.eq.1) then
      write(outputtempfile,'(A)') trim(outputbasefile)
-     if(.not.use_PLplot) io = pgopen(trim(outputtempfile)//'.ppm/ppm')
+     io = pgopen(trim(outputtempfile)//'.ppm/ppm')
      if(project_map) then
         call pgpap(bmpsz/0.5*bmprat,0.5)
      else
         call pgpap(bmpsz,bmprat)
      end if
-     if(use_PLplot) io = pgopen(trim(outputtempfile)//'.ppm/ppm')
      call pginitl(colour,file,whiteBG)
   end if
   
   if(file.ge.2) then
      write(outputtempfile,'(A)') trim(outputbasefile)
-     if(.not.use_PLplot) io = pgopen(trim(outputtempfile)//'.eps'//trim(psclr))
+     io = pgopen(trim(outputtempfile)//'.eps'//trim(psclr))
      if(project_map) then
         call pgpap(PSsz/0.5*PSrat,0.5)
      else
         call pgpap(PSsz,PSrat)
      end if
-     if(use_PLplot) io = pgopen(trim(outputtempfile)//'.eps'//trim(psclr))
      call pginitl(colour,file,whiteBG)
      call pgscf(fonttype)
   end if
