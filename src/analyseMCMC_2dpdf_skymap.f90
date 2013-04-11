@@ -374,7 +374,7 @@ subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, clr1,clr2, tr, pr
         !Get colour for this pixel:
         dz = z(ix,iy)-z1
         ci = min(clr1 + nint(dz*dcdz),clr2)
-        if(ci.eq.clr1) cycle  !Don't draw background pixels
+        if(ci.eq.clr1) cycle  ! Don't draw background pixels
         
         call pgsci(ci)
         

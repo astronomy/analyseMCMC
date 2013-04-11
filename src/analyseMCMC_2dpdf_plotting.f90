@@ -192,66 +192,65 @@ subroutine set_2D_probability_colours(clr1,clr2)
      
   else if(normPDF2D.eq.4) then  ! Use colour
      
+     minclr = 30
+     clr1 = minclr
+     clr2 = minclr+Nival
+     call pgscir(clr1,clr2)  ! Set colour-index range for pgimag
+     
      
      if(colour.eq.0) then
-        call pgscr(minclr,1.,1.,1.)  ! BG colour
         if(Nival.eq.2) then
-           call pgscr(31,0.5,0.5,0.5)  ! Grey
-           call pgscr(32,0.,0.,0.)     ! Black
+           call pgscr(minclr+1,0.5,0.5,0.5)  ! Grey
+           call pgscr(minclr+2,0.,0.,0.)     ! Black
         end if
         if(Nival.eq.3) then
-           call pgscr(31,0.7,0.7,0.7)  ! Light grey
-           call pgscr(32,0.4,0.4,0.4)  ! Dark grey
-           call pgscr(33,0.0,0.0,0.0)  ! Black
+           call pgscr(minclr+1,0.7,0.7,0.7)  ! Light grey
+           call pgscr(minclr+2,0.4,0.4,0.4)  ! Dark grey
+           call pgscr(minclr+3,0.0,0.0,0.0)  ! Black
         end if
         if(Nival.eq.4) then
-           call pgscr(31,0.75,0.75,0.75)  ! Light grey
-           call pgscr(32,0.50,0.50,0.50)  ! 
-           call pgscr(33,0.25,0.25,0.25)  ! Dark grey
-           call pgscr(34,0.00,0.00,0.00)  ! Black
+           call pgscr(minclr+1,0.75,0.75,0.75)  ! Light grey
+           call pgscr(minclr+2,0.50,0.50,0.50)  ! Medium grey
+           call pgscr(minclr+3,0.25,0.25,0.25)  ! Dark grey
+           call pgscr(minclr+4,0.00,0.00,0.00)  ! Black
         end if
         if(Nival.eq.5) then
-           call pgscr(31,0.8,0.8,0.8)  ! Light grey
-           call pgscr(32,0.6,0.6,0.6)  ! 
-           call pgscr(33,0.4,0.4,0.4)  ! 
-           call pgscr(34,0.2,0.2,0.2)  ! Dark grey
-           call pgscr(35,0.0,0.0,0.0)  ! Black
+           call pgscr(minclr+1,0.8,0.8,0.8)  ! Light grey
+           call pgscr(minclr+2,0.6,0.6,0.6)  ! Semi-light grey
+           call pgscr(minclr+3,0.4,0.4,0.4)  ! Semi-dark grey
+           call pgscr(minclr+4,0.2,0.2,0.2)  ! Dark grey
+           call pgscr(minclr+5,0.0,0.0,0.0)  ! Black
         end if
      end if
      
      if(colour.ge.1) then
-        call pgscr(minclr,1.,1.,1.)  ! BG colour
         if(Nival.eq.2) then
-           call pgscr(31,1.,1.,0.)  ! Yellow
-           if(file.ge.2) call pgscr(31,0.8,0.7,0.)  ! Dark yellow
-           call pgscr(32,1.,0.,0.)  ! Red
+           call pgscr(minclr+1,1.,1.,0.)  ! Yellow
+           if(file.ge.2) call pgscr(minclr+1,0.8,0.7,0.)  ! Dark yellow
+           call pgscr(minclr+2,1.,0.,0.)  ! Red
         end if
         if(Nival.eq.3) then
-           call pgscr(31,0.,0.,1.)  ! Blue
-           call pgscr(32,1.,1.,0.)  ! Yellow
-           if(file.ge.2) call pgscr(32,0.8,0.7,0.)  ! Dark yellow
-           call pgscr(33,1.,0.,0.)  ! Red
+           call pgscr(minclr+1,0.,0.,1.)  ! Blue
+           call pgscr(minclr+2,1.,1.,0.)  ! Yellow
+           if(file.ge.2) call pgscr(minclr+2,0.8,0.7,0.)  ! Dark yellow
+           call pgscr(minclr+3,1.,0.,0.)  ! Red
         end if
         if(Nival.eq.4) then
-           call pgscr(31,0.,0.,1.)  ! Blue
-           call pgscr(32,0.,1.,0.)  ! Green
-           call pgscr(33,1.,1.,0.)  ! Yellow
-           if(file.ge.2) call pgscr(33,0.8,0.7,0.)  ! Dark yellow
-           call pgscr(34,1.,0.,0.)  ! Red
+           call pgscr(minclr+1,0.,0.,1.)  ! Blue
+           call pgscr(minclr+2,0.,1.,0.)  ! Green
+           call pgscr(minclr+3,1.,1.,0.)  ! Yellow
+           if(file.ge.2) call pgscr(minclr+3,0.8,0.7,0.)  ! Dark yellow
+           call pgscr(minclr+4,1.,0.,0.)  ! Red
         end if
         if(Nival.eq.5) then
-           call pgscr(31,0.,0.,1.)  ! Blue
-           call pgscr(32,0.,1.,0.)  ! Green
-           call pgscr(33,1.,1.,0.)  ! Yellow
-           if(file.ge.2) call pgscr(33,0.8,0.7,0.)  ! Dark yellow
-           call pgscr(34,1.,0.5,0.)  ! Orange
-           call pgscr(35,1.,0.,0.)  ! Red
+           call pgscr(minclr+1,0.,0.,1.)  ! Blue
+           call pgscr(minclr+2,0.,1.,0.)  ! Green
+           call pgscr(minclr+3,1.,1.,0.)  ! Yellow
+           if(file.ge.2) call pgscr(minclr+3,0.8,0.7,0.)  ! Dark yellow
+           call pgscr(minclr+4,1.,0.5,0.)  ! Orange
+           call pgscr(minclr+5,1.,0.,0.)  ! Red
         end if
      end if
-     
-     clr1 = minclr
-     clr2 = minclr+Nival
-     call pgscir(clr1,clr2)  ! Set colour-index range for pgimag
      
   end if  ! if(normPDF2D .eq. 4)  ! Use colour
   
