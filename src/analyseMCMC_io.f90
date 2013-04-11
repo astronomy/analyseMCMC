@@ -568,7 +568,7 @@ subroutine read_mcmcfiles(exitcode)
   implicit none
   integer, intent(out) :: exitcode
   integer :: i,tmpInt,io,ic,j,readerror,p
-  character :: tmpStr*(99),detname*(14),firstLine*(999),infile*(99),commandline*(999),parNameStr*(999)
+  character :: tmpStr*(99),tmpStr999*(999),detname*(14),firstLine*(999),infile*(99),commandline*(999),parNameStr*(999)
   real :: injPost,injPrior
   real(double) :: tmpDat(maxMCMCpar),dtmpDat(maxMCMCpar), lon2ra,ra2lon
   
@@ -621,33 +621,30 @@ subroutine read_mcmcfiles(exitcode)
         end if
         
         ! Read empty line between version number and first header:
-        read(10,*,end=199,err=199) tmpStr
+        read(10,'(A)',end=199,err=199) tmpStr999
+        if(index(trim(tmpStr999),'Tmax').eq.0) outputVersion = outputVersion + 0.1  ! No Tmax, LIM > Aug 2012 - v2.2
      end if
+     
      
      if(outputVersion.lt.0.5) then
         read(10,*) &
              niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic)
      else
-        !read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') &
-        read(10,*, iostat=io) niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic), &
-             nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform, pnOrder,nMCMCpar
         
-        if(outputVersion.lt.1.999) waveformName = waveforms(waveform)  ! SPINspiral
-           
-        if(io.ne.0) then  ! Try reading this line again, without Tmax (output v.2.2, after August 2012):
-           backspace(10, iostat=io)
-           backspace(10, iostat=io)
-           backspace(10, iostat=io)
-           
+        if(outputVersion.gt.2.15) then  ! No Tmax
            read(10,*, iostat=io) niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic), &
                 nTemps(ic),Tchain(ic),networkSNR(ic),waveform, pnOrder,nMCMCpar
-           
-           outputVersion = outputVersion + 0.1
-           if(abs(outputVersion-2.2).gt.0.05) call warn('I expected outputVersion=2.2 here, please check what is going on', stdOut)
-           
-           if(io.ne.0) call quit_program_error('Error reading header line (nIter, Nburn, etc)',stdErr)
+        else
+           !read(10,'(I10,I12,I8,F22.10,I8,  2I9,I10,F12.1,F14.6,I11,F11.1,I10)') &
+           read(10,*, iostat=io) niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic), &
+                nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic),waveform, pnOrder,nMCMCpar
         end if
+        
+        if(io.ne.0) call quit_program_error('Error reading header line (nIter, Nburn, etc)',stdErr)
+        
+        if(outputVersion.lt.1.999) waveformName = waveforms(waveform)  ! SPINspiral > v0.5
      end if
+     
      
      nMCMCpar0 = nMCMCpar  ! nMCMCpar may change when secondary parameters are computed
      
@@ -1650,6 +1647,10 @@ subroutine get_LIM_injection_values(ic, nMCMCpar, startval, post,prior)
   end do
   
   startval(ic,1:nMCMCpar,1) = real(tmpDat(1:nMCMCpar) - dtmpDat(1:nMCMCpar))
+  
+  ! Set but never used:
+  tmpInt = tmpInt
+  tmpStr = tmpStr
   
 end subroutine get_LIM_injection_values
 !***********************************************************************************************************************************
