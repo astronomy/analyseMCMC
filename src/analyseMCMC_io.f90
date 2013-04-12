@@ -1169,14 +1169,14 @@ subroutine mcmcruninfo(exitcode)
   
   
   
-  !*** Change some MCMC parameters:
-  ! use SUFR_constants, only: pi
+  ! *** Change some MCMC parameters:
   
   if(changeVar.ge.1) then
      if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)',advance="no")'  Changing some parameters...   '
      
      
-     if(revID(61).eq.0 .and. revID(65).ne.0) then  ! Calculate Mc from Mc_16 (Mc^(1/6)):
+     ! Calculate Mc from Mc_16 (Mc^(1/6)):
+     if(revID(61).eq.0 .and. revID(65).ne.0) then
         if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mc from Mc^(1/6)'
         parID(nMCMCpar+1) = 61    ! Mc
         revID(61) = nMCMCpar + 1  ! Mc
@@ -1239,13 +1239,16 @@ subroutine mcmcruninfo(exitcode)
         revID(66) = nMCMCpar + 4  ! Mtot
         revID(68) = nMCMCpar + 5  ! logq
         nMCMCpar = nMCMCpar + 5
+        
         if(nMCMCpar.gt.maxMCMCpar) then
            write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
                 ' to at least',nMCMCpar,' in order to continue.  Aborting...'
            stop
         end if
+        
         do ic=1,nchains0
            if(changeVar.eq.3) then ! Folding log(q) for comparison
+              if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Folding log(q)'
               do j=1,ntot(ic)
                  if(allDat(ic,revID(67),j).gt.1.0) then
                     allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)
@@ -1253,6 +1256,7 @@ subroutine mcmcruninfo(exitcode)
               end do
            end if
            if(changeVar.eq.2) then  ! for phi > pi -> q = 1/q & phi = phi - pi
+              if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Swapping q, phi'
               do j=1,ntot(ic)
                  if(allDat(ic,revID(41),j).gt.rpi) then
                     allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                      ! phi = phi - pi
@@ -1264,6 +1268,10 @@ subroutine mcmcruninfo(exitcode)
            allDat(ic,revID(62),1:ntot(ic)) =  &
                 allDat(ic,revID(67),1:ntot(ic)) / (allDat(ic,revID(67),1:ntot(ic)) + 1.0)**2                ! eta = q/(1+q)^2
            allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                         ! log_q = log(q)
+           
+           
+           if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') &
+                '  Computing M1, M2 and Mtot from Mc and q'
            do i=1,ntot(ic)
               call mc_q_2_m1_m2r(allDat(ic,revID(61),i),allDat(ic,revID(67),i), allDat(ic,revID(63),i),allDat(ic,revID(64),i))
            end do
@@ -1294,8 +1302,10 @@ subroutine mcmcruninfo(exitcode)
            allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! Mtot = m1 + m2
         end do
         
+        
         ! Calculate Mc, eta from the individual masses:
      else if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) then
+        
         if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mc, eta from M1, M2'
         parID(nMCMCpar+1) = 61    ! Mc
         parID(nMCMCpar+2) = 62    ! eta
@@ -1350,6 +1360,7 @@ subroutine mcmcruninfo(exitcode)
            allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                                ! log_q = log(q)
         end do
      end if !if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) 
+     
      
      ! Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
      if(revID(11)*revID(31)*revID(32)*revID(53)*revID(54).ne.0) then  ! Then all of these parameters are defined
