@@ -186,7 +186,11 @@ subroutine pdfs1d(exitcode)
      
      if(plot.eq.1) then
         if(nPlPar.gt.1) call pgpage()
-        if(j.eq.1) call pginitl(colour,file,whiteBG)
+        if(j.eq.1) then
+           call pginitl(colour,file,whiteBG)
+        else
+           call pginitl(colour,file,0)  ! Use pgsvp to jump to the next panel
+        end if
         call pgsch(sch)
      end if
      
@@ -331,10 +335,13 @@ subroutine pdfs1d(exitcode)
               end if
            end if
         end if
-        if(file.ge.2.and.PSrat.gt.1.35) & 
-             call pgsvp(0.08*sqrt(fontsize1D),1.0-0.04-0.04*sqrt(fontsize1D),0.07*fontsize1D**1.5,1.0-0.05-0.03*fontsize1D**1.5)
-        if(file.ge.2.and.PSrat.le.1.35.and.nPlPar.eq.1) &
-             call pgsvp(0.08*fontsize1D,1.0-0.08*fontsize1D,0.07*fontsize1D,1.0-0.06*fontsize1D)
+        if(file.ge.2) then
+           if(PSrat.gt.1.35) then
+              call pgsvp(0.08*sqrt(fontsize1D),1.0-0.04-0.04*sqrt(fontsize1D),0.07*fontsize1D**1.5,1.0-0.05-0.03*fontsize1D**1.5)
+           else if(PSrat.le.1.35.and.nPlPar.eq.1) then
+              call pgsvp(0.08*fontsize1D,1.0-0.08*fontsize1D,0.07*fontsize1D,1.0-0.06*fontsize1D)
+           end if
+        end if
         
         if(quality.eq.0) call pgsvp(0.08,0.95,0.06,0.87)  ! To make room for title
         if(quality.eq.4) call pgsvp(0.13,0.95,0.1,0.95)
