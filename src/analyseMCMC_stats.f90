@@ -73,6 +73,7 @@ subroutine statistics(exitcode)
   
   ! Compute data to make Rhat plot:
   if(plRhat.gt.0) then
+     if(prProgress.ge.2) write(stdOut,'(/,A)') '  Computing data for R-hat plot (may take a while)...'
      dn = max(1,nn/1000)  ! Compute R-hat for 1000 cases
      RhatsN = 0
      do in = dn,nn,dn
@@ -106,6 +107,7 @@ subroutine statistics(exitcode)
            end do !p
            
         end do !ic
+        
      else  ! then outputVersion < 2.1
         
         do ic=1,nChains0  !selDat consists of nChains chains, allDat of nChains0 chains;  nChains <= nChains0
@@ -507,15 +509,15 @@ subroutine statistics(exitcode)
                    'mean','Lmax','stdev1','stdev2','abvar1','abvar2', 'rng_c','rng1','rng2','drng','d/drng','delta','ok?', &
                    'result (',ivals(c)*100,'%)','</b>'
            else
-              write(stdOut,'(A10, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)') 'Param.  ','model','median','mean','Lmax', &
+              write(stdOut,'(A11, A12,2A10,A12, 4A8, 4A10,A8,A10, A4,A12,F7.3,A2)') 'Param.','model','median','mean','Lmax', &
                    'stdev1','stdev2','abvar1','abvar2', 'rng_c','rng1','rng2','drng','d/drng','delta','ok?', &
                    'result (',ivals(c)*100,'%)'
            end if
            
            do p=1,nMCMCpar
               if(fixedpar(p).eq.1) cycle  ! Varying parameters only
-              write(stdOut,'(A10,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4)',advance="no")parNames(parID(p)),startval(ic,p,1), &
-                   stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absVar1(p),  &
+              write(stdOut,'(A10,1x,F12.6,2F10.4,F12.6, 4F8.4,4F10.4,F8.4,F10.4)',advance='no') trim(parNames(parID(p))), &
+                   startval(ic,p,1), stats(ic,p,1),stats(ic,p,2),startval(ic,p,3),stdev1(p),stdev2(p),absVar1(p),  &
                    absVar2(p),ranges(ic,c,p,3),ranges(ic,c,p,1),ranges(ic,c,p,2),ranges(ic,c,p,4),  &
                    min(2*abs(startval(ic,p,1)-ranges(ic,c,p,3))/ranges(ic,c,p,4),99.9999),ranges(ic,c,p,5)  ! d/drnge wrt ctr of rng
               if(startval(ic,p,1).ge.ranges(ic,c,p,1).and.startval(ic,p,1).le.ranges(ic,c,p,2)) then
@@ -541,7 +543,7 @@ subroutine statistics(exitcode)
            write(stdOut,'(A25,A8)',advance="no") '<b>Interval:',''
         else
            write(stdOut,'(/,A)')'  Probability intervals:'
-           write(stdOut,'(A22,A8)',advance="no") 'Interval:',''
+           write(stdOut,'(A21,A8)',advance="no") 'Interval:',''
         end if
         
         do c=1,Nival
@@ -556,11 +558,11 @@ subroutine statistics(exitcode)
         if(htmlOutput.ge.1) then
            write(stdOut,'(A3,A10,2x,2A9)',advance="no") '<b>','Param.  ','model','median'
         else
-           write(stdOut,'(A10,2x,2A9)',advance="no") 'Param.  ','model','median'
+           write(stdOut,'(A11,2A9)',advance="no") 'Param.','model','median'
         end if
         do c=1,Nival
            !write(stdOut,'(2x,2A9,A8)',advance="no")'rng1','rng2','in rnge'
-           write(stdOut,'(2x,3A9)',advance="no")'centre','delta','in rnge'
+           write(stdOut,'(2x,3A9)',advance='no') 'centre','delta','in rnge'
         end do
         if(htmlOutput.ge.1) then
            write(stdOut,'(A)') '</b>'
@@ -571,7 +573,7 @@ subroutine statistics(exitcode)
         do p=1,nMCMCpar
            !if(stdev1(p).lt.1.d-20) cycle
            if(fixedpar(p).eq.1) cycle  ! Varying parameters only
-           write(stdOut,'(A10,2x,2F9.4)',advance="no") parNames(parID(p)),startval(ic,p,1),stats(ic,p,1)
+           write(stdOut,'(A10,1x,2F9.4)',advance='no') trim(parNames(parID(p))),startval(ic,p,1),stats(ic,p,1)
            do c=1,Nival
               if(mergeChains.eq.0) then
                  ! Defined with centre of prob. range, need some extra security to print correctly:

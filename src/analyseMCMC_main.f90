@@ -118,13 +118,17 @@ program analyseMCMC
   if(nchains0.lt.1) then  ! No command-line arguments - select all files SPINspiral.output.*.00 in the current dir
      call findFiles('SPINspiral.output.*.00',maxChs,1,infiles,nchains0)
      if(nchains0.eq.0) then
-        write(stdErr,'(A)')'  No files matching  SPINspiral.output.*.00  were found in the current directory.'
-        write(stdErr,'(A)')'  I will try LALInference output file names  PTMCMC.output.*.00  instead.'
+        if(prProgress.ge.2) then
+           write(stdErr,'(A)')'  No files matching  SPINspiral.output.*.00  were found in the current directory.'
+           write(stdErr,'(A)')'  I will try LALInference output file names  PTMCMC.output.*.00  instead.'
+        end if
         call findFiles('PTMCMC.output.*.00',maxChs,1,infiles,nchains0)
      end if
      if(nchains0.eq.0) then
-        write(stdErr,'(A)')'  No files matching  PTMCMC.output.*.00  were found either.'
-        write(stdErr,'(A)')'  I will try the old file names  mcmc.output.*.00  before I give up.'
+        if(prProgress.ge.2) then
+           write(stdErr,'(A)')'  No files matching  PTMCMC.output.*.00  were found either.'
+           write(stdErr,'(A)')'  I will try the old file names  mcmc.output.*.00  before I give up.'
+        end if
         call findFiles('mcmc.output.*.00',maxChs,1,infiles,nchains0)
         if(nchains0.eq.0) call quit_program_error('No valid input files were found in the current directory.'// &
              '  Please specify input files manually.',1)
