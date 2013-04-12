@@ -345,9 +345,7 @@ end subroutine set_originalParameterNames
 subroutine set_derivedParameterNames()
   use analysemcmc_settings, only: fonttype
   use general_data, only: parNames,pgParNs,pgParNss,pgUnits, htParNs
-  
   implicit none
-  
   
   parNames = ''
   htParNS = ''

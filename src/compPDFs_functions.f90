@@ -32,27 +32,10 @@ module comp_pdfs_settings
   integer :: nf,file,type,dim,clr,fillstyle,frames(2),plpars(20),plpars2d(2),clrs(nfmax),lss(nfmax)
   integer :: pltrue,plmedian,plrange,fonttype
   real :: fontsize
-  character :: fnames(nfmax)*(99),dirnames(nfmax)*(99),outnamebase*(99),settingsfile*(99)
+  character :: fnames(nfmax)*(299),dirnames(nfmax)*(199),outnamebase*(99),settingsfile*(99)
   
 end module comp_pdfs_settings
 !***********************************************************************************************************************************
-
-
-!***********************************************************************************************************************************
-!> \brief  Module with general data and data from the analyseMCMC output files
-
-module comp_pdfs_data
-  use comp_pdfs_settings, only: nParDB
-  implicit none
-  save
-  private nParDB
-  
-  character :: parNames(nParDB)*(8),pgUnits(nParDB)*(99),pgParNs(nParDB)*(99),pgParNss(nParDB)*(99),pgOrigParns(nParDB)*(99)
-  
-end module comp_pdfs_data
-!***********************************************************************************************************************************
-
-
 
 
 !***********************************************************************************************************************************
@@ -63,7 +46,7 @@ end module comp_pdfs_data
 
 subroutine plotpdf1d(pp,lbl)
   use comp_pdfs_settings, only: nf,fnames,fontsize,clrs,clr,fillstyle,plrange,pltrue,lss,plmedian
-  use comp_pdfs_data, only: parNames,pgunits,pgParNs
+  use general_data, only: parNames,pgunits,pgParNs
   
   implicit none
   integer, intent(in) :: pp
@@ -73,7 +56,7 @@ subroutine plotpdf1d(pp,lbl)
   integer :: b,p1,io,f,nplvar,nchains,nbin(nf),pID,parIDs(np),pp1,ic,wrap(nf,np),lw,detnan(nf,np),identical
   real :: x,startval(nf,np,2),stats(nf,np,6),ranges(nf,np,5),xmin1(nf,np),xmax1(nf,np),plshift
   real :: xbin1(nf,np,nbin1),ybin1(nf,np,nbin1),xbin(nbin1),ybin(nbin1),xmin,xmax,ymin,ymax,dx,yrange(2),xpeak
-  character :: fname*(99),str*(99),tmpstr
+  character :: fname*(299),str*(99),tmpstr
   
   
   detnan = 0  ! Used to detect NaNs
@@ -81,7 +64,7 @@ subroutine plotpdf1d(pp,lbl)
   xpeak = -huge(xpeak)
   
   do f=1,nf
-     fname = fnames(f)
+     fname = trim(fnames(f))
      if(fname(1:3).eq.'   ') cycle
      open(unit=10,action='read',form='formatted',status='old',position='rewind',file=trim(fname),iostat=io)
      if(io.ne.0) then
@@ -89,20 +72,25 @@ subroutine plotpdf1d(pp,lbl)
         write(*,'(A,/)')'  Aborting.'
         stop
      end if
-     read(10,'(3I6)')nplvar,nchains,nbin(f) !'Total number of plot parameters, total number of chains, number of bins'
+     read(10,'(3I6)') nplvar,nchains,nbin(f)  ! Total number of plot parameters, total number of chains, number of bins
      pp1 = 0
      do p1=1,nplvar
-        read(10,*)tmpstr  !Read empty line
-        read(10,'(3I6)')ic,parIDs(p1),wrap(f,p1) !'Chain number, parameter number, and wrap(type)'
-        read(10,'(2E15.7)')startval(f,p1,1:2) !'True and starting value'
-        read(10,'(6E15.7)')stats(f,p1,1:6) !'Stats: median, mean, absvar1, absvar2, stdev1, stdev2'
-        read(10,'(5E15.7)')ranges(f,p1,1:5) !'Ranges: lower,upper limit, centre, width, relative width'
-        read(10,'(2E15.7)')xmin1(f,p1),xmax1(f,p1) !'Xmin and Xmax of PDF'
+        read(10,*,iostat=io) tmpstr  ! Read empty line
+        if(io.ne.0) then  ! Wrong number of parameters listed in top of file?
+           !write(*,'(A,2(I0,A))') '  The number of parameters listed at the top of the file '//trim(fname)//' (', &
+           !     nplvar,') seems to be incorrect. I found only ',p1-1,'.'
+           exit
+        end if
+        read(10,'(3I6)')    ic,parIDs(p1),wrap(f,p1) !'Chain number, parameter number, and wrap(type)'
+        read(10,'(2E15.7)') startval(f,p1,1:2) !'True and starting value'
+        read(10,'(6E15.7)') stats(f,p1,1:6) !'Stats: median, mean, absvar1, absvar2, stdev1, stdev2'
+        read(10,'(5E15.7)') ranges(f,p1,1:5) !'Ranges: lower,upper limit, centre, width, relative width'
+        read(10,'(2E15.7)') xmin1(f,p1),xmax1(f,p1) !'Xmin and Xmax of PDF'
         do b=1,nbin(f)+1
            !read(10,'(2E15.7)',iostat=io)xbin1(f,p1,b),ybin1(f,p1,b)
-           read(10,*,iostat=io)xbin1(f,p1,b),ybin1(f,p1,b)  !Formatted read doesn't work for gfortran when NaNs are present
+           read(10,*,iostat=io) xbin1(f,p1,b),ybin1(f,p1,b)  ! Formatted read doesn't work for gfortran when NaNs are present
            if(io.ne.0) then
-              if(detnan(f,p1).eq.0) write(*,'(A,I4,A1,I4,A1)')'  Warning while reading file '//trim(fname)//', parameter '// &
+              if(detnan(f,p1).eq.0) write(*,'(A,I4,A1,I4,A1)') '  Warning while reading file '//trim(fname)//', parameter '// &
                    trim(parNames(parIDs(p1)))//', bin',b,'/',nbin(f),'.'
               ybin1(f,p1,b) = 0.0
               detnan(f,p1) = 1
@@ -117,10 +105,10 @@ subroutine plotpdf1d(pp,lbl)
         if(parIDs(p1).eq.pp) then
            pp1 = p1
         end if
-     end do !p1
+     end do  ! p1
      
      close(10)
-  end do !f
+  end do  ! f
   
   
   if(pp1.eq.0) then
@@ -358,7 +346,7 @@ end subroutine plotpdf1d
 
 subroutine plotpdf2d(pID1,pID2,lbl)
   use comp_pdfs_settings, only: nf,fnames,fontsize,clrs,clr,fillstyle,plrange,pltrue,plmedian
-  use comp_pdfs_data, only: parNames,pgunits,pgParNss
+  use general_data, only: parNames,pgunits,pgParNss
   
   implicit none
   integer, intent(in) :: pID1,pID2
@@ -371,13 +359,13 @@ subroutine plotpdf2d(pID1,pID2,lbl)
   real :: startval(nf,np,2,2),stats(nf,np,2,6),ranges(nf,np,2,5)
   real :: xmin1(nf,np,2),xmax1(nf,np,2),ymin1(nf,np,2),ymax1(nf,np,2),x
   real :: xmin,xmax,ymin,ymax,dx,dy,z(nf,nbinx1,nbiny1),z1(nbinx1,nbiny1),tr(nf,np*np,6),cont(11)
-  character :: fname*(99),str*(99),tmpstr
+  character :: fname*(299),str*(99),tmpstr
   
   
   pp12 = 0
   dof: do f=1,nf
      foundit = 0
-     fname = fnames(f)
+     fname = trim(fnames(f))
      if(fname(1:3).eq.'   ') cycle
      open(unit=10,action='read',form='formatted',status='old',position='rewind',file=trim(fname),iostat=io)
      if(io.ne.0) then
@@ -630,12 +618,12 @@ subroutine plotwave(fname1,thingy,lbl)
   real :: xwinmin,xwinmax,ywinmin,ywinmax
   real :: t(nf,n1),h(nf,n1),dx,dy,xmin,xmax,ymin,ymax
   real(double) :: t1,t0,m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
-  character :: fname*(99),bla
+  character :: fname*(299),bla
   
   t0 = 0.0_dbl
   
   do f=1,nf
-     fname = fname1
+     fname = trim(fname1)
      !if(f.eq.2) fname = fname2
      open(unit=10,form='formatted',status='old',file=trim(fname),iostat=io)
      rewind(10)
@@ -850,109 +838,6 @@ subroutine write_inputfile()
   write(u,*)
   close(u)
 end subroutine write_inputfile
-!***********************************************************************************************************************************
-
-
-
-!***********************************************************************************************************************************
-!> \brief Set the names and symbols of the derived MCMC parameters
-!!
-!! - e.g. d_L rather than d_L^3 or log(d_L), i rather than cos(i), etc.
-!! - Taken from and keep in sync with analyseMCMC_functions.f90
-
-subroutine set_derivedParameterNames()
-  use comp_pdfs_settings, only: fonttype
-  use comp_pdfs_data, only: parNames,pgParNs,pgParNss,pgUnits
-  implicit none
-  
-  parNames = ''
-  pgParNs = ''
-  pgParNss = ''
-  pgUnits = ''
-  
-  !Short ASCII names for text output:
-  parNames(11:19) = [character(len=8) :: 'tc','t40','','','','','','','']
-  parNames(21:29) = [character(len=8) :: 'dl','dl','','','','','','','']
-  parNames(31:39) = [character(len=8) :: 'RA','dec','','','','','','','']
-  parNames(41:49) = [character(len=8) :: 'phase','','','','','','','','']
-  parNames(51:59) = [character(len=8) :: 'incl','psi','th_Jo','ph_Jo','','','','','']
-  parNames(61:69) = [character(len=8) :: 'Mc','eta','M1','M2','','','','','']
-  parNames(71:79) = [character(len=8) :: 'spin1','th1','phi1','','','','','','']
-  parNames(81:89) = [character(len=8) :: 'spin2','th2','phi2','','','','','','']
-  !parNames(1:9) = [character(len=8) :: '','','','','','','','','']
-  
-  
-  if(fonttype.eq.2) then  !Use 'roman-like' Greek font in PGPlot
-     
-     !Long PGPlot names (symbol + unit)
-     pgParNs(11:19) = [character(len=99) :: 't\dc\u (s)','t\d40\u (s)','','','','','','','']
-     pgParNs(21:29) = [character(len=99) :: 'd\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','','']
-     pgParNs(31:39) = [character(len=99) :: '\(2127) (h)','\(2130) (\(2218))','','','','','','','']
-     pgParNs(41:49) = [character(len=99) :: '\(2147)\dc\u (\(2218))','','','','','','','','']
-     pgParNs(51:59) = [character(len=99) :: &
-          '\(2135) (\(2218))','\(2149) (\(2218))','\(2185)\dJ0\u (\(2218))','\(2147)\dJ0\u (\(2218))','','','','','']
-     pgParNs(61:69) = [character(len=99) :: &
-          '\(2563) (M\d\(2281)\u)','\(2133)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
-     pgParNs(71:79) = [character(len=99) :: &
-          'a\dspin1\u','\(2185)\dspin1\u (\(2218))','\(2147)\dspin1\u (\(2218))','','','','','','']
-     pgParNs(81:89) = [character(len=99) :: &
-          'a\dspin2\u','\(2185)\dspin2\u (\(2218))','\(2147)\dspin2\u (\(2218))','','','','','','']
-     !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
-     
-     !Short PGPlot symbols (no unit)
-     pgParNss(11:19) = [character(len=99) :: 't\dc\u','t\d40\u','','','','','','','']
-     pgParNss(21:29) = [character(len=99) :: 'd\dL\u\u3\d','logd\dL\u','','','','','','','']
-     pgParNss(31:39) = [character(len=99) :: '\(2127)','\(2130)','','','','','','','']
-     pgParNss(41:49) = [character(len=99) :: '\(2147)\dc\u','','','','','','','','']
-     pgParNss(51:59) = [character(len=99) :: '\(2135)','\(2149)','\(2185)\dJ0\u','\(2147)\dJ0\u','','','','','']
-     pgParNss(61:69) = [character(len=99) :: '\(2563)','\(2133)','M\d1\u','M\d2\u','','','','','']
-     pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','\(2185)\dspin1\u','\(2147)\dspin1\u','','','','','','']
-     pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','\(2185)\dspin2\u','\(2147)\dspin2\u','','','','','','']
-     !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
-     
-  else  !Same, but replace '\(21' with \(06' for arial-like Greek font
-     
-     !Long PGPlot names (symbol + unit)
-     pgParNs(11:19) = [character(len=99) :: 't\dc\u (s)','t\d40\u (s)','','','','','','','']
-     pgParNs(21:29) = [character(len=99) :: 'd\dL\u (Mpc)','d\dL\u (Mpc)','','','','','','','']
-     pgParNs(31:39) = [character(len=99) :: '\(0627) (h)','\(0630) (\(2218))','','','','','','','']
-     pgParNs(41:49) = [character(len=99) :: '\(0647)\dc\u (\(2218))','','','','','','','','']
-     pgParNs(51:59) = [character(len=99) :: &
-          '\(0635) (\(2218))','\(0649) (\(2218))','\(0685)\dJ0\u (\(2218))','\(0647)\dJ0\u (\(2218))','','','','','']
-     pgParNs(61:69) = [character(len=99) :: &
-          '\(2563) (M\d\(2281)\u)','\(0633)','M\d1\u (M\d\(2281)\u)','M\d2\u (M\d\(2281)\u)','','','','','']
-     pgParNs(71:79) = [character(len=99) :: &
-          'a\dspin1\u','\(0685)\dspin1\u (\(2218))','\(0647)\dspin1\u (\(2218))','','','','','','']
-     pgParNs(81:89) = [character(len=99) :: &
-          'a\dspin2\u','\(0685)\dspin2\u (\(2218))','\(0647)\dspin2\u (\(2218))','','','','','','']
-     !pgParNs(1:9) = [character(len=99) :: '','','','','','','','','']
-     
-     !Short PGPlot symbols (no unit)
-     pgParNss(11:19) = [character(len=99) :: 't\dc\u','t\d40\u','','','','','','','']
-     pgParNss(21:29) = [character(len=99) :: 'd\dL\u','d\dL\u','','','','','','','']
-     pgParNss(31:39) = [character(len=99) :: '\(0627)','\(0630)','','','','','','','']
-     pgParNss(41:49) = [character(len=99) :: '\(0647)\dc\u','','','','','','','','']
-     pgParNss(51:59) = [character(len=99) :: '\(0635)','\(0649)','\(0685)\dJ0\u','\(0647)\dJ0\u','','','','','']
-     pgParNss(61:69) = [character(len=99) :: '\(2563)','\(0633)','M\d1\u','M\d2\u','','','','','']
-     pgParNss(71:79) = [character(len=99) :: 'a\dspin1\u','\(0685)\dspin1\u','\(0647)\dspin1\u','','','','','','']
-     pgParNss(81:89) = [character(len=99) :: 'a\dspin2\u','\(0685)\dspin2\u','\(0647)\dspin2\u','','','','','','']
-     !pgParNss(1:9) = [character(len=99) :: '','','','','','','','','']
-     
-  end if
-  
-  !PGPlot units (no names)
-  pgUnits(11:19) = [character(len=99) :: 's','s','','','','','','','']
-  pgUnits(21:29) = [character(len=99) :: 'Mpc','Mpc','','','','','','','']
-  pgUnits(31:39) = [character(len=99) :: '\uh\d','\(2218)','','','','','','','']
-  pgUnits(41:49) = [character(len=99) :: '\(2218)','','','','','','','','']
-  pgUnits(51:59) = [character(len=99) :: '\(2218)','\(2218)','\(2218)','\(2218)','','','','','']
-  pgUnits(61:69) = [character(len=99) :: 'M\d\(2281)\u','','M\d\(2281)\u','M\d\(2281)\u','','','','','']
-  pgUnits(71:79) = [character(len=99) :: '','\(2218)','\(2218)','','','','','','']
-  pgUnits(81:89) = [character(len=99) :: '','\(2218)','\(2218)','','','','','','']
-  !pgUnits(1:9) = [character(len=99) :: '','','','','','','','','']
-  
-  
-end subroutine set_derivedParameterNames
 !***********************************************************************************************************************************
 
 

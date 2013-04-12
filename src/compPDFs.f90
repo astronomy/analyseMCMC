@@ -25,7 +25,7 @@
 program comp_pdfs
   use comp_pdfs_settings, only: clrs,lss,settingsfile,file,type,dim,clr,fillstyle,fonttype,fontsize,frames,fnames,nf,dirnames
   use comp_pdfs_settings, only: plpars,plpars2d,outnamebase
-  use comp_pdfs_data, only: parNames
+  use general_data, only: parNames
   
   implicit none
   integer :: nfrx,nfry,frx,fry,fr,fr1,f, system,status
@@ -88,12 +88,12 @@ program comp_pdfs
   
   
   do f=1,nf
-     if(dim.eq.2) then
-        write(fnames(f),'(A)')trim(dirnames(f))//'/'//trim(fnames(f))//'__pdf2d.dat'
+     write(*,'(A,I0,A)') '  File ',f,':  '//trim(fnames(f))
+     if(dim.eq.1) then
+        write(fnames(f),'(A)') trim(dirnames(f))//'/'//trim(fnames(f))//'__pdf1d.dat'
      else
-        write(fnames(f),'(A)')trim(dirnames(f))//'/'//trim(fnames(f))//'__pdf1d.dat'
+        write(fnames(f),'(A)') trim(dirnames(f))//'/'//trim(fnames(f))//'__pdf2d.dat'
      end if
-     print*,f,trim(fnames(f))
   end do
   
   if(file.eq.0) then
