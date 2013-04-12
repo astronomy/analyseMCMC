@@ -28,7 +28,7 @@ subroutine pdfs1d(exitcode)
   use SUFR_constants, only: stdOut,stdErr, rpi2
   use SUFR_statistics, only: determine_nbin_1d, bin_data_1d
   
-  use aM_constants, only: use_PLplot
+  use aM_constants, only: use_PLplot, rmeps
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: plLmax,fontsize1d,nPlPar,panels,plPars,changeVar, htmlOutput
   use analysemcmc_settings, only: plInject,mergeChains,maxChs
@@ -701,7 +701,11 @@ subroutine pdfs1d(exitcode)
      if(file.ge.2) then
         if(file.eq.3) then
            status = system('eps2pdf '//trim(tempfile)//'.eps -o '//trim(tempfile)//'.pdf  >& /dev/null')
-           if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps - >pdf',status
+           if(status.ne.0) then
+              write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+           elsee
+              if(rmeps) status = system('rm -f '//trim(tempfile)//'.eps  >& /dev/null')
+           end if
         end if
      else if(file.eq.1) then
         inquire(file=trim(tempfile)//'.ppm', exist=ex)

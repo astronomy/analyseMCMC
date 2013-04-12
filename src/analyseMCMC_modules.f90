@@ -60,7 +60,7 @@ module aM_constants
   integer :: os
   character :: detabbrs(4)*(2),waveforms(0:99)*(99)
   character(len=99) :: stdOutFile
-  logical :: use_PLplot
+  logical :: use_PLplot, rmeps
   
 end module aM_constants
 !***********************************************************************************************************************************

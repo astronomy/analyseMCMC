@@ -616,12 +616,14 @@ end subroutine plot_2D_PDF_axes_labels_titles
 
 subroutine convert_2D_PDF_plot(p1,p2, countplots)
   use SUFR_constants, only: stdErr
+  
+  use aM_constants, only: rmeps
   use analysemcmc_settings, only: file,outputtempfile,outputbasefile, Npdf2D
   use general_data, only: parNames
   use mcmcrun_data, only: parID
   use plot_data, only: bmpxpix, unSharppdf2d
-  implicit none
   
+  implicit none
   integer, intent(in) :: p1,p2, countplots
   
   integer :: status,system
@@ -656,8 +658,11 @@ subroutine convert_2D_PDF_plot(p1,p2, countplots)
      call pgend
      if(file.eq.3) then
         status = system('eps2pdf '//trim(outputtempfile)//'.eps &> /dev/null')
-        if(status.ne.0) write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'// &
-             trim(parNames(parID(p2)))
+        if(status.ne.0) then
+           write(stdErr,'(A)')'  Error converting plot for '//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))
+        else
+           if(rmeps) status = system('rm -f '//trim(outputtempfile)//'.eps  >& /dev/null')
+        end if
      end if
   end if
   

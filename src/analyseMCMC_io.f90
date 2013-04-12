@@ -24,7 +24,7 @@
 
 subroutine setconstants()
   use SUFR_constants, only: stdErr,stdOut
-  use aM_constants, only: detabbrs,waveforms
+  use aM_constants, only: detabbrs,waveforms, rmeps
   
   implicit none
   
@@ -43,6 +43,8 @@ subroutine setconstants()
   waveforms(4) = 'PPN'
   waveforms(5) = 'PhenSpinInspiralRD'
   waveforms(9) = 'Ana.L'
+  
+  rmeps = .true.  ! Remove eps files after conversion to pdf
   
 end subroutine setconstants
 !***********************************************************************************************************************************

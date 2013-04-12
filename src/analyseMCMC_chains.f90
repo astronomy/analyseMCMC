@@ -77,7 +77,7 @@ end subroutine chains
 subroutine plot_posterior_chain(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   
-  use aM_constants, only: use_PLplot
+  use aM_constants, only: use_PLplot, rmeps
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality,scLogLpl
   use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,fontsize1d,nPlPar, chainSymbol,plInject, autoBurnin, htmlOutput
   use general_data, only: post,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax
@@ -263,7 +263,11 @@ subroutine plot_posterior_chain(exitcode)
   if(file.ge.2) then
      if(file.eq.3) then
         status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
-        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+        if(status.ne.0) then
+           write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+        else
+           if(rmeps) status = system('rm -f '//trim(tempfile)//'.eps  >& /dev/null')
+        end if
      end if
   else if(file.eq.1) then
      inquire(file=trim(tempfile)//'.ppm', exist=ex)
@@ -291,7 +295,7 @@ end subroutine plot_posterior_chain
 subroutine plot_parameter_chains(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   
-  use aM_constants, only: use_PLplot
+  use aM_constants, only: use_PLplot, rmeps
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: Nburn,plLmax,plBurn,chainPlI,fontsize1d,nPlPar,panels,plPars,scChainsPl,changeVar
   use analysemcmc_settings, only: chainSymbol,plInject,mergeChains,plStart,prConv, htmlOutput
@@ -700,7 +704,11 @@ subroutine plot_parameter_chains(exitcode)
   if(file.ge.2) then
      if(file.eq.3) then
         status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf  >& /dev/null')
-        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+        if(status.ne.0) then
+           write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+        else
+           if(rmeps) status = system('rm -f '//trim(tempfile)//'.eps  >& /dev/null')
+        end if
      end if
   else if(file.eq.1) then
      inquire(file=trim(tempfile)//'.ppm', exist=ex)
@@ -744,6 +752,7 @@ end subroutine plot_parameter_chains
 subroutine plot_par_L(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   
+  use aM_constants, only: rmeps
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality, htmlOutput
   use analysemcmc_settings, only: Nburn,plLmax,chainPlI,fontsize1d,nPlPar,panels,plPars,changeVar, chainSymbol,plInject,mergeChains
   use general_data, only: post,allDat,outputname,outputdir,nChains0,Ntot,startval,icloglmax,iloglmax,nChains,parNames
@@ -1044,7 +1053,11 @@ subroutine plot_par_L(exitcode)
   if(file.ge.2) then
      if(file.eq.3) then
         status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
-        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+        if(status.ne.0) then
+           write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+        else
+           if(rmeps) status = system('rm -f '//trim(tempfile)//'.eps  >& /dev/null')
+        end if
      end if
   else if(file.eq.1) then
      inquire(file=trim(tempfile)//'.ppm', exist=ex)
@@ -1071,6 +1084,7 @@ end subroutine plot_par_L
 subroutine plot_Jump_sizes(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   
+  use aM_constants, only: rmeps
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,colour,whitebg,quality
   use analysemcmc_settings, only: plBurn,chainPlI,fontsize1d,nPlPar,panels,plPars, chainSymbol,plJump, htmlOutput
   use general_data, only: outputname,outputdir,nChains0,Ntot, parNames,pgOrigParns
@@ -1226,7 +1240,11 @@ subroutine plot_Jump_sizes(exitcode)
   if(file.ge.2) then
      if(file.eq.3) then
         status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
-        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+        if(status.ne.0) then
+           write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+        else
+           if(rmeps) status = system('rm -f '//trim(tempfile)//'.eps  >& /dev/null')
+        end if
      end if
   else if(file.eq.1) then
      inquire(file=trim(tempfile)//'.ppm', exist=ex)
@@ -1253,6 +1271,7 @@ subroutine plot_Acorr_chains(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   use SUFR_statistics, only: compute_median_sp
   
+  use aM_constants, only: rmeps
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: fontsize1d,nPlPar,panels,plPars, chainSymbol,nAcorr, htmlOutput
   use general_data, only: outputname,outputdir,nChains0,parNames,pgParNss
@@ -1391,7 +1410,11 @@ subroutine plot_Acorr_chains(exitcode)
   if(file.ge.2) then
      if(file.eq.3) then
         status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
-        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+        if(status.ne.0) then
+           write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+        else
+           if(rmeps) status = system('rm -f '//trim(tempfile)//'.eps  >& /dev/null')
+        end if
      end if
   else if(file.eq.1) then
      inquire(file=trim(tempfile)//'.ppm', exist=ex)
@@ -1423,7 +1446,7 @@ end subroutine plot_Acorr_chains
 subroutine plot_Rhat_chains(exitcode)
   use SUFR_constants, only: stdOut,stdErr
   
-  use aM_constants, only: use_PLplot
+  use aM_constants, only: use_PLplot, rmeps
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
   use analysemcmc_settings, only: fontsize1d,nPlPar, chainSymbol, htmlOutput
   use general_data, only: outputname,outputdir
@@ -1536,7 +1559,11 @@ subroutine plot_Rhat_chains(exitcode)
   if(file.ge.2) then
      if(file.eq.3) then
         status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
-        if(status.ne.0) write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+        if(status.ne.0) then
+           write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
+        else
+           if(rmeps) status = system('rm -f '//trim(tempfile)//'.eps  >& /dev/null')
+        end if
      end if
   else if(file.eq.1) then
      inquire(file=trim(tempfile)//'.ppm', exist=ex)
