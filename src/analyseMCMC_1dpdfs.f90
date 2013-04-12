@@ -63,8 +63,8 @@ subroutine pdfs1d(exitcode)
      end if
   end if
   
-  write(delta,'(A,I3.3,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
-  if(nint(ivals(c0)*100).lt.100) write(delta,'(A,I2.2,A)')'\(2030)\d',nint(ivals(c0)*100),'%\u'
+  write(delta,'(A,I3.3,A)') '\(2030)\d',nint(ivals(c0)*100),'%\u'
+  if(nint(ivals(c0)*100).lt.100) write(delta,'(A,I2.2,A)') '\(2030)\d',nint(ivals(c0)*100),'%\u'
   
   ! Autodetermine number of bins:
   if(Nbin1D.le.0) then
@@ -593,40 +593,46 @@ subroutine pdfs1d(exitcode)
                  if(prIval.ge.1.and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6))  &
                       write(str,'(A,F7.3)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)
               end if
+              
               call pgsch(sch*1.2)
               !call pgptxt(xmin+0.05*dx,ymax*(1.0-0.1*fontsize1d),0.,0.,trim(pgParNss(parID(p))))  ! No unit
-              call pgptxt(xmin+0.05*dx,ymax*(1.0-0.1*fontsize1d),0.,0.,trim(pgParNs(parID(p))))
+              if(abs(xmin-xpeak).lt.abs(xmax-xpeak)) then  ! Peak is at left, put varname at right
+                 call pgptxt(xmax-0.05*dx,ymax*(1.0-0.1*fontsize1d),0.,1.,trim(pgParNs(parID(p))))
+              else
+                 call pgptxt(xmin+0.05*dx,ymax*(1.0-0.1*fontsize1d),0.,0.,trim(pgParNs(parID(p))))
+              end if
            end if
-        end if
-        
-        
-        if(quality.eq.2.or.quality.eq.3.or.quality.eq.4) then  ! Talk/poster/thesis quality for 1D PDF
+           
+           
+        else  ! if(quality.eq.2.or.quality.eq.3.or.quality.eq.4) then  ! Talk/poster/thesis quality for 1D PDF
+           
+           
            if(plRange.eq.1.or.plRange.eq.3.or.plRange.eq.4.or.plRange.eq.6) then
               x0 = ranges(ic,c0,p,5)
               if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) x0 = x0*100
               !print*,p,x0,nint(x0)
-              if(x0.lt.0.01) write(str,'(F6.4)')x0
-              if(x0.ge.0.01.and.x0.lt.0.1) write(str,'(F5.3)')x0
-              if(x0.ge.0.1.and.x0.lt.1.) write(str,'(F4.2)')x0
-              if(x0.ge.1.and.x0.lt.9.95) write(str,'(F3.1)')x0
-              if(x0.ge.9.95.and.x0.lt.99.5) write(str,'(I2)')nint(x0)
-              if(x0.ge.99.5) write(str,'(I3)')nint(x0)
-              write(str,'(A)')trim(delta)//': '//trim(str)
+              if(x0.lt.0.01) write(str,'(F6.4)') x0
+              if(x0.ge.0.01.and.x0.lt.0.1) write(str,'(F5.3)') x0
+              if(x0.ge.0.1.and.x0.lt.1.) write(str,'(F4.2)') x0
+              if(x0.ge.1.and.x0.lt.9.95) write(str,'(F3.1)') x0
+              if(x0.ge.9.95.and.x0.lt.99.5) write(str,'(I2)') nint(x0)
+              if(x0.ge.99.5) write(str,'(I3)') nint(x0)
+              write(str,'(A)') trim(delta)//': '//trim(str)
               if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then
-                 write(str,'(A)')trim(str)//'%'
+                 write(str,'(A)') trim(str)//'%'
               else
-                 write(str,'(A)')trim(str)//trim(pgunits(parID(p)))
+                 write(str,'(A)') trim(str)//trim(pgunits(parID(p)))
               end if
            else if(plInject.eq.2.or.plInject.eq.4) then  ! If not plotting ranges, but do plot injection values
               x0 = startval(ic,p,1)
               !print*,p,x0,nint(x0)
-              if(x0.lt.0.01) write(str,'(F7.4)')x0
-              if(x0.ge.0.01.and.x0.lt.0.1) write(str,'(F6.3)')x0
-              if(x0.ge.0.1.and.x0.lt.1.) write(str,'(F6.3)')x0
-              if(x0.ge.1.and.x0.lt.9.995) write(str,'(F6.3)')x0
-              if(x0.ge.9.995.and.x0.lt.99.9) write(str,'(F5.1)')x0
-              if(x0.ge.99.9) write(str,'(F6.1)')x0
-              write(str,'(A)')'inj: '//trim(str)//trim(pgunits(parID(p)))
+              if(x0.lt.0.01) write(str,'(F7.4)') x0
+              if(x0.ge.0.01.and.x0.lt.0.1) write(str,'(F6.3)') x0
+              if(x0.ge.0.1.and.x0.lt.1.) write(str,'(F6.3)') x0
+              if(x0.ge.1.and.x0.lt.9.995) write(str,'(F6.3)') x0
+              if(x0.ge.9.995.and.x0.lt.99.9) write(str,'(F5.1)') x0
+              if(x0.ge.99.9) write(str,'(F6.1)') x0
+              write(str,'(A)') 'inj: '//trim(str)//trim(pgunits(parID(p)))
            end if
            
            
@@ -637,7 +643,7 @@ subroutine pdfs1d(exitcode)
            else
               call pgptxt(xmin+0.05*dx,ymax*(1.-0.1*fontsize1d),0.,0.,trim(pgParNs(parID(p))))
            end if
-        end if
+        end if  ! if(quality.eq.2.or.quality.eq.3.or.quality.eq.4) then  ! Talk/poster/thesis quality for 1D PDF
         
         
         ! Write the deltas of the two pdfs:
