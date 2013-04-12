@@ -1288,3 +1288,27 @@ subroutine create_html_2dpdf_file(op)
 end subroutine create_html_2dpdf_file
 !***********************************************************************************************************************************
 
+
+!***********************************************************************************************************************************
+!> \brief  Report an undefined parameter that the code tries to use
+!!
+!! \param parname  Name of the undefined parameter
+!! \param routine  Name of the caller routine
+
+subroutine report_undefined_parameter(parname, routine)
+  use SUFR_constants, only: stdOut,stdErr
+  use analysemcmc_settings, only: prProgress
+  implicit none
+  character, intent(in) :: parname*(*), routine*(*)
+  
+  select case(prProgress)
+  case(0)
+  case(1)
+     write(stdOut,'(A)', advance='no') ' !!par. '//trim(parname)//' undefined!! '
+  case default  ! 2,3: verbose and debug output
+     write(stdErr,'(/,A)')'  * Warning:  '//trim(routine)//'():  parameter '//trim(parname)// &
+          ' is not defined, check plPars() in the input file.  Skipping...'
+  end select
+  
+end subroutine report_undefined_parameter
+!***********************************************************************************************************************************

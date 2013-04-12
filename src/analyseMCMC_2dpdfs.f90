@@ -25,7 +25,7 @@
 !! \retval exitcode  Exit code: 0=ok
 
 subroutine pdfs2d(exitcode)
-  use SUFR_constants, only: stdOut,stdErr, rh2r
+  use SUFR_constants, only: stdOut, rh2r
   use SUFR_system, only: swapreal
   use SUFR_text, only: replace_substring
   
@@ -80,10 +80,8 @@ subroutine pdfs2d(exitcode)
   
   ! Check consistency of PDF2Dpairs():
   do i=1,Npdf2D
-     if(revID(PDF2Dpairs(i,1)).eq.0) write(stdErr,'(/,A)')'  * Warning:  pdfs2d():  parameter '// &
-          trim(parNames(PDF2Dpairs(i,1)))//' is not defined, check plPars() in the input file.  Skipping...'
-     if(revID(PDF2Dpairs(i,2)).eq.0) write(stdErr,'(/,A)')'  * Warning:  pdfs2d():  parameter '// &
-          trim(parNames(PDF2Dpairs(i,2)))//' is not defined, check plPars() in the input file.  Skipping...'
+     if(revID(PDF2Dpairs(i,1)).eq.0) call report_undefined_parameter(trim(parNames(PDF2Dpairs(i,1))), 'pdfs2d')
+     if(revID(PDF2Dpairs(i,1)).eq.0) call report_undefined_parameter(trim(parNames(PDF2Dpairs(i,2))), 'pdfs2d')
   end do
   
   
