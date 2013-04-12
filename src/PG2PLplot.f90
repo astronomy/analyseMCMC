@@ -241,7 +241,7 @@ subroutine pgscir(ci1,ci2)
   tmp = tmp  ! Avoid 'variable is set but not used' warnings from compiler for dummy variable
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgscir()  ***'
+  if(warn.ne.123) call warn_nonexisting_routine('pgscir','')
   warn = 123
   
 end subroutine pgscir
@@ -264,7 +264,7 @@ subroutine pgqcir(ci1,ci2)
   ci2 = 255
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgqcir()  ***'
+  if(warn.ne.123) call warn_nonexisting_routine('pgqcir','')
   warn = 123
   
 end subroutine pgqcir
@@ -389,7 +389,7 @@ subroutine pgsah(fs, angle, barb)
   tmp = tmp  ! Avoid 'variable is set but not used' warnings from compiler for dummy variable
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgsah()  ***'
+  if(warn.ne.123) call warn_nonexisting_routine('pgsah','')
   warn = 123
   
 end subroutine pgsah
@@ -636,7 +636,7 @@ subroutine pgconf(arr, nx,ny, ix1,ix2, iy1,iy2, c1, c2, tr)
   !call plshade1(arr1, ix1,ix2, iy1,iy2, clevel, tr1)
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgconf()  ***'
+  if(warn.ne.123) call warn_nonexisting_routine('pgconf','')
   warn = 123
   
 end subroutine pgconf
@@ -1050,7 +1050,7 @@ subroutine pgbbuf()
   call do_init()
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgbbuf()  ***'
+  if(warn.ne.123) call warn_nonexisting_routine('pgbbuf','')
   warn = 123
   
 end subroutine pgbbuf
@@ -1066,7 +1066,7 @@ subroutine pgebuf()
   integer, save :: warn
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgebuf()  ***'
+  if(warn.ne.123) call warn_nonexisting_routine('pgebuf','')
   warn = 123
   
 end subroutine pgebuf
@@ -1236,7 +1236,7 @@ subroutine pgolin(maxpt, npt, x, y, symbol)
   symbol1 = symbol1  ! Avoid 'variable is set but not used' warnings from compiler for dummy variable
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgolin()  ***'
+  if(warn.ne.123) call warn_nonexisting_routine('pgolin','')
   warn = 123
   
 end subroutine pgolin
@@ -1536,7 +1536,7 @@ subroutine pgband(mode, posn, xref, yref, x, y, ch)
   ch = char(0)
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgband()  ***'
+  if(warn.ne.123) call warn_nonexisting_routine('pgband','')
   warn = 123
   
 end subroutine pgband
@@ -1558,8 +1558,7 @@ subroutine pgqcol(c1, c2)
   c2 = 255
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgqcir(),'// &
-       ' using a default colour range  ***'
+  if(warn.ne.123) call warn_nonexisting_routine('pgqcir','using a default colour range')
   warn = 123
   
 end subroutine pgqcol
@@ -1580,8 +1579,7 @@ subroutine pgqci(ci)
   ci = 0
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) write(0,'(/,A,/)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine pgqcir(),'// &
-       ' using a default colour index  ***'
+  if(warn.ne.123) call warn_nonexisting_routine('pgqcir','using a default colour index')
   warn = 123
   
 end subroutine pgqci
@@ -1655,8 +1653,25 @@ function check_error(fname)
   check_error = 0
   return
   
-450 check_error = err
+450 continue
+  check_error = err
   
 end function check_error
 !***********************************************************************************************************************************
 
+
+!***********************************************************************************************************************************
+!> \brief  Print a warning when no (proper) PLplot equivalent is defined
+!!
+!! \param routine  Name of the undefined routine
+!! \param message  Message to be postponed
+
+subroutine warn_nonexisting_routine(routine, message)
+  implicit none
+  character, intent(in) :: routine*(*),message*(*)
+  
+  write(0,'(/,A)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine '//trim(routine)//'() '// &
+       trim(message)//'  ***'
+  
+end subroutine warn_nonexisting_routine
+!***********************************************************************************************************************************
