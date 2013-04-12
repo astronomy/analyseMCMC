@@ -703,7 +703,7 @@ subroutine pdfs1d(exitcode)
            status = system('eps2pdf '//trim(tempfile)//'.eps -o '//trim(tempfile)//'.pdf  >& /dev/null')
            if(status.ne.0) then
               write(stdErr,'(A,I6)')'  Error converting plot eps -> pdf',status
-           elsee
+           else
               if(rmeps) status = system('rm -f '//trim(tempfile)//'.eps  >& /dev/null')
            end if
         end if
