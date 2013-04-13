@@ -31,36 +31,43 @@
 subroutine plotthesky(bx10,bx20, by1,by2, raShift)
   use SUFR_kinds, only: double
   use SUFR_constants, only: homedir, pi2,r2d
-  use analysemcmc_settings, only: fonttype,fontsize1d
+  use analysemcmc_settings, only: fonttype,fontsize1d, mapProjection
+  use general_data, only: raCentre
   
   implicit none
   real, intent(in) :: bx10,bx20, by1,by2, raShift
   
   integer, parameter :: ns=9110, nsn=80
-  integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,spld,prslbl
+  integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,spld,prslbl, status
   real(double) :: ra(ns),dec(ns),dx1,dx2,dy,ra1,dec1,drev2pi
   real :: bx1,bx2,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
   real :: schcon,sz1,schfac,schlbl,snlim,sllim,schmag,getmag,mag,x,y,mlim
-  character :: cn(100)*(3),con(100)*(20),name*(10),sn(ns)*(10),snam(nsn)*(10),sni*(10),getsname*(10)
+  character :: cn(100)*(3),con(100)*(20),name*(10),sn(ns)*(10),snam(nsn)*(10),sni*(10),getsname*(10), bscdir*(99)
   
+  bscdir = trim(homedir)//'/usr/lib'  ! Directory that contains bright-star catalogue and constellation data
   
   mlim = 6.            ! Magnitude limit for stars
   sllim = 2.5          ! Limit for labels
   snlim = 1.4          ! Limit for names
   fonttype = 2
-  schmag = 0.07
+  !schmag = 0.07       ! OK for white on black
+  schmag = 0.12         ! Black on white
   schlbl = fontsize1d
   schfac = 1.
   schcon = 1.
   plstar = 1  ! 0-no, 1-yes no label, 2-symbol, 3-name, 4-name or symbol, 5-name and symbol
-  plcst = 2   ! 0-no, 1-figures, 2-figures+abbreviations, 3-figures+names
+  plcst = 1   ! 0-no, 1-figures, 2-figures+abbreviations, 3-figures+names
   sz1 = 1.    ! CHECK Get rid of this variable?
   
   
-  x = 0.
   call pgqcr(1,r1,g1,b1)  ! Store colours
   call pgqcr(4,r4,g4,b4)
-  call pgscr(1,1.,1.,1.)  ! 'White' (for stars)
+  !x = 1.0  ! White (for stars - black bg)
+  !x = 0.0  ! Black (for stars - white bg)
+  x = 0.5  ! Grey (for stars - white bg)
+  call pgscr(1,x,x,x)  ! Star colour
+  !x = 0.0  ! Black bg
+  x = 0.5  ! White bg
   call pgscr(4,x,x,1.)    ! Blue (for constellations)
   
   bx1 = bx10
@@ -72,8 +79,12 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
   end if
   
   ! Read bright-star catalogue (BSC):
-  open(unit=21,form='formatted',status='old',file=trim(homedir)//'/bsc.dat')
-  rewind(21)
+  open(unit=21,form='formatted',status='old',position='rewind',file=trim(bscdir)//'/bsc.dat', iostat=status)
+  if(status.ne.0) then
+     write(0,'(A)') '  * Warning: could not find bright-star catalogue in '//trim(bscdir)// &
+          "/bsc.dat; I won't plot stars and constellations."
+     return
+  end if
   do i=1,ns
      !read(21,'(A10,1x,2F10.6,1x,2F7.3,I5,F6.2,F6.3,A2,A10)') name,ra(i),dec(i),pma,pmd,rv,vm(i),par,mult,var
      read(21,'(A10,1x,2F10.6,20x,F6.2)') name,ra(i),dec(i),vm(i)
@@ -83,49 +94,60 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
   close(21)
   
   ! Read constellation-figure data for BSC:
-  open(unit=22,form='formatted',status='old',file=trim(homedir)//'/bsc_const.dat')
-  do i=1,ns
-     read(22,'(I4)',end=340,advance='no')c(i,1)
-     do j=1,c(i,1)
-        read(22,'(I5)',advance='no')c(i,j+1)
+  open(unit=22,form='formatted',status='old',position='rewind',file=trim(bscdir)//'/bsc_const.dat', iostat=status)
+  if(status.ne.0) then
+     write(0,'(A)') "  * Warning: could not find constellation data; I won't plot constellations."
+     plcst = 0
+  else
+     do i=1,ns
+        read(22,'(I4)',end=340,advance='no')c(i,1)
+        do j=1,c(i,1)
+           read(22,'(I5)',advance='no')c(i,j+1)
+        end do
+        read(22,'(1x,A3,A20)')cn(i),con(i)
+        !Get mean star position to place const. name
+        dx1 = 0.d0
+        dx2 = 0.d0
+        dy = 0.d0
+        do j=2,c(i,1)
+           dx1 = dx1 + sin(ra(c(i,j)))
+           dx2 = dx2 + cos(ra(c(i,j)))
+           dy = dy + dec(c(i,j))
+        end do
+        dx1 = (dx1 + sin(ra(c(i,j))))/real(c(i,1))
+        dx2 = (dx2 + cos(ra(c(i,j))))/real(c(i,1))
+        ra1 = drev2pi(atan2(dx1,dx2))
+        dec1 = (dy + dec(c(i,j)))/real(c(i,1))
+        !call eq2xy(ra1,dec1,l0,b0,x1,y1)
+        !constx(i) = x1
+        !consty(i) = y1
+        !constx(i) = real(ra1*r2d)
+        constx(i) = real((mod(ra1+raShift,pi2)-raShift)*r2d)
+        consty(i) = real(dec1*r2d)
      end do
-     read(22,'(1x,A3,A20)')cn(i),con(i)
-     !Get mean star position to place const. name
-     dx1 = 0.d0
-     dx2 = 0.d0
-     dy = 0.d0
-     do j=2,c(i,1)
-        dx1 = dx1 + sin(ra(c(i,j)))
-        dx2 = dx2 + cos(ra(c(i,j)))
-        dy = dy + dec(c(i,j))
-     end do
-     dx1 = (dx1 + sin(ra(c(i,j))))/real(c(i,1))
-     dx2 = (dx2 + cos(ra(c(i,j))))/real(c(i,1))
-     ra1 = drev2pi(atan2(dx1,dx2))
-     dec1 = (dy + dec(c(i,j)))/real(c(i,1))
-     !call eq2xy(ra1,dec1,l0,b0,x1,y1)
-     !constx(i) = x1
-     !consty(i) = y1
-     !constx(i) = real(ra1*r2d)
-     constx(i) = real((mod(ra1+raShift,pi2)-raShift)*r2d)
-     consty(i) = real(dec1*r2d)
-  end do
-340 close(22)
-  nc = i-1
+340  continue
+     close(22)
+     nc = i-1
+  end if
   
   
   ! Read star names:
-  open(unit=23,form='formatted',status='old',file=trim(homedir)//'/bsc_names.dat')
-  do i=1,nsn
-     read(23,'(I4,2x,A10)',end=350)snr(i),snam(i)
-  end do
-350 close(23)
-  
+  open(unit=23,form='formatted',status='old',file=trim(bscdir)//'/bsc_names.dat', iostat=status)
+  if(status.ne.0) then
+     write(0,'(A)') "  * Warning: could not find star names; I won't use them."
+     plstar = min(plstar,2)
+  else
+     do i=1,nsn
+        read(23,'(I4,2x,A10)',end=350) snr(i),snam(i)
+     end do
+350  continue
+     close(23)
+  end if
   
   !! Read Milky Way data:
   !do f=1,5
   !   write(mwfname,'(A10,I1,A4)')'milkyway_s',f,'.dat'
-  !   open(unit=24,form='formatted',status='old',file=trim(homedir)//'data/'//mwfname)
+  !   open(unit=24,form='formatted',status='old',file=trim(bscdir)//'data/'//mwfname)
   !   do i=1,mwn(f)
   !      read(24,'(F7.5,F9.5)')mwa(f,i),mwd(f,i)
   !      if(maptype.eq.1) call eq2az(mwa(f,i),mwd(f,i),agst)
@@ -150,7 +172,18 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
            y1 = real(dec(c(i,j))*r2d)
            x2 = real(ra(c(i,j+1))*r2d)
            y2 = real(dec(c(i,j+1))*r2d)
-           if((x2-x1)**2+(y2-y1)**2.le.90.**2)  call pgline(2,(/x1,x2/),(/y1,y2/))  !Not too far from centre and each other 
+           
+           if(mapProjection.ge.1) then
+              x1 = mod(x1/15.-raCentre+12,24.)+raCentre-12.  ! d2h
+              call project_skymap(x1,y1,raCentre,mapProjection)
+              x1 = x1*15.  ! h2d
+              
+              x2 = mod(x2/15.-raCentre+12,24.)+raCentre-12.  ! d2h
+              call project_skymap(x2,y2,raCentre,mapProjection)
+              x2 = x2*15.  ! h2d
+           end if
+           
+           if((x2-x1)**2+(y2-y1)**2.le.90.**2)  call pgline(2,(/x1,x2/),(/y1,y2/))  ! Not too far from centre and each other 
         end do
         if(constx(i).lt.bx1.or.constx(i).gt.bx2.or.consty(i).lt.by1.or.consty(i).gt.by2) cycle
         if(plcst.eq.2) call pgptxt(constx(i),consty(i),0.,0.5,cn(i))
@@ -169,10 +202,18 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
            !call eq2xy(ra(i),dec(i),l0,b0,x,y)
            x = real(ra(i)*r2d)
            y = real(dec(i)*r2d)
-           if(x.lt.bx1.or.x.gt.bx2.or.y.lt.by1.or.y.gt.by2) cycle
+           !if(x.lt.bx1.or.x.gt.bx2.or.y.lt.by1.or.y.gt.by2) cycle
            call pgsci(1)
            mag = getmag(vm(i),mlim)*schmag
+           
+           if(mapProjection.ge.1) then
+              x = x/15.   ! d2h
+              x = mod(x-raCentre+12,24.)+raCentre-12.
+              call project_skymap(x,y,raCentre,mapProjection)
+              x = x*15.  ! h2d
+           end if
            call pgcirc(x,y,mag)
+           
            !write(stdOut,'(3F10.3)')x,y,mag
            call pgsch(schfac*schlbl)
            sni = sn(i)
@@ -195,11 +236,10 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
            spld = spld+1
         end if
      end do
-     if(plstar.ge.3) then !Plot star proper names
+     if(plstar.ge.3)  then  ! Plot star proper names
         call pgsch(schfac*schlbl)
         do i=1,nsn
-           if(vm(snr(i)).lt.max(snlim,1.4)) then  !Regulus (1.35) will still be plotted, for conjunction maps
-              !call eq2xy(ra(snr(i)),dec(snr(i)),l0,b0,x,y)
+           if(vm(snr(i)).lt.max(snlim,1.4)) then   ! Regulus (1.35) will still be plotted
               x = real(ra(snr(i))*r2d)
               y = real(dec(snr(i))*r2d)
               if(x.lt.bx1.or.x.gt.bx2.or.y.lt.by1.or.y.gt.by2) cycle

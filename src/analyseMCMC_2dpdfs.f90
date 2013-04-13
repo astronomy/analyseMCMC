@@ -233,10 +233,10 @@ subroutine pdfs2d(exitcode)
            
            ! Setup plot window:
            call pgswin(xmin,xmax,ymin,ymax)
-           if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3).and.file.ge.2) then  ! Need dark background
-              call pgsci(1)
-              call pgrect(xmin,xmax,ymin,ymax)
-           end if
+           !if(project_map .and. (plotSky.eq.1.or.plotSky.eq.3).and.file.ge.2) then  ! Need dark/black background
+           !   call pgsci(1)
+           !   call pgrect(xmin,xmax,ymin,ymax)
+           !end if
            
            
            ! Plot the actual 2D PDF (grey-scale or colour pixels):
