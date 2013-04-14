@@ -54,6 +54,7 @@ program comp_pdfs
   call write_inputfile() !Write plot settings back to file
   
   clrs(1:9) = (/2,4,6,3,5,8,9,15,7/)
+  !clrs(1:9) = (/2,4,3,6,5,8,9,15,7/)
   !if(type.eq.2) clrs(1:9) = (/2,4,5,3,6,8,9,15,7/) !Avoid red and magenta in posters
   if(type.eq.2) clrs(1:9) = (/2,4,3,5,6,8,9,15,7/) !Screw the colour blind and use red and green?
   !clrs(1:9) = (/2,4,6,3,2,4,6,3,5/) !Repeat the first 4
@@ -67,22 +68,23 @@ program comp_pdfs
   
   size = 10.8
   rat  = 0.57
-  if(file.eq.1) then
-     size = 9.99
-     rat  = 0.75
-  end if
-  if(file.ge.2) then
-     size = 10.6
-     rat  = 0.75 !3x4
-     if(dim.eq.1.and.type.eq.2) rat  = 0.925 !4x3 for poster
-     !if(dim.eq.1.and.type.eq.3) rat  = 0.82 !for talk (beamer)
-     if(type.eq.3) rat  = 0.82 !for talk (beamer), 1&2D
-     if(frames(2).lt.3) then
-        rat = rat/3.*frames(2) ! Only one-two rows
-        fontsize = fontsize * 3 / real(frames(2))
+  if(dim.eq.1) then
+     if(file.eq.1) then
+        size = 9.99
+        rat  = 0.75
+     end if
+     if(file.ge.2) then
+        size = 10.6
+        rat  = 0.75 !3x4
+        if(dim.eq.1.and.type.eq.2) rat  = 0.925 !4x3 for poster
+        !if(dim.eq.1.and.type.eq.3) rat  = 0.82 !for talk (beamer)
+        if(type.eq.3) rat  = 0.82 !for talk (beamer), 1&2D
+        if(frames(2).lt.3) then
+           rat = rat/3.*frames(2) ! Only one-two rows
+           fontsize = fontsize * 3 / real(frames(2))
+        end if
      end if
   end if
-  
   
   
   
@@ -112,13 +114,14 @@ program comp_pdfs
   end if
   call pgscf(fonttype)
   
-  call pgscr(15,0.8,0.8,0.8)  !Default: 0.7
-  call pgscr(14,0.45,0.45,0.45) !Default: 0.33
+  call pgscr(3, 0.0,0.7,0.0)     ! Darker green
+  call pgscr(15,0.8,0.8,0.8)     ! Default: 0.7
+  call pgscr(14,0.45,0.45,0.45)  ! Default: 0.33
   
   if(file.le.1) then
-     call pgscr(0,1.0,1.0,1.0) !White background
-     call pgscr(1,0.0,0.0,0.0) !Black foreground
-     if(file.eq.1) then !png: create white background
+     call pgscr(0,1.0,1.0,1.0)   ! White background
+     call pgscr(1,0.0,0.0,0.0)   ! Black foreground
+     if(file.eq.1) then          ! png: create white background
         call pgsvp(-100.,100.,-100.,100.)
         call pgswin(0.,1.,0.,1.)
         call pgsci(0)

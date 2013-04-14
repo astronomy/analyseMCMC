@@ -163,10 +163,10 @@ subroutine plotpdf1d(pp,lbl)
      !if(nf.gt.1.and.(clr.eq.0.or.clr.eq.2).and.fillstyle.eq.2) call pgsls(mod(f,4))
      xbin = xbin1(f,pp1,:)
      ybin = ybin1(f,pp1,:)
-     call pgshs(45.,0.7,0.) !Hatches slanted up
-     if(f.eq.2) call pgshs(-45.,0.7,0.) !Hatches slanted down
-     if(f.eq.3) call pgshs(0.,0.7,0.) !Hatches horizontal
-     if(f.eq.4) call pgshs(90.,0.7,0.) !Hatches vertical
+     call pgshs(45.,1.5,0.)                ! Hatches slanted up
+     if(f.eq.2) call pgshs(-45., 1.5, 0.)  ! Hatches slanted down
+     if(f.eq.3) call pgshs(  0., 1.5, 0.)  ! Hatches horizontal
+     if(f.eq.4) call pgshs( 90., 1.5, 0.)  ! Hatches vertical
      
      call pgsci(clrs(f))
      if(nf.eq.1) call pgsci(15)
@@ -346,7 +346,7 @@ end subroutine plotpdf1d
 
 subroutine plotpdf2d(pID1,pID2,lbl)
   use comp_pdfs_settings, only: nf,fnames,fontsize,clrs,clr,fillstyle,plrange,pltrue,plmedian
-  use general_data, only: parNames,pgunits,pgParNss
+  use general_data, only: parNames,pgunits,pgParNs
   
   implicit none
   integer, intent(in) :: pID1,pID2
@@ -458,8 +458,8 @@ subroutine plotpdf2d(pID1,pID2,lbl)
   call pgsch(fontsize)
   call pgswin(xmin,xmax,ymin,ymax)
   call pgbox('BCNTS',0.0,0,'BCNTS',0.0,0)
-  call pgmtxt('B',2.4,0.5,0.5,trim(pgParNss(pID1)))  !Cheat a bit
-  call pgmtxt('L',2.2,0.5,0.5,trim(pgParNss(pID2)))  !Cheat a bit
+  call pgmtxt('B',2.4,0.5,0.5,trim(pgParNs(pID1)))  !Cheat a bit
+  call pgmtxt('L',2.2,0.5,0.5,trim(pgParNs(pID2)))  !Cheat a bit
   
   !select contours
   do c=1,11
@@ -467,14 +467,14 @@ subroutine plotpdf2d(pID1,pID2,lbl)
   end do
   
   do f=1,nf
-     !Fill contours with hatches
+     ! Fill contours with hatches
      call pgsci(1)
-     !call pgsfs(3) !Hatches
+     !call pgsfs(3)  ! Hatches
      call pgsfs(fillstyle)
-     call pgshs(45.,0.7,0.) !Hatches slanted up
-     if(f.eq.2) call pgshs(-45.,0.7,0.) !Hatches slanted down
-     if(f.eq.3) call pgshs(0.,0.7,0.) !Hatches horizontal
-     if(f.eq.4) call pgshs(90.,0.7,0.) !Hatches vertical
+     call pgshs(45.,1.5,0.)                ! Hatches slanted up
+     if(f.eq.2) call pgshs(-45., 1.5, 0.)  ! Hatches slanted down
+     if(f.eq.3) call pgshs(  0., 1.5, 0.)  ! Hatches horizontal
+     if(f.eq.4) call pgshs( 90., 1.5, 0.)  ! Hatches vertical
      
      !Fill contours with solid colour, override hatches
      !call pgsci(15) !Light grey
