@@ -1181,11 +1181,9 @@ subroutine mcmcruninfo(exitcode)
         parID(nMCMCpar+1) = 61    ! Mc
         revID(61) = nMCMCpar + 1  ! Mc
         nMCMCpar = nMCMCpar + 1
-        if(nMCMCpar.gt.maxMCMCpar) then
-           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
-                ' to at least',nMCMCpar,' in order to continue.  Aborting...'
-           stop
-        end if
+        
+        if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
+        
         do ic=1,nchains0
            allDat(ic,revID(61),1:ntot(ic)) = allDat(ic,revID(65),1:ntot(ic))**6   ! Mc = [Mc_16]^6
         end do
@@ -1198,11 +1196,9 @@ subroutine mcmcruninfo(exitcode)
         parID(nMCMCpar+1) = 67    ! q
         revID(67) = nMCMCpar + 1  ! q
         nMCMCpar = nMCMCpar + 1
-        if(nMCMCpar.gt.maxMCMCpar) then
-           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
-                ' to at least',nMCMCpar,' in order to continue.  Aborting...'
-           stop
-        end if
+        
+        if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
+        
         do ic=1,nchains0
            
            if(changeVar.eq.4) then ! Folding log(q) for comparison
@@ -1242,14 +1238,9 @@ subroutine mcmcruninfo(exitcode)
         revID(68) = nMCMCpar + 5  ! logq
         nMCMCpar = nMCMCpar + 5
         
-        if(nMCMCpar.gt.maxMCMCpar) then
-           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
-                ' to at least',nMCMCpar,' in order to continue.  Aborting...'
-           stop
-        end if
+        if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
         
         do ic=1,nchains0
-           
            if(changeVar.eq.4) then ! Folding log(q) for comparison
               if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Folding log(q)'
               do j=1,ntot(ic)
@@ -1294,11 +1285,9 @@ subroutine mcmcruninfo(exitcode)
         revID(64) = nMCMCpar + 2  ! M2
         revID(66) = nMCMCpar + 3  ! Mtot
         nMCMCpar = nMCMCpar + 3
-        if(nMCMCpar.gt.maxMCMCpar) then
-           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
-                ' to at least',nMCMCpar,' in order to continue.  Aborting...'
-           stop
-        end if
+        
+        if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
+        
         do ic=1,nchains0
            do i=1,ntot(ic)
               call mc_eta_2_m1_m2r(allDat(ic,revID(61),i),allDat(ic,revID(62),i), allDat(ic,revID(63),i),allDat(ic,revID(64),i))
@@ -1316,11 +1305,9 @@ subroutine mcmcruninfo(exitcode)
         revID(61) = nMCMCpar + 1  ! Mc
         revID(62) = nMCMCpar + 2  ! eta
         nMCMCpar = nMCMCpar + 2
-        if(nMCMCpar.gt.maxMCMCpar) then
-           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
-                ' to at least',nMCMCpar,' in order to continue.  Aborting...'
-           stop
-        end if
+        
+        if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
+        
         do ic=1,nchains0
            do i=1,ntot(ic)
               call m1_m2_2_mc_etar(allDat(ic,revID(63),i),allDat(ic,revID(64),i), allDat(ic,revID(61),i),allDat(ic,revID(62),i))
@@ -1337,11 +1324,9 @@ subroutine mcmcruninfo(exitcode)
         revID(67) = nMCMCpar + 2  ! q
         revID(68) = nMCMCpar + 3  ! log(q)
         nMCMCpar = nMCMCpar + 3
-        if(nMCMCpar.gt.maxMCMCpar) then
-           write(stdErr,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
-                ' to at least',nMCMCpar,' in order to continue.  Aborting...'
-           stop
-        end if
+        
+        if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
+        
         do ic=1,nchains0
            allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(64),1:ntot(ic)) / allDat(ic,revID(63),1:ntot(ic))     ! q = m2 / m1
            
@@ -1672,4 +1657,18 @@ subroutine get_LIM_injection_values(ic, nMCMCpar, startval, post,prior)
   tmpStr = tmpStr
   
 end subroutine get_LIM_injection_values
+!***********************************************************************************************************************************
+
+
+
+!***********************************************************************************************************************************
+subroutine error_maxMCMCpar_quit(op, maxMCMCpar, nMCMCpar)
+  implicit none
+  integer, intent(in) :: op, maxMCMCpar, nMCMCpar
+  
+  write(op,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
+       ' to at least',nMCMCpar,' in order to continue.  Aborting...'
+  
+  stop 1
+end subroutine error_maxMCMCpar_quit
 !***********************************************************************************************************************************
