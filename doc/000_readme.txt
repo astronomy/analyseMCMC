@@ -1,7 +1,7 @@
 
   Plot routines for SPINspiral output
   
-  http://www.astro.ru.nl/~sluys/index.php?title=SPINspiral
+  http://spinspiral.sourceforge.net
   
   
   To compile the plot code, you'll need	pgplot, available in the better Linux
