@@ -535,7 +535,7 @@ subroutine pgimag_project(z, nbx,nby, xb1,xb2, yb1,yb2, z1,z2, clr1,clr2, tr, pr
   end if  !if(projection.eq.1)
   
   call pgsch(sch)  ! Restore character height
-  call pgebuf      ! Release buffer
+  call pgebuf()      ! Release buffer
   
 end subroutine pgimag_project
 !***********************************************************************************************************************************

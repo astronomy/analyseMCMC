@@ -704,7 +704,7 @@ subroutine plot_parameter_chains(exitcode)
      call pgsch(sch)
   end if
   
-  call pgend
+  call pgend()
   if(file.ge.2) then
      if(file.eq.3) then
         status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf  >& /dev/null')
@@ -1055,7 +1055,7 @@ subroutine plot_par_L(exitcode)
      call pgsch(sch)
   end if
   
-  call pgend
+  call pgend()
   if(file.ge.2) then
      if(file.eq.3) then
         status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
@@ -1244,7 +1244,7 @@ subroutine plot_Jump_sizes(exitcode)
      call pgsch(sch)
   end if
   
-  call pgend
+  call pgend()
   if(file.ge.2) then
      if(file.eq.3) then
         status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')
@@ -1416,7 +1416,7 @@ subroutine plot_Acorr_chains(exitcode)
      call pgsch(sch)
   end if
   
-  call pgend
+  call pgend()
   if(file.ge.2) then
      if(file.eq.3) then
         status = system('eps2pdf '//trim(tempfile)//'.eps  -o '//trim(tempfile)//'.pdf   >& /dev/null')

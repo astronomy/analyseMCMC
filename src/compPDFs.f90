@@ -191,7 +191,7 @@ program comp_pdfs
         
      end do  !frx
   end do  !fry
-  call pgend
+  call pgend()
   
   exts = [character(len=4) :: '    ','.png','.eps','.pdf'] !Extensions for the different file types
   if(dim.eq.1) write(outname,'(A,I1,A)')trim(outnamebase)//'__',dim,'d'//exts(file)

@@ -631,7 +631,7 @@ subroutine convert_2D_PDF_plot(p1,p2, countplots)
   logical :: ex
   
   if(file.eq.1) then
-     call pgend
+     call pgend()
      
      inquire(file=trim(outputtempfile)//'.ppm', exist=ex)
      if(ex) then
@@ -655,7 +655,7 @@ subroutine convert_2D_PDF_plot(p1,p2, countplots)
   
   
   if(file.ge.2) then
-     call pgend
+     call pgend()
      if(file.eq.3) then
         status = system('eps2pdf '//trim(outputtempfile)//'.eps &> /dev/null')
         if(status.ne.0) then

@@ -408,10 +408,10 @@ program plotsignal
   
   !Make gv autoreload 
   if(1.eq.2.and.file.eq.1) then
-     call pgpage
+     call pgpage()
      call pgbox('BCTS',0.0,0,'BCNTS',0.0,0)
   end if
-  call pgend
+  call pgend()
   
   !Convert eps to pdf
   if(file.eq.2) then

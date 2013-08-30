@@ -292,7 +292,7 @@ program mcmcstats
      
      
      do p=1,12
-        call pgpage
+        call pgpage()
         call pgsch(2.)
         ci = 1
         ci0 = ci+1
@@ -365,7 +365,7 @@ program mcmcstats
      end do
      
      
-     call pgend
+     call pgend()
      
      if(plfile.eq.1) then
         i = system('convert -depth 8 deltas.ppm deltas.png')
@@ -474,7 +474,7 @@ program mcmcstats
      call pgmtxt('T',1.,0.5,0.5,'SNR' )
      
      
-     call pgend
+     call pgend()
      
      if(plfile.eq.1) then
         i = system('convert -depth 8 snrs.ppm snrs.png')
@@ -520,7 +520,7 @@ program mcmcstats
         
         
         do p=1,12
-           call pgpage
+           call pgpage()
            call pgsch(2.)
            ci = 1
            ci0 = ci+1
@@ -592,7 +592,7 @@ program mcmcstats
         end do
         
         
-        call pgend
+        call pgend()
         
         if(plfile.eq.1) then
            i = system('convert -depth 8 corrs.ppm corrs.png')

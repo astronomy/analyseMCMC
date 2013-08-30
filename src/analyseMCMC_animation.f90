@@ -677,10 +677,10 @@ subroutine animation(exitcode)
      
      
      
-     call pgend
+     call pgend()
      
      if(file.ge.1) then
-        call pgend
+        call pgend()
         if(small_anim.eq.1) then
            status = system('convert -resize 500 -depth 8 -unsharp '//trim(unSharppdf1d)// &
                 ' analysemcmc_frame.ppm '//trim(framename))  !Rescale the output frame
