@@ -894,9 +894,9 @@ end subroutine parNames2IDs
 
 subroutine mcmcruninfo(exitcode)  
   use SUFR_kinds, only: double
-  use SUFR_constants, only: stdOut,stdErr
+  use SUFR_constants, only: stdOut,stdErr, rpi
   use SUFR_statistics, only: compute_median_sp
-  use SUFR_system, only: quit_program_error  !, swapreal
+  use SUFR_system, only: quit_program_error, swapreal
   use aM_constants, only: detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
@@ -1226,7 +1226,7 @@ subroutine mcmcruninfo(exitcode)
      
      
      ! Calculate Mc, q from M1, M2:
-     if(revID(61).eq.0.and.revID(67).eq.0 .and. revID(63).ne.0.and.revID(64).ne.0) then
+     if(revID(61)+revID(67).eq.0 .and. revID(63)*revID(64).ne.0) then
         if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)') '  Computing Mc, q from M1, M2'
         
         do newID=1,nMCMCpar+1
@@ -1296,24 +1296,6 @@ subroutine mcmcruninfo(exitcode)
         if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
         
         do ic=1,nchains0
-           
-           !if(changeVar.eq.4) then ! Folding log(q) for comparison
-           !   do j=1,ntot(ic)
-           !      if(allDat(ic,revID(68),j).gt.0.0) then
-           !      allDat(ic,revID(68),j) = -allDat(ic,revID(68),j)
-           !      end if
-           !   end do
-           !end if
-           !if(changeVar.eq.3) then  ! for phi > pi -> logq = -logq & phi = phi - pi
-           !   do j=1,ntot(ic)
-           !      if(allDat(ic,revID(41),j).gt.rpi) then
-           !         allDat(ic,revID(41),j) =  allDat(ic,revID(41),j) - rpi                                     ! phi = phi - pi
-           !         allDat(ic,revID(68),j) = -allDat(ic,revID(68),j)                                           ! log_q = -log_q
-           !         if(revID(63)*revID(64).ne.0) call swapreal(allDat(ic,revID(63),j),allDat(ic,revID(64),j))  ! swap m1 <-> m2
-           !      end if
-           !   end do
-           !end if
-           
            allDat(ic,revID(67),1:ntot(ic)) = 10.0 ** (allDat(ic,revID(68),1:ntot(ic)))                         ! q = 10**log_q
         end do
         
@@ -1326,6 +1308,31 @@ subroutine mcmcruninfo(exitcode)
      
      
      ! ***  By this point I should have Mc and q  ***
+     
+     
+     ! Fold q, logq and phi:
+     if(changeVar.eq.4 .and. revID(68).ne.0) then  ! Folding log(q) for comparison
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Folding log(q)'
+        do ic=1,nchains0
+           do il=1,ntot(ic)
+              allDat(ic,revID(68),il) = -abs(allDat(ic,revID(68),il))  ! if log_q > 0, log_q -> -log_q
+           end do
+        end do
+     end if
+     
+     if(changeVar.eq.3 .and. revID(67)*revID(41).ne.0) then  ! Fold q, log_q and phi, if phi > pi
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Swapping q, phi'
+        do ic=1,nchains0
+           do il=1,ntot(ic)
+              if(allDat(ic,revID(41),il).gt.rpi) then  ! for phi > pi
+                 allDat(ic,revID(41),il) = allDat(ic,revID(41),il) - rpi                                      ! phi      -> phi - pi
+                 allDat(ic,revID(67),il) = 1. / allDat(ic,revID(67),il)                                       ! q        -> 1/q
+                 if(revID(68).ne.0) allDat(ic,revID(68),il) = -allDat(ic,revID(68),il)                        ! log_q    -> -log_q
+                 if(revID(63)*revID(64).ne.0) call swapreal(allDat(ic,revID(63),il),allDat(ic,revID(64),il))  ! swap m1 <-> m2
+              end if
+           end do
+        end do
+     end if
      
      
      
@@ -1395,28 +1402,8 @@ subroutine mcmcruninfo(exitcode)
         
         if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
         
-        do ic=1,nchains0
-           !if(changeVar.eq.4) then ! Folding log(q) for comparison
-           !   if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Folding log(q)'
-           !   do j=1,ntot(ic)
-           !      if(allDat(ic,revID(67),j).gt.1.0) then
-           !         allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)  ! q = 1/q
-           !      end if
-           !   end do
-           !end if
-           !if(changeVar.eq.3) then  ! for phi > pi -> q = 1/q & phi = phi - pi
-           !   if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Swapping q, phi'
-           !   do j=1,ntot(ic)
-           !      if(allDat(ic,revID(41),j).gt.rpi) then
-           !         allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                      ! phi = phi - pi
-           !         allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)                                      ! q = 1/q
-           !         if(revID(63)*revID(64).ne.0) call swapreal(allDat(ic,revID(63),j),allDat(ic,revID(64),j))  ! swap m1 <-> m2
-           !      end if
-           !   end do
-           !end if
-           
-           allDat(ic,revID(62),1:ntot(ic)) =  &
-                allDat(ic,revID(67),1:ntot(ic)) / (allDat(ic,revID(67),1:ntot(ic)) + 1.0)**2                ! eta = q/(1+q)^2
+        do ic=1,nchains0  ! eta = q/(1+q)^2:
+           allDat(ic,revID(62),1:ntot(ic)) =  allDat(ic,revID(67),1:ntot(ic)) / (allDat(ic,revID(67),1:ntot(ic)) + 1.0)**2
         end do
         
         ! Never release q
@@ -1438,27 +1425,7 @@ subroutine mcmcruninfo(exitcode)
         if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
         
         do ic=1,nchains0
-           !if(changeVar.eq.4) then ! Folding log(q) for comparison
-           !   if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Folding log(q)'
-           !   do j=1,ntot(ic)
-           !      if(allDat(ic,revID(67),j).gt.1.0) then
-           !         allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)  ! q = 1/q
-           !      end if
-           !   end do
-           !end if
-           !if(changeVar.eq.3) then  ! for phi > pi -> q = 1/q & phi = phi - pi
-           !   if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Swapping q, phi'
-           !   do j=1,ntot(ic)
-           !      if(allDat(ic,revID(41),j).gt.rpi) then
-           !         allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                      ! phi = phi - pi
-           !         allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)                                      ! q = 1/q
-           !         if(revID(63)*revID(64).ne.0) call swapreal(allDat(ic,revID(63),j),allDat(ic,revID(64),j))  ! swap m1 <-> m2
-           !      end if
-           !   end do
-           !end if
-           
-           allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                             ! log_q = log(q)
-           
+           allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))  ! log_q = log(q)
         end do
         
         ! Never release q
