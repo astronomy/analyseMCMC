@@ -1679,8 +1679,11 @@ end subroutine save_data
 !***********************************************************************************************************************************
 !> \brief  Get injection values for LALInferenceMCMC (LIM) output
 !!
-!! \param ic  Current chain/input file
-!! \param startval  Injection/Staring/Lmax values
+!! \param  ic        Current chain/input file
+!! \param  nMCMCpar  Number of MCMC parameters
+!! \param  startval  Injection/Staring/Lmax values (I/O)
+!! \retval post      Posterior value for injection
+!! \retval prior     Prior value for injection
 
 subroutine get_LIM_injection_values(ic, nMCMCpar, startval, post,prior)
   use SUFR_kinds, only: double
