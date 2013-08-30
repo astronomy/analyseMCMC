@@ -1204,14 +1204,15 @@ subroutine mcmcruninfo(exitcode)
            stop
         end if
         do ic=1,nchains0
-           if(changeVar.eq.3) then ! Folding log(q) for comparison
+           
+           if(changeVar.eq.4) then ! Folding log(q) for comparison
               do j=1,ntot(ic)
                  if(allDat(ic,revID(68),j).gt.0.0) then
                  allDat(ic,revID(68),j) = -allDat(ic,revID(68),j)
                  end if
               end do
            end if
-           if(changeVar.eq.2) then  ! for phi > pi -> logq = -logq & phi = phi - pi
+           if(changeVar.eq.3) then  ! for phi > pi -> logq = -logq & phi = phi - pi
               do j=1,ntot(ic)
                  if(allDat(ic,revID(41),j).gt.rpi) then
                     allDat(ic,revID(41),j) =  allDat(ic,revID(41),j) - rpi                                     ! phi = phi - pi
@@ -1220,6 +1221,7 @@ subroutine mcmcruninfo(exitcode)
                  end if
               end do
            end if
+           
            allDat(ic,revID(67),1:ntot(ic)) = 10.0 ** (allDat(ic,revID(68),1:ntot(ic)))                         ! q = 10**log_q
         end do
      end if
@@ -1247,7 +1249,8 @@ subroutine mcmcruninfo(exitcode)
         end if
         
         do ic=1,nchains0
-           if(changeVar.eq.3) then ! Folding log(q) for comparison
+           
+           if(changeVar.eq.4) then ! Folding log(q) for comparison
               if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Folding log(q)'
               do j=1,ntot(ic)
                  if(allDat(ic,revID(67),j).gt.1.0) then
@@ -1255,7 +1258,7 @@ subroutine mcmcruninfo(exitcode)
                  end if
               end do
            end if
-           if(changeVar.eq.2) then  ! for phi > pi -> q = 1/q & phi = phi - pi
+           if(changeVar.eq.3) then  ! for phi > pi -> q = 1/q & phi = phi - pi
               if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Swapping q, phi'
               do j=1,ntot(ic)
                  if(allDat(ic,revID(41),j).gt.rpi) then
@@ -1265,6 +1268,7 @@ subroutine mcmcruninfo(exitcode)
                  end if
               end do
            end if
+           
            allDat(ic,revID(62),1:ntot(ic)) =  &
                 allDat(ic,revID(67),1:ntot(ic)) / (allDat(ic,revID(67),1:ntot(ic)) + 1.0)**2                ! eta = q/(1+q)^2
            allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                         ! log_q = log(q)
@@ -1340,14 +1344,15 @@ subroutine mcmcruninfo(exitcode)
         end if
         do ic=1,nchains0
            allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(64),1:ntot(ic)) / allDat(ic,revID(63),1:ntot(ic))     ! q = m2 / m1
-           if(changeVar.eq.3) then ! Folding log(q) for comparison
+           
+           if(changeVar.eq.4) then ! Folding log(q) for comparison
               do j=1,ntot(ic)
                  if(allDat(ic,revID(67),j).gt.1.0) then
                     allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)
                  end if
               end do
            end if
-           if(changeVar.eq.2) then  ! m2/m1 for q<1, & phi<pi and m1/m2 for q>1 & phi >pi
+           if(changeVar.eq.3) then  ! m2/m1 for q<1, & phi<pi and m1/m2 for q>1 & phi >pi
               do j=1,ntot(ic)
                  if(allDat(ic,revID(41),j).gt.rpi) then
                     allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                          ! phi = phi - pi
@@ -1356,6 +1361,7 @@ subroutine mcmcruninfo(exitcode)
                  end if
               end do
            end if
+           
            allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! Mtot = m1 + m2
            allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                                ! log_q = log(q)
         end do
