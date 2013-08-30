@@ -621,11 +621,79 @@ subroutine mc_q_2_m1_m2r(mcr,qr,m1r,m2r)
 
   mc = dble(mcr)
   q = dble(qr)
-  call mc_q_2_m1_m2(mc,q,m1,m2)
+  call mc_q_2_m1_m2(mc,q, m1,m2)
   m1r = real(m1)
   m2r = real(m2)
 
 end subroutine mc_q_2_m1_m2r
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Convert symmetric mass ratio eta to asymmetric mass ratio q (0 - 1)
+!!
+!! \param  eta   Symmetric mass ratio (0 - 0.25)
+
+function eta2q(eta)
+  use SUFR_kinds, only: double
+  implicit none
+  real(double), intent(in) :: eta
+  real(double) :: eta2q, var
+
+  var = sqrt(1.d0 - 4 * min(max(eta,0.d0),0.25d0))
+  eta2q = (1.d0-var) / (1.d0+var)
+  
+end function eta2q
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Convert symmetric mass ratio eta to asymmetric mass ratio q (0 - 1)
+!!
+!! \param  eta   Symmetric mass ratio (0 - 0.25)
+
+function eta2qr(eta)
+  implicit none
+  real, intent(in) :: eta
+  real :: eta2qr, var
+
+  var = sqrt(1. - 4 * min(max(eta,0.),0.25))
+  eta2qr = (1.-var) / (1.+var)
+  
+end function eta2qr
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Convert asymmetric mass ratio q (0 - 1) to  symmetric mass ratio eta (0 - 0.25)
+!!
+!! \param  q   Asymmetric mass ratio (0 - 1)
+
+function q2eta(q)
+  use SUFR_kinds, only: double
+  implicit none
+  real(double), intent(in) :: q
+  real(double) :: q2eta
+
+  q2eta = q / (1.d0+q)**2
+  
+end function q2eta
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Convert asymmetric mass ratio q (0 - 1) to  symmetric mass ratio eta (0 - 0.25)
+!!
+!! \param  q   Asymmetric mass ratio (0 - 1)
+
+function q2etar(q)
+  implicit none
+  real, intent(in) :: q
+  real :: q2etar
+
+  q2etar = q / (1.+q)**2
+  
+end function q2etar
 !***********************************************************************************************************************************
 
 
@@ -684,6 +752,51 @@ subroutine mc_eta_2_m1_m2r(mcr,etar,m1r,m2r)
   m2r = real(m2)
   
 end subroutine mc_eta_2_m1_m2r
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Convert M1,M2 to Mchirp
+!!
+!! \param  m1   M1 (Mo)
+!! \param  m2   M2 (Mo)
+!!
+!! \retval mc   Chirp mass (Mo)
+
+function m1m2_2_mc(m1,m2)
+  use SUFR_kinds, only: double
+  implicit none
+  real(double), intent(in) :: m1,m2
+  real(double) :: m1m2_2_mc, mtot, eta
+  
+  mtot = m1+m2
+  eta  = m1*m2/(mtot*mtot)
+  
+  m1m2_2_mc = mtot * eta**0.6d0
+  
+end function m1m2_2_mc
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Convert M1,M2 to Mchirp - single precision
+!!
+!! \param  m1   M1 (Mo)
+!! \param  m2   M2 (Mo)
+!!
+!! \retval mc   Chirp mass (Mo)
+
+function m1m2_2_mcr(m1,m2)
+  implicit none
+  real, intent(in) :: m1,m2
+  real :: m1m2_2_mcr, mtot, eta
+  
+  mtot = m1+m2
+  eta  = m1*m2/(mtot*mtot)
+  
+  m1m2_2_mcr = mtot * eta**0.6
+  
+end function m1m2_2_mcr
 !***********************************************************************************************************************************
 
 

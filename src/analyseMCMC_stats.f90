@@ -30,7 +30,6 @@ subroutine statistics(exitcode)
   use SUFR_kinds, only: realkindmax
   use SUFR_constants, only: stdOut, rc3rd,rr2d,rr2h,rpi,rpi2
   use SUFR_sorting, only: sorted_index_list
-  use SUFR_statistics, only: compute_median
   
   use analysemcmc_settings, only: changeVar,prProgress,mergeChains,wrapData,saveStats,prCorr,ivals,ival0,prStat,prIval,Nival,Nburn
   use analysemcmc_settings, only: prConv,wikioutput,plAcorr,plRhat,prAcorr,maxMCMCpar,maxChs, htmlOutput

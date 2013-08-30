@@ -585,7 +585,7 @@ subroutine read_mcmcfiles(exitcode)
      infile = infiles(ic)
      open(unit=10,form='formatted',status='old',file=trim(infile),iostat=io) 
      if(io.ne.0) then
-        write(stdErr,'(A)')'   Error:  File not found: '//trim(infile)//', aborting.'
+        write(stdErr,'(A)') '   Error:  File not found: '//trim(infile)//', aborting.'
         exitcode = 1
         return
      end if
@@ -672,7 +672,7 @@ subroutine read_mcmcfiles(exitcode)
         if(outputVersion.lt.2.1) then  ! Then integer parameter IDs are still used
            read(10,*,iostat=io) parID(1:nMCMCpar)  ! Read parameter IDs
            if(io.ne.0) then
-              write(stdErr,'(//,A,//)')'  Error reading MCMC parameter IDs, aborting...'
+              write(stdErr,'(//,A,//)') '  Error reading MCMC parameter IDs, aborting...'
               stop
            end if
         end if
@@ -754,7 +754,7 @@ subroutine read_mcmcfiles(exitcode)
            if(readerror.eq.1) then  ! Read error in previous line as well
               if(i.lt.25) then
                  write(stdErr,'(A,I7)',advance="no")'  Read error in file '//trim(infile)//', line',i
-                 write(stdErr,'(A,/)')'  Aborting program...'
+                 write(stdErr,'(A,/)') '  Aborting program...'
                  stop
               else
                  write(stdOut,'(A,I7)',advance="no")'  Read error in file '//trim(infile)//', line',i
@@ -821,7 +821,7 @@ subroutine read_mcmcfiles(exitcode)
      close(10)
      ntot(ic) = i-1
      n(ic) = ntot(ic)  ! n can be changed in rearranging chains, ntot wont be changed
-     !if(prProgress.ge.2.and.update.ne.1) write(stdOut,'(1x,3(A,I9),A1)')' Lines:',ntot(ic),', iterations:', &
+     !if(prProgress.ge.2.and.update.ne.1) write(stdOut,'(1x,3(A,I9),A1)') ' Lines:',ntot(ic),', iterations:', &
      !nint(is(ic,ntot(ic))),', burn-in:',Nburn(ic),'.'
   end do !do ic = 1,nchains0
   
@@ -894,13 +894,13 @@ end subroutine parNames2IDs
 
 subroutine mcmcruninfo(exitcode)  
   use SUFR_kinds, only: double
-  use SUFR_constants, only: stdOut,stdErr, rpi
+  use SUFR_constants, only: stdOut,stdErr
   use SUFR_statistics, only: compute_median_sp
-  use SUFR_system, only: swapreal, quit_program_error
+  use SUFR_system, only: quit_program_error  !, swapreal
   use aM_constants, only: detabbrs
   
   use analysemcmc_settings, only: Nburn,update,prRunInfo,NburnFrac,thin,autoBurnin,prChainInfo,chainPlI,changeVar,prProgress
-  use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar,plInject,plStart,htmlOutput
+  use analysemcmc_settings, only: prInitial,mergeChains,maxMCMCpar,plInject,plStart,htmlOutput, plPars,nPlPar,PDF2Dpairs,nPDF2d
   
   use general_data, only: allDat,post,ntot,n,nchains,nchains0,infiles,contrChain,startval,fixedpar,selDat,iloglmax,icloglmax
   use general_data, only: contrChains,parNames,nfixedpar,outputname
@@ -914,16 +914,19 @@ subroutine mcmcruninfo(exitcode)
   
   implicit none
   integer, intent(out) :: exitcode
-  integer :: i,ic,j,p,maxLine
+  integer :: i,ic,il, j,p,maxLine, par, newID
+  real :: eta2qr,m1m2_2_mcr
   real(double) :: lon2ra,gmst
   character :: infile*(99)
+  logical :: want_eta,want_Mc16,want_Mtot,want_logq
+  
   
   exitcode = 0
   totiter = 0
   do ic = 1,nchains0
      totiter = totiter + nint(is(ic,ntot(ic)))
   end do
-  !if(prProgress.ge.2.and.update.ne.1) write(stdOut,'(A10,65x,2(A,I9),A1)')'Total:',' Lines:',sum(ntot(1:nchains0)),',  &
+  !if(prProgress.ge.2.and.update.ne.1) write(stdOut,'(A10,65x,2(A,I9),A1)') 'Total:',' Lines:',sum(ntot(1:nchains0)),',  &
   !iterations:',totiter
   
   
@@ -932,11 +935,11 @@ subroutine mcmcruninfo(exitcode)
   if(prRunInfo.gt.0.and.update.eq.0) then
      write(stdOut,*)
      if(htmlOutput.ge.1) then
-        write(stdOut,'(A)')'<br><hr><a name="runinfo"></a><font size="1"><a href="#top" title="Go to the top of the page">'// &
+        write(stdOut,'(A)') '<br><hr><a name="runinfo"></a><font size="1"><a href="#top" title="Go to the top of the page">'// &
              'top</a></font><h2>Run info</h2>'
      else
-        if(prRunInfo.eq.1) write(stdOut,'(/,A)')'  Run information for chain 1:'
-        if(prRunInfo.eq.2) write(stdOut,'(/,A)')'  Run information:'
+        if(prRunInfo.eq.1) write(stdOut,'(/,A)') '  Run information for chain 1:'
+        if(prRunInfo.eq.2) write(stdOut,'(/,A)') '  Run information:'
      end if
      
      do ic = 1,nchains0
@@ -944,7 +947,7 @@ subroutine mcmcruninfo(exitcode)
            infile = infiles(ic)
            if(outputVersion.lt.0.5) then
               if(prRunInfo.le.2.and.ic.eq.1 .or. prRunInfo.eq.3) &
-                   write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8)')'Chain','file name','colour','Niter','Nburn','seed','Ndet'
+                   write(stdOut,'(4x,A7,A12,A13,A10,A12,A8,A8)') 'Chain','file name','colour','Niter','Nburn','seed','Ndet'
               write(stdOut,'(4x,I7,A12,A13,I10,I12,I8,I8)')ic,trim(infile(13:99)), &
                    trim(colournames(colours(mod(ic-1,ncolours)+1))),niter(ic),Nburn0(ic),seed(ic),ndet(ic)
            else
@@ -998,7 +1001,7 @@ subroutine mcmcruninfo(exitcode)
         if(Nburn(ic).ge.nint(is(ic,n(ic)))) then
            !print*,Nburn(ic),nint(is(ic,n(ic)))
            if(Nburn0(ic).ge.nint(is(ic,n(ic)))) then
-              write(stdErr,'(A,I3)')'   *** WARNING ***  Nburn larger than Nchain, setting Nburn to 10% for chain',ic
+              write(stdErr,'(A,I3)') '   *** WARNING ***  Nburn larger than Nchain, setting Nburn to 10% for chain',ic
               Nburn(ic) = nint(is(ic,n(ic))*0.1)
            else
               Nburn(ic) = Nburn0(ic)
@@ -1101,7 +1104,7 @@ subroutine mcmcruninfo(exitcode)
   
   !*** Print chain info to screen:
   ! Print info on number of iterations, burn-in, thinning, etc.:
-  if(prChainInfo.ge.2.and.update.ne.1.and.htmlOutput.ge.1) write(stdOut,'(A)')'<br><hr><a name="chaininfo"></a>'// &
+  if(prChainInfo.ge.2.and.update.ne.1.and.htmlOutput.ge.1) write(stdOut,'(A)') '<br><hr><a name="chaininfo"></a>'// &
        '<font size="1"><a href="#top" title="Go to the top of the page">top</a></font><h2>Chain info</h2>'
   do ic=1,nchains0
      infile = infiles(ic)
@@ -1155,10 +1158,10 @@ subroutine mcmcruninfo(exitcode)
            else
               write(stdOut,'(A,I4,A)', advance='no')'    Plotting every',chainPlI,'-th'
            end if
-           write(stdOut,'(A,I5,A,I5,A)')' state in likelihood, chains, jumps, etc. plots.  Average total thinning is', &
+           write(stdOut,'(A,I5,A,I5,A)') ' state in likelihood, chains, jumps, etc. plots.  Average total thinning is', &
                 nint(avgTotThin),'x, for these plots it is',nint(avgTotThin*real(chainPlI)),'x.'
         else
-           write(stdOut,'(A,I5,A)')'    Plotting *every* state in likelihood, chains, jumps, etc. plots.'// &
+           write(stdOut,'(A,I5,A)') '    Plotting *every* state in likelihood, chains, jumps, etc. plots.'// &
                 '  Average total thinning remains',nint(avgTotThin),'x for these plots.'
         end if
      end if
@@ -1175,182 +1178,292 @@ subroutine mcmcruninfo(exitcode)
      if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)',advance="no")'  Changing some parameters...   '
      
      
+     ! See which non-default parameters are needed for plots and hence should be computed/kept:
+     want_eta  = .false.  ! 62
+     want_Mc16 = .false.  ! 65
+     want_Mtot = .false.  ! 66
+     want_logq = .false.  ! 68
+     do par=1,nPlPar
+        if(plPars(par).eq.62) want_eta  = .true.
+        if(plPars(par).eq.65) want_Mc16 = .true.
+        if(plPars(par).eq.66) want_Mtot = .true.
+        if(plPars(par).eq.68) want_logq = .true.
+     end do
+     do par=1,nPDF2d
+        if(PDF2Dpairs(par,1).eq.62) want_eta  = .true.
+        if(PDF2Dpairs(par,2).eq.62) want_eta  = .true.
+        if(PDF2Dpairs(par,1).eq.65) want_Mc16 = .true.
+        if(PDF2Dpairs(par,2).eq.65) want_Mc16 = .true.
+        if(PDF2Dpairs(par,1).eq.66) want_Mtot = .true.
+        if(PDF2Dpairs(par,2).eq.66) want_Mtot = .true.
+        if(PDF2Dpairs(par,1).eq.68) want_logq = .true.
+        if(PDF2Dpairs(par,2).eq.68) want_logq = .true.
+     end do
+     
+     
      ! Calculate Mc from Mc_16 (Mc^(1/6)):
      if(revID(61).eq.0 .and. revID(65).ne.0) then
-        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mc from Mc^(1/6)'
-        parID(nMCMCpar+1) = 61    ! Mc
-        revID(61) = nMCMCpar + 1  ! Mc
-        nMCMCpar = nMCMCpar + 1
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)') '  Computing Mc from Mc^(1/6)'
+        
+        do newID=1,nMCMCpar+1
+           if(parID(newID).eq.0) exit
+        end do
+        parID(newID) = 61    ! Mc
+        revID(61) = newID  ! Mc
+        nMCMCpar = max(nMCMCpar, newID)
         
         if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
         
         do ic=1,nchains0
            allDat(ic,revID(61),1:ntot(ic)) = allDat(ic,revID(65),1:ntot(ic))**6   ! Mc = [Mc_16]^6
         end do
+        
+        if(.not.want_Mc16) then  ! 'Release' slot
+           parID(revID(65)) = 0  ! Mc16
+           revID(65) = 0         ! Mc16
+        end if
+     end if
+     
+     
+     ! Calculate Mc, q from M1, M2:
+     if(revID(61).eq.0.and.revID(67).eq.0 .and. revID(63).ne.0.and.revID(64).ne.0) then
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)') '  Computing Mc, q from M1, M2'
+        
+        do newID=1,nMCMCpar+1
+           if(parID(newID).eq.0) exit
+        end do
+        parID(newID) = 61  ! Mc
+        revID(61) = newID  ! Mc
+        nMCMCpar = max(nMCMCpar, newID)
+        
+        do newID=1,nMCMCpar+1
+           if(parID(newID).eq.0) exit
+        end do
+        parID(newID) = 67  ! q
+        revID(67) = newID  ! q
+        nMCMCpar = max(nMCMCpar, newID)
+        
+        if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
+        
+        do ic=1,nchains0
+           allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) / allDat(ic,revID(64),1:ntot(ic))  ! q
+           do il = 1,ntot(ic)
+              allDat(ic,revID(67),il) = m1m2_2_mcr(allDat(ic,revID(63),1:ntot(ic)) , allDat(ic,revID(64),1:ntot(ic)))  ! Mc
+           end do
+        end do
+        
+        ! Always keep M1,M2
+     end if
+     
+     
+     ! Calculate q from eta:
+     if(revID(67).eq.0 .and. revID(62).ne.0) then
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)') '  Computing q from eta'
+        
+        do newID=1,nMCMCpar+1
+           if(parID(newID).eq.0) exit
+        end do
+        parID(newID) = 67  ! q
+        revID(67) = newID  ! q
+        nMCMCpar = max(nMCMCpar, newID)
+        
+        if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
+        
+        do ic=1,nchains0
+           do il = 1,ntot(ic)
+              allDat(ic,revID(67),il) = eta2qr( allDat(ic,revID(62),il) )  ! Convert eta to 0 < q <= 1
+           end do
+        end do
+        
+        if(.not.want_eta) then   ! 'Release' slot
+           parID(revID(62)) = 0  ! eta
+           revID(62) = 0         ! eta
+        end if
      end if
      
      
      ! Calculate q from log(q):
      if(revID(67).eq.0 .and. revID(68).ne.0) then
-        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing q from log(q)'
-        parID(nMCMCpar+1) = 67    ! q
-        revID(67) = nMCMCpar + 1  ! q
-        nMCMCpar = nMCMCpar + 1
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)') '  Computing q from log(q)'
+        
+        do newID=1,nMCMCpar+1
+           if(parID(newID).eq.0) exit
+        end do
+        parID(newID) = 67  ! q
+        revID(67) = newID  ! q
+        nMCMCpar = max(nMCMCpar, newID)
         
         if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
         
         do ic=1,nchains0
            
-           if(changeVar.eq.4) then ! Folding log(q) for comparison
-              do j=1,ntot(ic)
-                 if(allDat(ic,revID(68),j).gt.0.0) then
-                 allDat(ic,revID(68),j) = -allDat(ic,revID(68),j)
-                 end if
-              end do
-           end if
-           if(changeVar.eq.3) then  ! for phi > pi -> logq = -logq & phi = phi - pi
-              do j=1,ntot(ic)
-                 if(allDat(ic,revID(41),j).gt.rpi) then
-                    allDat(ic,revID(41),j) =  allDat(ic,revID(41),j) - rpi                                     ! phi = phi - pi
-                    allDat(ic,revID(68),j) = -allDat(ic,revID(68),j)                                           ! log_q = -log_q
-                    if(revID(63)*revID(64).ne.0) call swapreal(allDat(ic,revID(63),j),allDat(ic,revID(64),j))  ! swap m1 <-> m2
-                 end if
-              end do
-           end if
+           !if(changeVar.eq.4) then ! Folding log(q) for comparison
+           !   do j=1,ntot(ic)
+           !      if(allDat(ic,revID(68),j).gt.0.0) then
+           !      allDat(ic,revID(68),j) = -allDat(ic,revID(68),j)
+           !      end if
+           !   end do
+           !end if
+           !if(changeVar.eq.3) then  ! for phi > pi -> logq = -logq & phi = phi - pi
+           !   do j=1,ntot(ic)
+           !      if(allDat(ic,revID(41),j).gt.rpi) then
+           !         allDat(ic,revID(41),j) =  allDat(ic,revID(41),j) - rpi                                     ! phi = phi - pi
+           !         allDat(ic,revID(68),j) = -allDat(ic,revID(68),j)                                           ! log_q = -log_q
+           !         if(revID(63)*revID(64).ne.0) call swapreal(allDat(ic,revID(63),j),allDat(ic,revID(64),j))  ! swap m1 <-> m2
+           !      end if
+           !   end do
+           !end if
            
            allDat(ic,revID(67),1:ntot(ic)) = 10.0 ** (allDat(ic,revID(68),1:ntot(ic)))                         ! q = 10**log_q
         end do
+        
+        if(.not.want_logq) then  ! 'Release' slot
+           parID(revID(68)) = 0  ! logq
+           revID(68) = 0         ! logq
+        end if
      end if
      
      
-     ! Calculate eta and log(q) from q:
-     if(revID(62).eq.0 .and. revID(67).ne.0) then
-        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing eta and log(q) from q'
-        parID(nMCMCpar+1) = 62    ! Eta
-        parID(nMCMCpar+2) = 63    ! M1
-        parID(nMCMCpar+3) = 64    ! M2
-        parID(nMCMCpar+4) = 66    ! Mtot
-        parID(nMCMCpar+5) = 68    ! logq 
-        revID(62) = nMCMCpar + 1  ! Eta
-        revID(63) = nMCMCpar + 2  ! M1
-        revID(64) = nMCMCpar + 3  ! M2
-        revID(66) = nMCMCpar + 4  ! Mtot
-        revID(68) = nMCMCpar + 5  ! logq
-        nMCMCpar = nMCMCpar + 5
+     
+     ! ***  By this point I should have Mc and q  ***
+     
+     
+     
+     ! Calculate the individual masses from Mch and q:
+     if(revID(61)*revID(67).ne.0 .and. revID(63)+revID(64).eq.0) then
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)') '  Computing M1, M2, from Mc, q'
+        
+        do newID=1,nMCMCpar+1
+           if(parID(newID).eq.0) exit
+        end do
+        parID(newID) = 63  ! M1
+        revID(63) = newID  ! M1
+        nMCMCpar = max(nMCMCpar, newID)
+        
+        do newID=1,nMCMCpar+1
+           if(parID(newID).eq.0) exit
+        end do
+        parID(newID) = 64  ! M2
+        revID(64) = newID  ! M2
+        nMCMCpar = max(nMCMCpar, newID)
         
         if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
         
         do ic=1,nchains0
-           if(changeVar.eq.4) then ! Folding log(q) for comparison
-              if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Folding log(q)'
-              do j=1,ntot(ic)
-                 if(allDat(ic,revID(67),j).gt.1.0) then
-                    allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)
-                 end if
-              end do
-           end if
-           if(changeVar.eq.3) then  ! for phi > pi -> q = 1/q & phi = phi - pi
-              if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Swapping q, phi'
-              do j=1,ntot(ic)
-                 if(allDat(ic,revID(41),j).gt.rpi) then
-                    allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                      ! phi = phi - pi
-                    allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)                                      ! q = 1/q
-                    if(revID(63)*revID(64).ne.0) call swapreal(allDat(ic,revID(63),j),allDat(ic,revID(64),j))  ! swap m1 <-> m2
-                 end if
-              end do
-           end if
+           do il=1,ntot(ic)
+              call mc_q_2_m1_m2r(allDat(ic,revID(61),il),allDat(ic,revID(67),il), allDat(ic,revID(63),il),allDat(ic,revID(64),il))
+           end do
+        end do
+        
+        ! Never release Mc, q
+     end if
+     
+     
+     
+     ! Calculate Mtot from the individual masses:
+     if(want_Mtot .and. revID(63)*revID(64).ne.0 .and. revID(66).eq.0) then
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)') '  Computing Mtot from M1, M2'
+        
+        do newID=1,nMCMCpar+1
+           if(parID(newID).eq.0) exit
+        end do
+        parID(newID) = 66  ! Mtot
+        revID(66) = newID  ! Mtot
+        nMCMCpar = max(nMCMCpar, newID)
+        
+        if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
+        
+        do ic=1,nchains0
+           allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))  ! Mtot
+        end do
+        
+        ! Never release M1,M2
+     end if
+     
+     
+     
+     ! Calculate eta from q:
+     if(want_eta .and. revID(62).eq.0 .and. revID(67).ne.0) then
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)') '  Computing eta from q'
+        
+        do newID=1,nMCMCpar+1
+           if(parID(newID).eq.0) exit
+        end do
+        parID(newID) = 62  ! eta
+        revID(62) = newID  ! eta
+        nMCMCpar = max(nMCMCpar, newID)
+        
+        if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
+        
+        do ic=1,nchains0
+           !if(changeVar.eq.4) then ! Folding log(q) for comparison
+           !   if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Folding log(q)'
+           !   do j=1,ntot(ic)
+           !      if(allDat(ic,revID(67),j).gt.1.0) then
+           !         allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)  ! q = 1/q
+           !      end if
+           !   end do
+           !end if
+           !if(changeVar.eq.3) then  ! for phi > pi -> q = 1/q & phi = phi - pi
+           !   if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Swapping q, phi'
+           !   do j=1,ntot(ic)
+           !      if(allDat(ic,revID(41),j).gt.rpi) then
+           !         allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                      ! phi = phi - pi
+           !         allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)                                      ! q = 1/q
+           !         if(revID(63)*revID(64).ne.0) call swapreal(allDat(ic,revID(63),j),allDat(ic,revID(64),j))  ! swap m1 <-> m2
+           !      end if
+           !   end do
+           !end if
            
            allDat(ic,revID(62),1:ntot(ic)) =  &
                 allDat(ic,revID(67),1:ntot(ic)) / (allDat(ic,revID(67),1:ntot(ic)) + 1.0)**2                ! eta = q/(1+q)^2
-           allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                         ! log_q = log(q)
-           
-           
-           if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') &
-                '  Computing M1, M2 and Mtot from Mc and q'
-           do i=1,ntot(ic)
-              call mc_q_2_m1_m2r(allDat(ic,revID(61),i),allDat(ic,revID(67),i), allDat(ic,revID(63),i),allDat(ic,revID(64),i))
-           end do
-           allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! Mtot = m1 + m2
         end do
+        
+        ! Never release q
      end if
      
      
-     ! Calculate the individual masses from Mch and eta:
-     if(revID(61)*revID(62).ne.0 .and. revID(63)+revID(64).eq.0) then
-        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing M1, M2, Mtot from Mc, eta'
-        parID(nMCMCpar+1) = 63    ! M1
-        parID(nMCMCpar+2) = 64    ! M2
-        parID(nMCMCpar+3) = 66    ! Mtot
-        revID(63) = nMCMCpar + 1  ! M1
-        revID(64) = nMCMCpar + 2  ! M2
-        revID(66) = nMCMCpar + 3  ! Mtot
-        nMCMCpar = nMCMCpar + 3
+     
+     ! Calculate log(q) from q:
+     if(want_logq .and. revID(68).eq.0 .and. revID(67).ne.0) then
+        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)') '  Computing log(q) from q'
         
-        if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
-        
-        do ic=1,nchains0
-           do i=1,ntot(ic)
-              call mc_eta_2_m1_m2r(allDat(ic,revID(61),i),allDat(ic,revID(62),i), allDat(ic,revID(63),i),allDat(ic,revID(64),i))
-           end do
-           allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! Mtot = m1 + m2
+        do newID=1,nMCMCpar+1
+           if(parID(newID).eq.0) exit
         end do
-        
-        
-        ! Calculate Mc, eta from the individual masses:
-     else if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) then
-        
-        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mc, eta from M1, M2'
-        parID(nMCMCpar+1) = 61    ! Mc
-        parID(nMCMCpar+2) = 62    ! eta
-        revID(61) = nMCMCpar + 1  ! Mc
-        revID(62) = nMCMCpar + 2  ! eta
-        nMCMCpar = nMCMCpar + 2
+        parID(newID) = 68  ! logq
+        revID(68) = newID  ! logq
+        nMCMCpar = max(nMCMCpar, newID)
         
         if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
         
         do ic=1,nchains0
-           do i=1,ntot(ic)
-              call m1_m2_2_mc_etar(allDat(ic,revID(63),i),allDat(ic,revID(64),i), allDat(ic,revID(61),i),allDat(ic,revID(62),i))
-           end do
-        end do
-        
-        ! Compute total mass (var 66) and mass ratio (var 67) (q=M2/M1, not \eta) from the individual masses:
-        ! (var 65 is reserved for Mc^(1/6)) & convert q -> 1/q, logq -> -logq and phi -> phi -pi for phi > pi
-        if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0) write(stdOut,'(A)')'  Computing Mtot, q, log(q) from masses'
-        parID(nMCMCpar+1) = 66    ! Mtot
-        parID(nMCMCpar+2) = 67    ! q
-        parID(nMCMCpar+3) = 68    ! log(q)
-        revID(66) = nMCMCpar + 1  ! Mtot
-        revID(67) = nMCMCpar + 2  ! q
-        revID(68) = nMCMCpar + 3  ! log(q)
-        nMCMCpar = nMCMCpar + 3
-        
-        if(nMCMCpar.gt.maxMCMCpar) call error_maxMCMCpar_quit(StdErr, maxMCMCpar, nMCMCpar)  ! Stop program with error
-        
-        do ic=1,nchains0
-           allDat(ic,revID(67),1:ntot(ic)) = allDat(ic,revID(64),1:ntot(ic)) / allDat(ic,revID(63),1:ntot(ic))     ! q = m2 / m1
+           !if(changeVar.eq.4) then ! Folding log(q) for comparison
+           !   if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Folding log(q)'
+           !   do j=1,ntot(ic)
+           !      if(allDat(ic,revID(67),j).gt.1.0) then
+           !         allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)  ! q = 1/q
+           !      end if
+           !   end do
+           !end if
+           !if(changeVar.eq.3) then  ! for phi > pi -> q = 1/q & phi = phi - pi
+           !   if(htmlOutput.eq.0.and.prProgress.ge.2.and.update.eq.0.and.ic.eq.1) write(stdOut,'(A)') ' Swapping q, phi'
+           !   do j=1,ntot(ic)
+           !      if(allDat(ic,revID(41),j).gt.rpi) then
+           !         allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                      ! phi = phi - pi
+           !         allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)                                      ! q = 1/q
+           !         if(revID(63)*revID(64).ne.0) call swapreal(allDat(ic,revID(63),j),allDat(ic,revID(64),j))  ! swap m1 <-> m2
+           !      end if
+           !   end do
+           !end if
            
-           if(changeVar.eq.4) then ! Folding log(q) for comparison
-              do j=1,ntot(ic)
-                 if(allDat(ic,revID(67),j).gt.1.0) then
-                    allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)
-                 end if
-              end do
-           end if
-           if(changeVar.eq.3) then  ! m2/m1 for q<1, & phi<pi and m1/m2 for q>1 & phi >pi
-              do j=1,ntot(ic)
-                 if(allDat(ic,revID(41),j).gt.rpi) then
-                    allDat(ic,revID(41),j) = allDat(ic,revID(41),j) - rpi                                          ! phi = phi - pi
-                    allDat(ic,revID(67),j) = 1.0 / allDat(ic,revID(67),j)                                          ! q = 1/q = m1/m2
-                    if(revID(63)*revID(64).ne.0) call swapreal(allDat(ic,revID(63),j),allDat(ic,revID(64),j))      ! swap m1 <-> m2
-                 end if
-              end do
-           end if
+           allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                             ! log_q = log(q)
            
-           allDat(ic,revID(66),1:ntot(ic)) = allDat(ic,revID(63),1:ntot(ic)) + allDat(ic,revID(64),1:ntot(ic))     ! Mtot = m1 + m2
-           allDat(ic,revID(68),1:ntot(ic)) = log10(allDat(ic,revID(67),1:ntot(ic)))                                ! log_q = log(q)
         end do
-     end if !if(revID(61)+revID(62).eq.0 .and. revID(63)*revID(64).ne.0) 
+        
+        ! Never release q
+     end if
+     
      
      
      ! Compute inclination and polarisation angle from RA, Dec, theta_J0, phi_J0:
@@ -1382,14 +1495,14 @@ subroutine mcmcruninfo(exitcode)
   offsetrun = 0
   if(prInitial.ne.0) then
      if(htmlOutput.ge.1) then
-        if(prInitial.eq.1) write(stdOut,'(/,A)')'  <b>Starting values for the chains:</b>'
-        if(prInitial.eq.2) write(stdOut,'(/,A)')'  <b>Injection and starting values for the chains:</b>'
-        if(prInitial.ge.3) write(stdOut,'(/,A)')'  <b>Injection, starting and Lmax values for the chains:</b>'
+        if(prInitial.eq.1) write(stdOut,'(/,A)') '  <b>Starting values for the chains:</b>'
+        if(prInitial.eq.2) write(stdOut,'(/,A)') '  <b>Injection and starting values for the chains:</b>'
+        if(prInitial.ge.3) write(stdOut,'(/,A)') '  <b>Injection, starting and Lmax values for the chains:</b>'
         write(stdOut,'(15x,A3,A10)',advance="no") '<b>','log Post'
      else
-        if(prInitial.eq.1) write(stdOut,'(/,A)')'  Starting values for the chains:'
-        if(prInitial.eq.2) write(stdOut,'(/,A)')'  Injection and starting values for the chains:'
-        if(prInitial.ge.3) write(stdOut,'(/,A)')'  Injection, starting and Lmax values for the chains:'
+        if(prInitial.eq.1) write(stdOut,'(/,A)') '  Starting values for the chains:'
+        if(prInitial.eq.2) write(stdOut,'(/,A)') '  Injection and starting values for the chains:'
+        if(prInitial.ge.3) write(stdOut,'(/,A)') '  Injection, starting and Lmax values for the chains:'
         write(stdOut,'(15x,A10)',advance="no") 'log Post'
      end if
      do p=1,nMCMCpar
@@ -1473,8 +1586,8 @@ subroutine mcmcruninfo(exitcode)
   end if
   
   
-  !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)')'  Done.'
-  if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A,I12,A,F7.4)')'  t0:',nint(t0), '  GMST:',gmst(t0)
+  !if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)') '  Done.'
+  if(prProgress.ge.2.and.update.eq.0) write(stdOut,'(A,I12,A,F7.4)') '  t0:',nint(t0), '  GMST:',gmst(t0)
   
   
   !Check which parameters were fixed during the MCMC run:
@@ -1526,7 +1639,7 @@ subroutine mcmcruninfo(exitcode)
      end do
      nchains = 1
      n(1) = j-1
-     !if(prProgress.ge.1) write(stdOut,'(A,I8,A,ES7.1,A)')'  Data points in combined chains: ',n(1),'  (',real(n(1)),')'
+     !if(prProgress.ge.1) write(stdOut,'(A,I8,A,ES7.1,A)') '  Data points in combined chains: ',n(1),'  (',real(n(1)),')'
   else
      allocate(selDat(nchains,maxMCMCpar,maxLine))
      do ic=1,nchains
@@ -1534,7 +1647,7 @@ subroutine mcmcruninfo(exitcode)
         selDat(ic,1:nMCMCpar,1:n(ic)-Nburn(ic)) = allDat(ic,1:nMCMCpar,Nburn(ic)+1:n(ic))
         n(ic) = n(ic)-Nburn(ic) !n(ic)=0 if a chain is not contributing (in which case contrChain(ic)=0)!
      end do
-     !if(prProgress.ge.1) write(stdOut,'(A,I8)')' Datapoints in combined chains: ',sum(n(1:nchains))
+     !if(prProgress.ge.1) write(stdOut,'(A,I8)') ' Datapoints in combined chains: ',sum(n(1:nchains))
   end if
   
 end subroutine mcmcruninfo
@@ -1666,7 +1779,7 @@ subroutine error_maxMCMCpar_quit(op, maxMCMCpar, nMCMCpar)
   implicit none
   integer, intent(in) :: op, maxMCMCpar, nMCMCpar
   
-  write(op,'(//,A,I4,A,I4,A,//)')'  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
+  write(op,'(//,A,I4,A,I4,A,//)') '  Error:  maxMCMCpar too small.  You must increase maxMCMCpar from',maxMCMCpar, &
        ' to at least',nMCMCpar,' in order to continue.  Aborting...'
   
   stop 1
