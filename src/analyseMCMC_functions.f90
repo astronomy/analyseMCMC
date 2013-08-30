@@ -1201,6 +1201,8 @@ subroutine create_html_index_file()
   use SUFR_constants, only: stdOut
   use SUFR_system, only: quit_program_error
   
+  use analysemcmc_settings, only: prRunInfo,prChainInfo,prConv,prStat,prIval,prCorr
+  use analysemcmc_settings, only: plot, plLogL,plChain,plParL,plJump,plAcorr,plRhat, plPDF1D,plPDF2D
   use aM_constants, only: stdOutFile
   use mcmcrun_data, only: t0
   
@@ -1223,21 +1225,23 @@ subroutine create_html_index_file()
   write(stdOut,'(4x,A)') '<font size="2">'
   
   write(stdOut,'(6x,A)') '<b>Jump to:</b> &nbsp;'
-  write(stdOut,'(6x,A)') '<a href="#runinfo">Run info</a>'
-  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
-  write(stdOut,'(6x,A)') '<a href="#chaininfo">Chain info</a>'
-  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
-  write(stdOut,'(6x,A)') '<a href="#mixing">Mixing</a>'
-  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
-  write(stdOut,'(6x,A)') '<a href="#stats">Main statistics</a>'
-  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
-  write(stdOut,'(6x,A)') '<a href="#prob">Probability intervals</a>'
-  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
-  write(stdOut,'(6x,A)') '<a href="#statsprob">Stats &amp; prob.ivals </a>'
-  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
-  write(stdOut,'(6x,A)') '<a href="#corr">Correlations</a>'
-  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp;'
-  write(stdOut,'(6x,A)') '<a href="#plots">Plots</a>'
+  if(prRunInfo.gt.0)              write(stdOut,'(6x,A)') '<a href="#runinfo">Run info</a>'
+  if(prChainInfo.gt.0)            write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp; <a href="#chaininfo">Chain info</a>'
+  if(prConv.ge.2)                 write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp; <a href="#mixing">Mixing</a>'
+  if(prStat.gt.0)                 write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp; <a href="#stats">Main statistics</a>'
+  if(prIval.eq.1.or.prIval.eq.3)  write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp; <a href="#prob">Probability intervals</a>'
+  if(prIval.ge.2)                 write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp; <a href="#statsprob">Stats &amp; prob.ivals </a>'
+  if(prCorr.gt.0)                 write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp; <a href="#corr">Correlations</a>'
+  if(plot.gt.0)                   write(stdOut,'(6x,A)') '&nbsp; &ndash; &nbsp; <a href="#plots">Plots</a>:'
+  
+  if(plLogL.gt.0)   write(stdOut,'(6x,A)') '&ndash; <a href="#postchains">Post.chains</a>'
+  if(plChain.gt.0)  write(stdOut,'(6x,A)') '&ndash; <a href="#parchains">Par.chains</a>'
+  if(plParL.gt.0)   write(stdOut,'(6x,A)') '&ndash; <a href="#par-l">Par.-L</a>'
+  if(plJump.gt.0)   write(stdOut,'(6x,A)') '&ndash; <a href="#jumps">Jumps</a>'
+  if(plAcorr.gt.0)  write(stdOut,'(6x,A)') '&ndash; <a href="#acorrs">A.corrs</a>'
+  if(plRhat.gt.0)   write(stdOut,'(6x,A)') '&ndash; <a href="#rhat">R-hat</a>'
+  if(plPDF1D.gt.0)  write(stdOut,'(6x,A)') '&ndash; <a href="#1dpdfs">1D PDFs</a>'
+  if(plPDF2D.gt.0)  write(stdOut,'(6x,A)') '&ndash; <a href="#2dpdfs">2D PDFs</a>'
   
   write(stdOut,'(4x,A)') '</font>'
   write(stdOut,'(4x,A)') '<br>'

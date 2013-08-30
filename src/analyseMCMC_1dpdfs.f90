@@ -56,7 +56,9 @@ subroutine pdfs1d(exitcode)
   if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1) write(stdOut,'(A)',advance="no")'  Saving 1D pdfs'
   if(plot.eq.1) then
      if(htmlOutput.ge.1) then
-        write(stdOut,'(A)') '<a name="1dpdfs"></a><h3>1D PDFs:</h3>'
+        write(stdOut,'(A)') '<a name="1dpdfs"></a>'
+        write(stdOut,'(A)') '<font size="1"><a href="#top" title="Go to the top of the page">top</a></font>'
+        write(stdOut,'(A)') '<h3>1D PDFs:</h3>'
         write(stdOut,'(A)') '<img src="'//trim(outputname)//'__pdfs.png" title="1D PDFs">'
      else
         if(prProgress.ge.1.and.update.eq.0) write(stdOut,'(A)',advance="no")' 1D pdfs'

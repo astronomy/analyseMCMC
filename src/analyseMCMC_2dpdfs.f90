@@ -55,7 +55,9 @@ subroutine pdfs2d(exitcode)
   j2 = nMCMCpar
   
   if(htmlOutput.ge.1) then
-     write(stdOut,'(A)') '<a name="2dpdfs"></a><h3>2D PDFs:</h3>'
+     write(stdOut,'(A)') '<a name="2dpdfs"></a>'
+     write(stdOut,'(A)') '<font size="1"><a href="#top" title="Go to the top of the page">top</a></font>'
+     write(stdOut,'(A)') '<h3>2D PDFs:</h3>'
   else
      if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1.and.plPDF1D.eq.0) write(stdOut,'(A)',advance="no")'  Saving'
      if(prProgress.ge.1.and.update.eq.0.and.Npdf2D.ge.0) write(stdOut,'(A)',advance="no")'  2D pdfs: '
@@ -287,7 +289,7 @@ subroutine pdfs2d(exitcode)
   
   if(savePDF.eq.1) close(30)
   
-  if(plot.eq.1.and.file.ne.1) call pgend
+  if(plot.eq.1.and.file.ne.1) call pgend()
   
   !if(plot.eq.1.and.file.ge.2.and.multipagefile) then
   !   if(abs(j2-j1).le.1) then

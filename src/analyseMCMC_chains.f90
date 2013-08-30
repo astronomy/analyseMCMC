@@ -96,6 +96,8 @@ subroutine plot_posterior_chain(exitcode)
   exitcode = 0
   
   if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '<a name="postchains"></a>'
+     write(stdOut,'(A)') '<font size="1"><a href="#top" title="Go to the top of the page">top</a></font>'
      write(stdOut,'(A)') '<h3>Posterior chain:</h3>'
      write(stdOut,'(A)') '<img src="'//trim(outputname)//'__posterior.png" title="log Posterior">'
   else
@@ -317,6 +319,8 @@ subroutine plot_parameter_chains(exitcode)
   exitcode = 0
   
   if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '<a name="parchains"></a>'
+     write(stdOut,'(A)') '<font size="1"><a href="#top" title="Go to the top of the page">top</a></font>'
      write(stdOut,'(A)') '<h3>Parameter chains:</h3>'
      write(stdOut,'(A)') '<img src="'//trim(outputname)//'__chains.png" title="Parameter chains">'
   else
@@ -772,6 +776,8 @@ subroutine plot_par_L(exitcode)
   exitcode = 0
   
   if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '<a name="par-l"></a>'
+     write(stdOut,'(A)') '<font size="1"><a href="#top" title="Go to the top of the page">top</a></font>'
      write(stdOut,'(A)') '<h3>Parameter-L:</h3>'
      write(stdOut,'(A)') '<img src="'//trim(outputname)//'__logl.png" title="Posterior vs. parameter value">'
   else
@@ -1104,6 +1110,8 @@ subroutine plot_Jump_sizes(exitcode)
   exitcode = 0
   
   if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '<a name="jumps"></a>'
+     write(stdOut,'(A)') '<font size="1"><a href="#top" title="Go to the top of the page">top</a></font>'
      write(stdOut,'(A)') '<h3>Jump sizes:</h3>'
      write(stdOut,'(A)') '<img src="'//trim(outputname)//'__jumps.png" title="Jump sizes">'
   else
@@ -1291,6 +1299,8 @@ subroutine plot_Acorr_chains(exitcode)
   exitcode = 0
   
   if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '<a name="acorrs"></a>'
+     write(stdOut,'(A)') '<font size="1"><a href="#top" title="Go to the top of the page">top</a></font>'
      write(stdOut,'(A)') '<h3>Autocorrelations:</h3>'
      write(stdOut,'(A)') '<img src="'//trim(outputname)//'__acorrs.png" title="Autocorrelations">'
   else
@@ -1465,6 +1475,8 @@ subroutine plot_Rhat_chains(exitcode)
   exitcode = 0
   
   if(htmlOutput.ge.1) then
+     write(stdOut,'(A)') '<a name="rhat"></a>'
+     write(stdOut,'(A)') '<font size="1"><a href="#top" title="Go to the top of the page">top</a></font>'
      write(stdOut,'(A)') '<h3>R-hat:</h3>'
      write(stdOut,'(A)') '<img src="'//trim(outputname)//'__rhat.png" title="R-hat">'
   else
