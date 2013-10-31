@@ -28,7 +28,7 @@
 
 subroutine statistics(exitcode)
   use SUFR_kinds, only: realkindmax
-  use SUFR_constants, only: stdOut, rc3rd,rr2d,rr2h,rpi,rpi2
+  use SUFR_constants, only: stdOut, rc3rd,rr2d,rr2h,rpi,rpi2,rpio2
   use SUFR_sorting, only: sorted_index_list
   
   use analysemcmc_settings, only: changeVar,prProgress,mergeChains,wrapData,saveStats,prCorr,ivals,ival0,prStat,prIval,Nival,Nburn
@@ -176,13 +176,29 @@ subroutine statistics(exitcode)
      indexx = 0
      if(prProgress.ge.2.and.mergeChains.eq.0) write(stdOut,'(A,I2.2,A)',advance="no")' Ch',ic,' '
      if(htmlOutput.eq.0.and.prProgress.ge.2.and.ic.eq.1.and.wrapData.ge.1) write(stdOut,'(A)',advance="no")'  Wrap data. '
+     
      do p=1,nMCMCpar
+        
         if(wrapData.eq.0 .or. &
              (parID(p).ne.31.and.parID(p).ne.41.and.parID(p).ne.52.and.parID(p).ne.54.and.parID(p).ne.73.and.parID(p).ne.83) ) &
-             then  !Not RA, phi_c, psi, phi_Jo, phi_1,2
+             then  ! Not RA, phi_c, psi, phi_Jo, phi_1,2 - don't need to wrap
+           
+           if(wrapData.eq.2.and.parID(p).eq.51) then  ! Mirrot inclination in pi/2 from 0-pi into 0-pi/2:
+              if(changeVar.ge.1) then  ! Inclination in degrees
+                 selDat(ic,p,1:n(ic)) = 90. - abs(90. - selDat(ic,p,1:n(ic)))  ! 90 - |90 - i| = i if i<90 and 90-i if 90<i<180
+              else  ! Inclination not in degrees
+                 if(outputVersion.ge.2.1) then  ! Inclination in radians
+                    selDat(ic,p,1:n(ic)) = rpio2 - abs(rpio2 - selDat(ic,p,1:n(ic)))  ! pi/2 - |pi/2 - i| = i if i<pi/2, else pi/2-i
+                 else  ! Inclination is cos(i)
+                    selDat(ic,p,1:n(ic)) = abs(selDat(ic,p,1:n(ic)))  ! cos(i) = -cos(i) if cos(i)<0, i.e. i > pi/2
+                 end if
+              end if
+           end if
+           
            call sorted_index_list(dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))
            indexx(p,1:n(ic)) = index1(1:n(ic))
            if(parID(p).eq.31) raCentre = rpi                      ! Plot 0-24h when not wrapping -> centre = 12h = pi
+           
            cycle  ! No wrapping necessary
         end if
         
