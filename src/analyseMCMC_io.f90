@@ -442,7 +442,8 @@ subroutine set_plotsettings()
   reverseRead = 0   ! Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible
   update = 0        ! Update screen plot every 10 seconds: 0-no, 1-yes
   mergeChains = 1   ! Merge the data from different files into one chain: 0-no (treat separately), 1-yes (default)
-  wrapData = 1      ! Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0)
+  wrapData = 1      ! Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak is around 0), 
+  !                     2-mirror inclination from 0-pi into 0-pi/2
   changeVar = 1     ! Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg), 2=yes + q->1/q, phi->phi-pi, m1<->m2
   outputDir = "."   ! Save output files/plots in this directory - this may be a relative or absolute path
   
