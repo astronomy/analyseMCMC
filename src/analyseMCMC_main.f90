@@ -164,6 +164,7 @@ program analyseMCMC
 
      prCorr = 1
      saveStats = 1
+     savePDF = 0  ! Since this prevents the folding of the data (e.g. around 2pi) for the PDFs
      
      plot = 1
      plLogL = 1
