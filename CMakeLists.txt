@@ -70,6 +70,10 @@ include( CompilerFlags_Fortran )
 # Code-version generator: always create both files:
 # This implies that the files code_version* are removed by 'make clean'!
 if( CREATE_VERSION )
+  
+  set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/code_version_pgplot.f90 PROPERTIES GENERATED 1 )  # Tell CMake this source file won't be available until build time.
+  set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/code_version_plplot.f90 PROPERTIES GENERATED 1 )  # Tell CMake this source file won't be available until build time.
+  
   add_custom_command(
     # PGPlot:
     OUTPUT ${CMAKE_SOURCE_DIR}/src/code_version_pgplot.f90
@@ -81,6 +85,7 @@ if( CREATE_VERSION )
     COMMAND cd $(CMAKE_SOURCE_DIR)
     COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh $(CMAKE_SOURCE_DIR) src/code_version_plplot.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS} yes
     )
+  
 endif( CREATE_VERSION )
 
 
@@ -96,14 +101,12 @@ endif( PLplot_FOUND )
 
 
 # Build and link AnalyseMCMC executable:
-set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/code_version_plplot.f90 PROPERTIES GENERATED 1 )  # Tell CMake this source file won't be available until build time.
 add_executable( analyseMCMC ${AnalyseMCMC_SRC_FILES} ${Plot_SRC_FILES} )
 target_link_libraries( analyseMCMC ${LibSUFR_LIBRARIES} ${Plot_LIBRARIES} )
 set_target_properties( analyseMCMC PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIRECTORY} )
 
 
 # Build and link plotSignal executable:
-set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/code_version_plplot.f90 PROPERTIES GENERATED 1 )  # Tell CMake this source file won't be available until build time.
 add_executable( plotSignal ${plotSignal_SRC_FILES} ${Plot_SRC_FILES} )
 target_link_libraries( plotSignal ${LibSUFR_LIBRARIES} ${Plot_LIBRARIES} )
 set_target_properties( plotSignal PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIRECTORY} )
