@@ -100,6 +100,7 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
   if(status.ne.0) then
      write(0,'(A)') "  * Warning: could not find constellation data; I won't plot constellations."
      plcst = 0
+     nc = 0
   else
      do i=1,ns
         read(22,'(I4)',end=340,advance='no')c(i,1)
