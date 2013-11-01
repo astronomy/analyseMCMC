@@ -1,6 +1,6 @@
 ##
 ##  CMakeFile for AnalyseMCMC
-##  MvdS, 24/07/2010
+##  MvdS, 2010-07-24
 ##
 ##  To compile, from the directory that contains this file, do:
 ##    $ mkdir build; cd build
@@ -99,25 +99,34 @@ else( PLplot_FOUND )
 endif( PLplot_FOUND )
 
 
-
-# Build and link AnalyseMCMC executable:
+# Build, link and install AnalyseMCMC executable:
 add_executable( analyseMCMC ${AnalyseMCMC_SRC_FILES} ${Plot_SRC_FILES} )
 target_link_libraries( analyseMCMC ${LibSUFR_LIBRARIES} ${Plot_LIBRARIES} )
 set_target_properties( analyseMCMC PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIRECTORY} )
+install( TARGETS "analyseMCMC" RUNTIME DESTINATION "bin" )
 
 
-# Build and link plotSignal executable:
+# Use add_dependencies below in order to pretend other executables depend on aM.  This
+#   seems to be necessary to ensure that they are built *after* aM.  If this doesn't
+#   happen, several threads will be pouring data into the code_version files
+#   simultaneously.
+
+# Build, link and install compPDFs executable:
+add_executable( compPDFs ${compPDFs_SRC_FILES} ${Plot_SRC_FILES} )
+target_link_libraries( compPDFs ${LibSUFR_LIBRARIES} ${Plot_LIBRARIES} )
+set_target_properties( compPDFs PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIRECTORY} )
+add_dependencies( compPDFs analyseMCMC )  # Ensure it is build after aM
+install( TARGETS "compPDFs" RUNTIME DESTINATION "bin" )
+
+# Build, link and install plotSignal executable:
 add_executable( plotSignal ${plotSignal_SRC_FILES} ${Plot_SRC_FILES} )
 target_link_libraries( plotSignal ${LibSUFR_LIBRARIES} ${Plot_LIBRARIES} )
 set_target_properties( plotSignal PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIRECTORY} )
-
-# Pretend pS depends on aM, to ensure that pS is built *after* aM.
-# Otherwise both will be pouring data into the code_version files simultaneously:
-add_dependencies( plotSignal analyseMCMC )
-
-# Installation targets:
-install( TARGETS "analyseMCMC" RUNTIME DESTINATION "bin" )
+add_dependencies( plotSignal analyseMCMC )  # Ensure it is build after aM
 install( TARGETS "plotSignal" RUNTIME DESTINATION "bin" )
+
+
+
 
 # Place the executable in the project's root directory:
 set( EXECUTABLE_OUTPUT_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} )

@@ -16,9 +16,17 @@ set( AnalyseMCMC_SRC_FILES
   src/analyseMCMC_textroutines.f90
   )
 
+set( compPDFs_SRC_FILES
+  src/analyseMCMC_modules.f90
+  src/analyseMCMC_textroutines.f90
+  src/compPDFs.f90
+  src/compPDFs_functions.f90
+  )
+
 set( plotSignal_SRC_FILES
   src/plotSignal.f90
   )
+
 
 # Source files specific to PGPlot or PLplot:
 if( PLplot_FOUND )
