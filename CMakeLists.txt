@@ -111,6 +111,9 @@ add_executable( plotSignal ${plotSignal_SRC_FILES} ${Plot_SRC_FILES} )
 target_link_libraries( plotSignal ${LibSUFR_LIBRARIES} ${Plot_LIBRARIES} )
 set_target_properties( plotSignal PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIRECTORY} )
 
+# Pretend pS depends on aM, to ensure that pS is built *after* aM.
+# Otherwise both will be pouring data into the code_version files simultaneously:
+add_dependencies( plotSignal analyseMCMC )
 
 # Installation targets:
 install( TARGETS "analyseMCMC" RUNTIME DESTINATION "bin" )
