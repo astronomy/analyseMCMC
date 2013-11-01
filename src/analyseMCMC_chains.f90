@@ -296,6 +296,7 @@ end subroutine plot_posterior_chain
 
 subroutine plot_parameter_chains(exitcode)
   use SUFR_constants, only: stdOut,stdErr
+  use SUFR_numerics, only: seq
   
   use aM_constants, only: use_PLplot, rmeps
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
@@ -487,18 +488,18 @@ subroutine plot_parameter_chains(exitcode)
      
      dx = abs(xmax-xmin)*0.01
      dy = abs(ymax-ymin)*0.05
-     if(dx.eq.0) then
+     if(seq(dx,0.)) then
         xmin = 0.5*xmin
         xmax = 2*xmax
-        if(xmin.eq.0.) then
+        if(seq(xmin,0.)) then
            xmin = -1.
            xmax = 1.
         end if
      end if
-     if(dy.eq.0) then
+     if(seq(dy,0.)) then
         ymin = 0.5*ymin
         ymax = 2*ymax
-        if(ymin.eq.0.) then
+        if(seq(ymin,0.)) then
            ymin = -1.
            ymax = 1.
         end if
@@ -755,6 +756,7 @@ end subroutine plot_parameter_chains
 
 subroutine plot_par_L(exitcode)
   use SUFR_constants, only: stdOut,stdErr
+  use SUFR_numerics, only: seq
   
   use aM_constants, only: rmeps
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality, htmlOutput
@@ -913,18 +915,18 @@ subroutine plot_par_L(exitcode)
      
      dx = abs(xmax-xmin)*0.1
      dy = abs(ymax-ymin)*0.1
-     if(dx.eq.0) then
+     if(seq(dx,0.)) then
         xmin = 0.5*xmin
         xmax = 2*xmax
-        if(xmin.eq.0.) then
+        if(seq(xmin,0.)) then
            xmin = -1.
            xmax = 1.
         end if
      end if
-     if(dy.eq.0) then
+     if(seq(dy,0.)) then
         ymin = 0.5*ymin
         ymax = 2*ymax
-        if(ymin.eq.0.) then
+        if(seq(ymin,0.)) then
            ymin = -1.
            ymax = 1.
         end if
@@ -1277,7 +1279,7 @@ end subroutine plot_Jump_sizes
 
 subroutine plot_Acorr_chains(exitcode)
   use SUFR_constants, only: stdOut,stdErr
-  use SUFR_statistics, only: compute_median_sp
+  use SUFR_statistics, only: median_sp
   
   use aM_constants, only: rmeps
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
@@ -1402,7 +1404,7 @@ subroutine plot_Acorr_chains(exitcode)
      call pgsls(1)
      !write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', mean length:',sum(lAcorrs(1:nChains0,p))/real(nChains0)
      write(title,'(A,ES9.2)')'Autocorr.: '//trim(pgParNss(parID(p)))//', med. length:', &
-          compute_median_sp(lAcorrs(1:nChains0,p))
+          median_sp(lAcorrs(1:nChains0,p))
      call pgmtxt('T',1.,0.5,0.5,trim(title))
   end do
   

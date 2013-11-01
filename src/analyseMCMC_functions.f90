@@ -166,6 +166,8 @@ end subroutine savgol
 
 !***********************************************************************************************************************************
 subroutine lubksb(a,n,np,indx,b)
+  use SUFR_numerics, only: sne
+  
   implicit none
   integer, intent(in) :: n,np,indx(n)
   real, intent(in) :: a(np,np)
@@ -183,7 +185,7 @@ subroutine lubksb(a,n,np,indx,b)
         do j=ii,i-1
            sum = sum-a(i,j)*b(j)
         end do
-     else if (sum.ne.0.) then
+     else if (sne(sum,0.)) then
         ii = i
      end if
      b(i) = sum
@@ -204,6 +206,7 @@ end subroutine lubksb
 
 !***********************************************************************************************************************************
 subroutine ludcmp(a,n,np,indx,d)
+  use SUFR_numerics, only: seq
   implicit none
   integer, intent(in) :: n,np
   integer, intent(out) :: indx(n)
@@ -223,8 +226,8 @@ subroutine ludcmp(a,n,np,indx,d)
      do j=1,n
         if (abs(a(i,j)).gt.aamax) aamax = abs(a(i,j))
      end do
-     !if (aamax.eq.0.) pause 'singular matrix in ludcmp'
-     if(aamax.eq.0.) write(0,'(A)')' Singular matrix in ludcmp'
+     !if (seq(aamax,0.)) pause 'singular matrix in ludcmp'
+     if(seq(aamax,0.)) write(0,'(A)')' Singular matrix in ludcmp'
      vv(i) = 1./aamax
   end do
   
@@ -263,7 +266,7 @@ subroutine ludcmp(a,n,np,indx,d)
      end if
      
      indx(j) = imax
-     if(a(j,j).eq.0.) a(j,j) = tiny
+     if(seq(a(j,j),0.)) a(j,j) = tiny
      
      if(j.ne.n) then
         dum = 1./a(j,j)

@@ -31,6 +31,8 @@
 subroutine plotthesky(bx10,bx20, by1,by2, raShift)
   use SUFR_kinds, only: double
   use SUFR_constants, only: homedir, pi2,r2d
+  use SUFR_numerics, only: sne
+  
   use analysemcmc_settings, only: fonttype,fontsize1d, mapProjection
   use general_data, only: raCentre
   
@@ -198,7 +200,7 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
   spld = 0
   if(plstar.gt.0) then
      do i=1,ns
-        if(vm(i).lt.mlim.and.vm(i).ne.0.) then
+        if(vm(i).lt.mlim .and. sne(vm(i),0.)) then
            !call eq2xy(ra(i),dec(i),l0,b0,x,y)
            x = real(ra(i)*r2d)
            y = real(dec(i)*r2d)

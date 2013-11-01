@@ -1506,7 +1506,7 @@ end subroutine save_cbc_wiki_data
 subroutine compute_mixing(mynn, print_data)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdOut
-  use SUFR_statistics, only: compute_median
+  use SUFR_statistics, only: median
   
   use analysemcmc_settings, only: prConv,Nburn,maxChs,maxMCMCpar, htmlOutput
   use general_data, only: Rhat,contrChains,contrChain,nChains0,Ntot,allDat,fixedpar,parNames
@@ -1802,7 +1802,7 @@ subroutine compute_mixing(mynn, print_data)
         RhatArr(nRhat) = p
      end if
   end do
-  Rhat(0) = compute_median(Rhat(RhatArr(1:nRhat)))
+  Rhat(0) = median(Rhat(RhatArr(1:nRhat)))
   
   if(print_data .and. prConv.ge.1) then
      !write(stdOut,'(F9.4)') totRhat/dble(nRhat)          ! Arithmetic mean
@@ -1830,7 +1830,7 @@ end subroutine compute_mixing
 
 subroutine compute_autocorrelations()
   use SUFR_constants, only: stdOut,stdErr
-  use SUFR_statistics, only: compute_median_sp, compute_stdev_sp
+  use SUFR_statistics, only: median_sp, stdev_sp
   
   use analysemcmc_settings, only: prAcorr,nAcorr
   use general_data, only: allDat,fixedpar,parNames,nChains0,Ntot
@@ -1871,9 +1871,9 @@ subroutine compute_autocorrelations()
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  ! Varying parameters only
         
-        median = compute_median_sp(allDat(ic,p,1:Ntot(ic)))
+        median = median_sp(allDat(ic,p,1:Ntot(ic)))
         !median = sum(selDat(ic,p,1:Ntot(ic)))/real(Ntot(ic))  ! Replace median with mean
-        stdev  = compute_stdev_sp(allDat(ic,p,1:Ntot(ic)), median)
+        stdev  = stdev_sp(allDat(ic,p,1:Ntot(ic)), median)
         
         do j=0,min(nAcorr,Ntot(ic)-1)
            do i=1,Ntot(ic)-j*j1
@@ -1888,7 +1888,7 @@ subroutine compute_autocorrelations()
         if(prAcorr.ge.2) write(stdOut,'(ES9.2)',advance="no")lAcorrs(ic,p)
      end do  ! p
      
-     if(prAcorr.ge.2) write(stdOut,'(ES11.2)') compute_median_sp(lAcorrs(ic,1:nMCMCpar))
+     if(prAcorr.ge.2) write(stdOut,'(ES11.2)') median_sp(lAcorrs(ic,1:nMCMCpar))
   end do  ! ic
   
   
@@ -1899,10 +1899,10 @@ subroutine compute_autocorrelations()
      do p=1,nMCMCpar
         if(fixedpar(p).eq.1) cycle  ! Varying parameters only
         np = np+1
-        medians(np) = compute_median_sp(lAcorrs(1:nChains0,p))
+        medians(np) = median_sp(lAcorrs(1:nChains0,p))
         write(stdOut,'(ES9.2)',advance="no")medians(np)
      end do
-     write(stdOut,'(ES11.2)') compute_median_sp(medians(1:np))
+     write(stdOut,'(ES11.2)') median_sp(medians(1:np))
   end if
   
 end subroutine compute_autocorrelations

@@ -896,7 +896,7 @@ end subroutine parNames2IDs
 subroutine mcmcruninfo(exitcode)  
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdOut,stdErr, rpi
-  use SUFR_statistics, only: compute_median_sp
+  use SUFR_statistics, only: median_sp
   use SUFR_system, only: quit_program_error, swapreal
   use aM_constants, only: detabbrs
   
@@ -1129,7 +1129,7 @@ subroutine mcmcruninfo(exitcode)
   if(prChainInfo.ge.1.and.update.ne.1) then
      write(stdOut,'(4x,A, A,ES10.3, A,ES10.3, A,I4, A,ES9.2)', advance='no') 'All chains:','  # lines:',real(totlines), &
           ',  # iterations:',real(totiter), ',  thinning:',nint(avgTotThin), 'x,  med.burnin:', &
-          compute_median_sp(real(isburn(1:nChains0)))
+          median_sp(real(isburn(1:nChains0)))
      
      if(htmlOutput.ge.1) write(stdOut,'(A3)', advance='no') '<b>'
      write(stdOut,'(A,ES10.3,  A2,F5.1, A,I3,A1,I2,A1)', advance='no') ',  # dat.pts after burnin:',real(totpts), &

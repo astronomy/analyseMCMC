@@ -435,6 +435,7 @@ subroutine identify_2d_ranges(p1,p2, ni, nx,ny, z,tr)
   use SUFR_constants, only: stdOut
   use SUFR_constants, only: rd2r
   use SUFR_sorting, only: sorted_index_list
+  use SUFR_numerics, only: seq
   
   use analysemcmc_settings, only: changeVar,ivals,prProgress
   use mcmcrun_data, only: parID
@@ -484,7 +485,7 @@ subroutine identify_2d_ranges(p1,p2, ni, nx,ny, z,tr)
   do b=1,nn  ! Loop over bins in 1D array
      ib = indx(b)
      x2(ib) = 0.
-     if(x1(ib).eq.0.) cycle
+     if(seq(x1(ib),0.)) cycle
      tot = tot + x1(ib)
      do i=ni,1,-1  ! Loop over intervals
         if(tot.le.np*ivals(i)) then

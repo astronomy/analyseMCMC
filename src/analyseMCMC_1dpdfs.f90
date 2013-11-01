@@ -27,6 +27,7 @@
 subroutine pdfs1d(exitcode)
   use SUFR_constants, only: stdOut,stdErr, rpi2
   use SUFR_statistics, only: determine_nbin_1d, bin_data_1d
+  use SUFR_numerics, only: seq
   
   use aM_constants, only: use_PLplot, rmeps
   use analysemcmc_settings, only: update,prProgress,file,scrsz,scrrat,pssz,psrat,fonttype,colour,whitebg,quality
@@ -315,10 +316,10 @@ subroutine pdfs1d(exitcode)
            end do
         end do
         ymax = ymax*1.1
-        if(dx.eq.0) then
+        if(seq(dx,0.)) then
            xmin = 0.5*xmin
            xmax = 2*xmax
-           if(xmin.eq.0.) then
+           if(seq(xmin,0.)) then
               xmin = -1.
               xmax = 1.
            end if

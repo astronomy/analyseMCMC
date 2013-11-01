@@ -22,6 +22,7 @@
 !***********************************************************************************************************************************
 program plotsignal
   use SUFR_kinds, only: double
+  use SUFR_numerics, only: seq,sne
   
   implicit none
   integer, parameter :: n1=1000000, nf0=5
@@ -196,7 +197,7 @@ program plotsignal
   
   do f=1,nf
      do i=n(f),2,-1
-        if(h(f,i).eq.0.d0.and.h(f,i-1).ne.0.d0) then
+        if(seq(h(f,i),0.) .and. sne(h(f,i-1),0.)) then
            !n(f) = i-1
            write(6,'(A20,F15.5)')'  '//trim(detnames(f))//':  ',t1(f,i-1)
            exit
