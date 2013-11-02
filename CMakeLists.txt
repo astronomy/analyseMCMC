@@ -78,12 +78,12 @@ if( CREATE_VERSION )
     # PGPlot:
     OUTPUT ${CMAKE_SOURCE_DIR}/src/code_version_pgplot.f90
     COMMAND cd $(CMAKE_SOURCE_DIR)
-    COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh ${CMAKE_SOURCE_DIR} src/code_version_pgplot.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS} no
+    COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh ${CMAKE_SOURCE_DIR} src/code_version_pgplot.f90  no  ${Fortran_COMPILER_NAME} ${OPT_FLAGS}
     
     # PLplot:
     OUTPUT ${CMAKE_SOURCE_DIR}/src/code_version_plplot.f90
     COMMAND cd $(CMAKE_SOURCE_DIR)
-    COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh $(CMAKE_SOURCE_DIR) src/code_version_plplot.f90 ${Fortran_COMPILER_NAME} ${OPT_FLAGS} yes
+    COMMAND . ${CMAKE_SOURCE_DIR}/code_version.sh $(CMAKE_SOURCE_DIR) src/code_version_plplot.f90  yes  ${Fortran_COMPILER_NAME} ${OPT_FLAGS}
     )
   
 endif( CREATE_VERSION )
