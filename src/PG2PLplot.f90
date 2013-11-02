@@ -3,7 +3,7 @@
 ! 
 ! LICENCE:
 ! 
-! Copyright 2010-2013 Marc van der Sluys, joequant
+! Copyright 2010-2013 AstroFloyd, joequant
 !  
 ! This file is part of the PG2PLplot package.
 !  
@@ -16,7 +16,9 @@
 ! You should have received a copy of the GNU General Public License along with this code (LICENCE).  If not, see
 ! <http://www.gnu.org/licenses/>.
 ! 
-
+!
+! PG2PLplot can be found on http://pg2plplot.sourceforge.net
+! Some routines are taken from libSUFR, http://libsufr.sourceforge.net
 
 
 
@@ -34,7 +36,7 @@ module PG2PLplot
   !logical, parameter :: compatibility_warnings = .false.  ! Don't warn
   logical, parameter :: compatibility_warnings = .true.   ! Do warn
   
-  real(8) :: xcur=0, ycur=0
+  real(plflt) :: xcur=0., ycur=0.
   integer :: save_level = 0
   integer, parameter :: max_level = 20
   integer, parameter :: max_open = 100
@@ -46,7 +48,7 @@ module PG2PLplot
   integer :: save_color(max_level)
   integer :: cur_lwidth=1, cur_color=1, cur_lstyle=1
   logical :: is_init
-  real(8) :: paper_width, paper_ratio
+  real(plflt) :: paper_width, paper_ratio
   
 contains
   
@@ -114,7 +116,7 @@ end subroutine pgslw
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
-!> \brief  Query line width - dummy routine!
+!> \brief  Query line width
 !!
 !! \param lw  Line width
 
@@ -122,9 +124,10 @@ subroutine pgqlw(lw)
   use PG2PLplot, only: cur_lwidth
   implicit none
   integer, intent(out) :: lw
-  lw = max(1,cur_lwidth)  
+  
+  lw = max(1,cur_lwidth)
+  
 end subroutine pgqlw
-
 !***********************************************************************************************************************************
 
 !***********************************************************************************************************************************
@@ -241,7 +244,7 @@ subroutine pgscir(ci1,ci2)
   tmp = tmp  ! Avoid 'variable is set but not used' warnings from compiler for dummy variable
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) call warn_nonexisting_routine('pgscir','')
+  if(warn.ne.123) call warn_dummy_routine('pgscir', '')
   warn = 123
   
 end subroutine pgscir
@@ -264,7 +267,7 @@ subroutine pgqcir(ci1,ci2)
   ci2 = 255
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) call warn_nonexisting_routine('pgqcir','')
+  if(warn.ne.123) call warn_dummy_routine('pgqcir', '')
   warn = 123
   
 end subroutine pgqcir
@@ -389,7 +392,7 @@ subroutine pgsah(fs, angle, barb)
   tmp = tmp  ! Avoid 'variable is set but not used' warnings from compiler for dummy variable
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) call warn_nonexisting_routine('pgsah','')
+  if(warn.ne.123) call warn_dummy_routine('pgsah', '')
   warn = 123
   
 end subroutine pgsah
@@ -594,7 +597,7 @@ end subroutine pgcont
 
 
 !***********************************************************************************************************************************
-!> \brief  Shade a region (between contours/heights)
+!> \brief  Shade a region (between contours/heights) -  dummy routine!
 !!
 !! \param arr  Data array
 !! \param nx   Dimension 1 of data array
@@ -636,7 +639,7 @@ subroutine pgconf(arr, nx,ny, ix1,ix2, iy1,iy2, c1, c2, tr)
   !call plshade1(arr1, ix1,ix2, iy1,iy2, clevel, tr1)
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) call warn_nonexisting_routine('pgconf','')
+  if(warn.ne.123) call warn_dummy_routine('pgconf', '')
   warn = 123
   
 end subroutine pgconf
@@ -863,7 +866,6 @@ function pgopen(pgdev)
   
   pgopen = cur_stream + 1
   is_init = .false.
-  
 end function pgopen
 !***********************************************************************************************************************************
 
@@ -950,7 +952,6 @@ subroutine pgpap(width,ratio)
   
   call plspage(xp,yp,xlen,ylen,xoff,yoff)  ! Must be called before plinit()!
   call do_init()
-  
 end subroutine pgpap
 !***********************************************************************************************************************************
 
@@ -1050,7 +1051,7 @@ subroutine pgbbuf()
   call do_init()
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) call warn_nonexisting_routine('pgbbuf','')
+  if(warn.ne.123) call warn_dummy_routine('pgbbuf', '')
   warn = 123
   
 end subroutine pgbbuf
@@ -1066,7 +1067,7 @@ subroutine pgebuf()
   integer, save :: warn
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) call warn_nonexisting_routine('pgebuf','')
+  if(warn.ne.123) call warn_dummy_routine('pgebuf', '')
   warn = 123
   
 end subroutine pgebuf
@@ -1131,6 +1132,7 @@ subroutine pgtick(x1, y1, x2, y2, pos, tikl, tikr,  disp, orient, lbl)
   real :: x,y,dx,dy, dpx,dpy, reldiff
   real(plflt) :: p_xmin,p_xmax,p_ymin,p_ymax, plx1,plx2,ply1,ply2, tlen, disp1,pos1,just
   character :: lbl1*(len(lbl))
+  logical :: seq,deq
   
   disp1 = disp
   x = orient  ! Unused
@@ -1152,7 +1154,7 @@ subroutine pgtick(x1, y1, x2, y2, pos, tikl, tikr,  disp, orient, lbl)
   pos1 = pos
   just = 0.5
   
-  if(reldiff(y1,y2) .le. epsilon(y1)*10 .or. (y1.eq.0.0 .and. y2.eq.0.0)) then                  ! Want horizontal axis
+  if(reldiff(y1,y2) .le. epsilon(y1)*10 .or. (seq(y1,0.) .and. seq(y2,0.))) then                ! Want horizontal axis
      
      plx1 = x
      plx2 = x
@@ -1171,13 +1173,13 @@ subroutine pgtick(x1, y1, x2, y2, pos, tikl, tikr,  disp, orient, lbl)
      end if
      
      ! Print labels:
-     if(abs(reldiff(y,real(p_ymin))) .le. epsilon(y)*10 .or. (y.eq.0.0 .and. p_ymin.eq.0.0)) then
+     if(abs(reldiff(y,real(p_ymin))) .le. epsilon(y)*10 .or. (seq(y,0.) .and. deq(p_ymin,0.0_plflt))) then
         call plmtex('B', disp1, pos1, just, trim(lbl1))                                         ! Print label below the bottom axis
      else
         call plmtex('T', disp1, pos1, just, trim(lbl1))                                         ! Print label above the top axis
      end if
      
-  else if(reldiff(x1,x2) .le. epsilon(x1)*10 .or. (x1.eq.0.0 .and. x2.eq.0.0)) then             ! Want vertical axis
+  else if(reldiff(x1,x2) .le. epsilon(x1)*10 .or. (seq(x1,0.) .and. seq(x2,0.))) then           ! Want vertical axis
      
      ply1 = y
      ply2 = y
@@ -1196,7 +1198,7 @@ subroutine pgtick(x1, y1, x2, y2, pos, tikl, tikr,  disp, orient, lbl)
      end if
      
      ! Print labels:
-     if(abs(reldiff(x,real(p_xmin))) .le. epsilon(x)*10 .or. (x.eq.0.0 .and. p_xmin.eq.0.0)) then
+     if(abs(reldiff(x,real(p_xmin))) .le. epsilon(x)*10 .or. (seq(x,0.) .and. deq(p_xmin,0.0_plflt))) then
         call plmtex('L', disp1, pos1, just, trim(lbl1))                           ! Print label to the left of the left-hand axis
      else
         call plmtex('R', disp1, pos1, just, trim(lbl1))                           ! Print label to the right of the right-hand axis
@@ -1214,7 +1216,7 @@ end subroutine pgtick
 
 
 !***********************************************************************************************************************************
-!> \brief  Read data from screen - no PLplot equivalent (yet)!
+!> \brief  Read data from screen - no PLplot equivalent (yet) - dummy routine!
 !!
 !! \todo No plplot routine found yet - using dummy
 
@@ -1236,7 +1238,7 @@ subroutine pgolin(maxpt, npt, x, y, symbol)
   symbol1 = symbol1  ! Avoid 'variable is set but not used' warnings from compiler for dummy variable
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) call warn_nonexisting_routine('pgolin','')
+  if(warn.ne.123) call warn_dummy_routine('pgolin', '')
   warn = 123
   
 end subroutine pgolin
@@ -1252,6 +1254,7 @@ subroutine pgeras()
   call plclear()
 end subroutine pgeras
 !***********************************************************************************************************************************
+
 
 
 !***********************************************************************************************************************************
@@ -1278,7 +1281,6 @@ subroutine pg2pltext(string)
 end subroutine pg2pltext
 !***********************************************************************************************************************************
 
-
 !***********************************************************************************************************************************
 !> \brief  Converts PGplot device ID to PLplot device ID + file name
 !!
@@ -1304,6 +1306,7 @@ subroutine pg2pldev(pgdev, pldev,filename)
   character, intent(in) :: pgdev*(*)
   character, intent(out) :: pldev*(*), filename*(*)
   integer :: i
+  
   
   i = index(pgdev, '/', back=.true.)
   
@@ -1536,7 +1539,7 @@ subroutine pgband(mode, posn, xref, yref, x, y, ch)
   ch = char(0)
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) call warn_nonexisting_routine('pgband','')
+  if(warn.ne.123) call warn_dummy_routine('pgband', '')
   warn = 123
   
 end subroutine pgband
@@ -1558,7 +1561,7 @@ subroutine pgqcol(c1, c2)
   c2 = 255
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) call warn_nonexisting_routine('pgqcir','using a default colour range')
+  if(warn.ne.123) call warn_dummy_routine('pgqcir','using a default colour range')
   warn = 123
   
 end subroutine pgqcol
@@ -1579,7 +1582,7 @@ subroutine pgqci(ci)
   ci = 0
   
   if(.not.compatibility_warnings) warn = 123  ! Don't warn about compatibility between PGPlot and PLplot
-  if(warn.ne.123) call warn_nonexisting_routine('pgqcir','using a default colour index')
+  if(warn.ne.123) call warn_dummy_routine('pgqcir','using a default colour index')
   warn = 123
   
 end subroutine pgqci
@@ -1661,17 +1664,67 @@ end function check_error
 
 
 !***********************************************************************************************************************************
-!> \brief  Print a warning when no (proper) PLplot equivalent is defined
+!> \brief  Print a warning when no (proper) PLplot equivalent is defined and a dummy routine is used instead
 !!
 !! \param routine  Name of the undefined routine
 !! \param message  Message to be postponed
 
-subroutine warn_nonexisting_routine(routine, message)
+subroutine warn_dummy_routine(routine, message)
   implicit none
   character, intent(in) :: routine*(*),message*(*)
   
   write(0,'(/,A)') '***  PG2PLplot WARNING: no PLplot equivalent was found for the PGplot routine '//trim(routine)//'() '// &
        trim(message)//'  ***'
   
-end subroutine warn_nonexisting_routine
+end subroutine warn_dummy_routine
 !***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Test whether two double-precision variables are equal to better than twice the machine precision, taken from libSUFR
+!!
+!! \param x1  First number
+!! \param x2  Second number
+
+function deq(x1,x2)
+  use plplot, only: plflt
+  
+  implicit none
+  real(plflt), intent(in) :: x1,x2
+  real(plflt) :: eps
+  logical :: deq
+  
+  eps = 2*tiny(x1)
+  if(abs(x1-x2).le.eps) then
+     deq = .true.
+  else
+     deq = .false.
+  end if
+  
+end function deq
+!***********************************************************************************************************************************
+
+
+!***********************************************************************************************************************************
+!> \brief  Test whether two single-precision variables are equal to better than twice the machine precision, taken from libSUFR
+!!
+!! \param x1  First number
+!! \param x2  Second number
+
+function seq(x1,x2)
+  implicit none
+  real, intent(in) :: x1,x2
+  real :: eps
+  logical :: seq
+  
+  eps = 2*tiny(x1)
+  if(abs(x1-x2).le.eps) then
+     seq = .true.
+  else
+     seq = .false.
+  end if
+  
+end function seq
+!***********************************************************************************************************************************
+
+
