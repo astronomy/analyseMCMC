@@ -21,6 +21,7 @@
 
 !***********************************************************************************************************************************
 program mcmcstats
+  use SUFR_dummy, only: dumstr
   use analysemcmc_settings, only: fonttype
   use general_data, only: parNames, pgParNs,pgParNss
   
@@ -28,11 +29,11 @@ program mcmcstats
   integer, parameter :: nf1=100,nifo1=3,npar1=22,nival1=5
   integer :: i,j,iv,iv1,iv2,fi,nf,o,p,io,pgopen,system
   integer :: prinput,plfile
-  character :: infile*(99),bla,str*(99),output*(1000)
+  character :: infile*(99),str*(99),output*(1000)
   
   integer :: totiter(nf1),totlines(nf1),totpts(nf1),totburn(nf1),totchains(nf1),usedchains(nf1),ndet(nf1),seed(nf1)
   integer :: detnr(nf1,nifo1),samplerate(nf1,nifo1),samplesize(nf1,nifo1),FTsize(nf1,nifo1)
-  integer :: npar(nf1),ncol(nf1),nival(nf1),tbase(nf1), parID(npar1), revID(99)
+  integer :: npar(nf1),ncol(nf1),nival(nf1),tbase(nf1), parID(npar1)  !, revID(99)
   real :: nullh(nf1),snr(nf1,nifo1),totsnr(nf1)
   real :: flow(nf1,nifo1),fhigh(nf1,nifo1),t_before(nf1,nifo1),t_after(nf1,nifo1),FTstart(nf1,nifo1),deltaFT(nf1,nifo1)
   real :: model(nf1,npar1),median(nf1,npar1),mean(nf1,npar1),stdev1(nf1,npar1),stdev2(nf1,npar1),absvar1(nf1,npar1)
@@ -44,7 +45,7 @@ program mcmcstats
   
   integer :: npdf2d(nf1),nbin2dx(nf1),nbin2dy(nf1),pdfpar2dx(nf1,npar1),pdfpar2dy(nf1,npar1)
   
-  integer :: sym,ci,ci0,ls,ls0,p0,p01,p02,p1,p2,p3,p10,p20,p11,p22
+  integer :: sym,ci,ci0,ls,ls0,p0,p01,p02,p1,p2,p3,p10,p11,p22  ! ,p20
   real :: xmin,xmax,dx,ymin,ymax,dy,x0,y0,x1,y1,clr
   real :: par1,par2,par3
   
@@ -93,7 +94,7 @@ program mcmcstats
   d2r = pi/180.
   
   ivlok = ' y '
-  
+  ls0 = 1  ! Default linestyle
   
   ! Set parameter names:
   !call set_originalParameterNames()  ! Needs fonttype defined
@@ -117,8 +118,8 @@ program mcmcstats
      
      
      ! Read general run info:
-     read(o,*) bla
-     read(o,*) bla
+     read(o,*) dumstr
+     read(o,*) dumstr
      read(o,'(6x,5I12,I5,I11,F22.10,I8)')totiter(fi),totlines(fi),totpts(fi),totburn(fi),totchains(fi),usedchains(fi),seed(fi), &
           nullh(fi),ndet(fi)
      if(prinput.eq.1) write(6,'(/,A)')'           totiter    totlines      totpts     totburn   totchains used       seed     '// &
@@ -132,7 +133,7 @@ program mcmcstats
      
      
      ! Read detector info:
-     read(o,*) bla
+     read(o,*) dumstr
      if(prinput.eq.1) write(6,*)''
      if(prinput.eq.1) write(6,'(A)')'        Detector Nr               SNR       f_low      f_high   before tc    after tc    '// &
           'Sample start (GPS)    Sample length   Sample rate   Sample size       FT size'
@@ -145,17 +146,17 @@ program mcmcstats
         totsnr(fi) = totsnr(fi) + snr(fi,i)*snr(fi,i)
      end do
      totsnr(fi) = sqrt(totsnr(fi))
-     read(o,*) bla,tbase(fi)
+     read(o,*) dumstr,tbase(fi)
      if(prinput.eq.1) write(6,*)''
      if(prinput.eq.1) write(6,'(A,I12)')' t0:',tbase(fi)
      
      
      ! Read basic statistics:
-     read(o,*) bla
-     read(o,*) bla,bla,npar(fi),ncol(fi)
+     read(o,*) dumstr
+     read(o,*) dumstr,dumstr,npar(fi),ncol(fi)
      if(prinput.eq.1) write(6,*)''
      if(prinput.eq.1) write(6,'(A,2I3)')' Npar,ncol: ',npar(fi),ncol(fi)
-     read(o,*) bla  ! Statistics headers
+     read(o,*) dumstr  ! Statistics headers
      if(prinput.eq.1) write(6,'(A)')'  param.       model      median        mean      stdev1      stdev2      abvar1      abvar2'
      do p=1,npar(fi)
         read(o,'(A8,7F12.6)') varnames(fi,p),model(fi,p),median(fi,p),mean(fi,p),stdev1(fi,p),stdev2(fi,p),absvar1(fi,p), &
@@ -169,17 +170,17 @@ program mcmcstats
         end do
      end do  ! p
      
-     do p=1,99
-        do p1=1,npar(fi)
-           if(parID(p1).eq.p) revID(p) = p1
-        end do
-     end do
+     !do p=1,99
+     !   do p1=1,npar(fi)
+     !      if(parID(p1).eq.p) revID(p) = p1
+     !   end do
+     !end do
      
      ! Read correlations:
-     read(o,*) bla
+     read(o,*) dumstr
      if(prinput.eq.1) write(6,'(A)')''
-     read(o,*) bla
-     read(o,*) bla  ! Correlation headers
+     read(o,*) dumstr
+     read(o,*) dumstr  ! Correlation headers
      if(prinput.eq.1) then
         write(6,'(A,2I3)')' Npar: ',npar(fi)
         write(6,'(A)')'              logL        Mc       eta        tc        dl      spin     th_SL        RA       Dec     '// &
@@ -192,19 +193,19 @@ program mcmcstats
      
      
      ! Read 1D intervals:
-     read(o,*) bla
+     read(o,*) dumstr
      if(prinput.eq.1) write(6,'(A)')''
-     read(o,*) bla,nival(fi)
+     read(o,*) dumstr,nival(fi)
      if(prinput.eq.1) write(6,'(A,I3)')' Nival: ',nival(fi)
      nival(fi) = nival(fi)   !+ 1  ! Since 100% interval is not counted in AnalyseMCMC
-     read(o,*) bla,ivals(fi,1:nival(fi))
+     read(o,*) dumstr,ivals(fi,1:nival(fi))
      if(prinput.eq.1) write(6,'(A22,10(F20.5,14x))')'Interval:',ivals(fi,1:nival(fi))
      
-     read(o,*) bla  ! Interval headers
+     read(o,*) dumstr  ! Interval headers
      if(prinput.eq.1) write(6,'(A)')'  param.        centre       delta in rnge        centre       delta in rnge        centre'// &
           '       delta in rnge        centre       delta in rnge '
      do p=1,npar(fi)
-        read(o,*)varnames(fi,p),(ivlcntr(fi,p,iv),ivldelta(fi,p,iv),ivlinrnge(fi,p,iv),bla,iv=1,nival(fi))
+        read(o,*)varnames(fi,p),(ivlcntr(fi,p,iv),ivldelta(fi,p,iv),ivlinrnge(fi,p,iv),dumstr,iv=1,nival(fi))
         do iv=1,nival(fi)
            if(ivlinrnge(fi,p,iv).gt.1.) ivlok(fi,p,iv) = '*N*'
         end do
@@ -223,16 +224,16 @@ program mcmcstats
      
      
      ! Read 2D intervals:
-     read(o,*) bla
-     read(o,*) bla,npdf2d(fi)
+     read(o,*) dumstr
+     read(o,*) dumstr,npdf2d(fi)
      if(prinput.eq.1) write(*,'(A,I6)')' Npdf2d:',npdf2d(fi)
-     read(o,*) bla,bla,nbin2dx(fi),nbin2dy(fi)
+     read(o,*) dumstr,dumstr,nbin2dx(fi),nbin2dy(fi)
      if(prinput.eq.1) write(*,'(A,2I6)')' Nbin2dx,y:',nbin2dx(fi),nbin2dy(fi)
-     read(o,*) bla
-     read(o,*) bla
+     read(o,*) dumstr
+     read(o,*) dumstr
      
      do p=1,npdf2d(fi)
-        read(o,*)pdfpar2dx(fi,p),pdfpar2dy(fi,p),bla,bla,(ivldelta2d(fi,p,iv),ivlok2d(fi,p,iv),iv=1,nival(fi))
+        read(o,*)pdfpar2dx(fi,p),pdfpar2dy(fi,p),dumstr,dumstr,(ivldelta2d(fi,p,iv),ivlok2d(fi,p,iv),iv=1,nival(fi))
         do iv=1,nival(fi)
            if(ivlok2d(fi,p,iv).eq.'y  ') ivlok2d(fi,p,iv) = ' y '
            if(ivlok2d(fi,p,iv).eq.'n  ') ivlok2d(fi,p,iv) = '*N*'
@@ -350,7 +351,7 @@ program mcmcstats
                     ci0 = ci
                     ls0 = ls
                     p10 = p1
-                    p20 = p2
+                    !p20 = p2
                  end do
               end do
            end do
@@ -462,7 +463,7 @@ program mcmcstats
                  ci0 = ci
                  ls0 = ls
                  p10 = p1
-                 p20 = p2
+                 !p20 = p2
               end do
            end do
         end do
@@ -577,7 +578,7 @@ program mcmcstats
                        ci0 = ci
                        ls0 = ls
                        p10 = p1
-                       p20 = p2
+                       !p20 = p2
                     end do
                  end do
               end do
@@ -673,8 +674,8 @@ program mcmcstats
            cycle
         end if
         
-        call pgptxt(real(p11)-0.5,-dx*0.5-0.0167*nplpar,0.,0.5,trim(pgParNss(parID(p))))  ! At top
-        call pgptxt(-dx*0.5-0.0167*nplpar,real(p11)-0.5+0.0167*nplpar,0.,0.5,trim(pgParNss(parID(p))))   ! At left
+        call pgptxt( real(p11)-0.5, -dx*0.5-0.0167*real(nplpar), 0., 0.5, trim(pgParNss(parID(p))) )  ! At top
+        call pgptxt(-dx*0.5-0.0167*real(nplpar),real(p11)-0.5+0.0167*real(nplpar),0.,0.5,trim(pgParNss(parID(p))))   ! At left
      end do
      
      do fi=1,nf
@@ -715,7 +716,7 @@ program mcmcstats
               if(plfile.ge.2.and.abs(y1).lt.0.25) clr = 1. - abs(y1)*4.
               if(abs(y1).gt.0.75) clr = 1.  ! White on dark background for the strongest correlations
               call pgscr(ci,clr,clr,clr)
-              call pgptxt(real(p11)-0.5,real(p22)-0.5+0.0167*nplpar,0.,0.5,trim(str))
+              call pgptxt(real(p11)-0.5,real(p22)-0.5+0.0167*real(nplpar),0.,0.5,trim(str))
            end do  ! p2
         end do  ! p1
      end do  ! fi

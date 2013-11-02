@@ -45,6 +45,7 @@ end module comp_pdfs_settings
 !! \param lbl  Parameter/plot label
 
 subroutine plotpdf1d(pp,lbl)
+  use SUFR_numerics, only: sne
   use comp_pdfs_settings, only: nf,fnames,fontsize,clrs,clr,fillstyle,plrange,pltrue,lss,plmedian
   use general_data, only: parNames,pgunits,pgParNs
   
@@ -97,7 +98,7 @@ subroutine plotpdf1d(pp,lbl)
            end if
            ! Then it's probably a NaN:
            !if(parIDs(p1).eq.pp .and. (.not.ybin1(f,p1,b).gt.-1.e30) .and. (.not.ybin1(f,p1,b).lt.1.e30)) then
-           if(parIDs(p1).eq.pp .and. ybin1(f,p1,b).ne.ybin1(f,p1,b) .and. ybin1(f,p1,b).ne.ybin1(f,p1,b)) then
+           if(parIDs(p1).eq.pp .and. sne(ybin1(f,p1,b),ybin1(f,p1,b)) .and. sne(ybin1(f,p1,b),ybin1(f,p1,b))) then
               detnan(f,p1) = 1
               ybin1(f,p1,b) = 0.
            end if

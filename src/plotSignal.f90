@@ -263,7 +263,7 @@ program plotsignal
      if(inOnePanel) then
         call pgpap(15.,0.1333*8)     ! All in one panel
      else
-        call pgpap(15.,0.1333*nf)  ! Poster plot with nf waveforms
+        call pgpap(15.,0.1333*real(nf))  ! Poster plot with nf waveforms
      end if
      !call pgpap(20.,0.20)  !
      !sch = max(3./real(nf),1.5)
@@ -350,10 +350,10 @@ program plotsignal
            !  dy = abs(ymax-ymin)*0.05
            
            
-           xfrmin = xwinmin+dxwin*(frx-1)
-           xfrmax = xwinmin+dxwin*frx
-           yfrmin = ywinmax-dywin*fry
-           yfrmax = ywinmax-dywin*(fry-1)
+           xfrmin = xwinmin+dxwin*real((frx-1))
+           xfrmax = xwinmin+dxwin*real(frx)
+           yfrmin = ywinmax-dywin*real(fry)
+           yfrmax = ywinmax-dywin*real((fry-1))
            !print*,xfrmin,xfrmax,yfrmin,yfrmax
            
            call pgsci(1)
