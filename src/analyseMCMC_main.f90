@@ -160,6 +160,7 @@ program analyseMCMC
   if(htmlOutput.ge.1) then
      outputdir = 'html'       ! Directory where output is saved (either relative or absolute path)
      
+     prStdOut=2
      file = 1
 
      prCorr = 1
@@ -203,8 +204,6 @@ program analyseMCMC
   !   close(tmpStdOut)    ! Close file and return to screen output
   end if
   write(stdOut,*)
-  
-  
   
   
   
