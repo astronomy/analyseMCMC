@@ -1,11 +1,11 @@
- Input file for comp_pdfs.f
+ Input file for compPDFs
 
 
  General plot options:
-         2        nf     Number of input files
-         2      file     Output file type: 0:screen, 1: png, 2:eps, 3:pdf
-         1      type     Type of plot:  1: default, 2: poster, 3: talk
-         1       dim     Dimension of PDF: 1 or 2
+         5        nf     Number of input files
+         3      file     Output file type: 0:screen, 1: png, 2:eps, 3:pdf
+         3      type     Type of plot:  1: default, 2: poster, 3: talk
+         2       dim     Dimension of PDF: 1 or 2
          1    pltrue     Plot true values for 1D or 2D plots:  0-no, 1-yes, 2-use different line styles for multiple sets of true values
          0  plmedian     Plot medians for 1D or 2D plots, only if reading 1 file
          2   plrange     Plot ranges  for 1D or 2D plots, only if reading 1 file: 0-no, 1:plot lines, 2:plot numbers too
@@ -17,22 +17,23 @@
 
  1D plot options:
    Number of frames in 1D plot: (w, h  or  x, y)  (frames):
-     5    3
+     5    1
    Labels of the plot parameters for the 1d frames (plpars)  (need at least one for each frame.  0-don't plot panel):  
-    61 62 11 22 41 31 32 71 72 73 51 52 81 82 83  0  0  0  0  0
+    61 67 51 22 31 32  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0    61 22 51 71  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0
 
 
  2D plot options:
    Labels of the plot parameters for the 2d plot (plpars2d):
-     8    9
+     63   64
 
 
  Input files:
    Base of input files names (without extension) (fnames):
-     filea   fileb
+     run011  run012  run013  run014  run015
 
    Directories of the input files (dirnames):
-     .   .    
+     . . . . .
 
    Base of the output file name (without extention, can start with dir) (outnamebase)
-     comp_pdfs__example 
+     comp_pdfs__12345
+
