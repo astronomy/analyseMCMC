@@ -20,7 +20,7 @@
 
 
 !***********************************************************************************************************************************
-!> \brief  Open a screen or plot file for the 2D PDF plot
+!> \brief  Open a screen or plot file for a 2D PDF plot
 !!
 !! \param  p1           ID of parameter 1
 !! \param  p2           ID of parameter 2
@@ -672,7 +672,7 @@ end subroutine convert_2D_PDF_plot
 
 
 !***********************************************************************************************************************************
-!> \brief Remove all the .ppm files, create thumbnails and create the index.html
+!> \brief Remove all the .ppm files, create thumbnails and fill the index.html
 !!
 !! \param j1  First parameter to plot
 !! \param j2  Last parameter to plot
@@ -763,9 +763,9 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
               end if
               
               write(51,'(8x,A)')'<td>'
-              write(51,'(8x,A)')'  <a href="'//trim(basefile)//'.png">'
-              write(51,'(8x,A)')'    <img src="'//trim(basefile)//'_thumb.png" title="2D PDF: '//trim(ParNames(parID(p1)))//'-'// &
-                   trim(ParNames(parID(p2)))//'">'
+              write(51,'(8x,A)')'  <a href="pdf2d/'//trim(basefile)//'.png">'
+              write(51,'(8x,A)')'    <img src="pdf2d/'//trim(basefile)//'_thumb.png" title="2D PDF: '//trim(ParNames(parID(p1)))// &
+                   '-'//trim(ParNames(parID(p2)))//'">'
               write(51,'(8x,A)')'  </a>'
               write(51,'(8x,A)')'</td>'
            end if
@@ -819,6 +819,7 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
   end if  ! if(file.eq.1)
   
   
+  ! Finished 2D-PDF matrix; revert settings:
   if(htmlOutput.eq.1) then
      bmpXSz = 1000
      bmpYSz =  700
@@ -827,6 +828,8 @@ subroutine removeppm_createthumbnails_createhtml_2D_PDF(j1,j2)
      write(bmpxpix,'(I4)') bmpXSz  ! Used as a text string by convert
      pltsz = bmpsz
      pltrat = bmprat
+     
+     outputDir = 'html'  ! Default output dir
   end if
   
 end subroutine removeppm_createthumbnails_createhtml_2D_PDF

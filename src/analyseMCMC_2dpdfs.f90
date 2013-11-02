@@ -26,7 +26,7 @@
 
 subroutine pdfs2d(exitcode)
   use SUFR_constants, only: stdOut, rh2r
-  use SUFR_system, only: swapreal
+  use SUFR_system, only: swapreal, quit_program_error
   use SUFR_text, only: replace_substring
   
   use analysemcmc_settings, only: update,prProgress,file,pssz,quality,fontsize2d,maxChs
@@ -41,10 +41,9 @@ subroutine pdfs2d(exitcode)
   
   real,allocatable :: z(:,:),zs(:,:,:)  ! These depend on nbin2d, allocate after reading input file
   
-  integer :: i,j,j1,j2,p1,p2,ic,lw,flw
-  integer :: npdf,countplots,totplots
+  integer :: i,j,j1,j2,p1,p2,ic,lw,flw,  npdf,countplots,totplots,  status,system
   real :: tr(6), sch, xmin,xmax, ymin,ymax, dx,dy
-  logical :: project_map,sky_position,binary_orientation, create_this_2D_PDF
+  logical :: project_map,sky_position,binary_orientation, create_this_2D_PDF, ex
   
   
   exitcode = 0
@@ -87,6 +86,7 @@ subroutine pdfs2d(exitcode)
   end do
   
   
+  ! Custom settings for 2D PDFs:
   if(htmlOutput.eq.1) then
      bmpXSz = 700
      bmpYSz = 700
@@ -98,6 +98,13 @@ subroutine pdfs2d(exitcode)
      
      ! Open the 2D PDF matrix HTML page using unit 51:
      call create_html_2dpdf_file(51)
+     
+     outputDir = 'html/pdf2d'  ! Save plots in subdir pdf2d/
+     inquire(file=trim(outputdir), exist=ex)  ! Check whether the directory already exists 
+     if(.not.ex) then
+        status = system('mkdir -p '//trim(outputdir))
+        if(status.ne.0) call quit_program_error('Could not create output directory: '//trim(outputdir)//'/',1)
+     end if
   end if
   
   
