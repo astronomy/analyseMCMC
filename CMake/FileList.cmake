@@ -33,6 +33,10 @@ set( plotSignal_SRC_FILES
   src/plotSignal.f90
   )
 
+set( plotSpectrum_SRC_FILES
+  src/plotSpectrum.f90
+  )
+
 
 # Source files specific to PGPlot or PLplot:
 if( PLplot_FOUND )

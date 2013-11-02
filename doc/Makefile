@@ -332,7 +332,6 @@ plotSpectrum: $(STDOBJ) $(OBJDIR)/plotSpectrum.o
 	$(COMP) $(LFLAGS) -o $(BINDIR)/plotSpectrum $(STDOBJ) $(OBJDIR)/plotSpectrum.o
 
 
-#$(SRCDIR)/code_version.f90: .svn/entries   #.svn/entries changes when committing/updating
 $(SRCDIR)/code_version.f90: code_version    # regenerate code_version.f90; code_version is PHONY and always out-of-date
 	@. ./code_version.sh . src/code_version.f90 $(COMP) $(OPT) $(PLPLOT)
 

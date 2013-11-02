@@ -132,6 +132,13 @@ set_target_properties( plotSignal PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_D
 add_dependencies( plotSignal analyseMCMC )  # Ensure it is build after aM
 install( TARGETS "plotSignal" RUNTIME DESTINATION "bin" )
 
+# Build, link and install plotSpectrum executable:
+add_executable( plotSpectrum ${plotSpectrum_SRC_FILES} ${Plot_SRC_FILES} )
+target_link_libraries( plotSpectrum ${LibSUFR_LIBRARIES} ${Plot_LIBRARIES} )
+set_target_properties( plotSpectrum PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIRECTORY} )
+add_dependencies( plotSpectrum analyseMCMC )  # Ensure it is build after aM
+install( TARGETS "plotSpectrum" RUNTIME DESTINATION "bin" )
+
 
 
 
