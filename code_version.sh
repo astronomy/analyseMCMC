@@ -98,10 +98,10 @@ else
 	
     echo "    " >> ${F90FILE}
     if [ ${RELEASE} == 'yes' ]; then
-	echo "    write(unit,'(A)', advance='no') 'AnalyseMCMC '//trim(code_version)//' ('//trim(release_date)// &" >> ${F90FILE}
+	echo "    write(unit,'(/,A)') '  AnalyseMCMC '//trim(code_version)//' ('//trim(release_date)// &" >> ${F90FILE}
 	echo "       '), using '//trim(PGPLplot)//' - analysemcmc.sf.net'" >> ${F90FILE}
     else
-	echo "  write(unit,'(/,A)')'  AnalyseMCMC '//trim(code_version)//', compiled on '//trim(compile_date)//' with '// &" >> ${F90FILE}
+	echo "  write(unit,'(/,A)') '  AnalyseMCMC '//trim(code_version)//', compiled on '//trim(compile_date)//' with '// &" >> ${F90FILE}
 	echo "       trim(compiler)//' '//trim(compiler_flags)//', using '//trim(PGPLplot)//' - analysemcmc.sf.net.'" >> ${F90FILE}
     fi
     
