@@ -74,7 +74,7 @@ else
 	echo "  use_PLplot = .false." >> ${F90FILE}
     fi
     echo "  write(unit,'(/,A)')'  AnalyseMCMC '//trim(code_version)//', compiled on '//trim(compile_date)//' with '// &" >> ${F90FILE}
-    echo "       trim(compiler)//' '//trim(compiler_flags)//', using '//trim(PGPLplot)//'.'" >> ${F90FILE}
+    echo "       trim(compiler)//' '//trim(compiler_flags)//', using '//trim(PGPLplot)//' - analysemcmc.sf.net.'" >> ${F90FILE}
     echo "" >> ${F90FILE}
     echo "end subroutine print_code_version" >> ${F90FILE}
     echo "!***********************************************************************************************************************************" >> ${F90FILE}

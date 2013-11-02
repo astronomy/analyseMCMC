@@ -44,7 +44,7 @@ subroutine statistics(exitcode)
   implicit none
   integer, intent(out) :: exitcode
   
-  integer :: c,i,ic, in,nn,dn, p,p1,p2, wraptype
+  integer :: c,i,i1,ic, in,nn,dn, p,p1,p2, wraptype
   integer :: indexx(maxMCMCpar,maxChs*maxIter),index1(maxChs*maxIter)
   real :: revper
   real :: x1,x2,y1,y2
@@ -171,8 +171,8 @@ subroutine statistics(exitcode)
   raShift = 0.
   do ic=1,nChains
      if(mergeChains.eq.0.and.contrChain(ic).eq.0) cycle
-     !wrapival = ivals(Nival) !Use the largest range
-     wrapival = 0.999 !Always use a very large range (?)
+     !wrapival = ivals(Nival)  ! Use the largest range
+     wrapival = 0.999  ! Always use a very large range (?)
      indexx = 0
      if(prProgress.ge.2.and.mergeChains.eq.0) write(stdOut,'(A,I2.2,A)',advance="no")' Ch',ic,' '
      if(htmlOutput.eq.0.and.prProgress.ge.2.and.ic.eq.1.and.wrapData.ge.1) write(stdOut,'(A)',advance="no")'  Wrap data. '
@@ -229,10 +229,9 @@ subroutine statistics(exitcode)
         shIvals(ic,p) = shIval
         
         
-        
-        ! Make sure data are between 0 and 2pi or between 0 and pi to start with:
+        ! Make sure data are between (0,2pi), (0,360), (0,24), etc. to start with:
         do i=1,n(ic)
-           selDat(ic,p,i) = revper(selDat(ic,p,i),shIval)          !Bring selDat(i) between 0 and shIval
+           selDat(ic,p,i) = revper(selDat(ic,p,i),shIval)  ! Bring selDat(i) between 0 and shIval
         end do
         call sorted_index_list(dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))
         indexx(p,1:n(ic)) = index1(1:n(ic))
@@ -241,17 +240,18 @@ subroutine statistics(exitcode)
         y2 = 0.
         minrange = huge(minrange)
         do i=1,n(ic)
-           x1 = selDat(ic,p,indexx(p,i))
-           x2 = selDat(ic,p,indexx(p,mod(i+nint(real(n(ic))*wrapival)-1,n(ic))+1))
-           range1 = mod(x2 - x1 + real(10*shIval),shIval)    !0-shIval
+           i1 = mod( i + nint(real(n(ic))*wrapival) - 1 , n(ic) ) + 1
+           x1 = selDat(ic,p,indexx(p,i ))
+           x2 = selDat(ic,p,indexx(p,i1))
+           range1 = mod(x2 - x1 + real(10*shIval), shIval)  ! Folded into 0-shIval
            
-           if(range1.lt.minrange) then
+           if(range1.gt.0. .and. range1.lt.minrange) then
               minrange = range1
               y1 = x1
               y2 = x2
-              !write(stdOut,'(2I6,7F10.5)')i,mod(nint(i+n(ic)*wrapival),n(ic)),x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
+              !if(parID(p).eq.31) write(stdOut,'(2I6,7F10.5)') i,i1,x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
            end if
-           !write(stdOut,'(2I6,7F10.5)')i,mod(nint(i+n(ic)*wrapival),n(ic)),x1,x2,range1,minrange,y1,y2,(y1+y2)/2.
+           !if(parID(p).eq.31) write(stdOut,'(2I6,5x,2(2F9.4,5x),3F9.4)') i,i1, x1,x2, range1,minrange, y1,y2,(y1+y2)/2.
         end do !i
         centre = (y1+y2)/2.
         
@@ -260,7 +260,6 @@ subroutine statistics(exitcode)
            wrap(ic,p) = wraptype
            centre = mod(centre + shIval2, shIval)   !Distribution peaks close to 0/shIval; shift centre by shIval/2
         end if
-        
         
         
         ! Wrap around anticentre:
@@ -724,8 +723,8 @@ subroutine statistics(exitcode)
         if(htmlOutput.ge.1) then
            write(stdOut,'(/,A)')'<br><hr><a name="corr"></a><font size="1">'// &
                 '<a href="#top" title="Go to the top of the page">top</a></font><h2>Cross-correlations</h2>'
-           write(stdOut,'(/,A,3(F4.2,A),A)')'  <b>Cross-correlations    (weak [',corr1,'<abs(cor)<',corr2, &
-                ']: in lower triangle,  strong [abs(cor)>', corr2,']: in upper triangle):','</b>'
+           write(stdOut,'(/,A,3(F4.2,A),A)')'  <b>Cross-correlations    (weak [',corr1,' &lt; |cor| &lt; ',corr2, &
+                ']: in lower triangle,  strong [|cor| &gt; ', corr2,']: in upper triangle):','</b>'
         else
            write(stdOut,'(/,A,3(F4.2,A))')'  Cross-correlations    (weak [',corr1,'<abs(cor)<',corr2, &
                 ']: in lower triangle,  strong [abs(cor)>', corr2,']: in upper triangle):'
