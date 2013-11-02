@@ -23,6 +23,12 @@ set( compPDFs_SRC_FILES
   src/compPDFs_functions.f90
   )
 
+set( MCMCstats_SRC_FILES
+  src/analyseMCMC_modules.f90
+  src/analyseMCMC_textroutines.f90
+  src/MCMCstats.f90
+  )
+
 set( plotSignal_SRC_FILES
   src/plotSignal.f90
   )

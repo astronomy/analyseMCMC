@@ -118,6 +118,13 @@ set_target_properties( compPDFs PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIR
 add_dependencies( compPDFs analyseMCMC )  # Ensure it is build after aM
 install( TARGETS "compPDFs" RUNTIME DESTINATION "bin" )
 
+# Build, link and install MCMCstats executable:
+add_executable( MCMCstats ${MCMCstats_SRC_FILES} ${Plot_SRC_FILES} )
+target_link_libraries( MCMCstats ${LibSUFR_LIBRARIES} ${Plot_LIBRARIES} )
+set_target_properties( MCMCstats PROPERTIES Fortran_MODULE_DIRECTORY ${MODULE_DIRECTORY} )
+add_dependencies( MCMCstats analyseMCMC )  # Ensure it is build after aM
+install( TARGETS "MCMCstats" RUNTIME DESTINATION "bin" )
+
 # Build, link and install plotSignal executable:
 add_executable( plotSignal ${plotSignal_SRC_FILES} ${Plot_SRC_FILES} )
 target_link_libraries( plotSignal ${LibSUFR_LIBRARIES} ${Plot_LIBRARIES} )
