@@ -263,10 +263,14 @@ subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_p
               ! For sky position and orientation only:
               if(i.eq.1) then
                  if(htmlOutput.ge.1) then
-                    write(stdOut,'(/,1x,A3,A10,A13,3A23,A4)') '<b>','Nr.','Ival frac.','Area (sq.deg) ', &
+                    if(sky_position) write(stdOut,'(//,1x,A)') '<b>2D probability areas in sky position:</b>'
+                    if(binary_orientation) write(stdOut,'(//,1x,A)') '<b>2D probability areas in binary orientation:</b>'
+                    write(stdOut,'(1x,A3,A10,A13,3A23,A4)') '<b>','Nr.','Ival frac.','Area (sq.deg) ', &
                          'Circ. area rad. (deg) ', 'Fraction of sky ','</b>'
                  else
-                    write(stdOut,'(/,1x,A10,A13,3A23)') 'Nr.','Ival frac.','Area (sq.deg) ', 'Circ. area rad. (deg) ', &
+                    if(sky_position) write(stdOut,'(//,1x,A)') '2D probability areas in sky position:'
+                    if(binary_orientation) write(stdOut,'(//,1x,A)') '2D probability areas in binary orientation:'
+                    write(stdOut,'(1x,A10,A13,3A23)') 'Nr.','Ival frac.','Area (sq.deg) ', 'Circ. area rad. (deg) ', &
                          'Fraction of sky '
                  end if
                  
