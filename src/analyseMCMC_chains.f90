@@ -422,7 +422,7 @@ subroutine plot_parameter_chains(exitcode)
   do j=1,nPlPar
      p = revID(plPars(j))
      if(p.eq.0) then
-        call report_undefined_parameter(trim(parNames(plPars(j))), 'plot_parameter_chains')
+        call report_undefined_parameter(trim(parNames(plPars(j))), plPars(j), 'plot_parameter_chains')
         cycle
      end if
      
@@ -872,7 +872,7 @@ subroutine plot_par_L(exitcode)
   do j=1,nPlPar
      p = revID(plPars(j))
      if(p.eq.0) then
-        call report_undefined_parameter(trim(parNames(plPars(j))), 'plot_par_L')
+        call report_undefined_parameter(trim(parNames(plPars(j))), plPars(j), 'plot_par_L')
         cycle
      end if
      
@@ -1164,7 +1164,7 @@ subroutine plot_Jump_sizes(exitcode)
   do j=1,nPlPar
      p = revID(plPars(j))
      if(p.eq.0) then
-        call report_undefined_parameter(trim(parNames(plPars(j))), 'plot_Jump_sizes')
+        call report_undefined_parameter(trim(parNames(plPars(j))), plPars(j), 'plot_Jump_sizes')
         cycle
      end if
      
@@ -1348,7 +1348,7 @@ subroutine plot_Acorr_chains(exitcode)
   do j=1,nPlPar
      p = revID(plPars(j))
      if(p.eq.0) then
-        call report_undefined_parameter(trim(parNames(plPars(j))), 'plot_Acor_chains')
+        call report_undefined_parameter(trim(parNames(plPars(j))), plPars(j), 'plot_Acor_chains')
         cycle
      end if
      

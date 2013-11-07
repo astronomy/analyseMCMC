@@ -81,8 +81,8 @@ subroutine pdfs2d(exitcode)
   
   ! Check consistency of PDF2Dpairs():
   do i=1,Npdf2D
-     if(revID(PDF2Dpairs(i,1)).eq.0) call report_undefined_parameter(trim(parNames(PDF2Dpairs(i,1))), 'pdfs2d')
-     if(revID(PDF2Dpairs(i,1)).eq.0) call report_undefined_parameter(trim(parNames(PDF2Dpairs(i,2))), 'pdfs2d')
+     if(revID(PDF2Dpairs(i,1)).eq.0) call report_undefined_parameter(trim(parNames(PDF2Dpairs(i,1))), PDF2Dpairs(i,1), 'pdfs2d')
+     if(revID(PDF2Dpairs(i,1)).eq.0) call report_undefined_parameter(trim(parNames(PDF2Dpairs(i,2))), PDF2Dpairs(i,2), 'pdfs2d')
   end do
   
   

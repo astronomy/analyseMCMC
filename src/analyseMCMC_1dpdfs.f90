@@ -183,7 +183,7 @@ subroutine pdfs1d(exitcode)
   do j=1,nPlPar
      p = revID(plPars(j))
      if(p.eq.0) then
-        call report_undefined_parameter(trim(parNames(plPars(j))), 'pdfs1d')
+        call report_undefined_parameter(trim(parNames(plPars(j))), plPars(j), 'pdfs1d')
         cycle
      end if
      

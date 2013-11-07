@@ -1412,22 +1412,24 @@ end subroutine create_html_2dpdf_file
 !***********************************************************************************************************************************
 !> \brief  Report an undefined parameter that the code tries to use
 !!
-!! \param parname  Name of the undefined parameter
+!! \param parName  Name of the undefined parameter
+!! \param parID    ID of the undefined parameter
 !! \param routine  Name of the caller routine
 
-subroutine report_undefined_parameter(parname, routine)
+subroutine report_undefined_parameter(parName, parID, routine)
   use SUFR_constants, only: stdOut,stdErr
   use analysemcmc_settings, only: prProgress
   implicit none
-  character, intent(in) :: parname*(*), routine*(*)
+  character, intent(in) :: parName*(*), routine*(*)
+  integer, intent(in) :: parID
   
   select case(prProgress)
   case(0)
   case(1)
-     write(stdOut,'(A)', advance='no') ' !!par. '//trim(parname)//' undefined!! '
+     write(stdOut,'(A,I0,A)', advance='no') ' !!par. "'//trim(parName)//'" (',parID,') undefined!! '
   case default  ! 2,3: verbose and debug output
-     write(stdErr,'(/,A)')'  * Warning:  '//trim(routine)//'():  parameter '//trim(parname)// &
-          ' is not defined, check plPars() in the input file.  Skipping...'
+     write(stdErr,'(/,A,I0,A)')'  * Warning:  '//trim(routine)//'():  parameter "'//trim(parName)// &
+          '" with parID ',parID,' is not defined, check plPars() in the input file.  Skipping...'
   end select
   
 end subroutine report_undefined_parameter
