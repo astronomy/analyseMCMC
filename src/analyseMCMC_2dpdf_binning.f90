@@ -63,25 +63,25 @@ function create_this_2D_PDF(p1,p2, countplots,totplots)
      
      create_this_2D_PDF = .true.
      
-     if(stdOut.lt.10) then  ! Writing to screen - print progress bar
-        if(prIval.lt.1.or.prProgress.lt.4) then  ! Then we're not printing probability areas
-           
-           if(prProgress.ge.1.and.update.eq.0) then
-              write(*,*) cursorup  ! Move cursor up 1 line
-              write(*,'(A)', advance='no') '  Progress: ['
-              do i=1,100
-                 if(i.le.nint(real(countplots+1)/real(totplots)*100)) then
-                    write(*,'(A)', advance='no') '#'
-                 else
-                    write(*,'(A)', advance='no') ' '
-                 end if
-              end do
-              write(*,'(A,F7.1,A)') '] ',real(countplots+1)/real(totplots)*100, &
-                   '%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                        '
-           end if
-           
+     !if(stdOut.lt.10) then  ! Writing to screen - print progress bar
+     if(prIval.lt.1.or.prProgress.lt.4) then  ! Then we're not printing probability areas
+        
+        if(prProgress.ge.1.and.update.eq.0) then
+           write(*,*) cursorup  ! Move cursor up 1 line
+           write(*,'(A)', advance='no') '  2D PDF progress: ['
+           do i=1,100
+              if(i.le.nint(real(countplots+1)/real(totplots)*100)) then
+                 write(*,'(A)', advance='no') '#'
+              else
+                 write(*,'(A)', advance='no') ' '
+              end if
+           end do
+           write(*,'(A,F7.1,A)') '] ',real(countplots+1)/real(totplots)*100, &
+                '%    ('//trim(parNames(parID(p1)))//'-'//trim(parNames(parID(p2)))//')                                        '
         end if
+        
      end if
+     !end if
      
   end if
   
