@@ -69,10 +69,10 @@ program analyseMCMC
   use analysemcmc_settings, only: prCorr,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D
   use analysemcmc_settings, only: plAnim,bmpXSz,bmpYSz,Npdf2D,reverseRead
   use analysemcmc_settings, only: whiteBG,scFac,scrSz,scrRat,PSsz,PSrat,unSharp,orientation,chainSymbol,quality,plJump,savePDF
-  use analysemcmc_settings, only: wrapData,update,nPlPar,mergeChains,tailoredOutput,plACorr,plRhat, maxChs
+  use analysemcmc_settings, only: wrapData,update,plPars,nPlPar,mergeChains,tailoredOutput,plACorr,plRhat, maxChs
   !use analysemcmc_settings, only: phi_q_sorting
   use general_data, only: infiles,allDat,selDat,post,prior,outputDir,nchains0,nchains,ntot,outputname
-  use mcmcrun_data, only: nMCMCpar
+  use mcmcrun_data, only: nMCMCpar,parID
   use plot_data, only: colours,symbols,colournames,maxdots,bmpsz,bmprat,bmpxpix,pltsz,pltrat,unSharplogl,unSharpchain,unSharppdf1d
   use plot_data, only: unSharppdf2d,psclr,ncolours,nsymbols,defcolour
   
@@ -172,7 +172,8 @@ program analyseMCMC
      plChain = 1
      plPDF1D = 1
      plPDF2D = 2
-     Npdf2D = -1
+     nPlPar = -1  ! Plot all
+     Npdf2D = -1  ! Plot all
      plAnim = 0
      
      bmpXSz = 1000
@@ -353,6 +354,12 @@ program analyseMCMC
   if(timing) timestamps(2) = timestamp()
   exitcode = 0
   call mcmcruninfo(exitcode)
+  
+  ! Plot all parameters if nPlPar = -1:
+  if(nPlPar.eq.-1) then
+     nPlPar = nMCMCpar
+     PlPars(1:nPlPar) = parID(1:nMCMCpar)
+  end if
   
   if(savePDF.ge.2) then
      write(stdOut,'(A)')'  Writing after-burnin data points to file'

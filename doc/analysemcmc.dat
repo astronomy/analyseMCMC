@@ -128,7 +128,7 @@
 
 &PLOT_PARAMETERS_BINNING                          ! Select parameters to plot, binning, etc.:
 
- NPLPAR             =  14,                        ! Number of plot parameters for 1D PDFs (and chain, jump plots, max 15).  This is ignored if savePDF=1.
+ NPLPAR             =  14,                        ! Number of plot parameters for 1D PDFs (and chain, jump plots, max 22).  Set to -1 to plot all available parameters.  This is ignored if savePDF=1.
  PLPARS             =  61,  62,  22,  11,  41,    
                        31,  32,  71,  72,  73,
                        51,  52,  63,  64,  15,

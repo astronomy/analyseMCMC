@@ -733,7 +733,7 @@ subroutine read_mcmcfiles(exitcode)
      if(outputVersion.ge.2.1) then
         read(10,'(A)',end=199,err=199) parNameStr  ! Read empty line
         read(10,'(A)',end=199,err=199) parNameStr  ! Read empty line
-        read(10,'(A)',end=199,err=199) parNameStr  ! Read empty line
+        read(10,'(A)',end=199,err=199) parNameStr  ! Read parameter names
         call parNames2IDs(trim(parNameStr),nMCMCpar, parID)  ! Convert parameter names to integer IDs
      end if
      
@@ -883,7 +883,7 @@ subroutine parNames2IDs(parNameStr,nMCMCpar, parID)
         if(trim(pars(pr1)).eq.trim(pnames(pr2))) parID(pr1-3) = pIDs(pr2)
      end do
      if(pr1.gt.3) then
-        if(parID(pr1-3).eq.0) call quit_program_error('parNames2IDs: Parameter name not recognised: '//trim(pars(pr1)),StdErr)
+        if(parID(pr1-3).eq.0) call quit_program_error('parNames2IDs: Parameter name was not recognised: '//trim(pars(pr1)),StdErr)
      end if
   end do
   

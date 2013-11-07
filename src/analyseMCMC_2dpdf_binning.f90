@@ -58,7 +58,7 @@ function create_this_2D_PDF(p1,p2, countplots,totplots)
   else if(Npdf2D.eq.-1) then  ! all combinations of non-fixed parameters
      
      !if(p2.le.p1) return  ! do symmetric cases only once
-     if(p2.eq.p1) return
+     if(p2.eq.p1) return  ! do symmetric cases twice - easier to compare to other plots with either orientation
      if(fixedpar(p1)+fixedpar(p2).ge.1) return
      
      create_this_2D_PDF = .true.
