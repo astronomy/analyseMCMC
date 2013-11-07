@@ -172,6 +172,7 @@ program analyseMCMC
      plChain = 1
      plPDF1D = 1
      plPDF2D = 2
+     Npdf2D = -1
      plAnim = 0
      
      bmpXSz = 1000

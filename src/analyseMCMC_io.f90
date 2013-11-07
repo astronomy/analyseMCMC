@@ -208,7 +208,7 @@ end subroutine read_settingsfile_old
 !> \brief  Read the settings file (called analysemcmc.dat by default)
 
 subroutine read_settingsfile()
-  use SUFR_system, only: find_free_io_unit, quit_program_error
+  use SUFR_system, only: find_free_io_unit, quit_program_error, warn
   
   use analysemcmc_settings, only: settingsfile
   use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChLen,file,colour
@@ -223,6 +223,7 @@ subroutine read_settingsfile()
   
   implicit none
   integer :: ip, io, NburnMax
+  logical :: ex, readFile
   
   ! Basic options:
   namelist /basic_options/ thin, NburnMax, NburnFrac, autoBurnin, maxChLen, file, colour, quality, reverseRead, &
@@ -250,56 +251,69 @@ subroutine read_settingsfile()
   ! was: plPars(1:nPlPar), panels(1:2), PDF2Dpairs(1:Npdf2D,1:2)
   
   
-  
+  readFile = .true.
   call find_free_io_unit(ip)
   write(*,'(A)') '  Reading settings file '//trim(settingsfile)//'...'
   open(unit=ip, status='old', action='read', file=trim(settingsfile), iostat=io)
-  if(io.ne.0) call quit_program_error('readsettingsfile(): error opening settings file '//trim(settingsfile), 0)
-  
-  read(ip, nml=basic_options, iostat=io)             ! Basic options
   if(io.ne.0) then
-     call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Basic options', 0)
+     inquire(file=trim(settingsfile), exist=ex)       ! Check whether the file exists
+     if(ex) then
+        call quit_program_error('readsettingsfile(): error opening settings file '//trim(settingsfile), 0)
+     else
+        call warn('I could not find the settings file '//trim(settingsfile)//'.  I will dump the default output in the '// &
+             'directory html/', 0)
+        HTMLoutput = 1
+        settingsfile = '<None>'
+        readFile = .false.
+     end if
   end if
   
-  read(ip, nml=print_options, iostat=io)             ! Print options
-  if(io.ne.0) then
-     call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Print options', 0)
+  if(readFile) then
+     read(ip, nml=basic_options, iostat=io)             ! Basic options
+     if(io.ne.0) then
+        call try_old_settings_file(ip)
+        call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Basic options', 0)
+     end if
+     
+     read(ip, nml=print_options, iostat=io)             ! Print options
+     if(io.ne.0) then
+        call try_old_settings_file(ip)
+        call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Print options', 0)
+     end if
+     
+     read(ip, nml=plot_select, iostat=io)               ! Select which plots to make
+     if(io.ne.0) then
+        call try_old_settings_file(ip)
+        call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Plot select', 0)
+     end if
+     
+     read(ip, nml=plot_options, iostat=io)              ! Detailed plot settings
+     if(io.ne.0) then
+        call try_old_settings_file(ip)
+        call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Plot options', 0)
+     end if
+     
+     read(ip, nml=output_format, iostat=io)             ! Output format
+     if(io.ne.0) then
+        call try_old_settings_file(ip)
+        call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Output format', 0)
+     end if
+     
+     read(ip, nml=fonts_symbols, iostat=io)             ! Fonts, symbols, etc.
+     if(io.ne.0) then
+        call try_old_settings_file(ip)
+        call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Fonts, symbols, etc.', 0)
+     end if
+     
+     read(ip, nml=plot_parameters_binning, iostat=io)   ! Select parameters to plot, binning, etc.
+     if(io.ne.0) then
+        call try_old_settings_file(ip)
+        call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)// &
+             ', Plot parameters, binning, etc.', 0)
+     end if
+     
+     close(ip)
   end if
-  
-  read(ip, nml=plot_select, iostat=io)               ! Select which plots to make
-  if(io.ne.0) then
-     call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Plot select', 0)
-  end if
-  
-  read(ip, nml=plot_options, iostat=io)              ! Detailed plot settings
-  if(io.ne.0) then
-     call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Plot options', 0)
-  end if
-  
-  read(ip, nml=output_format, iostat=io)             ! Output format
-  if(io.ne.0) then
-     call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Output format', 0)
-  end if
-  
-  read(ip, nml=fonts_symbols, iostat=io)             ! Fonts, symbols, etc.
-  if(io.ne.0) then
-     call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)//', Fonts, symbols, etc.', 0)
-  end if
-  
-  read(ip, nml=plot_parameters_binning, iostat=io)   ! Select parameters to plot, binning, etc.
-  if(io.ne.0) then
-     call try_old_settings_file(ip)
-     call quit_program_error('readsettingsfile(): error reading settings file '//trim(settingsfile)// &
-          ', Plot parameters, binning, etc.', 0)
-  end if
-  
-  close(ip)
   
   Nburn = NburnMax
   if(Npdf2D.lt.0) plotsky = 0  ! Do not plot a (full) sky for the RA-dec 2D PDF when plotting all 2D PDFs
@@ -437,7 +451,7 @@ subroutine set_plotsettings()
   
   file = 1          ! Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.
   colour = 1        ! Use colours: 0-no (grey scales), 1-yes
-  quality = 2       ! 'Quality' of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
+  quality = 1       ! 'Quality' of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
   
   reverseRead = 0   ! Read files reversely (anti-alphabetically), to plot coolest chain last so that it becomes better visible
   update = 0        ! Update screen plot every 10 seconds: 0-no, 1-yes
@@ -451,8 +465,8 @@ subroutine set_plotsettings()
   ! Select what output to print to screen and write to file:
   prStdOut = 1      ! Print standard output to 1: screen, 2: text file
   prProgress = 2    ! Print general messages about the progress of the program: 0-no, 1-some, 2-more
-  prRunInfo = 1     ! Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file
-  prChainInfo = 1   ! Print chain info: 1-summary (#datpts, #contr.chns),  2-detls/chain (f.name, clr, #itr, b.in, Lmax, #datpts)
+  prRunInfo = 2     ! Print run info at read (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only for one file
+  prChainInfo = 2   ! Print chain info: 1-summary (#datpts, #contr.chns),  2-detls/chain (f.name, clr, #itr, b.in, Lmax, #datpts)
   prInitial = 3     ! Print injection values, starting values and their difference: 0-no, 1-yes, 2-+ injection, 3-+ Lmax, 4-+ diffs
   
   prStat = 1        ! Print statistics: 0-no, 1-yes
@@ -535,7 +549,7 @@ subroutine set_plotsettings()
   
   ! Select parameters to plot, binning, etc.:
   nPlPar = 9        ! Number of plot parameters for 1D plots
-  plPars(1:nPlPar) = (/61,62, 22,11, 41, 31,32, 51,52/) ! The nPlPar plot parameters
+  plPars(1:nPlPar) = (/61,67, 22,11, 41, 31,32, 51,52/) ! The nPlPar plot parameters
   panels(1:2) = (/0,0/) ! Number of panels for 1D plots in x,y direction
   
   Nbin1D = 100      ! Number of bins for 1D PDFs
