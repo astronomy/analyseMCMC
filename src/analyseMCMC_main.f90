@@ -115,19 +115,19 @@ program analyseMCMC
   !phi_q_sorting = 0  ! Do phase/mass-ratio sorting (if phi>pi, q -> 1/q; m1 <-> m2): 0-no, 1-yes - not implemented yet
   
   
-  if(nchains0.lt.1) then  ! No command-line arguments - select all files SPINspiral.output.*.00 in the current dir
-     call findFiles('SPINspiral.output.*.00',maxChs,1,infiles,nchains0)
+  if(nchains0.lt.1) then  ! No command-line arguments - select all files PTMCMC.output.*.00 in the current dir
+     call findFiles('PTMCMC.output.*.00',maxChs,1,infiles,nchains0)
      if(nchains0.eq.0) then
         if(prProgress.ge.2) then
-           write(stdErr,'(A)')'  No files matching  SPINspiral.output.*.00  were found in the current directory.'
-           write(stdErr,'(A)')'  I will try LALInference output file names  PTMCMC.output.*.00  instead.'
+           write(stdErr,'(A)')'  No files matching  PTMCMC.output.*.00  were found in the current directory.'
+           write(stdErr,'(A)')'  I will try SPINspiral output file names  SPINspiral.output.*.00  instead.'
         end if
-        call findFiles('PTMCMC.output.*.00',maxChs,1,infiles,nchains0)
+        call findFiles('SPINspiral.output.*.00',maxChs,1,infiles,nchains0)
      end if
      if(nchains0.eq.0) then
         if(prProgress.ge.2) then
-           write(stdErr,'(A)')'  No files matching  PTMCMC.output.*.00  were found either.'
-           write(stdErr,'(A)')'  I will try the old file names  mcmc.output.*.00  before I give up.'
+           write(stdErr,'(A)')'  No files matching  SPINspiral.output.*.00  were found either.'
+           write(stdErr,'(A)')'  I will try the ancient file names  mcmc.output.*.00  before I give up.'
         end if
         call findFiles('mcmc.output.*.00',maxChs,1,infiles,nchains0)
         if(nchains0.eq.0) call quit_program_error('No valid input files were found in the current directory.'// &
