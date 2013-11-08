@@ -211,7 +211,7 @@ subroutine read_settingsfile()
   use SUFR_system, only: find_free_io_unit, quit_program_error, warn
   
   use analysemcmc_settings, only: settingsfile
-  use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChLen,file,colour
+  use analysemcmc_settings, only: Nburn, NburnMax,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
   use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plRhat,plotSky,plAnim,chainPlI,scLogLpl
@@ -222,7 +222,7 @@ subroutine read_settingsfile()
   use general_data, only: outputDir
   
   implicit none
-  integer :: ip, io, NburnMax
+  integer :: ip, io
   logical :: ex, readFile
   
   ! Basic options:
@@ -361,7 +361,7 @@ subroutine write_settingsfile()
   use SUFR_system, only: find_free_io_unit
   use SUFR_constants, only: stdOut
   
-  use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChLen,file,colour
+  use analysemcmc_settings, only: Nburn, NburnMax,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
   use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plRhat,plotSky,plAnim,chainPlI,scLogLpl
@@ -372,7 +372,7 @@ subroutine write_settingsfile()
   use general_data, only: outputDir
   
   implicit none
-  integer :: op, NburnMax
+  integer :: op
   
   ! Basic options:
   namelist /basic_options/ thin, NburnMax, NburnFrac, autoBurnin, maxChLen, file, colour, quality, reverseRead, &
@@ -429,7 +429,7 @@ end subroutine write_settingsfile
 !> \brief  Set plot settings to 'default' values
 
 subroutine set_plotsettings()
-  use analysemcmc_settings, only: Nburn,ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChLen,file,colour
+  use analysemcmc_settings, only: Nburn,NburnMax, ivals,plPars,panels,PDF2Dpairs,thin,NburnFrac,autoBurnin,maxChLen,file,colour
   use analysemcmc_settings, only: quality,reverseRead,update,mergeChains,wrapData,changeVar,prStdOut,prProgress,prRunInfo
   use analysemcmc_settings, only: prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv,saveStats,savePDF,tailoredOutput
   use analysemcmc_settings, only: plot,plLogL,plChain,plParL,plJump,plPDF1D,plPDF2D,plAcorr,plRhat,plotSky,plAnim,chainPlI,scLogLpl
@@ -444,7 +444,8 @@ subroutine set_plotsettings()
   
   ! Basic options:
   thin = 10         ! If >1, 'thin' the output; read every thin-th line 
-  Nburn = nint(5.e5) ! If >=0: override length of the burn-in phase, for all chains
+  Nburn = nint(5.e4) ! If >=0: override length of the burn-in phase, for all chains
+  NburnMax = nint(5.e4) ! If >=0: override length of the burn-in phase, for all chains
   NburnFrac = 0.5   ! If !=0: override length of the burn-in phase, as a fraction of the length of each chain.
   autoBurnin = -1.  ! Determine burn-in automatically as the first iteration where log(L_chain) > max(log(L_allchains)) - autoBurnin
   maxChLen = nint(1.e9) ! Maximum chain length

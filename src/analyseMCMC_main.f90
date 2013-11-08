@@ -64,7 +64,7 @@ program analyseMCMC
   use SUFR_random_numbers, only: get_ran_seed
   use SUFR_system, only: quit_program_error
   
-  use aM_constants, only: os, stdOutFile, use_PLplot
+  use aM_constants, only: stdOutFile, use_PLplot
   use analysemcmc_settings, only: settingsfile, panels,htmlOutput,prProgress,file,colour,prStdOut,prChainInfo
   use analysemcmc_settings, only: prCorr,saveStats,plot,plLogL,plChain,plPDF1D,plPDF2D
   use analysemcmc_settings, only: plAnim,bmpXSz,bmpYSz,Npdf2D,reverseRead
@@ -77,7 +77,7 @@ program analyseMCMC
   use plot_data, only: unSharppdf2d,psclr,ncolours,nsymbols,defcolour
   
   implicit none
-  integer :: i,ic,io,exitcode,tempintarray(99),getos,status,system, tmpStdOut
+  integer :: i,ic,io,exitcode,tempintarray(99),status,system, tmpStdOut
   real(double) :: timestamp,timestamps(9)  ! Time the progress of the code.
   character :: infile*(99), finalOutputName*(199)
   logical :: ex,timing
@@ -86,7 +86,6 @@ program analyseMCMC
   call set_SUFR_constants()   ! Define constants in libSUFR
   call setconstants()         ! Define mathematical constants
   
-  os = getos()                ! 1-Linux, 2-MacOS
   timestamps = 0.0_dbl
   timestamps(1) = timestamp()
   timing = .false.

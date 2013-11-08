@@ -476,24 +476,23 @@ function getos()
   use SUFR_system, only: warn
   
   implicit none
-  integer :: status,system,getos,io
+  integer :: status,system,getos
   character :: ostype*(25),filename*(99)
   
   filename = trim(homedir)//'/.analysemcmc.uname.temp'
   status = system('uname &> '//trim(filename))  ! This should return "Linux" or "Darwin"
-  status = status  ! Remove 'set but never used' warning
-  open(unit=16,file=trim(filename), status='old', form='formatted',iostat=io)
-  if(io.ne.0) then  ! Something went wrong - guess Linux
+  open(unit=16,file=trim(filename), status='old', form='formatted',iostat=status)
+  if(status.ne.0) then  ! Something went wrong - guess Linux
      call warn('getOS(): cannot determine OS - guessing Linux...', stdErr)
      getos = 1
      return
   end if
-  read(16,'(A)')ostype
-  close(16, status = 'delete')
+  read(16,'(A)', iostat=status) ostype
+  close(16, status='delete')
   
-  !write(stdOut,*)ostype
-  getos = 1 !Linux
-  if(ostype(1:5).eq.'Darwi') getos = 2 !MacOSX
+  !write(stdOut,*) ostype
+  getos = 1  ! Linux
+  if(index(trim(ostype),'Darwin').ne.0) getos = 2  ! MacOSX
   
 end function getos
 !***********************************************************************************************************************************

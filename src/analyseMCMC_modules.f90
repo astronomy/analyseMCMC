@@ -32,7 +32,7 @@ module analysemcmc_settings
   integer, parameter :: nParDB=199     ! nParDB: size of the parameter database
   
   integer :: plPars(maxMCMCpar),nPlPar,Nbin1D,Nbin2Dx,Nbin2Dy,Npdf2D,PDF2Dpairs(50,2),panels(2)
-  integer :: thin,Nburn(maxChs),reverseRead,update,mergeChains,wrapData,changeVar,maxChLen
+  integer :: thin,Nburn(maxChs),NburnMax, reverseRead,update,mergeChains,wrapData,changeVar,maxChLen
   integer :: file,colour,orientation,quality,fonttype
   integer :: prStdOut,prProgress,prRunInfo,prChainInfo,prInitial,prStat,prCorr,prAcorr,nAcorr,prIval,prConv
   integer :: saveStats,savePDF,tailoredOutput

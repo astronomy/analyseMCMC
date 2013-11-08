@@ -968,9 +968,12 @@ subroutine save_stats(exitcode)
   
   
   close(o)  ! Statistics output file
-  if(saveStats.eq.2) status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.txt -o '// &
-       trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
-  status = status  ! Remove 'set but never used' warning
+  if(saveStats.eq.2) then
+     status = system('a2ps -1rf7 '//trim(outputdir)//'/'//trim(outputname)//'__statistics.txt -o '// &
+          trim(outputdir)//'/'//trim(outputname)//'__statistics.ps')
+     status = status  ! Remove 'set but never used' warning
+  end if
+  
   !write(stdOut,*)
   if(prProgress.ge.1) then
      if(saveStats.eq.1) then
