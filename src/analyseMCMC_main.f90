@@ -21,35 +21,209 @@
  
 !> \mainpage Documentation <a href="http://analysemcmc.sourceforge.net/">AnalyseMCMC</a>
 !! <a href="http://analysemcmc.sourceforge.net/">AnalyseMCMC</a> is a Fortran code that can be used to analyse and present the
-!! output of <a href="http://spinspiral.sourceforge.net/">SPINspiral</a>.
+!! output of <a href="http://spinspiral.sourceforge.net/">SPINspiral</a> and 
+!! <a href="https://www.lsc-group.phys.uwm.edu/daswg/projects/lalsuite.html">lalinference_mcmc</a>.
 !!
 !! 
+!! \section input  Input options in settings file analysemcmc.dat
+!!
+!! Place a file called analysemcmc.dat in the directory where the MCMC output files are, and where you run analyseMCMC.
+!! If no settings file is present, the code will dump default output in HTML and png format in a new subdirectory html/
+!! The input options in the file, with their default values, are:
+!!
+!! \subsection basic  Basic options
+!!  Basic options:
+!! -  \b THIN               =  10,         If >1, "thin" the output; read every thin-th line
+!! -  \b NBURNMAX           =  500000,     If >=0: override length of the burn-in phase, for all chains! This is now the ITERATION 
+!!                                         number (it becomes the line number later on).  Nburn > Nchain sets Nburn = 0.1*Nchain
+!! -  \b NBURNFRAC          =  0.5,        If !=0: override length of the burn-in phase, as a fraction of the length of each 
+!!                                         chain. This overrides Nburn above
+!! -  \b AUTOBURNIN         =  -1.0,       If !=0: Determine burn-in automatically as the first iteration where log(L_chain) > 
+!!                                         max(log(L_allchains)) - autoBurnin. If autoBurnin<0, use Npar/2. Overrides Nburn and 
+!!                                         NburnFrac above
+!! -  \b MAXCHLEN           =  1000000000, Maximum chain length to read in (number of iterations, not number of lines)
+!! 
+!! -  \b FILE               =  1,          Plot output to file:  0-no; screen,  >0-yes; 1-png, 2-eps, 3-pdf.  Give an output path 
+!!                                         for files in the parameter "outputdir" below
+!! -  \b COLOUR             =  1,          Use colours: 0-no (grey scales), 1-yes
+!! -  \b QUALITY            =  2,          "Quality" of plot, depending on purpose: 0: draft, 1: paper, 2: talk, 3: poster
+!!   
+!! -  \b REVERSEREAD        =  0,          Read files reversely (anti-alphabetically), to plot coolest chain last so that it 
+!!                                         becomes better visible: 0-no, 1-yes, 2-use colours in reverse order too
+!! -  \b UPDATE             =  0,          Update screen plot every 10 seconds: 0-no, 1-yes
+!! -  \b MERGECHAINS        =  1,          Merge the data from different files into one chain: 0-no (treat separately), 1-yes 
+!!                                         (default)
+!! -  \b WRAPDATA           =  1,          Wrap the data for the parameters that are in [0,2pi]: 0-no, 1-yes (useful if the peak 
+!!                                         is around 0), 2-mirror inclination from 0-pi into 0-pi/2
+!! -  \b CHANGEVAR          =  1,          Change MCMC parameters (e.g. logd->d, kappa->theta_SL, rad->deg)
+!! -  \b OUTPUTDIR          =  ".",        Save output files/plots in this directory - this may be a relative or absolute path
+!! 
+!! 
+!! \subsection print  Print options
+!!   Select what output to print to screen and write to file:
+!! 
+!! -  \b PRSTDOUT           =  1,          Print standard output to 1: screen, 2: text file
+!! -  \b PRPROGRESS         =  2,          Print general messages about the progress of the program: 0-no, 1-some, 2-more, 3-debug 
+!!                                         output
+!! -  \b PRRUNINFO          =  1,          Print run info (# iterations, seed, # detectors, SNRs, data length, etc.): 0-no, 1-only 
+!!                                         for one file (eg. if all files similar), 2-for all files
+!! -  \b PRCHAININFO        =  1,          Print chain info: 1-summary (tot # data points, # contributing chains),  2-details per 
+!!                                         chain (file name, plot colour, # iterations, burn-in, Lmax, # data points)
+!! -  \b PRINITIAL          =  3,          Print starting values for each chain: 0-no, 1-yes, 2-add injection value, 3-add Lmax 
+!!                                         value, 4-add differences (~triples number of output lines for this part)
+!!  
+!! -  \b PRSTAT             =  1,          Print statistics: 0-no, 1-yes, for default probability interval, 2-yes, for all 
+!!                                         probability intervals
+!! -  \b PRCORR             =  1,          Print correlations: 0-no, 1-yes
+!! -  \b PRACORR            =  0,          Print autocorrelations: 0-no, 1-some, 2-more
+!! -  \b NACORR             =  100,        Compute nAcorr steps of autocorrelations if prAcorr>0 or plAcorr>0 (default: 100)
+!! -  \b PRIVAL             =  1,          Print interval info: 0-no, 1-for run with injected signal, 2-for run without injection, 
+!!                                         3-both
+!! -  \b PRCONV             =  1,          Print convergence information for multiple chains to screen and chains plot: 0-no, 1-
+!!                                         one summary line, 2-add total chain stdevs, 3-add medians, stdevs for each chain
+!!  
+!! -  \b SAVESTATS          =  1,          Save statistics (statistics, correlations, intervals) to file: 0-no, 1-yes, 2-yes + 
+!!                                         copy in PS
+!! -  \b SAVEPDF            =  0,          Save the binned data for 1d and/or 2d pdfs (depending on plPDF1D and plPDF2D).  This 
+!!                                         causes all 12 parameters + m1,m2 to be saved and plotted(!), which is slighty annoying
+!! -  \b WIKIOUTPUT         =  0,          Save output for the CBC wiki
+!! -  \b TAILOREDOUTPUT     =  0,          Save (ascii) output for a specific purpose, e.g. table in a paper:  0-no, tO>0: use the 
+!!                                         hardcoded block tO in the subroutine tailoredOutput() in analysemcmc_stats.f90
+!! -  \b HTMLOUTPUT         =  0,          Save HTML output - experimental, partly implemented.  Useful when plotting all 2D PDFs 
+!!                                         as png
+!! 
+!! \subsection plot_select  Plot selection
+!!   Choose which plots to make:
+!! 
+!! -  \b PLOT               =  1,          0: plot nothing at all, 1: plot the items selected below
+!! 
+!! -  \b PLLOGL             =  1,          Plot log L chains: 0-no, 1-yes
+!! -  \b PLCHAIN            =  1,          Plot parameter chains: 0-no, 1-yes
+!! -  \b PLPARL             =  0,          Plot L vs. parameter value: 0-no, 1-yes
+!! -  \b PLJUMP             =  0,          Plot actual jump sizes: 0-no, 1-yes: lin, 2-yes: log
+!! -  \b PLACORR            =  0,          Plot autocorrelations: 0-no, 1-yes
+!! -  \b PLRHAT             =  0,          Plot Rhat vs. iteration number: 0-no, 1-yes
+!! 
+!! -  \b PLPDF1D            =  1,          Plot 1d posterior distributions: 0-no, 1-yes: smoothed curve, 2-yes: actual histogram. 
+!!                                         If plot=0 and savePDF=1, this determines whether to write the pdfs to file or not.
+!! -  \b PLPDF2D            =  2,          Plot 2d posterior distributions: 0-no, 1-yes: gray + contours, 2:gray only, 3: contours 
+!!                                         only. If plot=0 and savePDF=1, this determines whether to write the pdfs to file (>0) 
+!!                                         or not (=0).
+!! -  \b PLOTSKY            =  2,          Plot 2d pdf with stars, implies plPDF2D>0:  0-no, 1-yes, 2-full sky w/o stars, 3-full 
+!!                                         sky with stars
+!! -  \b MAPPROJECTION      =  1,          Choose map projection: 1-Mollweide
+!! 
+!! -  \b PLANIM             =  0,          Create movie frames
+!! 
+!! \subsection plot_options  Plot options
+!!  Detailed plot settings:
+!! 
+!! -  \b CHAINPLI           =  0,          Plot every chainPlI-th point in chains, logL, jump plots:  chainPlI=0: autodetermine, 
+!!                                         chainPlI>0: use this chainPlI.  All states in between *are* used for statistics, pdf 
+!!                                         generation, etc.
+!! -  \b SCLOGLPL           =  1,          Scale logL plot ranges: 0: take everything into account, including burn-in and starting 
+!!                                         values;  1: take only post-burn-in and injection values into account
+!! -  \b SCCHAINSPL         =  1,          Scale chains plot ranges: 0: take everything into account, including burn-in;  1: take 
+!!                                         only post-burn-in and injection values into account
+!!  
+!! -  \b PLINJECT           =  0,          Plot injection values in the chains and pdfs: 0: no,  1: yes (all pars),  2: yes (
+!!                                         selected pars), 3-4: as 1-2 + print value in PDF panel
+!! -  \b PLSTART            =  1,          Plot starting values in the chains and pdfs
+!! -  \b PLMEDIAN           =  1,          Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value 
+!!                                         in PDF panel
+!! -  \b PLRANGE            =  4,          Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + 
+!!                                         write value in PDF panel
+!! -  \b PLBURN             =  1,          Plot the burn-in in logL, the chains, etc.
+!! -  \b PLLMAX             =  1,          Plot the position of the max logL, in the chains and pdfs
+!! 
+!! -  \b PRVALUES           =  1,          Print values (injection, median, range) in pdfs
+!! -  \b SMOOTH             =  3,          Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D 
+!!                                         only for now, and can introduce artefacts on narrow peaks!
+!! -  \b FILLPDF            =  1,          Fillstyle for the pdfs (pgsfs): 1-solid, 2-outline, 3-hatched, 4-cross-hatched
+!! -  \b NORMPDF1D          =  1,          Normalise 1D pdfs:  0-no,  1-normalise surface area (default, a must for different bin 
+!!                                         sizes),  2-normalise to height,  3-normalise to sqrt(height), nice to compare par.temp. 
+!!                                         chains
+!! -  \b NORMPDF2D          =  4,          'Normalise' 2D pdfs; greyscale value depends on bin height:  0-linearly,  1-
+!!                                         logarithmically,  2-sqrt,  3-weigted with likelihood value,  4-2D probability intervals
+!! 
+!! -  \b NANIMFRAMES        =  1,          Number of frames for the movie
+!! -  \b ANIMSCHEME         =  3,          AnimScheme (1-3): determines what panels to show in a movie frame; see source 
+!!                                         code
+!! 
+!! -  \b NIVAL              =  3,          Number of probability intervals
+!! -  \b IVAL0              =  2,          Number of the default probability interval (ival0<=Nival)
+!! -  \b IVALS              =  0.68269, 0.9545, 0.9973, 2*0.0,  Probability intervals (ivals()). Values > 0.9999 will be treated 
+!!                                         as 100%.  Maximum 5 intervals
+!! 
+!! \subsection format  Output format
+!! Output format for plots:
+!! 
+!! -  \b SCRSZ              =  10.8,       Screen size for X11 windows (PGPlot units):  MacOS: 16.4, Gentoo: 10.8
+!! -  \b SCRRAT             =  0.57,       Screen ratio for X11 windows (PGPlot units), MacBook: 0.57
+!! -  \b BMPXSZ             =  1000,       X-size for bitmap (pixels):  1000  !! Too large values give incomplete 2D PDFs somehow !!
+!! -  \b BMPYSZ             =   700,       Y-size for bitmap (pixels):  700
+!! -  \b PSSZ               =  10.5,       Size for PS/PDF (PGPlot units).  Default: 10.5   \__ Gives same result as without pgpap
+!! -  \b PSRAT              =  0.742,      Ratio for PS/PDF (PGPlot units). Default: 0.742  
+!! -  \b SCFAC              =  1.2,        !!!Not fully implemented yet!!!  Scale .png plots up by this factor, then down to the x,
+!!                                         y size indicated above to interpolate and smoothen the plot
+!! -  \b UNSHARP            =  10,         Apply unsharp mask when creating .png plots. Default: 10.
+!! 
+!! \subsection fonts_symbols  Fonts and symbols
+!!   Fonts, symbols, et cetera:
+!! 
+!! -  \b ORIENTATION        =  1,          Use portrait (1) or landscape (2) for eps/pdf; mainly useful when sending a plot to a 
+!!                                         printer
+!! -  \b FONTTYPE           =  1,          Font type used for eps/pdf: 1-simple, 2-roman, 3-italic, 4-script
+!! -  \b FONTSIZE1D         =  1.0,        Scale the font size for 1D plots (chains, 1D PDFs) with respect to default. Default: 1.0
+!! -  \b FONTSIZE2D         =  1.0,        Scale the font size for 2D plots (2D PDFs) with respect to default.  Default: 1.0
+!! -  \b CHAINSYMBOL        =  1,          Plot symbol for the chains: 0-plot lines, !=0: plot symbols: eg: 1: dot (default), 2: 
+!!                                         plus, etc.  -4: filled diamond, 16,17: filled square,circle 20: small open circle; -10/-
+!!                                         11: use a selection of open/filled symbols
+!! 
+!! \subsection plot_parameters_binning  Plot, bin parameters
+!!   Select parameters to plot, bin, et cetera:
+!!
+!! -  \b NPLPAR             =  14,         Number of plot parameters for 1D PDFs (and chain, jump plots, max 22).  Set to -1 to 
+!!                                         plot all available parameters.  This is ignored if savePDF=1.
+!! -  \b PLPARS             =  61,  62,  22,  11,  41, 31,  32,  51,  52,  13*0,    MCMC parameters to plot: 11-2:tc/t40, 21-2:d^3/
+!!                                         logd, 31-2:RA/dec, 41:phase, 51-4:i/psi/thJo/phJo, 61-4:Mc/eta/M1/M2, 71-3:a/th/phi for 
+!!                                         spin1, 81-3: spin2
+!! -  \b PANELS             =  2*0,        Number of for 1D plots in x,y direction:  0: autodetermine
+!! 
+!! -  \b NBIN1D             =  0,          Number of bins for 1D PDFs:  0: autodetermine
+!! -  \b NBIN2DX            =  0,          Number of bins in x-direction for 2D PDFs and 2D probability ranges:  0: autodetermine 
+!!                                         (for both x and y)
+!! -  \b NBIN2DY            =  0,          Number of bins in y-direction for 2D PDFs and 2D probability ranges:  0: use Nbin2Dx, 
+!!                                         -1: use Nbin2Dx*(scr/bmp/ps)rat
+!! 
+!! -  \b NPDF2D             =  3,          Number of 2D-PDF plots to make:  -1: all plots (91 for 12+2 parameters),  >0: read 
+!!                                         parameters from the lines below
+!! -  \b PDF2DPAIRS         =  61,  31,  52, 47*0,  62,  32,  51, 47*0,   Parameter pairs to plot a 2D PDF for.  Maximum 50 pairs.
+!!
 !! 
 !!
-!! \par I/O units used:
+!! \section IO I/O units used
 !! 
-!! -  0: StdErr
-!! -  6: StdOut
-!! -
-!! - 10: input (MCMC) file
-!! - 16: temp file in getos
-!! - 17: temp file in timestamp
-!! - 19: StdOut redirection (__output.txt)
+!! - \b  0: StdErr
+!! - \b  6: StdOut
 !! 
-!! - 20: Output: __statistics.dat, __wiki.dat, __bayes.dat 
+!! - \b 10: input (MCMC) file
+!! - \b 16: temp file in getos
+!! - \b 17: temp file in timestamp
+!! - \b 19: StdOut redirection (__output.txt)
 !! 
-!! - 21: bsc.dat (bright star catalogue)
-!! - 22: bsc_const.dat (BSC constellation data)
-!! - 23: bsc_names.dat (BSC names)
-!! - 24: milkyway*.dat (Milky Way data)
+!! - \b 20: Output: __statistics.dat, __wiki.dat, __bayes.dat 
+!! 
+!! - \b 21: bsc.dat (bright star catalogue)
+!! - \b 22: bsc_const.dat (BSC constellation data)
+!! - \b 23: bsc_names.dat (BSC names)
+!! - \b 24: milkyway*.dat (Milky Way data)
 !!  
-!! - 30: Output: __pdf1/2d.dat
-!! - 40: Output: tailored output
+!! - \b 30: Output: __pdf1/2d.dat
+!! - \b 40: Output: tailored output
 !!  
-!! - 51: Output: HTML PDF2D matrix
+!! - \b 51: Output: HTML PDF2D matrix
 !! 
-!! \par 
-!! This program replaces plotspins.
 
 
 
