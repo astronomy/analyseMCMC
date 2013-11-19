@@ -507,12 +507,12 @@ subroutine set_plotsettings()
   scLogLpl = 1      ! Scale logL plot ranges: 0
   scChainsPl = 1    ! Scale chains plot ranges
   
-  plInject = 0      ! Plot injection values in the chains and pdfs
+  plInject = 1      ! Plot injection values in the chains and pdfs
   plStart = 1       ! Plot starting values in the chains and pdfs
   plMedian = 1      ! Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both
   plRange = 4       ! Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value in PDF panel
   plBurn = 1        ! Plot the burn-in in logL, the chains, etc.: 0-no, 1-vertical line, 2-colour shade, 3-both
-  plLmax = 1        ! Plot the position of the max of logL in chains and pdfs
+  plLmax = 0        ! Plot the position of the max of logL in chains and pdfs
   
   prValues = 1      ! Print values (injection, median, range) in pdfs
   smooth = 3        ! Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?)
@@ -1724,7 +1724,7 @@ subroutine get_LIM_injection_values(ic, nMCMCpar, startval, post,prior)
   in = index(trim(infile),'.', back=.true.)
   if(len_trim(infile)-in.ne.2) return        ! Third-last character in file name is not a period
   
-  infile = infile(1:in)//'injection'         ! Compose injection file name from MCMC output file name
+  infile = infile(1:in)//'injection'         ! Compose injection file name from MCMC output file name - PTMCMC.output.X.injection
   inquire(file=trim(infile), exist=ex)       ! Check whether the file exists
   if(.not.ex) return
   

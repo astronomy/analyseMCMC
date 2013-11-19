@@ -126,15 +126,15 @@
 !! -  \b SCCHAINSPL         =  1,          Scale chains plot ranges: 0: take everything into account, including burn-in;  1: take 
 !!                                         only post-burn-in and injection values into account
 !!  
-!! -  \b PLINJECT           =  0,          Plot injection values in the chains and pdfs: 0: no,  1: yes (all pars),  2: yes (
+!! -  \b PLINJECT           =  1,          Plot injection values in the chains and pdfs: 0: no,  1: yes (all pars),  2: yes (
 !!                                         selected pars), 3-4: as 1-2 + print value in PDF panel
-!! -  \b PLSTART            =  1,          Plot starting values in the chains and pdfs
+!! -  \b PLSTART            =  1,          Plot starting values in the chains
 !! -  \b PLMEDIAN           =  1,          Plot median values in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + write value 
 !!                                         in PDF panel
 !! -  \b PLRANGE            =  4,          Plot the probability range in the pdfs: 1-1D PDFs, 2-2D PDFs, 3-both. 4-6: as 1-3 + 
 !!                                         write value in PDF panel
 !! -  \b PLBURN             =  1,          Plot the burn-in in logL, the chains, etc.
-!! -  \b PLLMAX             =  1,          Plot the position of the max logL, in the chains and pdfs
+!! -  \b PLLMAX             =  0,          Plot the position of the max logL, in the chains and pdfs
 !! 
 !! -  \b PRVALUES           =  1,          Print values (injection, median, range) in pdfs
 !! -  \b SMOOTH             =  3,          Smooth the pdfs: 0 - no, >1: smooth over smooth bins (use ~10 (3-15)?).   This is 1D 

@@ -275,18 +275,18 @@ subroutine pdfs1d(exitcode)
            if(fixedpar(p).eq.1) ybin1 = 0.  ! Prevent NaNs
            write(30,'(A)')'--------------------------------------------------------------------------------------------------'// &
                 '------------------------------------------------------------------------------------------------------'
-           write(30,'(3I6,T31,A10,T101,A)')ic,parID(p),wrap(ic,p),parNames(parID(p)), &
+           write(30,'(3I6,T31,A10,T101,A)') ic,parID(p),wrap(ic,p),parNames(parID(p)), &
                 'Chain number, parameter ID, wrap (1/0 = y/n) and parameter name  (ic, parID(), wrap(), parNames())'
-           write(30,'(2ES15.7,T101,A)')startval(ic,p,1:2),'Injection and starting value  (startval(1:2)'
-           write(30,'(6ES15.7,T101,A)')stats(ic,p,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2  (stats(1:6))'
-           write(30,'(5ES15.7,T101,A)')ranges(ic,c0,p,1:5),'Ranges: lower,upper limit, centre, width, relative width  '// &
+           write(30,'(2ES15.7,T101,A)') startval(ic,p,1:2),'Injection and starting value  (startval(1:2)'
+           write(30,'(6ES15.7,T101,A)') stats(ic,p,1:6),'Stats: median, mean, absVar1, absVar2, stdev1, stdev2  (stats(1:6))'
+           write(30,'(5ES15.7,T101,A)') ranges(ic,c0,p,1:5),'Ranges: lower,upper limit, centre, width, relative width  '// &
                 '(ranges(1:5))'
-           write(30,'(2ES15.7,T101,A)')xmin1,xmax1,'Xmin and Xmax of PDF  (xmin1,xmax1)'
+           write(30,'(2ES15.7,T101,A)') xmin1,xmax1,'Xmin and Xmax of PDF  (xmin1,xmax1)'
            
            ! Bin contents:
-           write(30,'(2ES15.7,T101,A,I4,A)')xbin1(1),ybin1(1),'The X and Y values of the',Nbin1D,' bins  (xbin1,ybin1)'
+           write(30,'(2ES15.7,T101,A,I4,A)') xbin1(1),ybin1(1),'The X and Y values of the',Nbin1D,' bins  (xbin1,ybin1)'
            do i=2,Nbin1D+1
-              write(30,'(2ES15.7)')xbin1(i),ybin1(i)
+              write(30,'(2ES15.7)') xbin1(i),ybin1(i)
            end do
         end if
      end do !ic
@@ -585,16 +585,16 @@ subroutine pdfs1d(exitcode)
               end if
            else  !if nPlPar>=5
               str = ' '
-              if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then  !Distance, Mc,M1,M2
-                 if(plInject.eq.3.or.plInject.eq.4) write(str,'(A,F7.3)')trim(str)//' mdl:',startval(ic,p,1)
-                 if(plMedian.eq.4.or.plMedian.eq.5.or.plMedian.eq.6) write(str,'(A,F8.3)')trim(str)//' med:',stats(ic,p,1)
+              if(parID(p).eq.21.or.parID(p).eq.22.or.parID(p).eq.61.or.parID(p).eq.63.or.parID(p).eq.64) then  ! Distance, Mc,M1,M2
+                 if(plInject.eq.3.or.plInject.eq.4) write(str,'(A,F7.3)') trim(str)//' mdl:',startval(ic,p,1)
+                 if(plMedian.eq.4.or.plMedian.eq.5.or.plMedian.eq.6) write(str,'(A,F8.3)') trim(str)//' med:',stats(ic,p,1)
                  if(prIval.ge.1.and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6))  &
-                      write(str,'(A,F6.2,A1)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)*100,'%'
+                      write(str,'(A,F6.2,A1)') trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)*100,'%'
               else
-                 if(plInject.eq.3.or.plInject.eq.4) write(str,'(A,F7.3)')trim(str)//' mdl:',startval(ic,p,1)
-                 if(plMedian.eq.4.or.plMedian.eq.5.or.plMedian.eq.6) write(str,'(A,F8.3)')trim(str)//' med:',stats(ic,p,1)
+                 if(plInject.eq.3.or.plInject.eq.4) write(str,'(A,F7.3)') trim(str)//' mdl:',startval(ic,p,1)
+                 if(plMedian.eq.4.or.plMedian.eq.5.or.plMedian.eq.6) write(str,'(A,F8.3)') trim(str)//' med:',stats(ic,p,1)
                  if(prIval.ge.1.and.(plRange.eq.4.or.plRange.eq.5.or.plRange.eq.6))  &
-                      write(str,'(A,F7.3)')trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)
+                      write(str,'(A,F7.3)') trim(str)//' '//trim(delta)//':',ranges(ic,c0,p,5)
               end if
               
               call pgsch(sch*1.2)
