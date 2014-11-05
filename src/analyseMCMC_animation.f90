@@ -28,7 +28,7 @@ subroutine animation(exitcode)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdOut,stdErr
   use SUFR_constants, only: cursorup, pi
-  use SUFR_statistics, only: determine_nbin_1d, bin_data_1d
+  use SUFR_statistics, only: determine_nbin_1d, bin_data_1d_sp
   use SUFR_sorting, only: sorted_index_list
   
   use analysemcmc_settings, only: plAnim,Nbin1D,update,plot,prProgress,maxChs,nAnimFrames,file,ivals,Nburn,maxMCMCpar,scrSz,scrRat
@@ -428,7 +428,7 @@ subroutine animation(exitcode)
            end if
            xmin1 = minval(x(ic,1:n2))
            xmax1 = maxval(x(ic,1:n2))
-           call bin_data_1d(x(ic,1:n2), Nbin1D, .true.,-1,.false., xmin1,xmax1, xbin1,ybin1)  ! Count the nr. of points in each bin
+           call bin_data_1d_sp(x(ic,1:n2), Nbin1D, .true.,-1,.false., xmin1,xmax1, xbin1,ybin1)  ! Count nr. of points in each bin
            
            if(normPDF1D.ge.1) then
               if(normPDF1D.eq.2) then !Normalise the height of the PDF

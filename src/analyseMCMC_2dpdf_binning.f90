@@ -189,7 +189,7 @@ end subroutine determine_2D_PDF_binning_plot_ranges
 
 subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_position,binary_orientation)
   use SUFR_constants, only: stdOut, pi,rpi
-  use SUFR_statistics, only: bin_data_2d
+  use SUFR_statistics, only: bin_data_2d_sp
   use SUFR_text, only: replace_substring
   
   use analysemcmc_settings, only: normPDF2D, maxChs, Nbin2Dx,Nbin2Dy, prProgress, Nival,prIval,ivals, htmlOutput
@@ -217,7 +217,7 @@ subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_p
      
      
      ! Bin data in 2D:
-     call bin_data_2d( xx(1:n(ic)), yy(1:n(ic)), 0, Nbin2Dx,Nbin2Dy, xmin,xmax, ymin,ymax, z, tr )
+     call bin_data_2d_sp( xx(1:n(ic)), yy(1:n(ic)), 0, Nbin2Dx,Nbin2Dy, xmin,xmax, ymin,ymax, z, tr )
      
      
      !Test:
@@ -231,7 +231,7 @@ subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_p
      !   ymax1 = ymax
      !   
      !   !Bin data:  compute bin number rather than find it, ~10x faster:
-     !   call bin_data_2d(xx(1:n(ic)),yy(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin1,xmax1,ymin1,ymax1,z,tr)
+     !   call bin_data_2d_sp(xx(1:n(ic)),yy(1:n(ic)),0,Nbin2Dx,Nbin2Dy,xmin1,xmax1,ymin1,ymax1,z,tr)
      !   
      !   !Test!
      !   call check_binned_data(Nbin2Dx,Nbin2Dy,z)
