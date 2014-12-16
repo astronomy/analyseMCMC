@@ -623,10 +623,11 @@ subroutine read_mcmcfiles(exitcode)
      outputVersion = 1.0  ! SPINspiral output, after July 2009, keep 1<=oV<2
      if(len_trim(firstLine).gt.80 .and. len_trim(firstLine).lt.140)  outputVersion = 0.0  ! SPINspiral output, before July 2009
      if(len_trim(firstLine).ge.140)  outputVersion = 2.0  ! LALInference output (after December 2010), keep 2.0<=oV<3.0
+     if(index(trim(infile),'findbin').ne.0)  outputVersion = 5.0  ! FindBin
      
      if(floor(outputVersion).eq.1) read(firstLine,'(A21,F8.2)') tmpStr,outputVersion
      
-     if(outputVersion > 0.5) then
+     if(outputVersion .gt. 0.5 .and. outputVersion.lt.5.0) then
         ! Read command line between version number and first header. Read nothing if no command line:
         read(10,'(A999)',end=199,err=199) commandline
         if(commandline(1:14).eq.'  Command line') then
@@ -647,7 +648,7 @@ subroutine read_mcmcfiles(exitcode)
      if(outputVersion.lt.0.5) then
         read(10,*) &
              niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic)
-     else
+     else if(outputVersion.lt.5.0)  ! Still GWs
         
         if(outputVersion.gt.2.15) then  ! No Tmax
            read(10,*, iostat=io) niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic), &
