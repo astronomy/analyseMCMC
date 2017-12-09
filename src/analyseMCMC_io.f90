@@ -3,7 +3,7 @@
 ! 
 ! LICENCE:
 ! 
-! Copyright (c) 2007-2014  Marc van der Sluys, Vivien Raymond, Ben Farr, Chris Chambers
+! Copyright (c) 2007-2017  Marc van der Sluys, Vivien Raymond, Ben Farr, Chris Chambers
 !  
 ! This file is part of the AnalyseMCMC package.
 !  
@@ -648,7 +648,7 @@ subroutine read_mcmcfiles(exitcode)
      if(outputVersion.lt.0.5) then
         read(10,*) &
              niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic),nTemps(ic),Tmax(ic),Tchain(ic),networkSNR(ic)
-     else if(outputVersion.lt.5.0)  ! Still GWs
+     else if(outputVersion.lt.5.0) then  ! Still GWs
         
         if(outputVersion.gt.2.15) then  ! No Tmax
            read(10,*, iostat=io) niter(ic),Nburn0(ic),seed(ic),DoverD,ndet(ic), nCorr(ic), &

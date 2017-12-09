@@ -3,7 +3,7 @@
 ! 
 ! LICENCE:
 ! 
-! Copyright (c) 2007-2014  Marc van der Sluys
+! Copyright (c) 2007-2017  Marc van der Sluys
 !  
 ! This file is part of the AnalyseMCMC package.
 !  

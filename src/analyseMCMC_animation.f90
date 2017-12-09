@@ -3,7 +3,7 @@
 ! 
 ! LICENCE:
 ! 
-! Copyright (c) 2007-2014  Marc van der Sluys, Vivien Raymond, Ben Farr, Chris Chambers
+! Copyright (c) 2007-2017  Marc van der Sluys, Vivien Raymond, Ben Farr, Chris Chambers
 !  
 ! This file is part of the AnalyseMCMC package.
 !  
@@ -27,7 +27,7 @@
 subroutine animation(exitcode)
   use SUFR_kinds, only: double
   use SUFR_constants, only: stdOut,stdErr
-  use SUFR_constants, only: cursorup, pi
+  use SUFR_constants, only: cursorup, rpi
   use SUFR_statistics, only: determine_nbin_1d, bin_data_1d_sp
   use SUFR_sorting, only: sorted_index_list
   
@@ -484,7 +484,7 @@ subroutine animation(exitcode)
               call pgline(2,(/xbin1(1),xbin1(1)/),(/0.,ybin1(1)/)) !Fix the loose ends
               call pgline(2,(/xbin1(Nbin1D+1),xbin1(Nbin1D+1)/),(/ybin1(Nbin1D+1),0./))
            else
-              plshift = real(2*pi)
+              plshift = real(2*rpi)
               if(changeVar.ge.1) then
                  plshift = 360.
                  if(parID(p).eq.31) plshift = 24. !RA in hours

@@ -3,7 +3,7 @@
 ! 
 ! LICENCE:
 ! 
-! Copyright (c) 2007-2014  Marc van der Sluys
+! Copyright (c) 2007-2017  Marc van der Sluys
 !  
 ! This file is part of the AnalyseMCMC package.
 !  
@@ -71,6 +71,7 @@ program mcmcstats
   
   fonttype = 1  ! 1-"arial", 2-"roman"
   
+  p10 = 0  ! Make sure it is initialised
   
   if(plfile.eq.0) then
      papsize = 10.81  ! Screen size (Gentoo: 10.81, Fink: 16.4)

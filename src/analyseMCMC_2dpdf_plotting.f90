@@ -3,7 +3,7 @@
 ! 
 ! LICENCE:
 ! 
-! Copyright (c) 2007-2014  Marc van der Sluys, Vivien Raymond, Ben Farr, Chris Chambers
+! Copyright (c) 2007-2017  Marc van der Sluys, Vivien Raymond, Ben Farr, Chris Chambers
 !  
 ! This file is part of the AnalyseMCMC package.
 !  
