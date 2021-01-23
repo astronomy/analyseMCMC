@@ -236,16 +236,17 @@ subroutine statistics(exitcode)
         call sorted_index_list(dble(selDat(ic,p,1:n(ic))), index1(1:n(ic)))
         indexx(p,1:n(ic)) = index1(1:n(ic))
         
+        ! Find the narrowest range that contains wrapival (~99.9%) of the data points and its centre:
         y1 = 0.
         y2 = 0.
         minrange = huge(minrange)
         do i=1,n(ic)
-           i1 = mod( i + nint(real(n(ic))*wrapival) - 1 , n(ic) ) + 1
-           x1 = selDat(ic,p,indexx(p,i ))
-           x2 = selDat(ic,p,indexx(p,i1))
-           range1 = mod(x2 - x1 + real(10*shIval), shIval)  ! Folded into 0-shIval
+           i1 = mod( i + nint(real(n(ic))*wrapival) - 1 , n(ic) ) + 1  ! Find the point 99.9% of total away from current point
+           x1 = selDat(ic,p,indexx(p,i ))                              ! Value for the current point i
+           x2 = selDat(ic,p,indexx(p,i1))                              ! Value for the corresponding point i1
+           range1 = mod(x2 - x1 + real(10*shIval), shIval)             ! Distance between points i and i1, folded into 0-shIval
            
-           if(range1.gt.0. .and. range1.lt.minrange) then
+           if(range1.gt.0. .and. range1.lt.minrange) then  ! Then this is the smallest range so far, store it in minrange/y1/y2
               minrange = range1
               y1 = x1
               y2 = x2
@@ -253,7 +254,7 @@ subroutine statistics(exitcode)
            end if
            !if(parID(p).eq.31) write(stdOut,'(2I6,5x,2(2F9.4,5x),3F9.4)') i,i1, x1,x2, range1,minrange, y1,y2,(y1+y2)/2.
         end do !i
-        centre = (y1+y2)/2.
+        centre = (y1+y2)/2.  ! The centre of the narrowest range found
         
         
         if(y1.gt.y2) then
