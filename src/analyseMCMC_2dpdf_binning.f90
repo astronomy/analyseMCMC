@@ -203,10 +203,11 @@ subroutine bin_and_normalise_2D_data(ic,p1,p2, xmin,xmax, ymin,ymax, z,tr, sky_p
   logical, intent(in) :: sky_position,binary_orientation
   
   integer :: i, injectionrange2d
-  real :: xx(maxChs*maxIter), yy(maxChs*maxIter), zz(maxChs*maxIter)
+  real, allocatable :: xx(:), yy(:), zz(:)
   !real :: xmin1,xmax1,ymin1,ymax1
   character :: areaunit*(19)
   
+  allocate(xx(maxChs*maxIter), yy(maxChs*maxIter), zz(maxChs*maxIter))
   
   xx(1:n(ic)) = selDat(ic,p1,1:n(ic))  ! Parameter 1
   yy(1:n(ic)) = selDat(ic,p2,1:n(ic))  ! Parameter 2

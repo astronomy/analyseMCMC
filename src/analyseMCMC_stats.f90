@@ -45,12 +45,14 @@ subroutine statistics(exitcode)
   integer, intent(out) :: exitcode
   
   integer :: c,i,i1,ic, in,nn,dn, p,p1,p2, wraptype
-  integer :: indexx(maxMCMCpar,maxChs*maxIter),index1(maxChs*maxIter)
+  integer, allocatable :: indexx(:,:),index1(:)
   real :: revper
   real :: x1,x2,y1,y2
   real :: range1,minrange,ival,wrapival,centre,maxlogl,minlogl,shift,shIval,shIval2
   real :: medians(maxMCMCpar),mean(maxMCMCpar),var1(maxMCMCpar),var2(maxMCMCpar),corr,corr1,corr2
   real(kind=realkindmax) :: var,total,total2,total3,deltab  ! Need extra accuracy to compute Bayes factor
+  
+  allocate(indexx(maxMCMCpar,maxChs*maxIter), index1(maxChs*maxIter))
   
   exitcode = 0
   

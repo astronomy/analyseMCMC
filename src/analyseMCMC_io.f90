@@ -880,7 +880,7 @@ subroutine parNames2IDs(parNameStr,nMCMCpar, parID)
        71,   72,      73,    81,  82,      83,    62,   68/)
   
   read(parNameStr,*) (pars(pr1),pr1=1,nMCMCpar+3)
-  do pr1=1,nMCMCpar+3
+  do pr1=4,nMCMCpar+3
      do pr2=1,npIDs
         if(trim(pars(pr1)).eq.trim(pnames(pr2))) parID(pr1-3) = pIDs(pr2)
      end do

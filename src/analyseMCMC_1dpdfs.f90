@@ -44,14 +44,15 @@ subroutine pdfs1d(exitcode)
   
   integer :: i,j,p,ic,io,pgopen,lw,status,system
   real :: rev24,rev360,rev180
-  real :: x(maxChs,maxChs*maxIter),xmin,xmax,xmin1,xmax1,xpeak,dx,ymin,ymax,sch
+  real :: xmin,xmax,xmin1,xmax1,xpeak,dx,ymin,ymax,sch
   
   ! These depend on Nbin1D, allocate after reading input file:
-  real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ysum(:),yconv(:),ycum(:)  
+  real,allocatable :: x(:,:), xbin(:,:),ybin(:,:),xbin1(:),ybin1(:),ysum(:),yconv(:),ycum(:)
   real :: plshift,plx,ply,x0,norm,bindx
   character :: string*(99),str*(99),str1*(99),str2*(99),delta*(19), tempfile*(199), convopts*(99)
   logical :: ex
   
+  allocate(x(maxChs,maxChs*maxIter))
   
   exitcode=0
   if(prProgress.ge.1.and.plot.eq.0.and.savePDF.eq.1) write(stdOut,'(A)',advance="no")'  Saving 1D pdfs'

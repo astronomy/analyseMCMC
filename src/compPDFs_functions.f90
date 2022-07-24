@@ -357,11 +357,13 @@ subroutine plotpdf2d(pID1,pID2,lbl)
   integer :: bx,by,pID1a,pID2a,p11,p22,pp11,pp22,pp12,p12,io,f,nplvar,nplvar1,nplvar2
   integer :: nchains,nbinx(nf),nbiny(nf),ic,lw,c,foundit
   integer :: identical
+  real, allocatable :: z(:,:,:),z1(:,:)
   real :: startval(nf,np,2,2),stats(nf,np,2,6),ranges(nf,np,2,5)
   real :: xmin1(nf,np,2),xmax1(nf,np,2),ymin1(nf,np,2),ymax1(nf,np,2),x
-  real :: xmin,xmax,ymin,ymax,dx,dy,z(nf,nbinx1,nbiny1),z1(nbinx1,nbiny1),tr(nf,np*np,6),cont(11)
+  real :: xmin,xmax,ymin,ymax,dx,dy,tr(nf,np*np,6),cont(11)
   character :: fname*(299),str*(99),tmpstr
   
+  allocate(z(nf,nbinx1,nbiny1), z1(nbinx1,nbiny1))
   
   pp12 = 0
   dof: do f=1,nf
@@ -616,10 +618,13 @@ subroutine plotwave(fname1,thingy,lbl)
   integer, parameter :: nf=1, n1=1000000
   integer :: i,f,n(nf),io,lw
   integer :: nfrx,nfry
+  real, allocatable :: t(:,:),h(:,:)
   real :: xwinmin,xwinmax,ywinmin,ywinmax
-  real :: t(nf,n1),h(nf,n1),dx,dy,xmin,xmax,ymin,ymax
+  real :: dx,dy,xmin,xmax,ymin,ymax
   real(double) :: t1,t0,m1,m2,mc,eta,tc,dl,lat,lon,phase,spin,kappa,thJ0,phJ0,alpha
   character :: fname*(299),bla
+  
+  allocate(t(nf,n1), h(nf,n1))
   
   t0 = 0.0_dbl
   

@@ -40,11 +40,16 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
   real, intent(in) :: bx10,bx20, by1,by2, raShift
   
   integer, parameter :: ns=9110, nsn=80
-  integer :: i,j,c(100,35),nc,snr(nsn),plcst,plstar,spld,prslbl, status
-  real(double) :: ra(ns),dec(ns),dx1,dx2,dy,ra1,dec1,drev2pi
-  real :: bx1,bx2,vm(ns),x1,y1,x2,y2,constx(99),consty(99),r1,g1,b1,r4,g4,b4
+  integer, allocatable :: c(:,:)
+  integer :: i,j,nc,snr(nsn),plcst,plstar,spld,prslbl, status
+  real(double), allocatable :: ra(:),dec(:)
+  real(double) :: dx1,dx2,dy,ra1,dec1,drev2pi
+  real :: bx1,bx2,vm(ns),x1,y1,x2,y2,constx(ns),consty(ns),r1,g1,b1,r4,g4,b4
   real :: schcon,sz1,schfac,schlbl,snlim,sllim,schmag,getmag,mag,x,y,mlim
-  character :: cn(100)*(3),con(100)*(20),name*(10),sn(ns)*(10),snam(nsn)*(10),sni*(10),getsname*(10), bscdir*(99)
+  character, allocatable :: con(:)*(20), sn(:)*(10)
+  character :: cn(ns)*(3),name*(10),snam(nsn)*(10),sni*(10),getsname*(10), bscdir*(99)
+  
+  allocate(c(ns,35), ra(ns),dec(ns), con(ns),sn(ns))
   
   bscdir = trim(homedir)//'/usr/lib'  ! Directory that contains bright-star catalogue and constellation data
   
@@ -103,11 +108,11 @@ subroutine plotthesky(bx10,bx20, by1,by2, raShift)
      nc = 0
   else
      do i=1,ns
-        read(22,'(I4)',end=340,advance='no')c(i,1)
+        read(22,'(I4)',end=340,advance='no') c(i,1)
         do j=1,c(i,1)
-           read(22,'(I5)',advance='no')c(i,j+1)
+           read(22,'(I5)',advance='no') c(i,j+1)
         end do
-        read(22,'(1x,A3,A20)')cn(i),con(i)
+        read(22,'(1x,A3,A20)') cn(i),con(i)
         !Get mean star position to place const. name
         dx1 = 0.d0
         dx2 = 0.d0

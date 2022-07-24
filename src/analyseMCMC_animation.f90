@@ -44,13 +44,15 @@ subroutine animation(exitcode)
   implicit none
   integer, intent(out) :: exitcode
   
-  integer :: c,i,ic,io,p,iframe,nplt,pgopen,lw,n1,n2, status,system
-  integer :: index(maxMCMCpar,maxChs*maxIter),small_anim
+  integer, allocatable :: index(:,:)
+  integer :: c,i,ic,io,p,iframe,nplt,pgopen,lw,n1,n2, status,system, small_anim
+  real,allocatable :: x(:,:), xbin(:,:),ybin(:,:),xbin1(:),ybin1(:)   ! *bin depend on Nbin1D, allocate after reading input file
   real :: range,range1,range2,drange,minrange,median,plshift,ival,norm  !,centre
-  real :: x(maxChs,maxChs*maxIter),x1,x2,xmin,xmax,xmin1,xmax1,dx,y1,y2,ymin,ymax,dy,sch
-  real,allocatable :: xbin(:,:),ybin(:,:),xbin1(:),ybin1(:)    !These depend on Nbin1D, allocate after reading input file
+  real :: x1,x2,xmin,xmax,xmin1,xmax1,dx,y1,y2,ymin,ymax,dy,sch
   real(double) :: ts1,ts2,timestamp
   character :: framename*(99),tms*(8),str*(99)
+  
+  allocate(index(maxMCMCpar,maxChs*maxIter), x(maxChs,maxChs*maxIter))
   
   exitcode = 0
   
