@@ -21,9 +21,9 @@ if( Fortran_COMPILER_NAME MATCHES "gfortran" )
   if( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER "4.4.99" )
     set( CMAKE_Fortran_FLAGS_ALL "${CMAKE_Fortran_FLAGS_ALL} -fwhole-file" )  # >= v.4.5
   endif( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER "4.4.99" )
-  if( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER "10" )
-    set( CMAKE_Fortran_FLAGS_ALL "${CMAKE_Fortran_FLAGS_ALL} -fallow-argument-mismatch" )  # Allowed for >= v.10, required for > v.10 when calling functions/subroutines multiple times(!)
-  endif( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER "10" )
+  # if( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER "10" )
+  #   set( CMAKE_Fortran_FLAGS_ALL "${CMAKE_Fortran_FLAGS_ALL} -fallow-argument-mismatch" )  # Allowed for >= v.10, required for > v.10 when calling functions/subroutines multiple times(!)
+  # endif( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER "10" )
   
   set( CMAKE_Fortran_FLAGS "-pipe -funroll-all-loops" )
   set( CMAKE_Fortran_FLAGS_RELEASE "-pipe -funroll-all-loops" )
