@@ -209,7 +209,7 @@ subroutine plot_posterior_chain(exitcode)
      ! Post-burnin:
      call pgsci(ci)
      do i=Nburn(ic)+ic,Ntot(ic),chainPlI  ! Start at ic to reduce overplotting
-        call pgpoint(1,is(ic,i),post(ic,i), symbol)
+        call pgpoint(1, is(ic,i),post(ic,i), symbol)
      end do
   end do
   
@@ -218,7 +218,7 @@ subroutine plot_posterior_chain(exitcode)
   if(plLmax.ge.1) then
      ply = post(icloglmax,iloglmax)
      call pgsci(1)
-     call pgpoint(1,is(icloglmax,iloglmax),ply,18)
+     call pgpoint(1,[is(icloglmax,iloglmax)],[ply],18)
      call pgsls(5)
      call pgline(2,(/xmin,xmax/),(/ply,ply/))
      if(plLmax.ge.2 .and. abs(autoBurnin).gt.1.e-10) then
@@ -545,7 +545,7 @@ subroutine plot_parameter_chains(exitcode)
                     ply = rev180(ply)
                  end select
               end if
-              call pgpoint(1,is(ic,i),ply,symbol)
+              call pgpoint(1,[is(ic,i)],[ply],symbol)
            end do
            
            ! Post-burnin:
@@ -562,7 +562,7 @@ subroutine plot_parameter_chains(exitcode)
                     ply = rev180(ply)
                  end select
               end if
-              call pgpoint(1,is(ic,i),ply,symbol)
+              call pgpoint(1,[is(ic,i)],[ply],symbol)
            end do
            
            
@@ -587,7 +587,7 @@ subroutine plot_parameter_chains(exitcode)
            end select
         end if
         call pgsci(1)
-        call pgpoint(1,is(icloglmax,iloglmax),ply,18)
+        call pgpoint(1,[is(icloglmax,iloglmax)],[ply],18)
         call pgsls(5)
         call pgline(2,(/xmin,xmax/),(/ply,ply/))
      end if
@@ -974,7 +974,7 @@ subroutine plot_par_L(exitcode)
               !call pgpoint(1,is(ic,i),plx,1) !Plot small dots
            end if
            !call pgpoint(1,plx,ply,symbol) !Plot symbols
-           call pgpoint(1,plx,exp(ply-ymin),symbol) !Plot symbols
+           call pgpoint(1,[plx],[exp(ply-ymin)],symbol) !Plot symbols
            !print*,i,plx,ply,exp(ply-ymin)
         end do
      end do
@@ -997,7 +997,7 @@ subroutine plot_par_L(exitcode)
         end if
         ply = exp(post(icloglmax,iloglmax)-ymin)
         call pgsci(1)
-        call pgpoint(1,plx,ply,12)
+        call pgpoint(1,[plx],[ply],12)
         call pgsls(5)
         call pgline(2,(/plx,plx/),(/ymin,ymax/))
      end if
@@ -1108,7 +1108,6 @@ subroutine plot_Jump_sizes(exitcode)
   character :: tempfile*(199), convopts*(99)
   logical :: ex
   
-  
   exitcode = 0
   
   if(htmlOutput.ge.1) then
@@ -1211,12 +1210,12 @@ subroutine plot_Jump_sizes(exitcode)
         if(plJump.eq.1) then
            !do i=1,Ntot(ic),chainPlI
            do i=ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
-              call pgpoint(1,is(ic,i),jumps(ic,p,i), symbol)
+              call pgpoint(1,[is(ic,i)],[jumps(ic,p,i)], symbol)
            end do
         else
            !do i=1,Ntot(ic),chainPlI
            do i=ic,Ntot(ic),chainPlI !Start at ic to reduce overplotting
-              call pgpoint(1,is(ic,i),log10(abs(jumps(ic,p,i))+1.e-30), symbol)
+              call pgpoint(1,[is(ic,i)],[log10(abs(jumps(ic,p,i))+1.e-30)], symbol)
            end do
         end if
      end do
