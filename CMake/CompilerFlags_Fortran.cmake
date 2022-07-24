@@ -17,19 +17,13 @@ endif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
 ######################################################################################################################################################
 if( Fortran_COMPILER_NAME MATCHES "gfortran" )
   
-  # Get compiler version:
-  exec_program(
-    ${CMAKE_Fortran_COMPILER}
-    ARGS --version
-    OUTPUT_VARIABLE _compiler_output)
-  string(REGEX REPLACE ".* ([0-9]\\.[0-9]\\.[0-9]).*" "\\1"
-    COMPILER_VERSION ${_compiler_output})
-  
-  
   set( CMAKE_Fortran_FLAGS_ALL "-std=f2008 -fall-intrinsics -pedantic" )
-  if( COMPILER_VERSION VERSION_GREATER "4.4.99" )
+  if( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER "4.4.99" )
     set( CMAKE_Fortran_FLAGS_ALL "${CMAKE_Fortran_FLAGS_ALL} -fwhole-file" )  # >= v.4.5
-  endif( COMPILER_VERSION VERSION_GREATER "4.4.99" )
+  endif( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER "4.4.99" )
+  if( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER "10" )
+    set( CMAKE_Fortran_FLAGS_ALL "${CMAKE_Fortran_FLAGS_ALL} -fallow-argument-mismatch" )  # Allowed for >= v.10, required for > v.10 when calling functions/subroutines multiple times(!)
+  endif( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER "10" )
   
   set( CMAKE_Fortran_FLAGS "-pipe -funroll-all-loops" )
   set( CMAKE_Fortran_FLAGS_RELEASE "-pipe -funroll-all-loops" )
@@ -52,11 +46,11 @@ if( Fortran_COMPILER_NAME MATCHES "gfortran" )
   if( WANT_CHECKS )
     set( CHECK_FLAGS "-ffpe-trap=zero,invalid,overflow,underflow -fsignaling-nans -g -fbacktrace" )
     #set( CHECK_FLAGS " ${CHECK_FLAGS} -ggdb" )
-    if( COMPILER_VERSION VERSION_GREATER "4.4.99" )
+    if( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER "4.4.99" )
       set( CHECK_FLAGS "-fcheck=all ${CHECK_FLAGS}" )    # >= v.4.5
-    else( COMPILER_VERSION VERSION_GREATER "4.4.99" )
+    else( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER "4.4.99" )
       set( CHECK_FLAGS "-fbounds-check ${CHECK_FLAGS}" ) # <= v.4.4
-    endif( COMPILER_VERSION VERSION_GREATER "4.4.99" )
+    endif( CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER "4.4.99" )
 
     set( OPT_FLAGS "-O0" )
   else( WANT_CHECKS )
@@ -81,15 +75,6 @@ if( Fortran_COMPILER_NAME MATCHES "gfortran" )
   
   ####################################################################################################################################################
 elseif( Fortran_COMPILER_NAME MATCHES "g95" )
-  
-  # Get compiler version:
-  exec_program(
-    ${CMAKE_Fortran_COMPILER}
-    ARGS --version
-    OUTPUT_VARIABLE _compiler_output)
-  string(REGEX REPLACE ".*g95 ([0-9]*\\.[0-9]*).*" "\\1"
-    COMPILER_VERSION ${_compiler_output})
-  
   
   set( CMAKE_Fortran_FLAGS "" )
   set( CMAKE_Fortran_FLAGS_RELEASE "" )
@@ -123,15 +108,6 @@ elseif( Fortran_COMPILER_NAME MATCHES "g95" )
   
   ####################################################################################################################################################
 elseif( Fortran_COMPILER_NAME MATCHES "ifort" )
-  
-  # Get compiler version:
-  exec_program(
-    ${CMAKE_Fortran_COMPILER}
-    ARGS --version
-    OUTPUT_VARIABLE _compiler_output)
-  string(REGEX REPLACE ".* ([0-9]*\\.[0-9]*\\.[0-9]*) .*" "\\1"
-    COMPILER_VERSION ${_compiler_output})
-  
   
   set( CMAKE_Fortran_FLAGS_ALL "-nogen-interfaces" )
   set( CMAKE_Fortran_FLAGS "-vec-guard-write -fpconstant -funroll-loops -align all -ip" )
@@ -230,7 +206,7 @@ set( CMAKE_Fortran_FLAGS_RELWITHDEBINFO "${CMAKE_Fortran_FLAGS_RELEASE} -g" )
 ######################################################################################################################################################
 
 message( STATUS "" )
-message( STATUS "Using Fortran compiler:  ${Fortran_COMPILER_NAME} ${COMPILER_VERSION}  (${CMAKE_Fortran_COMPILER})" )
+message( STATUS "Using Fortran compiler:  ${Fortran_COMPILER_NAME} ${CMAKE_Fortran_COMPILER_VERSION}  (${CMAKE_Fortran_COMPILER})" )
 
 if( WANT_CHECKS )
   message( STATUS "Compiling with run-time checks:  ${CHECK_FLAGS}" )
